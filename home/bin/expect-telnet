@@ -3,18 +3,28 @@
 import pexpect as expect
 import sys
 
-c = expect.spawn('telnet %s' % sys.argv[1])
-for x in range(2):
-    c.expect('password:')
-    c.sendline('')
-c.expect('password:')
-c.sendline('hk2008')
-c.expect('#')
-c.logfile = sys.stdout
-
-c.sendline('ps |grep -v "]$" |grep -v grep')
-c.expect('#')
-c.sendline('exit')
-c.expect(expect.EOF)
-c.close();
+for host in [ x for x in sys.argv[1:] if not x.startswith('-') ]:
+    try:
+        c = expect.spawn('telnet %s' % host)
+        c.setecho(False)
+        for x in range(2):
+            c.expect('password:')
+            c.sendline('')
+        c.expect('password:')
+        c.sendline('hk2008')
+        c.expect('#')
+        c.sendline('# %s' % host)
+        c.interact()
+        # c.expect('#')
+        # if '--interact' in sys.argv:
+        #     c.interact()
+        # else:
+        #     c.logfile = sys.stdout
+        #     c.sendline('ps |grep -v "]$" |grep -v grep')
+        #     c.expect('#')
+        #     c.sendline('exit')
+        #     c.expect(expect.EOF)
+        c.close();
+    except:
+        pass
 
