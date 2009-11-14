@@ -1,0 +1,42 @@
+#sys-kernel/gentoo-sources ~amd64
+app-i18n/ibus-pinyin ~amd64
+app-i18n/ibus ~amd64
+app-emulation/kvm ~amd64
+app-emulation/kvm-kmod ~amd64
+app-emulation/wine ~amd64
+games-kids/gcompris ~amd64
+games-strategy/warzone2100 ~amd64
+games-strategy/glest ~amd64
+games-strategy/glob2 ~amd64
+dev-python/dbus-python ~amd64
+dev-haskell/x11 ~amd64
+dev-util/boost-build ~amd64
+dev-libs/boost ~amd64
+app-text/hnb ~amd64
+# app-admin/eselect-opengl ~amd64
+# app-admin/eselect ~amd64
+# app-admin/eselect-boost ~amd64
+# app-admin/eselect-python ~amd64
+app-text/sdcv ~amd64
+app-dicts/stardict-oxford-en-zh-gb ~amd64
+# x11-libs/libXfont ~amd64
+x11-misc/xmobar ~amd64
+x11-wm/xmonad ~amd64
+x11-wm/xmonad-contrib ~amd64
+net-libs/webkit-gtk ~amd64
+net-libs/libsoup ~amd64
+www-client/chromium ~amd64
+www-client/uzbl ~amd64
+# www-plugins/libflashsupport ~amd64
+# media-libs/libmp4v2 ~amd64
+media-sound/lastfmplayer ~amd64
+app-arch/duff ~amd64
+media-libs/x264 ~amd64
+dev-haskell/utf8-string ~amd64
+media-video/ffmpeg ~amd64
+media-video/mplayer ~amd64
+
+games-sports/vdrift ~amd64
+# dev-libs/glib ~amd64
+dev-util/boost-build ~amd64
+x11-misc/xkbd ~amd64
