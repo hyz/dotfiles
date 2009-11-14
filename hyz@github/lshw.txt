@@ -1,0 +1,491 @@
+tux
+    description: Desktop Computer
+    product: System Product Name
+    vendor: System manufacturer
+    version: System Version
+    serial: System Serial Number
+    width: 64 bits
+    capabilities: smbios-2.5 dmi-2.5 vsyscall64 vsyscall32
+    configuration: boot=normal chassis=desktop uuid=C02B15EB-08B9-DC11-A9D8-001FC6A1A19D
+  *-core
+       description: Motherboard
+       product: M3A
+       vendor: ASUSTeK Computer INC.
+       physical id: 0
+       version: Rev 1.xx
+       serial: MF7083G01609725
+       slot: To Be Filled By O.E.M.
+     *-firmware
+          description: BIOS
+          vendor: American Megatrends Inc.
+          physical id: 0
+          version: 0501 (01/02/2008)
+          size: 64KiB
+          capacity: 960KiB
+          capabilities: isa pci pnp apm upgrade shadowing escd cdboot bootselect socketedrom edd int13floppy1200 int13floppy720 int13floppy2880 int5printscreen int9keyboard int14serial int17printer int10video acpi usb ls120boot zipboot biosbootspecification
+     *-cpu
+          description: CPU
+          product: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+          vendor: Advanced Micro Devices [AMD]
+          physical id: 4
+          bus info: cpu@0
+          version: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+          serial: To Be Filled By O.E.M.
+          slot: CPU 1
+          size: 2600MHz
+          capacity: 2600MHz
+          width: 64 bits
+          clock: 200MHz
+          capabilities: fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow rep_good extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy 3dnowprefetch
+        *-cache:0
+             description: L1 cache
+             physical id: 5
+             slot: L1-Cache
+             size: 256KiB
+             capacity: 256KiB
+             capabilities: pipeline-burst internal varies data
+        *-cache:1
+             description: L2 cache
+             physical id: 6
+             slot: L2-Cache
+             size: 1MiB
+             capacity: 1MiB
+             capabilities: pipeline-burst internal varies unified
+        *-cache:2 DISABLED
+             description: L3 cache
+             physical id: 7
+             slot: L3-Cache
+             capabilities: internal
+     *-memory
+          description: System Memory
+          physical id: 35
+          slot: System board or motherboard
+          size: 2GiB
+        *-bank:0
+             description: DIMM Synchronous 800 MHz (1.2 ns)
+             product: PartNum0
+             vendor: Manufacturer0
+             physical id: 0
+             serial: SerNum0
+             slot: DIMM_A1
+             size: 2GiB
+             width: 64 bits
+             clock: 800MHz (1.2ns)
+        *-bank:1
+             description: DIMM SDRAM [empty]
+             product: PartNum1
+             vendor: Manufacturer1
+             physical id: 1
+             serial: SerNum1
+             slot: DIMM_B1
+        *-bank:2
+             description: DIMM SDRAM [empty]
+             product: PartNum2
+             vendor: Manufacturer2
+             physical id: 2
+             serial: SerNum2
+             slot: DIMM_A2
+        *-bank:3
+             description: DIMM SDRAM [empty]
+             product: PartNum3
+             vendor: Manufacturer3
+             physical id: 3
+             serial: SerNum3
+             slot: DIMM_B2
+     *-pci:0
+          description: Host bridge
+          product: RX780/RX790 Chipset Host Bridge
+          vendor: ATI Technologies Inc
+          physical id: 100
+          bus info: pci@0000:00:00.0
+          version: 00
+          width: 64 bits
+          clock: 66MHz
+        *-pci:0
+             description: PCI bridge
+             product: RD790 PCI to PCI bridge (external gfx0 port A)
+             vendor: ATI Technologies Inc
+             physical id: 2
+             bus info: pci@0000:00:02.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pci pm pciexpress msi ht normal_decode bus_master cap_list
+             configuration: driver=pcieport-driver
+           *-display
+                description: VGA compatible controller
+                product: RV670PRO [Radeon HD 3850]
+                vendor: ATI Technologies Inc
+                physical id: 0
+                bus info: pci@0000:01:00.0
+                version: 00
+                width: 64 bits
+                clock: 33MHz
+                capabilities: pm pciexpress msi vga_controller bus_master cap_list
+                configuration: driver=fglrx_pci latency=0 module=fglrx
+           *-multimedia
+                description: Audio device
+                product: Radeon HD 3870 Audio device
+                vendor: ATI Technologies Inc
+                physical id: 0.1
+                bus info: pci@0000:01:00.1
+                version: 00
+                width: 64 bits
+                clock: 33MHz
+                capabilities: pm pciexpress msi bus_master cap_list
+                configuration: driver=HDA Intel latency=0 module=snd_hda_intel
+        *-pci:1
+             description: PCI bridge
+             product: RD790 PCI to PCI bridge (PCI express gpp port C)
+             vendor: ATI Technologies Inc
+             physical id: 6
+             bus info: pci@0000:00:06.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pci pm pciexpress msi ht normal_decode bus_master cap_list
+             configuration: driver=pcieport-driver
+           *-network
+                description: Ethernet interface
+                product: L1 Gigabit Ethernet Adapter
+                vendor: Attansic Technology Corp.
+                physical id: 0
+                bus info: pci@0000:02:00.0
+                logical name: eth0
+                version: b0
+                serial: 00:1f:c6:a1:a1:9d
+                size: 100MB/s
+                capacity: 1GB/s
+                width: 64 bits
+                clock: 33MHz
+                capabilities: pm msi pciexpress vpd bus_master cap_list ethernet physical tp 10bt 10bt-fd 100bt 100bt-fd 1000bt-fd autonegotiation
+                configuration: autonegotiation=on broadcast=yes driver=atl1 driverversion=2.1.3 duplex=full firmware=N/A ip=192.168.0.99 latency=0 link=yes module=atl1 multicast=yes port=twisted pair speed=100MB/s
+        *-storage
+             description: SATA controller
+             product: SB600 Non-Raid-5 SATA
+             vendor: ATI Technologies Inc
+             physical id: 12
+             bus info: pci@0000:00:12.0
+             logical name: scsi0
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: storage pm ahci_1.0 bus_master cap_list emulated
+             configuration: driver=ahci latency=64 module=ahci
+           *-disk
+                description: ATA Disk
+                product: ST3500418AS
+                vendor: Seagate
+                physical id: 0.0.0
+                bus info: scsi@0:0.0.0
+                logical name: /dev/sda
+                version: CC34
+                serial: 9VM0Z0HD
+                size: 465GiB (500GB)
+                capabilities: partitioned partitioned:dos
+                configuration: ansiversion=5 signature=02990c95
+              *-volume:0
+                   description: Windows NTFS volume
+                   physical id: 1
+                   bus info: scsi@0:0.0.0,1
+                   logical name: /dev/sda1
+                   version: 3.1
+                   serial: 5e01d5c2-fd04-ce4a-8c0c-4773b1f0e72c
+                   size: 15GiB
+                   capacity: 15GiB
+                   capabilities: primary bootable ntfs initialized
+                   configuration: clustersize=4096 created=2009-07-12 13:48:33 filesystem=ntfs modified_by_chkdsk=true mounted_on_nt4=true resize_log_file=true state=dirty upgrade_on_mount=true
+              *-volume:1
+                   description: EXT3 volume
+                   vendor: Linux
+                   physical id: 2
+                   bus info: scsi@0:0.0.0,2
+                   logical name: /dev/sda2
+                   logical name: /
+                   version: 1.0
+                   serial: cabb8a1a-7b64-4545-81a9-dac3e2c56380
+                   size: 15GiB
+                   capacity: 15GiB
+                   capabilities: primary journaled extended_attributes large_files huge_files recover ext3 ext2 initialized
+                   configuration: created=2009-07-12 21:42:37 filesystem=ext3 modified=2009-11-15 06:03:56 mount.fstype=ext3 mount.options=rw,noatime,errors=continue,data=writeback mounted=2009-11-15 06:03:56 state=mounted
+              *-volume:2
+                   description: EXT3 volume
+                   vendor: Linux
+                   physical id: 3
+                   bus info: scsi@0:0.0.0,3
+                   logical name: /dev/sda3
+                   logical name: /home
+                   version: 1.0
+                   serial: 27daa805-0667-4227-bc89-aaa2372aa2e0
+                   size: 251GiB
+                   capacity: 251GiB
+                   capabilities: primary journaled extended_attributes large_files huge_files recover ext3 ext2 initialized
+                   configuration: created=2009-07-12 17:36:45 filesystem=ext3 modified=2009-11-15 06:03:57 mount.fstype=ext4 mount.options=rw,noatime,barrier=1,data=ordered mounted=2009-11-15 06:03:57 state=mounted
+              *-volume:3
+                   description: Extended partition
+                   physical id: 4
+                   bus info: scsi@0:0.0.0,4
+                   logical name: /dev/sda4
+                   size: 183GiB
+                   capacity: 183GiB
+                   capabilities: primary extended partitioned partitioned:extended
+                 *-logicalvolume:0
+                      description: HPFS/NTFS partition
+                      physical id: 5
+                      logical name: /dev/sda5
+                      capacity: 15GiB
+                 *-logicalvolume:1
+                      description: Linux filesystem partition
+                      physical id: 6
+                      logical name: /dev/sda6
+                      capacity: 125GiB
+                 *-logicalvolume:2
+                      description: Linux filesystem partition
+                      physical id: 7
+                      logical name: /dev/sda7
+                      capacity: 8040MiB
+                 *-logicalvolume:3
+                      description: Linux filesystem partition
+                      physical id: 8
+                      logical name: /dev/sda8
+                      capacity: 8040MiB
+                 *-logicalvolume:4
+                      description: Linux swap / Solaris partition
+                      physical id: 9
+                      logical name: /dev/sda9
+                      capacity: 4024MiB
+                      capabilities: nofs
+                 *-logicalvolume:5
+                      description: Linux filesystem partition
+                      physical id: a
+                      logical name: /dev/sda10
+                      capacity: 4024MiB
+                 *-logicalvolume:6
+                      description: Linux filesystem partition
+                      physical id: b
+                      logical name: /dev/sda11
+                      capacity: 8040MiB
+                 *-logicalvolume:7
+                      description: Linux filesystem partition
+                      physical id: c
+                      logical name: /dev/sda12
+                      capacity: 10GiB
+        *-usb:0
+             description: USB Controller
+             product: SB600 USB (OHCI0)
+             vendor: ATI Technologies Inc
+             physical id: 13
+             bus info: pci@0000:00:13.0
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ohci bus_master
+             configuration: driver=ohci_hcd latency=64
+           *-usbhost
+                product: OHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                physical id: 1
+                bus info: usb@2
+                logical name: usb2
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:1
+             description: USB Controller
+             product: SB600 USB (OHCI1)
+             vendor: ATI Technologies Inc
+             physical id: 13.1
+             bus info: pci@0000:00:13.1
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ohci bus_master
+             configuration: driver=ohci_hcd latency=64
+           *-usbhost
+                product: OHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                physical id: 1
+                bus info: usb@3
+                logical name: usb3
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+              *-usb UNCLAIMED
+                   description: Generic USB device
+                   product: PC Camera
+                   vendor: Vimicro Corp.
+                   physical id: 1
+                   bus info: usb@3:1
+                   version: 1.00
+                   capabilities: usb-1.10
+                   configuration: maxpower=160mA speed=12.0MB/s
+        *-usb:2
+             description: USB Controller
+             product: SB600 USB (OHCI2)
+             vendor: ATI Technologies Inc
+             physical id: 13.2
+             bus info: pci@0000:00:13.2
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ohci bus_master
+             configuration: driver=ohci_hcd latency=64
+           *-usbhost
+                product: OHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                physical id: 1
+                bus info: usb@4
+                logical name: usb4
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:3
+             description: USB Controller
+             product: SB600 USB (OHCI3)
+             vendor: ATI Technologies Inc
+             physical id: 13.3
+             bus info: pci@0000:00:13.3
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ohci bus_master
+             configuration: driver=ohci_hcd latency=64
+           *-usbhost
+                product: OHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                physical id: 1
+                bus info: usb@5
+                logical name: usb5
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:4
+             description: USB Controller
+             product: SB600 USB (OHCI4)
+             vendor: ATI Technologies Inc
+             physical id: 13.4
+             bus info: pci@0000:00:13.4
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ohci bus_master
+             configuration: driver=ohci_hcd latency=64
+           *-usbhost
+                product: OHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                physical id: 1
+                bus info: usb@6
+                logical name: usb6
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:5
+             description: USB Controller
+             product: SB600 USB Controller (EHCI)
+             vendor: ATI Technologies Inc
+             physical id: 13.5
+             bus info: pci@0000:00:13.5
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: pm msi debug ehci bus_master cap_list
+             configuration: driver=ehci_hcd latency=64 module=ehci_hcd
+           *-usbhost
+                product: EHCI Host Controller
+                vendor: Linux 2.6.30-gentoo-r5 ehci_hcd
+                physical id: 1
+                bus info: usb@1
+                logical name: usb1
+                version: 2.06
+                capabilities: usb-2.00
+                configuration: driver=hub slots=10 speed=480.0MB/s
+        *-serial UNCLAIMED
+             description: SMBus
+             product: SBx00 SMBus Controller
+             vendor: ATI Technologies Inc
+             physical id: 14
+             bus info: pci@0000:00:14.0
+             version: 14
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ht cap_list
+             configuration: latency=0
+        *-ide UNCLAIMED
+             description: IDE interface
+             product: SB600 IDE
+             vendor: ATI Technologies Inc
+             physical id: 14.1
+             bus info: pci@0000:00:14.1
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ide bus_master
+             configuration: latency=0
+        *-multimedia
+             description: Audio device
+             product: SBx00 Azalia (Intel HDA)
+             vendor: ATI Technologies Inc
+             physical id: 14.2
+             bus info: pci@0000:00:14.2
+             version: 00
+             width: 64 bits
+             clock: 33MHz
+             capabilities: pm bus_master cap_list
+             configuration: driver=HDA Intel latency=64 module=snd_hda_intel
+        *-isa
+             description: ISA bridge
+             product: SB600 PCI to LPC Bridge
+             vendor: ATI Technologies Inc
+             physical id: 14.3
+             bus info: pci@0000:00:14.3
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: isa bus_master
+             configuration: latency=0
+        *-pci:2
+             description: PCI bridge
+             product: SBx00 PCI to PCI Bridge
+             vendor: ATI Technologies Inc
+             physical id: 14.4
+             bus info: pci@0000:00:14.4
+             version: 00
+             width: 32 bits
+             clock: 66MHz
+             capabilities: pci subtractive_decode bus_master
+     *-pci:1
+          description: Host bridge
+          product: K8 [Athlon64/Opteron] HyperTransport Technology Configuration
+          vendor: Advanced Micro Devices [AMD]
+          physical id: 101
+          bus info: pci@0000:00:18.0
+          version: 00
+          width: 32 bits
+          clock: 33MHz
+     *-pci:2
+          description: Host bridge
+          product: K8 [Athlon64/Opteron] Address Map
+          vendor: Advanced Micro Devices [AMD]
+          physical id: 102
+          bus info: pci@0000:00:18.1
+          version: 00
+          width: 32 bits
+          clock: 33MHz
+     *-pci:3
+          description: Host bridge
+          product: K8 [Athlon64/Opteron] DRAM Controller
+          vendor: Advanced Micro Devices [AMD]
+          physical id: 103
+          bus info: pci@0000:00:18.2
+          version: 00
+          width: 32 bits
+          clock: 33MHz
+     *-pci:4
+          description: Host bridge
+          product: K8 [Athlon64/Opteron] Miscellaneous Control
+          vendor: Advanced Micro Devices [AMD]
+          physical id: 104
+          bus info: pci@0000:00:18.3
+          version: 00
+          width: 32 bits
+          clock: 33MHz

@@ -1,0 +1,4529 @@
+============ start debug info ============
+libhd version 13.28u (x86-64)
+using /var/lib/hardware
+kernel version is 2.6
+----- /proc/cmdline -----
+  root=/dev/sda2
+----- /proc/cmdline end -----
+debug = 0xff7ffff7
+probe = 0x0000138fc4aa17fff9fffe (+memory +pci +isapnp +net +floppy +misc +misc.serial +misc.par +misc.floppy +serial +cpu +bios +monitor +mouse +scsi +usb -usb.mods +modem +modem.usb +parallel +parallel.lp +parallel.zip +isa +isa.isdn +isdn +kbd +prom +sbus +int +braille +braille.alva +braille.fhp +braille.ht -ignx11 +sys -bios.vbe -isapnp.old -isapnp.new -isapnp.mod +braille.baum -manual +fb +pppoe -scan +pcmcia -fork -parallel.imm +s390 -cpuemu -sysfs -s390disks +udev +block +block.cdrom +block.part +edd +edd.mod -bios.ddc -bios.fb -bios.mode +input +block.mods +bios.vesa -cpuemu.debug -scsi.noserial +wlan -bios.crc -hal -bios.vram -bios.acpi -bios.ddc.ports=1 -bios.ddc.ports=2 -bios.ddc.ports=3 -bios.ddc.ports=4 -modules.pata -max -lxrc)
+shm: attached segment 524293 at 0x7fdf81917000
+>> hal.1: read hal data
+  hal: connected to: :1.7
+----- hal device list -----
+  0: udi = '/org/freedesktop/Hal/devices/volume_part11_size_8430879744'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume'
+  info.udi = '/org/freedesktop/Hal/devices/volume_part11_size_8430879744'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = ''
+  volume.fsusage = ''
+  volume.fsversion = ''
+  volume.uuid = ''
+  volume.label = ''
+  volume.mount_point = ''
+  block.device = '/dev/sda11'
+  volume.is_mounted_read_only = false
+  block.minor = 11 (0xb)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 11 (0xb)
+  volume.num_blocks = 16466562ull (0xfb4282ull)
+  volume.size = 8430879744ull (0x1f6850400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda11'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 480167202816ull (0x6fcc321000ull)
+  volume.partition.scheme = 'embr'
+  volume.partition.type = '0x83'
+  volume.partition.label = ''
+  volume.partition.uuid = ''
+  volume.is_mounted = false
+  volume.partition.flags = {  }
+  linux.hotplug_type = 3 (0x3)
+
+  1: udi = '/org/freedesktop/Hal/devices/volume_part7_size_8430879744'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume'
+  info.udi = '/org/freedesktop/Hal/devices/volume_part7_size_8430879744'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = ''
+  volume.fsusage = ''
+  volume.fsversion = ''
+  volume.uuid = ''
+  volume.label = ''
+  volume.mount_point = ''
+  block.device = '/dev/sda7'
+  volume.is_mounted_read_only = false
+  block.minor = 7 (0x7)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 7 (0x7)
+  volume.num_blocks = 16466562ull (0xfb4282ull)
+  volume.size = 8430879744ull (0x1f6850400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda7'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 454866241536ull (0x69e8240800ull)
+  volume.partition.scheme = 'embr'
+  volume.partition.type = '0x83'
+  volume.partition.label = ''
+  volume.partition.uuid = ''
+  volume.is_mounted = false
+  volume.partition.flags = {  }
+  linux.hotplug_type = 3 (0x3)
+
+  2: udi = '/org/freedesktop/Hal/devices/volume_part12_size_11507134464'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume'
+  info.udi = '/org/freedesktop/Hal/devices/volume_part12_size_11507134464'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = ''
+  volume.fsusage = ''
+  volume.fsversion = ''
+  volume.uuid = ''
+  volume.label = ''
+  volume.mount_point = ''
+  block.device = '/dev/sda12'
+  volume.is_mounted_read_only = false
+  block.minor = 12 (0xc)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 12 (0xc)
+  volume.num_blocks = 22474872ull (0x156f078ull)
+  volume.size = 11507134464ull (0x2ade0f000ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda12'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 488598114816ull (0x71c2b79200ull)
+  volume.partition.scheme = 'embr'
+  volume.partition.type = '0x83'
+  volume.partition.label = ''
+  volume.partition.uuid = ''
+  volume.is_mounted = false
+  volume.partition.flags = {  }
+  linux.hotplug_type = 3 (0x3)
+
+  3: udi = '/org/freedesktop/Hal/devices/volume_uuid_3b9bef21_4eae_4e22_bac9_d276ffc6cdcd'
+  block.minor = 9 (0x9)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.is_mounted_read_only = false
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 9 (0x9)
+  volume.is_disc = false
+  volume.num_blocks = 8241282ull (0x7dc082ull)
+  info.category = 'volume'
+  volume.block_size = 512 (0x200)
+  info.capabilities = { 'volume', 'block' }
+  volume.size = 4219536384ull (0xfb810400ull)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda9'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  info.product = 'Volume (swap)'
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_3b9bef21_4eae_4e22_bac9_d276ffc6cdcd'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 471728065536ull (0x6dd52f0c00ull)
+  volume.fstype = 'swap'
+  volume.fsusage = 'other'
+  volume.fsversion = '2'
+  volume.uuid = '3b9bef21-4eae-4e22-bac9-d276ffc6cdcd'
+  linux.hotplug_type = 3 (0x3)
+  volume.label = ''
+  volume.mount_point = ''
+  block.device = '/dev/sda9'
+  block.major = 8 (0x8)
+  volume.is_mounted = false
+
+  4: udi = '/org/freedesktop/Hal/devices/volume_uuid_b0fc3a86_bc39_436d_a545_438f521059ef'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ext3)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_b0fc3a86_bc39_436d_a545_438f521059ef'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ext3'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '1.0'
+  volume.uuid = 'b0fc3a86-bc39-436d-a545-438f521059ef'
+  volume.label = ''
+  volume.mount_point = ''
+  volume.is_mounted_read_only = false
+  block.minor = 8 (0x8)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 8 (0x8)
+  volume.num_blocks = 16466562ull (0xfb4282ull)
+  volume.size = 8430879744ull (0x1f6850400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda8'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 463297153536ull (0x6bdea98a00ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda8'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec', 'acl', 'user_xattr', 'data=' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = false
+
+  5: udi = '/org/freedesktop/Hal/devices/volume_uuid_c79212eb_fed7_4474_b6f9_d4b049cfd401'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ext4)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_c79212eb_fed7_4474_b6f9_d4b049cfd401'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ext4'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '1.0'
+  volume.uuid = 'c79212eb-fed7-4474-b6f9-d4b049cfd401'
+  volume.label = ''
+  volume.mount_point = ''
+  volume.is_mounted_read_only = false
+  block.minor = 6 (0x6)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 6 (0x6)
+  volume.num_blocks = 263224962ull (0xfb07e82ull)
+  volume.size = 134771180544ull (0x1f60fd0400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda6'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 320095028736ull (0x4a87268600ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda6'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = false
+
+  6: udi = '/org/freedesktop/Hal/devices/volume_part4_size_1024'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume'
+  info.udi = '/org/freedesktop/Hal/devices/volume_part4_size_1024'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = ''
+  volume.fsusage = 'partitiontable'
+  volume.fsversion = ''
+  volume.uuid = ''
+  volume.label = ''
+  volume.mount_point = ''
+  block.device = '/dev/sda4'
+  volume.is_mounted_read_only = false
+  block.minor = 4 (0x4)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 4 (0x4)
+  volume.num_blocks = 2ull (0x2ull)
+  volume.size = 1024ull (0x400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda4'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 303241397760ull (0x469a988600ull)
+  volume.partition.scheme = 'mbr'
+  volume.partition.type = '0x05'
+  volume.partition.label = ''
+  volume.partition.uuid = ''
+  volume.is_mounted = false
+  volume.partition.flags = {  }
+  linux.hotplug_type = 3 (0x3)
+
+  7: udi = '/org/freedesktop/Hal/devices/volume_uuid_50FC719DFC717E52'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = '新加卷'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_50FC719DFC717E52'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ntfs-3g'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '3.1'
+  volume.uuid = '50FC719DFC717E52'
+  volume.label = '新加卷'
+  volume.mount_point = ''
+  volume.is_mounted_read_only = false
+  block.minor = 5 (0x5)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 5 (0x5)
+  volume.num_blocks = 32917122ull (0x1f64682ull)
+  volume.size = 16853566464ull (0x3ec8d0400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda5'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 303241430016ull (0x469a990400ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda5'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec', 'uid=', 'gid=', 'umask=', 'utf8' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = false
+
+  8: udi = '/org/freedesktop/Hal/devices/volume_uuid_27daa805_0667_4227_bc89_aaa2372aa2e0'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ext4)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_27daa805_0667_4227_bc89_aaa2372aa2e0'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ext4'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '1.0'
+  volume.uuid = '27daa805-0667-4227-bc89-aaa2372aa2e0'
+  volume.label = ''
+  volume.mount_point = '/home'
+  volume.is_mounted_read_only = false
+  block.minor = 3 (0x3)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 3 (0x3)
+  volume.num_blocks = 526433985ull (0x1f60bec1ull)
+  volume.size = 269534200320ull (0x3ec17d8200ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda3'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 33707197440ull (0x7d91b0400ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda3'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = true
+
+  9: udi = '/org/freedesktop/Hal/devices/volume_uuid_cabb8a1a_7b64_4545_81a9_dac3e2c56380'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ext3)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_cabb8a1a_7b64_4545_81a9_dac3e2c56380'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ext3'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '1.0'
+  volume.uuid = 'cabb8a1a-7b64-4545-81a9-dac3e2c56380'
+  volume.label = ''
+  volume.mount_point = '/'
+  volume.is_mounted_read_only = false
+  block.minor = 2 (0x2)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 2 (0x2)
+  volume.num_blocks = 32917185ull (0x1f646c1ull)
+  volume.size = 16853598720ull (0x3ec8d8200ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda2'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 16853598720ull (0x3ec8d8200ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda2'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec', 'acl', 'user_xattr', 'data=' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = true
+
+  10: udi = '/org/freedesktop/Hal/devices/volume_uuid_f6bc9691_8ee1_49a7_b2ab_f17158e1fbfc'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ext3)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_f6bc9691_8ee1_49a7_b2ab_f17158e1fbfc'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ext3'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '1.0'
+  volume.uuid = 'f6bc9691-8ee1-49a7-b2ab-f17158e1fbfc'
+  volume.label = ''
+  volume.mount_point = ''
+  volume.is_mounted_read_only = false
+  block.minor = 10 (0xa)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 10 (0xa)
+  volume.num_blocks = 8241282ull (0x7dc082ull)
+  volume.size = 4219536384ull (0xfb810400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda10'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 475947634176ull (0x6ed0b08e00ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda10'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec', 'acl', 'user_xattr', 'data=' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = false
+
+  11: udi = '/org/freedesktop/Hal/devices/volume_uuid_66E8659CE8656AEF'
+  info.category = 'volume'
+  info.capabilities = { 'volume', 'block' }
+  info.product = 'Volume (ntfs)'
+  info.udi = '/org/freedesktop/Hal/devices/volume_uuid_66E8659CE8656AEF'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  volume.fstype = 'ntfs-3g'
+  info.interfaces = { 'org.freedesktop.Hal.Device.Volume' }
+  volume.fsusage = 'filesystem'
+  volume.fsversion = '3.1'
+  volume.uuid = '66E8659CE8656AEF'
+  volume.label = ''
+  volume.mount_point = ''
+  volume.is_mounted_read_only = false
+  block.minor = 1 (0x1)
+  block.is_volume = true
+  volume.is_partition = true
+  volume.linux.is_device_mapper = false
+  volume.partition.number = 1 (0x1)
+  volume.num_blocks = 32917122ull (0x1f64682ull)
+  volume.size = 16853566464ull (0x3ec8d0400ull)
+  volume.is_disc = false
+  volume.partition.media_size = 500106780160ull (0x7470afde00ull)
+  block.major = 8 (0x8)
+  volume.block_size = 512 (0x200)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda/sda1'
+  info.parent = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.partition.start = 32256ull (0x7e00ull)
+  org.freedesktop.Hal.Device.Volume.method_argnames = { 'mount_point fstype extra_options', 'extra_options', 'extra_options' }
+  org.freedesktop.Hal.Device.Volume.method_names = { 'Mount', 'Unmount', 'Eject' }
+  org.freedesktop.Hal.Device.Volume.method_signatures = { 'ssas', 'as', 'as' }
+  volume.unmount.valid_options = { 'lazy' }
+  org.freedesktop.Hal.Device.Volume.method_execpaths = { 'hal-storage-mount', 'hal-storage-unmount', 'hal-storage-eject' }
+  block.device = '/dev/sda1'
+  volume.mount.valid_options = { 'ro', 'sync', 'dirsync', 'noatime', 'nodiratime', 'noexec', 'quiet', 'remount', 'exec', 'uid=', 'gid=', 'umask=', 'utf8' }
+  linux.hotplug_type = 3 (0x3)
+  volume.is_mounted = false
+
+  12: udi = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  info.category = 'storage'
+  info.capabilities = { 'storage', 'block' }
+  info.product = 'ST3500418AS'
+  info.udi = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  storage.removable.media_size = 500106780160ull (0x7470afde00ull)
+  storage.partitioning_scheme = 'mbr'
+  block.storage_device = '/org/freedesktop/Hal/devices/storage_serial_SATA_ST3500418AS_9VM0Z0HD'
+  volume.ignore = true
+  block.device = '/dev/sda'
+  block.major = 8 (0x8)
+  block.minor = 0 (0x0)
+  block.is_volume = false
+  storage.bus = 'pci'
+  storage.no_partitions_hint = false
+  storage.media_check_enabled = false
+  storage.automount_enabled_hint = true
+  storage.drive_type = 'disk'
+  storage.model = 'ST3500418AS'
+  storage.vendor = 'ATA'
+  storage.serial = 'SATA_ST3500418AS_9VM0Z0HD'
+  storage.firmware_version = 'CC34'
+  storage.lun = 0 (0x0)
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/block/sda'
+  storage.removable.media_available = true
+  storage.originating_device = '/org/freedesktop/Hal/devices/computer'
+  storage.size = 500106780160ull (0x7470afde00ull)
+  storage.removable = false
+  storage.requires_eject = false
+  storage.hotpluggable = false
+  info.vendor = 'ATA'
+  linux.hotplug_type = 3 (0x3)
+
+  13: udi = '/org/freedesktop/Hal/devices/computer'
+  power_management.type = 'acpi'
+  power_management.acpi.linux.version = '20090320'
+  power_management.quirk.vbe_post = true
+  power_management.quirk.dpms_on = true
+  power_management.quirk.vbestate_restore = true
+  power_management.quirk.vbemode_restore = true
+  power_management.quirk.dpms_suspend = true
+  power_management.quirk.vga_mode_3 = true
+  info.addons = { 'hald-addon-cpufreq', 'hald-addon-acpi' }
+  org.freedesktop.Hal.Device.SystemPowerManagement.method_names = { 'Suspend', 'SuspendHybrid', 'Hibernate', 'Shutdown', 'Reboot', 'SetPowerSave' }
+  org.freedesktop.Hal.Device.SystemPowerManagement.method_signatures = { 'i', 'i', '', '', '', 'b' }
+  org.freedesktop.Hal.Device.SystemPowerManagement.method_argnames = { 'num_seconds_to_sleep', 'num_seconds_to_sleep', '', '', '', 'enable_power_save' }
+  org.freedesktop.Hal.Device.SystemPowerManagement.method_execpaths = { 'hal-system-power-suspend', 'hal-system-power-suspend-hybrid', 'hal-system-power-hibernate', 'hal-system-power-shutdown', 'hal-system-power-reboot', 'hal-system-power-set-power-save' }
+  info.subsystem = 'unknown'
+  info.product = 'Computer'
+  info.udi = '/org/freedesktop/Hal/devices/computer'
+  system.kernel.name = 'Linux'
+  system.kernel.version = '2.6.30-gentoo-r5'
+  system.kernel.machine = 'x86_64'
+  power_management.can_suspend = true
+  power_management.can_suspend_hybrid = false
+  power_management.can_hibernate = true
+  system.hardware.primary_video.vendor = 4098 (0x1002)
+  system.hardware.primary_video.product = 38149 (0x9505)
+  system.hardware.serial = 'System Serial Number'
+  system.hardware.uuid = 'C02B15EB-08B9-DC11-A9D8-001FC6A1A19D'
+  system.board.serial = 'MF7083G01609725'
+  system.firmware.vendor = 'American Megatrends Inc.'
+  system.firmware.version = '0501'
+  system.firmware.release_date = '01/02/2008'
+  system.hardware.vendor = 'System manufacturer'
+  system.hardware.product = 'System Product Name'
+  system.hardware.version = 'System Version'
+  system.chassis.manufacturer = 'Chassis Manufacture'
+  system.board.product = 'M3A'
+  system.board.version = 'Rev 1.xx'
+  system.board.vendor = 'ASUSTeK Computer INC.'
+  system.chassis.type = 'Desktop'
+  system.formfactor = 'desktop'
+  info.interfaces = { 'org.freedesktop.Hal.Device.SystemPowerManagement' }
+  power_management.is_powersave_set = false
+  info.callouts.add = { 'hal-storage-cleanup-all-mountpoints' }
+
+  14: udi = '/org/freedesktop/Hal/devices/pnp_PNP0501_serial_platform_0'
+  info.capabilities = { 'serial' }
+  linux.subsystem = 'tty'
+  linux.device_file = '/dev/ttyS0'
+  linux.hotplug_type = 2 (0x2)
+  linux.sysfs_path = '/sys/devices/pnp0/00:05/tty/ttyS0'
+  info.parent = '/org/freedesktop/Hal/devices/pnp_PNP0501'
+  info.subsystem = 'tty'
+  info.product = '16550A-compatible COM port'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0501_serial_platform_0'
+  serial.originating_device = '/org/freedesktop/Hal/devices/pnp_PNP0501'
+  serial.device = '/dev/ttyS0'
+  serial.port = 0 (0x0)
+  serial.type = 'platform'
+  info.category = 'serial'
+
+  15: udi = '/org/freedesktop/Hal/devices/acpi_P001'
+  info.capabilities = { 'processor' }
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  linux.acpi_path = '/proc/acpi/processor/P001'
+  linux.acpi_type = 1 (0x1)
+  processor.number = 0 (0x0)
+  info.product = 'AMD Athlon(tm) 64 X2 Dual Core Processor 5000+'
+  processor.can_throttle = false
+  info.udi = '/org/freedesktop/Hal/devices/acpi_P001'
+  linux.hotplug_type = 4 (0x4)
+  info.category = 'processor'
+
+  16: udi = '/org/freedesktop/Hal/devices/acpi_P002'
+  info.capabilities = { 'processor' }
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  linux.acpi_path = '/proc/acpi/processor/P002'
+  linux.acpi_type = 1 (0x1)
+  processor.number = 1 (0x1)
+  info.product = 'AMD Athlon(tm) 64 X2 Dual Core Processor 5000+'
+  processor.can_throttle = false
+  info.udi = '/org/freedesktop/Hal/devices/acpi_P002'
+  linux.hotplug_type = 4 (0x4)
+  info.category = 'processor'
+
+  17: udi = '/org/freedesktop/Hal/devices/computer_alsa_timer'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/timer'
+  alsa.type = 'timer'
+  linux.sysfs_path = '/sys/devices/virtual/sound/timer'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'sound'
+  info.product = 'ALSA Timer Device'
+  info.udi = '/org/freedesktop/Hal/devices/computer_alsa_timer'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/timer'
+  info.category = 'alsa'
+
+  18: udi = '/org/freedesktop/Hal/devices/computer_oss_sequencer_0'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/virtual/sound/sequencer2'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  oss.device_file = '/dev/sequencer2'
+  info.product = 'OSS Sequencer Device'
+  oss.type = 'sequencer'
+  info.subsystem = 'sound'
+  info.udi = '/org/freedesktop/Hal/devices/computer_oss_sequencer_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/sequencer2'
+  info.category = 'oss'
+
+  19: udi = '/org/freedesktop/Hal/devices/computer_oss_sequencer'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/virtual/sound/sequencer'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  oss.device_file = '/dev/sequencer'
+  info.product = 'OSS Sequencer Device'
+  oss.type = 'sequencer'
+  info.subsystem = 'sound'
+  info.udi = '/org/freedesktop/Hal/devices/computer_oss_sequencer'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/sequencer'
+  info.category = 'oss'
+
+  20: udi = '/org/freedesktop/Hal/devices/computer_alsa_sequencer'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/seq'
+  alsa.type = 'sequencer'
+  linux.sysfs_path = '/sys/devices/virtual/sound/seq'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'sound'
+  info.product = 'ALSA Sequencer Device'
+  info.udi = '/org/freedesktop/Hal/devices/computer_alsa_sequencer'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/seq'
+  info.category = 'alsa'
+
+  21: udi = '/org/freedesktop/Hal/devices/net_00_00_00_00'
+  info.capabilities = { 'net' }
+  linux.sysfs_path = '/sys/devices/virtual/net/sit0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'net'
+  info.udi = '/org/freedesktop/Hal/devices/net_00_00_00_00'
+  net.originating_device = '/org/freedesktop/Hal/devices/computer'
+  net.interface = 'sit0'
+  net.address = '00:00:00:00'
+  net.linux.ifindex = 2 (0x2)
+  net.arp_proto_hw_id = 776 (0x308)
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'net'
+  info.category = 'net'
+
+  22: udi = '/org/freedesktop/Hal/devices/net_computer_loopback'
+  info.capabilities = { 'net', 'net.loopback' }
+  linux.sysfs_path = '/sys/devices/virtual/net/lo'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'net'
+  info.product = 'Loopback device Interface'
+  info.udi = '/org/freedesktop/Hal/devices/net_computer_loopback'
+  net.originating_device = '/org/freedesktop/Hal/devices/computer'
+  net.interface = 'lo'
+  net.address = '00:00:00:00:00:00'
+  net.linux.ifindex = 1 (0x1)
+  net.arp_proto_hw_id = 772 (0x304)
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'net'
+  info.category = 'net.loopback'
+
+  23: udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input_1'
+  info.capabilities = { 'input', 'input.mouse' }
+  linux.device_file = '/dev/input/event2'
+  linux.sysfs_path = '/sys/devices/virtual/input/input2/event2'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'input'
+  info.product = 'Macintosh mouse button emulation'
+  info.udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input_1'
+  input.x11_driver = 'evdev'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'input'
+  input.device = '/dev/input/event2'
+  input.product = 'Macintosh mouse button emulation'
+  info.category = 'input'
+
+  24: udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port_logicaldev_input'
+  info.capabilities = { 'input', 'input.mouse' }
+  linux.device_file = '/dev/input/event4'
+  linux.sysfs_path = '/sys/devices/platform/i8042/serio1/input/input4/event4'
+  info.parent = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port'
+  info.subsystem = 'input'
+  info.product = 'ImPS/2 Generic Wheel Mouse'
+  info.udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port_logicaldev_input'
+  input.originating_device = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port'
+  input.x11_driver = 'evdev'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'input'
+  input.device = '/dev/input/event4'
+  input.product = 'ImPS/2 Generic Wheel Mouse'
+  info.category = 'input'
+
+  25: udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port_logicaldev_input'
+  info.capabilities = { 'input', 'input.keyboard', 'input.keypad', 'input.keys', 'button' }
+  info.addons.singleton = { 'hald-addon-input' }
+  linux.device_file = '/dev/input/event3'
+  linux.sysfs_path = '/sys/devices/platform/i8042/serio0/input/input3/event3'
+  info.parent = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port'
+  info.subsystem = 'input'
+  info.product = 'AT Translated Set 2 keyboard'
+  info.udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port_logicaldev_input'
+  input.originating_device = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port'
+  input.xkb.rules = 'base'
+  input.xkb.model = 'evdev'
+  input.xkb.layout = 'us'
+  input.xkb.variant = ''
+  input.x11_driver = 'evdev'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'input'
+  input.device = '/dev/input/event3'
+  input.product = 'AT Translated Set 2 keyboard'
+  info.category = 'input'
+
+  26: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_playback_0'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/pcmC0D0p'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  alsa.card = 0 (0x0)
+  alsa.type = 'playback'
+  alsa.card_id = 'HDA ATI SB'
+  alsa.device = 0 (0x0)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/pcmC0D0p'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'ALSA Playback Device'
+  alsa.pcm_class = 'generic'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_playback_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/pcmC0D0p'
+  info.category = 'alsa'
+
+  27: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_capture_0'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/pcmC0D0c'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  alsa.card = 0 (0x0)
+  alsa.type = 'capture'
+  alsa.card_id = 'HDA ATI SB'
+  alsa.device = 0 (0x0)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/pcmC0D0c'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'ALSA Capture Device'
+  alsa.pcm_class = 'generic'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_capture_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/pcmC0D0c'
+  info.category = 'alsa'
+
+  28: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_mixer__1'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/mixer'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.device_file = '/dev/mixer'
+  oss.card_id = 'HDA ATI SB'
+  oss.card = 0 (0x0)
+  info.subsystem = 'sound'
+  oss.type = 'mixer'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_mixer__1'
+  info.product = 'HDA ATI SB OSS Control Device'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/mixer'
+  info.category = 'oss'
+
+  29: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_hw_specific_0'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/hwC0D0'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  alsa.card = 0 (0x0)
+  alsa.type = 'hw_specific'
+  alsa.card_id = 'HDA ATI SB'
+  alsa.device = 0 (0x0)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/hwC0D0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI SB ALSA hardware specific Device'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_hw_specific_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/hwC0D0'
+  info.category = 'alsa'
+
+  30: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_pcm_0_0'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/dsp'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.device_file = '/dev/dsp'
+  oss.card_id = 'HDA ATI SB'
+  oss.card = 0 (0x0)
+  info.subsystem = 'sound'
+  oss.device = 0 (0x0)
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_pcm_0_0'
+  oss.type = 'pcm'
+  info.product = 'HDA ATI SB OSS PCM Device'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/dsp'
+  info.category = 'oss'
+
+  31: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_control__1'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/controlC0'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  alsa.card = 0 (0x0)
+  alsa.type = 'control'
+  alsa.card_id = 'HDA ATI SB'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/controlC0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI SB ALSA Control Device'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_alsa_control__1'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/controlC0'
+  info.category = 'alsa'
+
+  32: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_pcm_0'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0/audio'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  oss.device_file = '/dev/audio'
+  oss.card_id = 'HDA ATI SB'
+  oss.card = 0 (0x0)
+  info.subsystem = 'sound'
+  oss.device = 0 (0x0)
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0_oss_pcm_0'
+  oss.type = 'pcm'
+  info.product = 'HDA ATI SB OSS PCM Device'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/audio'
+  info.category = 'oss'
+
+  33: udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  info.capabilities = { 'sound' }
+  sound.originating_device = '/org/freedesktop/Hal/devices/pci_1002_4383'
+  sound.card = 0 (0x0)
+  sound.card_id = 'HDA ATI SB'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2/sound/card0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4383'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI SB Sound Card'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383_sound_card_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  info.category = 'sound'
+
+  34: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_2'
+  info.capabilities = { 'scsi_host' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host3/scsi_host/host3'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.subsystem = 'scsi_host'
+  info.product = 'SCSI Host Adapter'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_2'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_host'
+  scsi_host.host = 3 (0x3)
+  info.category = 'scsi_host'
+
+  35: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_1'
+  info.capabilities = { 'scsi_host' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host2/scsi_host/host2'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.subsystem = 'scsi_host'
+  info.product = 'SCSI Host Adapter'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_1'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_host'
+  scsi_host.host = 2 (0x2)
+  info.category = 'scsi_host'
+
+  36: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_0'
+  info.capabilities = { 'scsi_host' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host1/scsi_host/host1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.subsystem = 'scsi_host'
+  info.product = 'SCSI Host Adapter'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_host'
+  scsi_host.host = 1 (0x1)
+  info.category = 'scsi_host'
+
+  37: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0_scsi_generic'
+  info.capabilities = { 'scsi_generic' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0/scsi_generic/sg0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0'
+  info.subsystem = 'scsi_generic'
+  info.product = 'SCSI Generic Interface'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0_scsi_generic'
+  scsi_generic.device = '/dev/sg0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_generic'
+  linux.device_file = '/dev/sg0'
+  info.category = 'scsi_generic'
+
+  38: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_host'
+  info.capabilities = { 'scsi_host' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/scsi_host/host0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host'
+  info.subsystem = 'scsi_host'
+  info.product = 'SCSI Host Adapter'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_host'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_host'
+  scsi_host.host = 0 (0x0)
+  info.category = 'scsi_host'
+
+  39: udi = '/org/freedesktop/Hal/devices/net_00_1f_c6_a1_a1_9d'
+  info.capabilities = { 'net', 'net.80203', 'wake_on_lan' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:06.0/0000:02:00.0/net/eth0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1969_1048'
+  info.subsystem = 'net'
+  info.product = 'Networking Interface'
+  info.udi = '/org/freedesktop/Hal/devices/net_00_1f_c6_a1_a1_9d'
+  net.originating_device = '/org/freedesktop/Hal/devices/pci_1969_1048'
+  net.interface = 'eth0'
+  net.address = '00:1f:c6:a1:a1:9d'
+  net.linux.ifindex = 3 (0x3)
+  net.arp_proto_hw_id = 1 (0x1)
+  net.80203.mac_address = 136476467613ull (0x1fc6a1a19dull)
+  info.interfaces = { 'org.freedesktop.Hal.Device.WakeOnLan' }
+  org.freedesktop.Hal.Device.WakeOnLan.method_names = { 'GetSupported', 'GetEnabled', 'SetEnabled' }
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'net'
+  org.freedesktop.Hal.Device.WakeOnLan.method_argnames = { '', '', 'enable' }
+  org.freedesktop.Hal.Device.WakeOnLan.method_signatures = { '', '', 'b' }
+  info.category = 'net.80203'
+  org.freedesktop.Hal.Device.WakeOnLan.method_execpaths = { 'hal-system-wol-supported', 'hal-system-wol-enabled', 'hal-system-wol-enable' }
+
+  40: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_playback_3'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/pcmC1D3p'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  alsa.card = 1 (0x1)
+  alsa.type = 'playback'
+  alsa.card_id = 'HDA ATI HDMI'
+  alsa.device = 3 (0x3)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1/sound/card1/pcmC1D3p'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'ALSA Playback Device'
+  alsa.pcm_class = 'generic'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_playback_3'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/pcmC1D3p'
+  info.category = 'alsa'
+
+  41: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_oss_mixer__1'
+  info.capabilities = { 'oss' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1/sound/card1/mixer1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  oss.originating_device = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  oss.device_file = '/dev/mixer1'
+  oss.card_id = 'HDA ATI HDMI'
+  oss.card = 1 (0x1)
+  info.subsystem = 'sound'
+  oss.type = 'mixer'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_oss_mixer__1'
+  info.product = 'HDA ATI HDMI OSS Control Device'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/mixer1'
+  info.category = 'oss'
+
+  42: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_hw_specific_0'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/hwC1D0'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  alsa.card = 1 (0x1)
+  alsa.type = 'hw_specific'
+  alsa.card_id = 'HDA ATI HDMI'
+  alsa.device = 0 (0x0)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1/sound/card1/hwC1D0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI HDMI ALSA hardware specific Device'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_hw_specific_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/hwC1D0'
+  info.category = 'alsa'
+
+  43: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_control__1'
+  info.capabilities = { 'alsa' }
+  alsa.device_file = '/dev/snd/controlC1'
+  alsa.originating_device = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  alsa.card = 1 (0x1)
+  alsa.type = 'control'
+  alsa.card_id = 'HDA ATI HDMI'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1/sound/card1/controlC1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI HDMI ALSA Control Device'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0_alsa_control__1'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  linux.device_file = '/dev/snd/controlC1'
+  info.category = 'alsa'
+
+  44: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  info.capabilities = { 'sound' }
+  sound.originating_device = '/org/freedesktop/Hal/devices/pci_1002_aa18'
+  sound.card = 1 (0x1)
+  sound.card_id = 'HDA ATI HDMI'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1/sound/card1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_aa18'
+  info.subsystem = 'sound'
+  info.product = 'HDA ATI HDMI Sound Card'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18_sound_card_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'sound'
+  info.category = 'sound'
+
+  45: udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input_0'
+  info.capabilities = { 'input', 'button' }
+  button.has_state = false
+  button.type = 'power'
+  linux.device_file = '/dev/input/event1'
+  info.addons.singleton = { 'hald-addon-input' }
+  linux.sysfs_path = '/sys/devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1/event1'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'input'
+  info.product = 'Power Button'
+  info.udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input_0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'input'
+  input.device = '/dev/input/event1'
+  input.product = 'Power Button'
+  info.category = 'input'
+
+  46: udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input'
+  info.capabilities = { 'input', 'button' }
+  button.has_state = false
+  button.type = 'power'
+  linux.device_file = '/dev/input/event0'
+  info.addons.singleton = { 'hald-addon-input' }
+  linux.sysfs_path = '/sys/devices/LNXSYSTM:00/LNXPWRBN:00/input/input0/event0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'input'
+  info.product = 'Power Button'
+  info.udi = '/org/freedesktop/Hal/devices/computer_logicaldev_input'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'input'
+  input.device = '/dev/input/event0'
+  input.product = 'Power Button'
+  info.category = 'input'
+
+  47: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c01'
+  linux.sysfs_path = '/sys/devices/pnp0/00:0d'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'System Board'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c01'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c01'
+  info.linux.driver = 'system'
+  pnp.description = 'System Board'
+  linux.subsystem = 'pnp'
+
+  48: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_2'
+  linux.sysfs_path = '/sys/devices/pnp0/00:0c'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_2'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c02'
+  info.linux.driver = 'system'
+  pnp.description = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  linux.subsystem = 'pnp'
+
+  49: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_1'
+  linux.sysfs_path = '/sys/devices/pnp0/00:0b'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_1'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c02'
+  info.linux.driver = 'system'
+  pnp.description = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  linux.subsystem = 'pnp'
+
+  50: udi = '/org/freedesktop/Hal/devices/pnp_PNP0f03'
+  linux.sysfs_path = '/sys/devices/pnp0/00:0a'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'Microsoft PS/2-style Mouse'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0f03'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0f03'
+  info.linux.driver = 'i8042 aux'
+  pnp.description = 'Microsoft PS/2-style Mouse'
+  linux.subsystem = 'pnp'
+
+  51: udi = '/org/freedesktop/Hal/devices/pnp_PNP0303'
+  linux.sysfs_path = '/sys/devices/pnp0/00:09'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'IBM Enhanced (101/102-key, PS/2 mouse support)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0303'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0303'
+  info.linux.driver = 'i8042 kbd'
+  pnp.description = 'IBM Enhanced (101/102-key, PS/2 mouse support)'
+  linux.subsystem = 'pnp'
+
+  52: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_0'
+  linux.sysfs_path = '/sys/devices/pnp0/00:08'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02_0'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c02'
+  info.linux.driver = 'system'
+  pnp.description = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  linux.subsystem = 'pnp'
+
+  53: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02'
+  linux.sysfs_path = '/sys/devices/pnp0/00:07'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c02'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c02'
+  info.linux.driver = 'system'
+  pnp.description = 'General ID for reserving resources required by PnP motherboard registers. (Not device specific.)'
+  linux.subsystem = 'pnp'
+
+  54: udi = '/org/freedesktop/Hal/devices/pnp_PNP0103'
+  linux.sysfs_path = '/sys/devices/pnp0/00:06'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'PnP Device (PNP0103)'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0103'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0103'
+  linux.subsystem = 'pnp'
+
+  55: udi = '/org/freedesktop/Hal/devices/pnp_PNP0501'
+  linux.sysfs_path = '/sys/devices/pnp0/00:05'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = '16550A-compatible COM port'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0501'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0501'
+  info.linux.driver = 'serial'
+  pnp.description = '16550A-compatible COM port'
+  linux.subsystem = 'pnp'
+
+  56: udi = '/org/freedesktop/Hal/devices/pnp_PNP0c04'
+  linux.sysfs_path = '/sys/devices/pnp0/00:04'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'Math Coprocessor'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0c04'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0c04'
+  pnp.description = 'Math Coprocessor'
+  linux.subsystem = 'pnp'
+
+  57: udi = '/org/freedesktop/Hal/devices/pnp_PNP0800'
+  linux.sysfs_path = '/sys/devices/pnp0/00:03'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'AT-style speaker sound'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0800'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0800'
+  pnp.description = 'AT-style speaker sound'
+  linux.subsystem = 'pnp'
+
+  58: udi = '/org/freedesktop/Hal/devices/pnp_PNP0b00'
+  linux.sysfs_path = '/sys/devices/pnp0/00:02'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'AT Real-Time Clock'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0b00'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0b00'
+  info.linux.driver = 'rtc_cmos'
+  pnp.description = 'AT Real-Time Clock'
+  linux.subsystem = 'pnp'
+
+  59: udi = '/org/freedesktop/Hal/devices/pnp_PNP0200'
+  linux.sysfs_path = '/sys/devices/pnp0/00:01'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'AT DMA Controller'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0200'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0200'
+  pnp.description = 'AT DMA Controller'
+  linux.subsystem = 'pnp'
+
+  60: udi = '/org/freedesktop/Hal/devices/pnp_PNP0a03'
+  linux.sysfs_path = '/sys/devices/pnp0/00:00'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'pnp'
+  info.product = 'PCI Bus'
+  info.udi = '/org/freedesktop/Hal/devices/pnp_PNP0a03'
+  linux.hotplug_type = 2 (0x2)
+  pnp.id = 'PNP0a03'
+  pnp.description = 'PCI Bus'
+  linux.subsystem = 'pnp'
+
+  61: udi = '/org/freedesktop/Hal/devices/platform_serial8250'
+  linux.sysfs_path = '/sys/devices/platform/serial8250'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'platform'
+  info.product = 'Platform Device (serial8250)'
+  info.udi = '/org/freedesktop/Hal/devices/platform_serial8250'
+  platform.id = 'serial8250'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'platform'
+  info.linux.driver = 'serial8250'
+
+  62: udi = '/org/freedesktop/Hal/devices/platform_regulatory_0'
+  linux.sysfs_path = '/sys/devices/platform/regulatory.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'platform'
+  info.product = 'Platform Device (regulatory.0)'
+  info.udi = '/org/freedesktop/Hal/devices/platform_regulatory_0'
+  platform.id = 'regulatory.0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'platform'
+
+  63: udi = '/org/freedesktop/Hal/devices/platform_pcspkr'
+  linux.sysfs_path = '/sys/devices/platform/pcspkr'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'platform'
+  info.product = 'Platform Device (pcspkr)'
+  info.udi = '/org/freedesktop/Hal/devices/platform_pcspkr'
+  platform.id = 'pcspkr'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'platform'
+
+  64: udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port'
+  linux.sysfs_path = '/sys/devices/platform/i8042/serio1'
+  info.parent = '/org/freedesktop/Hal/devices/platform_i8042'
+  info.subsystem = 'serio'
+  info.product = 'i8042 AUX port'
+  info.udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port'
+  serio.id = 'serio1'
+  linux.hotplug_type = 2 (0x2)
+  serio.description = 'i8042 AUX port'
+  info.linux.driver = 'psmouse'
+  linux.subsystem = 'serio'
+
+  65: udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port'
+  linux.sysfs_path = '/sys/devices/platform/i8042/serio0'
+  info.parent = '/org/freedesktop/Hal/devices/platform_i8042'
+  info.subsystem = 'serio'
+  info.product = 'i8042 KBD port'
+  info.udi = '/org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port'
+  serio.id = 'serio0'
+  linux.hotplug_type = 2 (0x2)
+  serio.description = 'i8042 KBD port'
+  info.linux.driver = 'atkbd'
+  linux.subsystem = 'serio'
+
+  66: udi = '/org/freedesktop/Hal/devices/platform_i8042'
+  linux.sysfs_path = '/sys/devices/platform/i8042'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  info.subsystem = 'platform'
+  info.product = 'Platform Device (i8042)'
+  info.udi = '/org/freedesktop/Hal/devices/platform_i8042'
+  platform.id = 'i8042'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'platform'
+  info.linux.driver = 'i8042'
+
+  67: udi = '/org/freedesktop/Hal/devices/pci_1022_1103'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1022_1103'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.3'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.3'
+  pci.product_id = 4355 (0x1103)
+  pci.vendor_id = 4130 (0x1022)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'Advanced Micro Devices [AMD]'
+  info.vendor = 'Advanced Micro Devices [AMD]'
+  pci.product = 'K8 [Athlon64/Opteron] Miscellaneous Control'
+  info.subsystem = 'pci'
+  info.product = 'K8 [Athlon64/Opteron] Miscellaneous Control'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+
+  68: udi = '/org/freedesktop/Hal/devices/pci_1022_1102'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1022_1102'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.2'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.2'
+  pci.product_id = 4354 (0x1102)
+  pci.vendor_id = 4130 (0x1022)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'Advanced Micro Devices [AMD]'
+  info.vendor = 'Advanced Micro Devices [AMD]'
+  pci.product = 'K8 [Athlon64/Opteron] DRAM Controller'
+  info.subsystem = 'pci'
+  info.product = 'K8 [Athlon64/Opteron] DRAM Controller'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+
+  69: udi = '/org/freedesktop/Hal/devices/pci_1022_1101'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1022_1101'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.1'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.1'
+  pci.product_id = 4353 (0x1101)
+  pci.vendor_id = 4130 (0x1022)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'Advanced Micro Devices [AMD]'
+  info.vendor = 'Advanced Micro Devices [AMD]'
+  pci.product = 'K8 [Athlon64/Opteron] Address Map'
+  info.subsystem = 'pci'
+  info.product = 'K8 [Athlon64/Opteron] Address Map'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+
+  70: udi = '/org/freedesktop/Hal/devices/pci_1022_1100'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1022_1100'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:18.0'
+  pci.product_id = 4352 (0x1100)
+  pci.vendor_id = 4130 (0x1022)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'Advanced Micro Devices [AMD]'
+  info.vendor = 'Advanced Micro Devices [AMD]'
+  pci.product = 'K8 [Athlon64/Opteron] HyperTransport Technology Configuration'
+  info.subsystem = 'pci'
+  info.product = 'K8 [Athlon64/Opteron] HyperTransport Technology Configuration'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+
+  71: udi = '/org/freedesktop/Hal/devices/pci_1002_4384'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4384'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.4'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.4'
+  pci.product_id = 17284 (0x4384)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 4 (0x4)
+  pci.device_protocol = 1 (0x1)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SBx00 PCI to PCI Bridge'
+  info.subsystem = 'pci'
+  info.product = 'SBx00 PCI to PCI Bridge'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+
+  72: udi = '/org/freedesktop/Hal/devices/pci_1002_438d'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_438d'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.3'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.3'
+  pci.product_id = 17293 (0x438d)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 1 (0x1)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 PCI to LPC Bridge'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 PCI to LPC Bridge'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+  info.subsystem = 'pci'
+
+  73: udi = '/org/freedesktop/Hal/devices/pci_1002_4383'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4383'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.2'
+  pci.product_id = 17283 (0x4383)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33467 (0x82bb)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 4 (0x4)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SBx00 Azalia (Intel HDA)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SBx00 Azalia (Intel HDA)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'HDA Intel'
+  linux.subsystem = 'pci'
+
+  74: udi = '/org/freedesktop/Hal/devices/pci_1002_438c'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_438c'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.1'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.1'
+  pci.product_id = 17292 (0x438c)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 1 (0x1)
+  pci.device_subclass = 1 (0x1)
+  pci.device_protocol = 138 (0x8a)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 IDE'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 IDE'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+  info.subsystem = 'pci'
+
+  75: udi = '/org/freedesktop/Hal/devices/pci_1002_4385'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4385'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:14.0'
+  pci.product_id = 17285 (0x4385)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 5 (0x5)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SBx00 SMBus Controller'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SBx00 SMBus Controller'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+  info.subsystem = 'pci'
+
+  76: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5/usb1/1-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 2 (0x2)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5/usb1/1-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5'
+  usb.num_ports = 10 (0xa)
+  usb.speed = 480.000
+  usb.bus_number = 1 (0x1)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 2.00000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.5'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  77: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5/usb1'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 2 (0x2)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '2.0 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 10 (0xa)
+  info.product = '2.0 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 480.000
+  usb_device.bus_number = 1 (0x1)
+  linux.device_file = '/dev/bus/usb/001/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 2.00000
+  usb_device.serial = '0000:00:13.5'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5/usb1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4386'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  78: udi = '/org/freedesktop/Hal/devices/pci_1002_4386'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4386'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.5'
+  pci.product_id = 17286 (0x4386)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 32 (0x20)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB Controller (EHCI)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB Controller (EHCI)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ehci_hcd'
+  linux.subsystem = 'pci'
+
+  79: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4/usb6/6-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 1 (0x1)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4/usb6/6-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4'
+  usb.num_ports = 2 (0x2)
+  usb.speed = 12.0000
+  usb.bus_number = 6 (0x6)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 1.10000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.4'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  80: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4/usb6'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 1 (0x1)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '1.1 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 2 (0x2)
+  info.product = '1.1 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 12.0000
+  usb_device.bus_number = 6 (0x6)
+  linux.device_file = '/dev/bus/usb/006/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+  usb_device.serial = '0000:00:13.4'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4/usb6'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_438b'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  81: udi = '/org/freedesktop/Hal/devices/pci_1002_438b'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_438b'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.4'
+  pci.product_id = 17291 (0x438b)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 16 (0x10)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB (OHCI4)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB (OHCI4)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ohci_hcd'
+  linux.subsystem = 'pci'
+
+  82: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3/usb5/5-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 1 (0x1)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3/usb5/5-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3'
+  usb.num_ports = 2 (0x2)
+  usb.speed = 12.0000
+  usb.bus_number = 5 (0x5)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 1.10000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.3'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  83: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3/usb5'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 1 (0x1)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '1.1 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 2 (0x2)
+  info.product = '1.1 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 12.0000
+  usb_device.bus_number = 5 (0x5)
+  linux.device_file = '/dev/bus/usb/005/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+  usb_device.serial = '0000:00:13.3'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3/usb5'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_438a'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  84: udi = '/org/freedesktop/Hal/devices/pci_1002_438a'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_438a'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.3'
+  pci.product_id = 17290 (0x438a)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 16 (0x10)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB (OHCI3)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB (OHCI3)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ohci_hcd'
+  linux.subsystem = 'pci'
+
+  85: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2/usb4/4-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 1 (0x1)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2/usb4/4-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2'
+  usb.num_ports = 2 (0x2)
+  usb.speed = 12.0000
+  usb.bus_number = 4 (0x4)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 1.10000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.2'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  86: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2/usb4'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 1 (0x1)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '1.1 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 2 (0x2)
+  info.product = '1.1 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 12.0000
+  usb_device.bus_number = 4 (0x4)
+  linux.device_file = '/dev/bus/usb/004/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+  usb_device.serial = '0000:00:13.2'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2/usb4'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4389'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  87: udi = '/org/freedesktop/Hal/devices/pci_1002_4389'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4389'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.2'
+  pci.product_id = 17289 (0x4389)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 16 (0x10)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB (OHCI2)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB (OHCI2)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ohci_hcd'
+  linux.subsystem = 'pci'
+
+  88: udi = '/org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Vendor Specific Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-1/3-1:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 255 (0xff)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 2760 (0xac8)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Z-Star Microelectronics Corp.'
+  usb.product_id = 12347 (0x303b)
+  usb.device_revision_bcd = 256 (0x100)
+  usb.product = 'USB Vendor Specific Interface'
+  usb.linux.device_number = 2 (0x2)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-1/3-1:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial'
+  usb.num_ports = 0 (0x0)
+  usb.is_self_powered = false
+  usb.bus_number = 3 (0x3)
+  usb.can_wake_up = true
+  usb.max_power = 160 (0xa0)
+  usb.version = 1.10000
+  usb.interface.number = 0 (0x0)
+  usb.speed = 12.0000
+  usb.interface.class = 255 (0xff)
+  usb.interface.protocol = 255 (0xff)
+  usb.interface.subclass = 255 (0xff)
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+
+  89: udi = '/org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial'
+  usb_device.linux.device_number = 2 (0x2)
+  linux.subsystem = 'usb'
+  usb_device.bus_number = 3 (0x3)
+  linux.device_file = '/dev/bus/usb/003/002'
+  linux.hotplug_type = 2 (0x2)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-1'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-1'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1'
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 2760 (0xac8)
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.device_class = 255 (0xff)
+  usb_device.product_id = 12347 (0x303b)
+  usb_device.vendor = 'Z-Star Microelectronics Corp.'
+  usb_device.product = 'ZC0303 Webcam'
+  info.product = 'ZC0303 Webcam'
+  info.vendor = 'Z-Star Microelectronics Corp.'
+  usb_device.num_ports = 0 (0x0)
+  usb_device.device_revision_bcd = 256 (0x100)
+  usb_device.max_power = 160 (0xa0)
+  usb_device.speed = 12.0000
+  info.linux.driver = 'usb'
+  usb_device.is_self_powered = false
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+
+  90: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 1 (0x1)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3/3-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1'
+  usb.num_ports = 2 (0x2)
+  usb.speed = 12.0000
+  usb.bus_number = 3 (0x3)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 1.10000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.1'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  91: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 1 (0x1)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '1.1 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 2 (0x2)
+  info.product = '1.1 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 12.0000
+  usb_device.bus_number = 3 (0x3)
+  linux.device_file = '/dev/bus/usb/003/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+  usb_device.serial = '0000:00:13.1'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1/usb3'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4388'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  92: udi = '/org/freedesktop/Hal/devices/pci_1002_4388'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4388'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.1'
+  pci.product_id = 17288 (0x4388)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 16 (0x10)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB (OHCI1)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB (OHCI1)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ohci_hcd'
+  linux.subsystem = 'pci'
+
+  93: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0_if0'
+  info.subsystem = 'usb'
+  info.product = 'USB Hub Interface'
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0_if0'
+  usb.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0/usb2/2-0:1.0'
+  usb.configuration_value = 1 (0x1)
+  usb.num_configurations = 1 (0x1)
+  usb.num_interfaces = 1 (0x1)
+  usb.device_class = 9 (0x9)
+  usb.device_subclass = 0 (0x0)
+  usb.vendor_id = 7531 (0x1d6b)
+  usb.device_protocol = 0 (0x0)
+  usb.vendor = 'Linux Foundation'
+  usb.product_id = 1 (0x1)
+  usb.device_revision_bcd = 518 (0x206)
+  usb.product = 'USB Hub Interface'
+  usb.linux.device_number = 1 (0x1)
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0/usb2/2-0:1.0'
+  info.parent = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0'
+  usb.num_ports = 2 (0x2)
+  usb.speed = 12.0000
+  usb.bus_number = 2 (0x2)
+  usb.is_self_powered = true
+  usb.max_power = 0 (0x0)
+  usb.version = 1.10000
+  usb.can_wake_up = true
+  usb.interface.number = 0 (0x0)
+  usb.serial = '0000:00:13.0'
+  usb.interface.subclass = 0 (0x0)
+  usb.interface.class = 9 (0x9)
+  linux.hotplug_type = 2 (0x2)
+  usb.interface.protocol = 0 (0x0)
+  info.linux.driver = 'hub'
+  linux.subsystem = 'usb'
+
+  94: udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0'
+  usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0/usb2'
+  usb_device.configuration_value = 1 (0x1)
+  usb_device.num_configurations = 1 (0x1)
+  usb_device.num_interfaces = 1 (0x1)
+  usb_device.device_class = 9 (0x9)
+  usb_device.device_subclass = 0 (0x0)
+  info.subsystem = 'usb_device'
+  usb_device.vendor_id = 7531 (0x1d6b)
+  info.udi = '/org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0'
+  usb_device.device_protocol = 0 (0x0)
+  usb_device.vendor = 'Linux Foundation'
+  usb_device.product_id = 1 (0x1)
+  usb_device.device_revision_bcd = 518 (0x206)
+  usb_device.product = '1.1 root hub'
+  usb_device.linux.device_number = 1 (0x1)
+  usb_device.max_power = 0 (0x0)
+  usb_device.num_ports = 2 (0x2)
+  info.product = '1.1 root hub'
+  usb_device.is_self_powered = true
+  usb_device.speed = 12.0000
+  usb_device.bus_number = 2 (0x2)
+  linux.device_file = '/dev/bus/usb/002/001'
+  usb_device.can_wake_up = true
+  usb_device.version = 1.10000
+  usb_device.serial = '0000:00:13.0'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0/usb2'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4387'
+  info.vendor = 'Linux Foundation'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'usb'
+  info.linux.driver = 'usb'
+
+  95: udi = '/org/freedesktop/Hal/devices/pci_1002_4387'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4387'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:13.0'
+  pci.product_id = 17287 (0x4387)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 12 (0xc)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 16 (0x10)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 USB (OHCI0)'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 USB (OHCI0)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ohci_hcd'
+  linux.subsystem = 'pci'
+
+  96: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0'
+  scsi.host = 0 (0x0)
+  scsi.bus = 0 (0x0)
+  scsi.target = 0 (0x0)
+  scsi.lun = 0 (0x0)
+  scsi.model = 'ST3500418AS'
+  scsi.vendor = 'ATA'
+  scsi.type = 'disk'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host'
+  info.subsystem = 'scsi'
+  info.product = 'SCSI Device'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host_scsi_device_lun0'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi'
+  info.linux.driver = 'sd'
+
+  97: udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host'
+  info.capabilities = { 'scsi_host' }
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0/host0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.subsystem = 'scsi_host'
+  info.product = 'SCSI Host Adapter'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380_scsi_host'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'scsi_host'
+  scsi_host.host = 0 (0x0)
+  info.category = 'scsi_host'
+
+  98: udi = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_4380'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:12.0'
+  pci.product_id = 17280 (0x4380)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 33263 (0x81ef)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 1 (0x1)
+  pci.device_subclass = 6 (0x6)
+  pci.device_protocol = 1 (0x1)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'SB600 Non-Raid-5 SATA'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'SB600 Non-Raid-5 SATA'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'ahci'
+  linux.subsystem = 'pci'
+
+  99: udi = '/org/freedesktop/Hal/devices/pci_1969_1048'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1969_1048'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:06.0/0000:02:00.0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_597c'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:06.0/0000:02:00.0'
+  pci.product_id = 4168 (0x1048)
+  pci.vendor_id = 6505 (0x1969)
+  pci.subsys_product_id = 33318 (0x8226)
+  pci.subsys_vendor_id = 4163 (0x1043)
+  pci.device_class = 2 (0x2)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'Attansic Technology Corp.'
+  info.vendor = 'Attansic Technology Corp.'
+  pci.product = 'L1 Gigabit Ethernet Adapter'
+  pci.subsys_vendor = 'ASUSTeK Computer Inc.'
+  info.product = 'L1 Gigabit Ethernet Adapter'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'atl1'
+  linux.subsystem = 'pci'
+
+  100: udi = '/org/freedesktop/Hal/devices/pci_1002_597c'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_597c'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:06.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:06.0'
+  pci.product_id = 22908 (0x597c)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 4 (0x4)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'RD790 PCI to PCI bridge (PCI express gpp port C)'
+  info.subsystem = 'pci'
+  info.product = 'RD790 PCI to PCI bridge (PCI express gpp port C)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'pcieport-driver'
+  linux.subsystem = 'pci'
+
+  101: udi = '/org/freedesktop/Hal/devices/pci_1002_aa18'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_aa18'
+  info.subsystem = 'pci'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_5978'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.1'
+  pci.product_id = 43544 (0xaa18)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 43544 (0xaa18)
+  pci.subsys_vendor_id = 5963 (0x174b)
+  pci.device_class = 4 (0x4)
+  pci.device_subclass = 3 (0x3)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'Radeon HD 3870 Audio device'
+  pci.subsys_vendor = 'PC Partner Limited'
+  info.product = 'Radeon HD 3870 Audio device'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'HDA Intel'
+  linux.subsystem = 'pci'
+
+  102: udi = '/org/freedesktop/Hal/devices/pci_1002_9505'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_9505'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.0'
+  info.parent = '/org/freedesktop/Hal/devices/pci_1002_5978'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0/0000:01:00.0'
+  pci.product_id = 38149 (0x9505)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 58928 (0xe630)
+  pci.subsys_vendor_id = 5963 (0x174b)
+  pci.device_class = 3 (0x3)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'RV670PRO [Radeon HD 3850]'
+  pci.subsys_vendor = 'PC Partner Limited'
+  info.product = 'RV670PRO [Radeon HD 3850]'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+  info.subsystem = 'pci'
+
+  103: udi = '/org/freedesktop/Hal/devices/pci_1002_5978'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_5978'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.0'
+  pci.product_id = 22904 (0x5978)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 0 (0x0)
+  pci.subsys_vendor_id = 0 (0x0)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 4 (0x4)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'RD790 PCI to PCI bridge (external gfx0 port A)'
+  info.subsystem = 'pci'
+  info.product = 'RD790 PCI to PCI bridge (external gfx0 port A)'
+  linux.hotplug_type = 2 (0x2)
+  info.linux.driver = 'pcieport-driver'
+  linux.subsystem = 'pci'
+
+  104: udi = '/org/freedesktop/Hal/devices/pci_1002_5957'
+  info.udi = '/org/freedesktop/Hal/devices/pci_1002_5957'
+  linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:00.0'
+  info.parent = '/org/freedesktop/Hal/devices/computer'
+  pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:00.0'
+  pci.product_id = 22871 (0x5957)
+  pci.vendor_id = 4098 (0x1002)
+  pci.subsys_product_id = 22871 (0x5957)
+  pci.subsys_vendor_id = 4098 (0x1002)
+  pci.device_class = 6 (0x6)
+  pci.device_subclass = 0 (0x0)
+  pci.device_protocol = 0 (0x0)
+  pci.vendor = 'ATI Technologies Inc'
+  info.vendor = 'ATI Technologies Inc'
+  pci.product = 'RX780/RX790 Chipset Host Bridge'
+  pci.subsys_vendor = 'ATI Technologies Inc'
+  info.product = 'RX780/RX790 Chipset Host Bridge'
+  linux.hotplug_type = 2 (0x2)
+  linux.subsystem = 'pci'
+  info.subsystem = 'pci'
+----- hal device list end -----
+>> floppy.1: get nvram
+----- /proc/nvram -----
+  Checksum status: valid
+  # floppies     : 0
+  Floppy 0 type  : none
+  Floppy 1 type  : none
+  HD 0 type      : none
+  HD 1 type      : none
+  HD type 48 data: 63/0/0 C/H/S, precomp 0, lz 0
+  HD type 49 data: 2047/0/0 C/H/S, precomp 0, lz 0
+  DOS base memory: 640 kB
+  Extended memory: 65535 kB (configured), 65535 kB (tested)
+  Gfx adapter    : EGA, VGA, ... (with BIOS)
+  FPU            : installed
+----- /proc/nvram end -----
+>> floppy.2: nvram info
+>> bios.1: cmdline
+>> bios.1.1: apm
+>> bios.2: ram
+  bios: 0 disks
+>> bios.2: rom
+>> bios.3: smp
+----- BIOS data 0x00400 - 0x004ff -----
+  400  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  410  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  420  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  430  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  440  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  450  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  460  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  470  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  480  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  490  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4a0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4b0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4c0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4d0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4e0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  4f0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+----- BIOS data end -----
+>> bios.4: vbe
+VBE: Could not init Int10
+>> bios.5: 32
+>> bios.6: acpi
+>> sys.1: cpu
+>> misc.9: kernel log
+----- kernel log -----
+  <4>[  310.146980]  [<ffffffffa02183a0>] ? FIFO_Queue_RemoveFromHead+0x40/0x60 [fglrx]
+  <4>[  310.146985]  [<ffffffff8109781e>] ? ____pagevec_lru_add+0x15c/0x172
+  <4>[  310.147036]  [<ffffffffa0220db1>] ? AllocateCallbackEntry+0x21/0x50 [fglrx]
+  <4>[  310.147089]  [<ffffffffa0219157>] ? RegisterIRQClient+0xb7/0x200 [fglrx]
+  <4>[  310.147131]  [<ffffffffa021b6cb>] ? IsR6XXDerivatives+0x1b/0x60 [fglrx]
+  <4>[  310.147216]  [<ffffffffa022319e>] ? Is_IRQSource_Valid+0x8e/0xb0 [fglrx]
+  <4>[  310.147271]  [<ffffffffa021678e>] ? IRQMGR_Access+0xee/0x190 [fglrx]
+  <4>[  310.147321]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.147370]  [<ffffffffa0183ac5>] ? fireglAsyncioUnregisterIntMsgHandlers+0x185/0x3c0 [fglrx]
+  <4>[  310.147376]  [<ffffffff81184edd>] ? inode_has_perm+0x6c/0x72
+  <4>[  310.147425]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.147481]  [<ffffffffa01b91eb>] ? asyncIONotifyMsg+0x30b/0x3a0 [fglrx]
+  <4>[  310.147537]  [<ffffffffa01b90e4>] ? asyncIONotifyMsg+0x204/0x3a0 [fglrx]
+  <4>[  310.147585]  [<ffffffffa0183179>] ? firegl_asyncio_write+0x189/0x250 [fglrx]
+  <4>[  310.147630]  [<ffffffffa015624d>] ? ip_firegl_write+0x4b/0x7d [fglrx]
+  <4>[  310.147636]  [<ffffffff810c2c29>] ? vfs_write+0xab/0x105
+  <4>[  310.147641]  [<ffffffff810c2d47>] ? sys_write+0x47/0x70
+  <4>[  310.147648]  [<ffffffff8100bbeb>] ? system_call_fastpath+0x16/0x1b
+  <3>[  310.147654] BUG: using smp_processor_id() in preemptible [00000000] code: X/9717
+  <4>[  310.147696] caller is KAS_GetExecutionLevel+0x15/0x111 [fglrx]
+  <4>[  310.147699] Pid: 9717, comm: X Tainted: P           2.6.30-gentoo-r5 #1
+  <4>[  310.147702] Call Trace:
+  <4>[  310.147706]  [<ffffffff811c3037>] debug_smp_processor_id+0xcb/0xe0
+  <4>[  310.147749]  [<ffffffffa0152bfd>] KAS_GetExecutionLevel+0x15/0x111 [fglrx]
+  <4>[  310.147797]  [<ffffffffa016d529>] MCIL_GetExecutionLevel+0x39/0x80 [fglrx]
+  <4>[  310.147849]  [<ffffffffa022083d>] ? CallbackQueueAccess+0x2d/0x3e0 [fglrx]
+  <4>[  310.147901]  [<ffffffffa0221db4>] ? IRQMGR_ZeroMemory+0x24/0x30 [fglrx]
+  <4>[  310.147954]  [<ffffffffa0218f00>] ? RegisterIRQClient_Worker+0x0/0x1a0 [fglrx]
+  <4>[  310.148009]  [<ffffffffa02191bd>] ? RegisterIRQClient+0x11d/0x200 [fglrx]
+  <4>[  310.148061]  [<ffffffffa021b6cb>] ? IsR6XXDerivatives+0x1b/0x60 [fglrx]
+  <4>[  310.148116]  [<ffffffffa021678e>] ? IRQMGR_Access+0xee/0x190 [fglrx]
+  <4>[  310.148160]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.148226]  [<ffffffffa0183ac5>] ? fireglAsyncioUnregisterIntMsgHandlers+0x185/0x3c0 [fglrx]
+  <4>[  310.148231]  [<ffffffff81184edd>] ? inode_has_perm+0x6c/0x72
+  <4>[  310.148279]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.148335]  [<ffffffffa01b91eb>] ? asyncIONotifyMsg+0x30b/0x3a0 [fglrx]
+  <4>[  310.148391]  [<ffffffffa01b90e4>] ? asyncIONotifyMsg+0x204/0x3a0 [fglrx]
+  <4>[  310.148439]  [<ffffffffa0183179>] ? firegl_asyncio_write+0x189/0x250 [fglrx]
+  <4>[  310.148484]  [<ffffffffa015624d>] ? ip_firegl_write+0x4b/0x7d [fglrx]
+  <4>[  310.148489]  [<ffffffff810c2c29>] ? vfs_write+0xab/0x105
+  <4>[  310.148494]  [<ffffffff810c2d47>] ? sys_write+0x47/0x70
+  <4>[  310.148499]  [<ffffffff8100bbeb>] ? system_call_fastpath+0x16/0x1b
+  <3>[  310.148507] BUG: using smp_processor_id() in preemptible [00000000] code: X/9717
+  <4>[  310.148549] caller is KAS_GetExecutionLevel+0x15/0x111 [fglrx]
+  <4>[  310.148552] Pid: 9717, comm: X Tainted: P           2.6.30-gentoo-r5 #1
+  <4>[  310.148555] Call Trace:
+  <4>[  310.148609]  [<ffffffffa0219730>] ? EnableInterrupt_Worker+0x0/0xc0 [fglrx]
+  <4>[  310.148663]  [<ffffffffa0219730>] ? EnableInterrupt_Worker+0x0/0xc0 [fglrx]
+  <4>[  310.148667]  [<ffffffff811c3037>] debug_smp_processor_id+0xcb/0xe0
+  <4>[  310.148710]  [<ffffffffa0152bfd>] KAS_GetExecutionLevel+0x15/0x111 [fglrx]
+  <4>[  310.148757]  [<ffffffffa016d529>] MCIL_GetExecutionLevel+0x39/0x80 [fglrx]
+  <4>[  310.148810]  [<ffffffffa0221bb5>] ? IRQMGR_SynchronizeExecution+0x25/0x80 [fglrx]
+  <4>[  310.148857]  [<ffffffffa016d2e7>] ? MCIL_InterlockedIncrement+0x87/0xa0 [fglrx]
+  <4>[  310.148912]  [<ffffffffa021905f>] ? RegisterIRQClient_Worker+0x15f/0x1a0 [fglrx]
+  <4>[  310.148964]  [<ffffffffa02209df>] ? CallbackQueueAccess+0x1cf/0x3e0 [fglrx]
+  <4>[  310.149019]  [<ffffffffa0218f00>] ? RegisterIRQClient_Worker+0x0/0x1a0 [fglrx]
+  <4>[  310.149072]  [<ffffffffa02191bd>] ? RegisterIRQClient+0x11d/0x200 [fglrx]
+  <4>[  310.149125]  [<ffffffffa021b6cb>] ? IsR6XXDerivatives+0x1b/0x60 [fglrx]
+  <4>[  310.149196]  [<ffffffffa021678e>] ? IRQMGR_Access+0xee/0x190 [fglrx]
+  <4>[  310.149245]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.149294]  [<ffffffffa0183ac5>] ? fireglAsyncioUnregisterIntMsgHandlers+0x185/0x3c0 [fglrx]
+  <4>[  310.149299]  [<ffffffff81184edd>] ? inode_has_perm+0x6c/0x72
+  <4>[  310.149348]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.149404]  [<ffffffffa01b91eb>] ? asyncIONotifyMsg+0x30b/0x3a0 [fglrx]
+  <4>[  310.149459]  [<ffffffffa01b90e4>] ? asyncIONotifyMsg+0x204/0x3a0 [fglrx]
+  <4>[  310.149508]  [<ffffffffa0183179>] ? firegl_asyncio_write+0x189/0x250 [fglrx]
+  <4>[  310.149552]  [<ffffffffa015624d>] ? ip_firegl_write+0x4b/0x7d [fglrx]
+  <4>[  310.149557]  [<ffffffff810c2c29>] ? vfs_write+0xab/0x105
+  <4>[  310.149563]  [<ffffffff810c2d47>] ? sys_write+0x47/0x70
+  <4>[  310.149568]  [<ffffffff8100bbeb>] ? system_call_fastpath+0x16/0x1b
+  <3>[  310.149631] BUG: using smp_processor_id() in preemptible [00000000] code: X/9717
+  <4>[  310.149673] caller is KCL_SPINLOCK_STATIC_Grab+0x29/0xe6 [fglrx]
+  <4>[  310.149677] Pid: 9717, comm: X Tainted: P           2.6.30-gentoo-r5 #1
+  <4>[  310.149679] Call Trace:
+  <4>[  310.149684]  [<ffffffff811c3037>] debug_smp_processor_id+0xcb/0xe0
+  <4>[  310.149727]  [<ffffffffa0152a97>] KCL_SPINLOCK_STATIC_Grab+0x29/0xe6 [fglrx]
+  <4>[  310.149770]  [<ffffffffa0152ef1>] KAS_InterlockedList_RemoveAtHead+0x5a/0x14e [fglrx]
+  <4>[  310.149818]  [<ffffffffa016b65d>] MCIL_InterlockedList+0x10d/0x2a0 [fglrx]
+  <4>[  310.149823]  [<ffffffff810cdfb7>] ? send_sigio+0x16b/0x17d
+  <4>[  310.149877]  [<ffffffffa02183a0>] ? FIFO_Queue_RemoveFromHead+0x40/0x60 [fglrx]
+  <4>[  310.149930]  [<ffffffffa0220db1>] ? AllocateCallbackEntry+0x21/0x50 [fglrx]
+  <4>[  310.149984]  [<ffffffffa0219157>] ? RegisterIRQClient+0xb7/0x200 [fglrx]
+  <4>[  310.150037]  [<ffffffffa021b6cb>] ? IsR6XXDerivatives+0x1b/0x60 [fglrx]
+  <4>[  310.150087]  [<ffffffffa022319e>] ? Is_IRQSource_Valid+0x8e/0xb0 [fglrx]
+  <4>[  310.150135]  [<ffffffffa021678e>] ? IRQMGR_Access+0xee/0x190 [fglrx]
+  <4>[  310.150203]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.150252]  [<ffffffffa0183ac5>] ? fireglAsyncioUnregisterIntMsgHandlers+0x185/0x3c0 [fglrx]
+  <4>[  310.150257]  [<ffffffff81184edd>] ? inode_has_perm+0x6c/0x72
+  <4>[  310.150306]  [<ffffffffa0183c90>] ? fireglAsyncioUnregisterIntMsgHandlers+0x350/0x3c0 [fglrx]
+  <4>[  310.150391]  [<ffffffffa01b91eb>] ? asyncIONotifyMsg+0x30b/0x3a0 [fglrx]
+  <4>[  310.150447]  [<ffffffffa01b90e4>] ? asyncIONotifyMsg+0x204/0x3a0 [fglrx]
+  <4>[  310.150495]  [<ffffffffa0183179>] ? firegl_asyncio_write+0x189/0x250 [fglrx]
+  <4>[  310.150539]  [<ffffffffa015624d>] ? ip_firegl_write+0x4b/0x7d [fglrx]
+  <4>[  310.150545]  [<ffffffff810c2c29>] ? vfs_write+0xab/0x105
+  <4>[  310.150549]  [<ffffffff810c2d47>] ? sys_write+0x47/0x70
+  <4>[  310.150555]  [<ffffffff8100bbeb>] ? system_call_fastpath+0x16/0x1b
+  <6>[  311.060423] [fglrx] Gart USWC size:626 M.
+  <6>[  311.060426] [fglrx] Gart cacheable size:247 M.
+  <6>[  311.060433] [fglrx] Reserved FB block: Shared offset:0, size:1000000 
+  <6>[  311.060436] [fglrx] Reserved FB block: Unshared offset:fe07000, size:1f9000 
+  <6>[  311.060438] [fglrx] Reserved FB block: Unshared offset:1fffc000, size:4000 
+  <6>[  497.267605] Uniform Multi-Platform E-IDE driver
+  <6>[  497.271587] ide-cd driver 5.00
+  <6>[  696.807800] ide_generic: please use "probe_mask=0x3f" module parameter for probing all legacy ISA IDE ports
+  <6>[  781.536460] ide-gd driver 1.18
+  <4>[ 6387.423939] autoheader-2.63 used greatest stack depth: 4192 bytes left
+----- kernel log end -----
+>> misc.1: misc data
+>> misc.1.1: open serial
+>> misc.1.2: open parallel
+----- exec: "/sbin/modprobe parport " -----
+  FATAL: Module parport not found.
+----- return code: ? -----
+----- exec: "/sbin/modprobe parport_pc " -----
+  FATAL: Module parport_pc not found.
+----- return code: ? -----
+>> misc.2.1: io
+>> misc.2.2: dma
+>> misc.2.3: irq
+----- /proc/ioports -----
+  0000-001f : dma1
+  0020-0021 : pic1
+  0040-0043 : timer0
+  0050-0053 : timer1
+  0060-0060 : keyboard
+  0064-0064 : keyboard
+  0070-0071 : rtc0
+  0080-008f : dma page reg
+  00a0-00a1 : pic2
+  00c0-00df : dma2
+  00f0-00ff : fpu
+  0170-0177 : 0000:00:14.1
+  01f0-01f7 : 0000:00:14.1
+  0376-0376 : 0000:00:14.1
+  03c0-03df : vga+
+  03f6-03f6 : 0000:00:14.1
+  03f8-03ff : serial
+  040b-040b : pnp 00:08
+  04d0-04d1 : pnp 00:08
+  04d6-04d6 : pnp 00:08
+  0800-089f : pnp 00:08
+    0800-0803 : ACPI PM1a_EVT_BLK
+    0804-0805 : ACPI PM1a_CNT_BLK
+    0808-080b : ACPI PM_TMR
+    0810-0815 : ACPI CPU throttle
+    0820-0827 : ACPI GPE0_BLK
+  08ff-08ff : ACPI PM2_CNT_BLK
+  0900-090f : pnp 00:08
+  0910-091f : pnp 00:08
+  0a30-0a3f : pnp 00:0b
+  0b00-0b0f : 0000:00:14.0
+  0b10-0b1f : pnp 00:08
+  0c00-0c01 : pnp 00:08
+  0c14-0c14 : pnp 00:08
+  0c50-0c51 : pnp 00:08
+  0c52-0c52 : pnp 00:08
+  0c6c-0c6c : pnp 00:08
+  0c6f-0c6f : pnp 00:08
+  0cd0-0cd1 : pnp 00:08
+  0cd2-0cd3 : pnp 00:08
+  0cd4-0cd5 : pnp 00:08
+  0cd6-0cd7 : pnp 00:08
+  0cd8-0cdf : pnp 00:08
+  0cf8-0cff : PCI conf1
+  0e00-0e0f : pnp 00:0b
+  0e80-0e8f : pnp 00:0b
+  0f40-0f4f : pnp 00:0b
+  9000-900f : 0000:00:12.0
+    9000-900f : ahci
+  a000-a003 : 0000:00:12.0
+    a000-a003 : ahci
+  b000-b007 : 0000:00:12.0
+    b000-b007 : ahci
+  c000-c003 : 0000:00:12.0
+    c000-c003 : ahci
+  d000-d007 : 0000:00:12.0
+    d000-d007 : ahci
+  e000-efff : PCI Bus 0000:01
+    e000-e0ff : 0000:01:00.0
+  fe00-fefe : pnp 00:08
+  ff00-ff0f : 0000:00:14.1
+----- /proc/ioports end -----
+----- /proc/interrupts -----
+     0:        126         23   IO-APIC-edge      timer
+     1:          2       4704   IO-APIC-edge      i8042
+     4:          0          2   IO-APIC-edge    
+     8:          0         76   IO-APIC-edge      rtc0
+     9:          0          3   IO-APIC-fasteoi   acpi
+    12:        186     334500   IO-APIC-edge      i8042
+    16:          1        499   IO-APIC-fasteoi   ohci_hcd:usb2, HDA Intel
+    17:          1         22   IO-APIC-fasteoi   ohci_hcd:usb3, ohci_hcd:usb5
+    18:          0          2   IO-APIC-fasteoi   ohci_hcd:usb4, ohci_hcd:usb6
+    19:          1         29   IO-APIC-fasteoi   ehci_hcd:usb1, HDA Intel
+    22:         17      39275   IO-APIC-fasteoi   ahci
+    26:         22      16490   PCI-MSI-edge      eth0
+    27:        141     382295   PCI-MSI-edge      fglrx[0]@PCI:1:0:0
+   NMI:          0          0   Non-maskable interrupts
+   LOC:     957351     827976   Local timer interrupts
+   SPU:          0          0   Spurious interrupts
+   RES:     199523     109462   Rescheduling interrupts
+   CAL:         67         17   Function call interrupts
+   TLB:       4530       3286   TLB shootdowns
+   ERR:          0
+   MIS:          0
+----- /proc/interrupts end -----
+----- /proc/dma -----
+   4: cascade
+----- /proc/dma end -----
+>> misc.3: FPU
+>> misc.3.1: DMA
+>> misc.3.2: PIC
+>> misc.3.3: timer
+>> misc.3.4: RTC
+>> cpu.1: cpuinfo
+----- /proc/cpuinfo -----
+  processor	: 0
+  vendor_id	: AuthenticAMD
+  cpu family	: 15
+  model		: 107
+  model name	: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+  stepping	: 2
+  cpu MHz		: 2600.631
+  cache size	: 512 KB
+  physical id	: 0
+  siblings	: 2
+  core id		: 0
+  cpu cores	: 2
+  apicid		: 0
+  initial apicid	: 0
+  fpu		: yes
+  fpu_exception	: yes
+  cpuid level	: 1
+  wp		: yes
+  flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy 3dnowprefetch
+  bogomips	: 5201.26
+  TLB size	: 1024 4K pages
+  clflush size	: 64
+  cache_alignment	: 64
+  address sizes	: 40 bits physical, 48 bits virtual
+  power management: ts fid vid ttp tm stc 100mhzsteps
+  
+  processor	: 1
+  vendor_id	: AuthenticAMD
+  cpu family	: 15
+  model		: 107
+  model name	: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+  stepping	: 2
+  cpu MHz		: 2600.631
+  cache size	: 512 KB
+  physical id	: 0
+  siblings	: 2
+  core id		: 1
+  cpu cores	: 2
+  apicid		: 1
+  initial apicid	: 1
+  fpu		: yes
+  fpu_exception	: yes
+  cpuid level	: 1
+  wp		: yes
+  flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy 3dnowprefetch
+  bogomips	: 5200.08
+  TLB size	: 1024 4K pages
+  clflush size	: 64
+  cache_alignment	: 64
+  address sizes	: 40 bits physical, 48 bits virtual
+  power management: ts fid vid ttp tm stc 100mhzsteps
+  
+----- /proc/cpuinfo end -----
+>> memory.1: main memory size
+  kcore mem:  0x7ffb0000
+  klog mem 0: 0x0
+  klog mem 1: 0x0
+  klog mem:   0x0
+  bios mem:   0x0
+  meminfo:    0x7d99a000
+>> pci.1: sysfs drivers
+----- sysfs driver list (id 0x3af5e6fa83e31695) -----
+      serial8250: /devices/platform/serial8250
+           i8042: /devices/platform/i8042
+ pcieport-driver: /devices/pci0000:00/0000:00:02.0
+ pcieport-driver: /devices/pci0000:00/0000:00:06.0
+            ahci: /devices/pci0000:00/0000:00:12.0
+            ahci: module = ahci
+           e1000: module = e1000
+           ath5k: module = ath5k
+   yenta_cardbus: module = yenta_socket
+        ehci_hcd: /devices/pci0000:00/0000:00:13.5
+        ehci_hcd: module = ehci_hcd
+        ohci_hcd: /devices/pci0000:00/0000:00:13.0
+        ohci_hcd: /devices/pci0000:00/0000:00:13.1
+        ohci_hcd: /devices/pci0000:00/0000:00:13.2
+        ohci_hcd: /devices/pci0000:00/0000:00:13.3
+        ohci_hcd: /devices/pci0000:00/0000:00:13.4
+        uhci_hcd: module = uhci_hcd
+       HDA Intel: /devices/pci0000:00/0000:00:14.2
+       HDA Intel: /devices/pci0000:00/0000:00:02.0/0000:01:00.1
+       HDA Intel: module = snd_hda_intel
+            atl1: /devices/pci0000:00/0000:00:06.0/0000:02:00.0
+            atl1: module = atl1
+       fglrx_pci: /devices/pci0000:00/0000:00:02.0/0000:01:00.0
+       fglrx_pci: module = fglrx
+        pci_root: /devices/LNXSYSTM:00/device:00/PNP0A03:00
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:00
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:01
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:02
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:03
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:04
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:05
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:06
+        pci_link: /devices/LNXSYSTM:00/device:00/PNP0C0F:07
+          button: /devices/LNXSYSTM:00/LNXPWRBN:00
+          button: /devices/LNXSYSTM:00/device:00/PNP0C0C:00
+       processor: /devices/LNXSYSTM:00/ACPI_CPU:00
+       processor: /devices/LNXSYSTM:00/ACPI_CPU:01
+       processor: /devices/LNXSYSTM:00/ACPI_CPU:02
+       processor: /devices/LNXSYSTM:00/ACPI_CPU:03
+          system: /devices/pnp0/00:07
+          system: /devices/pnp0/00:08
+          system: /devices/pnp0/00:0b
+          system: /devices/pnp0/00:0c
+          system: /devices/pnp0/00:0d
+          serial: /devices/pnp0/00:05
+       i8042 kbd: /devices/pnp0/00:09
+       i8042 aux: /devices/pnp0/00:0a
+        rtc_cmos: /devices/pnp0/00:02
+              sd: /devices/pci0000:00/0000:00:12.0/host0/target0:0:0/0:0:0:0
+           usbfs: module = usbcore
+             hub: module = usbcore
+             hub: /devices/pci0000:00/0000:00:13.5/usb1/1-0:1.0
+             hub: /devices/pci0000:00/0000:00:13.0/usb2/2-0:1.0
+             hub: /devices/pci0000:00/0000:00:13.1/usb3/3-0:1.0
+             hub: /devices/pci0000:00/0000:00:13.2/usb4/4-0:1.0
+             hub: /devices/pci0000:00/0000:00:13.3/usb5/5-0:1.0
+             hub: /devices/pci0000:00/0000:00:13.4/usb6/6-0:1.0
+             usb: /devices/pci0000:00/0000:00:13.5/usb1
+             usb: /devices/pci0000:00/0000:00:13.0/usb2
+             usb: /devices/pci0000:00/0000:00:13.1/usb3
+             usb: /devices/pci0000:00/0000:00:13.2/usb4
+             usb: /devices/pci0000:00/0000:00:13.3/usb5
+             usb: /devices/pci0000:00/0000:00:13.4/usb6
+             usb: /devices/pci0000:00/0000:00:13.1/usb3/3-1
+           usblp: module = usblp
+     usb-storage: module = usb_storage
+        libusual: module = usb_libusual
+          hiddev: module = usbhid
+          usbhid: module = usbhid
+           atkbd: /devices/platform/i8042/serio0
+         psmouse: module = psmouse
+         psmouse: /devices/platform/i8042/serio1
+           apple: module = hid_apple
+     generic-usb: module = usbhid
+       ide-cdrom: module = ide_cd_mod
+          ide-gd: module = ide_gd_mod
+----- sysfs driver list end -----
+>> pci.2: get sysfs pci data
+  pci device: name = 0000:02:00.0
+    path = /devices/pci0000:00/0000:00:06.0/0000:02:00.0
+    modalias = "pci:v00001969d00001048sv00001043sd00008226bc02sc00i00"
+    class = 0x20000
+    vendor = 0x1969
+    device = 0x1048
+    subvendor = 0x1043
+    subdevice = 0x8226
+    irq = 26
+    res[0] = 0xfebc0000 0xfebfffff 0x20204
+    res[6] = 0xfeba0000 0xfebbffff 0x27200
+    config[64]
+  pci device: name = 0000:01:00.1
+    path = /devices/pci0000:00/0000:00:02.0/0000:01:00.1
+    modalias = "pci:v00001002d0000AA18sv0000174Bsd0000AA18bc04sc03i00"
+    class = 0x40300
+    vendor = 0x1002
+    device = 0xaa18
+    subvendor = 0x174b
+    subdevice = 0xaa18
+    irq = 19
+    res[0] = 0xfeaec000 0xfeaeffff 0x20204
+    config[64]
+  pci device: name = 0000:01:00.0
+    path = /devices/pci0000:00/0000:00:02.0/0000:01:00.0
+    modalias = "pci:v00001002d00009505sv0000174Bsd0000E630bc03sc00i00"
+    class = 0x30000
+    vendor = 0x1002
+    device = 0x9505
+    subvendor = 0x174b
+    subdevice = 0xe630
+    irq = 27
+    res[0] = 0xd0000000 0xdfffffff 0x2120c
+    res[2] = 0xfeaf0000 0xfeafffff 0x20204
+    res[4] = 0xe000 0xe0ff 0x20101
+    res[6] = 0xfeac0000 0xfeadffff 0x27202
+    config[64]
+  pci device: name = 0000:00:18.3
+    path = /devices/pci0000:00/0000:00:18.3
+    modalias = "pci:v00001022d00001103sv00000000sd00000000bc06sc00i00"
+    class = 0x60000
+    vendor = 0x1022
+    device = 0x1103
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:18.2
+    path = /devices/pci0000:00/0000:00:18.2
+    modalias = "pci:v00001022d00001102sv00000000sd00000000bc06sc00i00"
+    class = 0x60000
+    vendor = 0x1022
+    device = 0x1102
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:18.1
+    path = /devices/pci0000:00/0000:00:18.1
+    modalias = "pci:v00001022d00001101sv00000000sd00000000bc06sc00i00"
+    class = 0x60000
+    vendor = 0x1022
+    device = 0x1101
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:18.0
+    path = /devices/pci0000:00/0000:00:18.0
+    modalias = "pci:v00001022d00001100sv00000000sd00000000bc06sc00i00"
+    class = 0x60000
+    vendor = 0x1022
+    device = 0x1100
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:14.4
+    path = /devices/pci0000:00/0000:00:14.4
+    modalias = "pci:v00001002d00004384sv00000000sd00000000bc06sc04i01"
+    class = 0x60401
+    vendor = 0x1002
+    device = 0x4384
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:14.3
+    path = /devices/pci0000:00/0000:00:14.3
+    modalias = "pci:v00001002d0000438Dsv00001043sd000081EFbc06sc01i00"
+    class = 0x60100
+    vendor = 0x1002
+    device = 0x438d
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 0
+    config[64]
+  pci device: name = 0000:00:14.2
+    path = /devices/pci0000:00/0000:00:14.2
+    modalias = "pci:v00001002d00004383sv00001043sd000082BBbc04sc03i00"
+    class = 0x40300
+    vendor = 0x1002
+    device = 0x4383
+    subvendor = 0x1043
+    subdevice = 0x82bb
+    irq = 16
+    res[0] = 0xfe9f4000 0xfe9f7fff 0x20204
+    config[64]
+  pci device: name = 0000:00:14.1
+    path = /devices/pci0000:00/0000:00:14.1
+    modalias = "pci:v00001002d0000438Csv00001043sd000081EFbc01sc01i8a"
+    class = 0x1018a
+    vendor = 0x1002
+    device = 0x438c
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 0
+    res[0] = 0x1f0 0x1f7 0x110
+    res[1] = 0x3f6 0x3f6 0x110
+    res[2] = 0x170 0x177 0x110
+    res[3] = 0x376 0x376 0x110
+    res[4] = 0xff00 0xff0f 0x20101
+    config[64]
+  pci device: name = 0000:00:14.0
+    path = /devices/pci0000:00/0000:00:14.0
+    modalias = "pci:v00001002d00004385sv00001043sd000081EFbc0Csc05i00"
+    class = 0xc0500
+    vendor = 0x1002
+    device = 0x4385
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 0
+    res[0] = 0xb00 0xb0f 0x20101
+    config[64]
+  pci device: name = 0000:00:13.5
+    path = /devices/pci0000:00/0000:00:13.5
+    modalias = "pci:v00001002d00004386sv00001043sd000081EFbc0Csc03i20"
+    class = 0xc0320
+    vendor = 0x1002
+    device = 0x4386
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 19
+    res[0] = 0xfe9ff000 0xfe9ff0ff 0x20200
+    config[64]
+  pci device: name = 0000:00:13.4
+    path = /devices/pci0000:00/0000:00:13.4
+    modalias = "pci:v00001002d0000438Bsv00001043sd000081EFbc0Csc03i10"
+    class = 0xc0310
+    vendor = 0x1002
+    device = 0x438b
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 18
+    res[0] = 0xfe9fa000 0xfe9fafff 0x20200
+    config[64]
+  pci device: name = 0000:00:13.3
+    path = /devices/pci0000:00/0000:00:13.3
+    modalias = "pci:v00001002d0000438Asv00001043sd000081EFbc0Csc03i10"
+    class = 0xc0310
+    vendor = 0x1002
+    device = 0x438a
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 17
+    res[0] = 0xfe9fb000 0xfe9fbfff 0x20200
+    config[64]
+  pci device: name = 0000:00:13.2
+    path = /devices/pci0000:00/0000:00:13.2
+    modalias = "pci:v00001002d00004389sv00001043sd000081EFbc0Csc03i10"
+    class = 0xc0310
+    vendor = 0x1002
+    device = 0x4389
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 18
+    res[0] = 0xfe9fc000 0xfe9fcfff 0x20200
+    config[64]
+  pci device: name = 0000:00:13.1
+    path = /devices/pci0000:00/0000:00:13.1
+    modalias = "pci:v00001002d00004388sv00001043sd000081EFbc0Csc03i10"
+    class = 0xc0310
+    vendor = 0x1002
+    device = 0x4388
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 17
+    res[0] = 0xfe9fd000 0xfe9fdfff 0x20200
+    config[64]
+  pci device: name = 0000:00:13.0
+    path = /devices/pci0000:00/0000:00:13.0
+    modalias = "pci:v00001002d00004387sv00001043sd000081EFbc0Csc03i10"
+    class = 0xc0310
+    vendor = 0x1002
+    device = 0x4387
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 16
+    res[0] = 0xfe9fe000 0xfe9fefff 0x20200
+    config[64]
+  pci device: name = 0000:00:12.0
+    path = /devices/pci0000:00/0000:00:12.0
+    modalias = "pci:v00001002d00004380sv00001043sd000081EFbc01sc06i01"
+    class = 0x10601
+    vendor = 0x1002
+    device = 0x4380
+    subvendor = 0x1043
+    subdevice = 0x81ef
+    irq = 22
+    res[0] = 0xd000 0xd007 0x20101
+    res[1] = 0xc000 0xc003 0x20101
+    res[2] = 0xb000 0xb007 0x20101
+    res[3] = 0xa000 0xa003 0x20101
+    res[4] = 0x9000 0x900f 0x20101
+    res[5] = 0xfe9ff800 0xfe9ffbff 0x20200
+    config[64]
+  pci device: name = 0000:00:06.0
+    path = /devices/pci0000:00/0000:00:06.0
+    modalias = "pci:v00001002d0000597Csv00000000sd00000000bc06sc04i00"
+    class = 0x60400
+    vendor = 0x1002
+    device = 0x597c
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 25
+    config[64]
+  pci device: name = 0000:00:02.0
+    path = /devices/pci0000:00/0000:00:02.0
+    modalias = "pci:v00001002d00005978sv00000000sd00000000bc06sc04i00"
+    class = 0x60400
+    vendor = 0x1002
+    device = 0x5978
+    subvendor = 0x0
+    subdevice = 0x0
+    irq = 24
+    config[64]
+  pci device: name = 0000:00:00.0
+    path = /devices/pci0000:00/0000:00:00.0
+    modalias = "pci:v00001002d00005957sv00001002sd00005957bc06sc00i00"
+    class = 0x60000
+    vendor = 0x1002
+    device = 0x5957
+    subvendor = 0x1002
+    subdevice = 0x5957
+    irq = 0
+    res[3] = 0x0 0x1fffffff 0x20204
+    config[64]
+---------- PCI raw data ----------
+bus 02, slot 00, func 0, vend:dev:s_vend:s_dev:rev 1969:1048:1043:8226:b0
+class 02, sub_class 00 prog_if 00, hdr 0, flags <>, irq 26
+  addr0 febc0000, size 00040000
+  00: 69 19 48 10 06 05 10 40 b0 00 00 02 10 00 00 00  "i.H....@........"
+  10: 04 00 bc fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 26 82  "............C.&."
+  30: 00 00 ba fe 40 00 00 00 00 00 00 00 0a 01 00 00  "....@..........."
+
+bus 01, slot 00, func 1, vend:dev:s_vend:s_dev:rev 1002:aa18:174b:aa18:00
+class 04, sub_class 03 prog_if 00, hdr 0, flags <>, irq 19
+  addr0 feaec000, size 00004000
+  00: 02 10 18 aa 07 01 10 00 00 00 03 04 10 00 80 00  "................"
+  10: 04 c0 ae fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 4b 17 18 aa  "............K..."
+  30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 02 00 00  "....P..........."
+
+bus 01, slot 00, func 0, vend:dev:s_vend:s_dev:rev 1002:9505:174b:e630:00
+class 03, sub_class 00 prog_if 00, hdr 0, flags <>, irq 27
+  addr0 d0000000, size 10000000
+  addr2 feaf0000, size 00010000
+  addr4 0000e000, size 00000100
+  00: 02 10 05 95 07 05 10 00 00 00 00 03 10 00 80 00  "................"
+  10: 0c 00 00 d0 00 00 00 00 04 00 af fe 00 00 00 00  "................"
+  20: 01 e0 00 00 00 00 00 00 00 00 00 00 4b 17 30 e6  "............K.0."
+  30: 00 00 ac fe 50 00 00 00 00 00 00 00 0a 01 00 00  "....P..........."
+
+bus 00, slot 18, func 3, vend:dev:s_vend:s_dev:rev 1022:1103:0000:0000:00
+class 06, sub_class 00 prog_if 00, hdr 0, flags <>, irq 0
+  00: 22 10 03 11 00 00 10 00 00 00 00 06 00 00 80 00  ""..............."
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 f0 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00, slot 18, func 2, vend:dev:s_vend:s_dev:rev 1022:1102:0000:0000:00
+class 06, sub_class 00 prog_if 00, hdr 0, flags <>, irq 0
+  00: 22 10 02 11 00 00 00 00 00 00 00 06 00 00 80 00  ""..............."
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00, slot 18, func 1, vend:dev:s_vend:s_dev:rev 1022:1101:0000:0000:00
+class 06, sub_class 00 prog_if 00, hdr 0, flags <>, irq 0
+  00: 22 10 01 11 00 00 00 00 00 00 00 06 00 00 80 00  ""..............."
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00, slot 18, func 0, vend:dev:s_vend:s_dev:rev 1022:1100:0000:0000:00
+class 06, sub_class 00 prog_if 00, hdr 0, flags <>, irq 0
+  00: 22 10 00 11 00 00 10 00 00 00 00 06 00 00 80 00  ""..............."
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00->03, slot 14, func 4, vend:dev:s_vend:s_dev:rev 1002:4384:0000:0000:00
+class 06, sub_class 04 prog_if 01, hdr 1, flags <>, irq 0
+  00: 02 10 84 43 05 01 a0 02 00 01 04 06 00 40 81 00  "...C.........@.."
+  10: 00 00 00 00 00 00 00 00 00 03 03 40 f0 00 80 22  "...........@...""
+  20: f0 ff 00 00 f0 ff 00 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 00  "................"
+
+bus 00, slot 14, func 3, vend:dev:s_vend:s_dev:rev 1002:438d:1043:81ef:00
+class 06, sub_class 01 prog_if 00, hdr 0, flags <>, irq 0
+  00: 02 10 8d 43 0f 00 20 02 00 00 01 06 00 00 80 00  "...C.. ........."
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00, slot 14, func 2, vend:dev:s_vend:s_dev:rev 1002:4383:1043:82bb:00
+class 04, sub_class 03 prog_if 00, hdr 0, flags <>, irq 16
+  addr0 fe9f4000, size 00004000
+  00: 02 10 83 43 06 00 10 04 00 00 03 04 10 40 00 00  "...C.........@.."
+  10: 04 40 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  ".@.............."
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 bb 82  "............C..."
+  30: 00 00 00 00 50 00 00 00 00 00 00 00 05 00 00 00  "....P..........."
+
+bus 00, slot 14, func 1, vend:dev:s_vend:s_dev:rev 1002:438c:1043:81ef:00
+class 01, sub_class 01 prog_if 8a, hdr 0, flags <>, irq 0
+  addr0 000001f0, size 00000008
+  addr1 000003f6, size 00000001
+  addr2 00000170, size 00000008
+  addr3 00000376, size 00000001
+  addr4 0000ff00, size 00000010
+  00: 02 10 8c 43 05 00 20 02 00 8a 01 01 00 00 00 00  "...C.. ........."
+  10: 01 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00  "................"
+  20: 01 ff 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00  "................"
+
+bus 00, slot 14, func 0, vend:dev:s_vend:s_dev:rev 1002:4385:1043:81ef:14
+class 0c, sub_class 05 prog_if 00, hdr 0, flags <>, irq 0
+  addr0 00000b00, size 00000010
+  00: 02 10 85 43 03 04 30 02 14 00 05 0c 00 00 80 00  "...C..0........."
+  10: 01 0b 00 00 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 b0 00 00 00 00 00 00 00 00 00 00 00  "................"
+
+bus 00, slot 13, func 5, vend:dev:s_vend:s_dev:rev 1002:4386:1043:81ef:00
+class 0c, sub_class 03 prog_if 20, hdr 0, flags <>, irq 19
+  addr0 fe9ff000, size 00000100
+  00: 02 10 86 43 17 01 b0 02 00 20 03 0c 10 40 00 00  "...C..... ...@.."
+  10: 00 f0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 c0 00 00 00 00 00 00 00 0a 04 00 00  "................"
+
+bus 00, slot 13, func 4, vend:dev:s_vend:s_dev:rev 1002:438b:1043:81ef:00
+class 0c, sub_class 03 prog_if 10, hdr 0, flags <>, irq 18
+  addr0 fe9fa000, size 00001000
+  00: 02 10 8b 43 17 01 a0 02 00 10 03 0c 10 40 00 00  "...C.........@.."
+  10: 00 a0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 0a 03 00 00  "................"
+
+bus 00, slot 13, func 3, vend:dev:s_vend:s_dev:rev 1002:438a:1043:81ef:00
+class 0c, sub_class 03 prog_if 10, hdr 0, flags <>, irq 17
+  addr0 fe9fb000, size 00001000
+  00: 02 10 8a 43 17 01 a0 02 00 10 03 0c 10 40 00 00  "...C.........@.."
+  10: 00 b0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 0f 02 00 00  "................"
+
+bus 00, slot 13, func 2, vend:dev:s_vend:s_dev:rev 1002:4389:1043:81ef:00
+class 0c, sub_class 03 prog_if 10, hdr 0, flags <>, irq 18
+  addr0 fe9fc000, size 00001000
+  00: 02 10 89 43 17 01 a0 02 00 10 03 0c 10 40 00 00  "...C.........@.."
+  10: 00 c0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 0a 03 00 00  "................"
+
+bus 00, slot 13, func 1, vend:dev:s_vend:s_dev:rev 1002:4388:1043:81ef:00
+class 0c, sub_class 03 prog_if 10, hdr 0, flags <>, irq 17
+  addr0 fe9fd000, size 00001000
+  00: 02 10 88 43 17 01 a0 02 00 10 03 0c 10 40 00 00  "...C.........@.."
+  10: 00 d0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 0f 02 00 00  "................"
+
+bus 00, slot 13, func 0, vend:dev:s_vend:s_dev:rev 1002:4387:1043:81ef:00
+class 0c, sub_class 03 prog_if 10, hdr 0, flags <>, irq 16
+  addr0 fe9fe000, size 00001000
+  00: 02 10 87 43 17 01 a0 02 00 10 03 0c 10 40 80 00  "...C.........@.."
+  10: 00 e0 9f fe 00 00 00 00 00 00 00 00 00 00 00 00  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 00 00 00 00 00 00 00 00 05 01 00 00  "................"
+
+bus 00, slot 12, func 0, vend:dev:s_vend:s_dev:rev 1002:4380:1043:81ef:00
+class 01, sub_class 06 prog_if 01, hdr 0, flags <>, irq 22
+  addr0 0000d000, size 00000008
+  addr1 0000c000, size 00000004
+  addr2 0000b000, size 00000008
+  addr3 0000a000, size 00000004
+  addr4 00009000, size 00000010
+  addr5 fe9ff800, size 00000400
+  00: 02 10 80 43 07 01 30 02 00 01 06 01 10 40 00 00  "...C..0......@.."
+  10: 01 d0 00 00 01 c0 00 00 01 b0 00 00 01 a0 00 00  "................"
+  20: 01 90 00 00 00 f8 9f fe 00 00 00 00 43 10 ef 81  "............C..."
+  30: 00 00 00 00 60 00 00 00 00 00 00 00 0b 01 00 00  "....`..........."
+
+bus 00->02, slot 06, func 0, vend:dev:s_vend:s_dev:rev 1002:597c:0000:0000:00
+class 06, sub_class 04 prog_if 00, hdr 1, flags <>, irq 25
+  00: 02 10 7c 59 06 05 10 00 00 00 04 06 10 00 01 00  "..|Y............"
+  10: 00 00 00 00 00 00 00 00 00 02 02 00 f1 01 00 20  "............... "
+  20: b0 fe b0 fe f1 ff 01 00 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 50 00 00 00 00 00 00 00 ff 00 03 00  "....P..........."
+
+bus 00->01, slot 02, func 0, vend:dev:s_vend:s_dev:rev 1002:5978:0000:0000:00
+class 06, sub_class 04 prog_if 00, hdr 1, flags <>, irq 24
+  00: 02 10 78 59 07 05 10 00 00 00 04 06 10 00 01 00  "..xY............"
+  10: 00 00 00 00 00 00 00 00 00 01 01 00 e1 e1 00 00  "................"
+  20: a0 fe a0 fe 01 d0 f1 df 00 00 00 00 00 00 00 00  "................"
+  30: 00 00 00 00 50 00 00 00 00 00 00 00 ff 00 1b 00  "....P..........."
+
+bus 00, slot 00, func 0, vend:dev:s_vend:s_dev:rev 1002:5957:1002:5957:00
+class 06, sub_class 00 prog_if 00, hdr 0, flags <>, irq 0
+  addr3 00000000, size 20000000
+  00: 02 10 57 59 06 00 30 22 00 00 00 06 00 00 00 00  "..WY..0"........"
+  10: 00 00 00 00 00 00 00 00 00 00 00 00 04 00 00 e0  "................"
+  20: 00 00 00 00 00 00 00 00 00 00 00 00 02 10 57 59  "..............WY"
+  30: 00 00 00 00 c4 00 00 00 00 00 00 00 00 00 00 00  "................"
+---------- PCI raw data end ----------
+>> pci.4: build list
+>> pci.3: macio
+sysfs: no such bus: macio
+>> pci.4: vio
+sysfs: no such bus: vio
+>> pci.5: xen
+sysfs: no such bus: xen
+>> monitor.1: ddc
+>> monitor.2: bios
+>> monitor.3: pci
+>> monitor.4: internal db
+>> monitor.5: prom
+>> pcmcia.1: sysfs drivers
+>> pcmcia.2: pcmcia
+sysfs: no such bus: pcmcia
+>> pcmcia.3: pcmcia ctrl
+sysfs: no such class: pcmcia_socket
+>> serial.1: read info
+----- serial info -----
+----- serial info end -----
+>> serial.2: build list
+>> misc.5: misc data
+----- misc resources -----
+i/o:1 0x0000 - 0x001f (0x20) "dma1"
+i/o:1 0x0020 - 0x0021 (0x02) "pic1"
+i/o:0 0x0040 - 0x0043 (0x04) "timer0"
+i/o:0 0x0050 - 0x0053 (0x04) "timer1"
+i/o:1 0x0060 - 0x0060 (0x01) "keyboard"
+i/o:1 0x0064 - 0x0064 (0x01) "keyboard"
+i/o:0 0x0070 - 0x0071 (0x02) "rtc0"
+i/o:1 0x0080 - 0x008f (0x10) "dma page reg"
+i/o:1 0x00a0 - 0x00a1 (0x02) "pic2"
+i/o:1 0x00c0 - 0x00df (0x20) "dma2"
+i/o:1 0x00f0 - 0x00ff (0x10) "fpu"
+i/o:0 0x0170 - 0x0177 (0x08) "0000:00:14.1"
+i/o:0 0x01f0 - 0x01f7 (0x08) "0000:00:14.1"
+i/o:0 0x0376 - 0x0376 (0x01) "0000:00:14.1"
+i/o:1 0x03c0 - 0x03df (0x20) "vga+"
+i/o:0 0x03f6 - 0x03f6 (0x01) "0000:00:14.1"
+i/o:1 0x03f8 - 0x03ff (0x08) "serial"
+i/o:0 0x040b - 0x040b (0x01) "pnp 00:08"
+i/o:0 0x04d0 - 0x04d1 (0x02) "pnp 00:08"
+i/o:0 0x04d6 - 0x04d6 (0x01) "pnp 00:08"
+i/o:0 0x0800 - 0x089f (0xa0) "pnp 00:08"
+i/o:0 0x0800 - 0x0803 (0x04) "ACPI PM1a_EVT_BLK"
+i/o:0 0x0804 - 0x0805 (0x02) "ACPI PM1a_CNT_BLK"
+i/o:0 0x0808 - 0x080b (0x04) "ACPI PM_TMR"
+i/o:0 0x0810 - 0x0815 (0x06) "ACPI CPU throttle"
+i/o:0 0x0820 - 0x0827 (0x08) "ACPI GPE0_BLK"
+i/o:0 0x08ff - 0x08ff (0x01) "ACPI PM2_CNT_BLK"
+i/o:0 0x0900 - 0x090f (0x10) "pnp 00:08"
+i/o:0 0x0910 - 0x091f (0x10) "pnp 00:08"
+i/o:0 0x0a30 - 0x0a3f (0x10) "pnp 00:0b"
+i/o:0 0x0b00 - 0x0b0f (0x10) "0000:00:14.0"
+i/o:0 0x0b10 - 0x0b1f (0x10) "pnp 00:08"
+i/o:0 0x0c00 - 0x0c01 (0x02) "pnp 00:08"
+i/o:0 0x0c14 - 0x0c14 (0x01) "pnp 00:08"
+i/o:0 0x0c50 - 0x0c51 (0x02) "pnp 00:08"
+i/o:0 0x0c52 - 0x0c52 (0x01) "pnp 00:08"
+i/o:0 0x0c6c - 0x0c6c (0x01) "pnp 00:08"
+i/o:0 0x0c6f - 0x0c6f (0x01) "pnp 00:08"
+i/o:0 0x0cd0 - 0x0cd1 (0x02) "pnp 00:08"
+i/o:0 0x0cd2 - 0x0cd3 (0x02) "pnp 00:08"
+i/o:0 0x0cd4 - 0x0cd5 (0x02) "pnp 00:08"
+i/o:0 0x0cd6 - 0x0cd7 (0x02) "pnp 00:08"
+i/o:0 0x0cd8 - 0x0cdf (0x08) "pnp 00:08"
+i/o:0 0x0cf8 - 0x0cff (0x08) "PCI conf1"
+i/o:0 0x0e00 - 0x0e0f (0x10) "pnp 00:0b"
+i/o:0 0x0e80 - 0x0e8f (0x10) "pnp 00:0b"
+i/o:0 0x0f40 - 0x0f4f (0x10) "pnp 00:0b"
+i/o:0 0x9000 - 0x900f (0x10) "0000:00:12.0"
+i/o:0 0x9000 - 0x900f (0x10) "ahci"
+i/o:0 0xa000 - 0xa003 (0x04) "0000:00:12.0"
+i/o:0 0xa000 - 0xa003 (0x04) "ahci"
+i/o:0 0xb000 - 0xb007 (0x08) "0000:00:12.0"
+i/o:0 0xb000 - 0xb007 (0x08) "ahci"
+i/o:0 0xc000 - 0xc003 (0x04) "0000:00:12.0"
+i/o:0 0xc000 - 0xc003 (0x04) "ahci"
+i/o:0 0xd000 - 0xd007 (0x08) "0000:00:12.0"
+i/o:0 0xd000 - 0xd007 (0x08) "ahci"
+i/o:0 0xe000 - 0xefff (0x1000) "PCI Bus 0000:01"
+i/o:0 0xe000 - 0xe0ff (0x100) "0000:01:00.0"
+i/o:0 0xfe00 - 0xfefe (0xff) "pnp 00:08"
+i/o:0 0xff00 - 0xff0f (0x10) "0000:00:14.1"
+irq:1  0 (      149) "timer"
+irq:0  1 (     4706) "i8042"
+irq:0  8 (       76) "rtc0"
+irq:0  9 (        3) "acpi"
+irq:0 12 (   334686) "i8042"
+irq:0 16 (      500) "ohci_hcd:usb2" "HDA Intel"
+irq:0 17 (       23) "ohci_hcd:usb3" "ohci_hcd:usb5"
+irq:0 18 (        2) "ohci_hcd:usb4" "ohci_hcd:usb6"
+irq:0 19 (       30) "ehci_hcd:usb1" "HDA Intel"
+irq:0 22 (    39292) "ahci"
+irq:0 26 (    16512) "eth0"
+irq:0 27 (   382436) "fglrx[0]@PCI:1:0:0"
+dma:1 4 "cascade"
+----- misc resources end -----
+>> parallel.1: pp mod
+----- exec: "/sbin/modprobe parport_pc" -----
+  FATAL: Module parport_pc not found.
+----- return code: ? -----
+----- exec: "/sbin/modprobe lp" -----
+  FATAL: Module lp not found.
+----- return code: ? -----
+>> parallel.2.1: lp read info
+>> parallel.2.2: lp read info
+>> parallel.2.3: lp read info
+----- parallel info -----
+----- parallel info end -----
+>> block.1: block modules
+----- exec: "/sbin/modprobe ide_cd " -----
+----- return code: ? -----
+----- exec: "/sbin/modprobe sr_mod " -----
+  FATAL: Module sr_mod not found.
+----- return code: ? -----
+----- exec: "/sbin/modprobe sd_mod " -----
+  FATAL: Module sd_mod not found.
+----- return code: ? -----
+----- exec: "/sbin/modprobe st " -----
+  FATAL: Module st not found.
+----- return code: ? -----
+>> block.2: sysfs drivers
+>> block.3: cdrom
+----- /proc/sys/dev/cdrom/info -----
+drive name:	
+drive speed:	
+drive # of slots:
+Can close tray:	
+Can open tray:	
+Can lock tray:	
+Can change speed:
+Can select disk:
+Can read multisession:
+Can read MCN:	
+Reports media changed:
+Can play audio:	
+Can write CD-R:	
+Can write CD-RW:
+Can read DVD:	
+Can write DVD-R:
+Can write DVD-RAM:
+Can read MRW:	
+Can write MRW:	
+Can write RAM:	
+----- /proc/sys/dev/cdrom/info end -----
+>> block.4: partition
+----- /proc/partitions -----
+     8        0  488385527 sda
+     8        1   16458561 sda1
+     8        2   16458592 sda2
+     8        3  263216992 sda3
+     8        4          1 sda4
+     8        5   16458561 sda5
+     8        6  131612481 sda6
+     8        7    8233281 sda7
+     8        8    8233281 sda8
+     8        9    4120641 sda9
+     8       10    4120641 sda10
+     8       11    8233281 sda11
+     8       12   11237436 sda12
+----- /proc/partitions end -----
+disks:
+  sda
+partitions:
+  sda1
+  sda2
+  sda3
+  sda4
+  sda5
+  sda6
+  sda7
+  sda8
+  sda9
+  sda10
+  sda11
+  sda12
+>> block.5: get sysfs block dev data
+sysfs: no such class: block
+>> scsi.1: scsi modules
+----- exec: "/sbin/modprobe sg " -----
+  FATAL: Module sg not found.
+----- return code: ? -----
+>> scsi.2: scsi tape
+sysfs: no such class: scsi_tape
+>> scsi.3: scsi generic
+sysfs: no such class: scsi_generic
+>> usb.1: sysfs drivers
+>> usb.2: usb
+  usb dev: /devices/pci0000:00/0000:00:13.1/usb3/3-1
+  usb dev: /devices/pci0000:00/0000:00:13.4/usb6
+  usb dev: /devices/pci0000:00/0000:00:13.3/usb5
+  usb dev: /devices/pci0000:00/0000:00:13.2/usb4
+  usb dev: /devices/pci0000:00/0000:00:13.1/usb3
+  usb dev: /devices/pci0000:00/0000:00:13.0/usb2
+  usb dev: /devices/pci0000:00/0000:00:13.5/usb1
+  usb device: name = 3-1:1.0
+    path = /devices/pci0000:00/0000:00:13.1/usb3/3-1/3-1:1.0
+    modalias = "usb:v0AC8p303Bd0100dcFFdsc00dp00icFFiscFFipFF"
+    bInterfaceNumber = 0
+    bInterfaceClass = 255
+    bInterfaceSubClass = 255
+    bInterfaceProtocol = 255
+    if: 3-1:1.0 @ /devices/pci0000:00/0000:00:13.1/usb3/3-1
+    bDeviceClass = 255
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x0ac8
+    idProduct = 0x303b
+    manufacturer = "Vimicro Corp."
+    product = "PC Camera"
+    bcdDevice = 0100
+    speed = "12"
+  usb device: name = 3-1
+    path = /devices/pci0000:00/0000:00:13.1/usb3/3-1
+  usb device: name = 6-0:1.0
+    path = /devices/pci0000:00/0000:00:13.4/usb6/6-0:1.0
+    modalias = "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 6-0:1.0 @ /devices/pci0000:00/0000:00:13.4/usb6
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0001
+    manufacturer = "Linux 2.6.30-gentoo-r5 ohci_hcd"
+    product = "OHCI Host Controller"
+    serial = "0000:00:13.4"
+    bcdDevice = 0206
+    speed = "12"
+  usb device: name = usb6
+    path = /devices/pci0000:00/0000:00:13.4/usb6
+  usb device: name = 5-0:1.0
+    path = /devices/pci0000:00/0000:00:13.3/usb5/5-0:1.0
+    modalias = "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 5-0:1.0 @ /devices/pci0000:00/0000:00:13.3/usb5
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0001
+    manufacturer = "Linux 2.6.30-gentoo-r5 ohci_hcd"
+    product = "OHCI Host Controller"
+    serial = "0000:00:13.3"
+    bcdDevice = 0206
+    speed = "12"
+  usb device: name = usb5
+    path = /devices/pci0000:00/0000:00:13.3/usb5
+  usb device: name = 4-0:1.0
+    path = /devices/pci0000:00/0000:00:13.2/usb4/4-0:1.0
+    modalias = "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 4-0:1.0 @ /devices/pci0000:00/0000:00:13.2/usb4
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0001
+    manufacturer = "Linux 2.6.30-gentoo-r5 ohci_hcd"
+    product = "OHCI Host Controller"
+    serial = "0000:00:13.2"
+    bcdDevice = 0206
+    speed = "12"
+  usb device: name = usb4
+    path = /devices/pci0000:00/0000:00:13.2/usb4
+  usb device: name = 3-0:1.0
+    path = /devices/pci0000:00/0000:00:13.1/usb3/3-0:1.0
+    modalias = "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 3-0:1.0 @ /devices/pci0000:00/0000:00:13.1/usb3
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0001
+    manufacturer = "Linux 2.6.30-gentoo-r5 ohci_hcd"
+    product = "OHCI Host Controller"
+    serial = "0000:00:13.1"
+    bcdDevice = 0206
+    speed = "12"
+  usb device: name = usb3
+    path = /devices/pci0000:00/0000:00:13.1/usb3
+  usb device: name = 2-0:1.0
+    path = /devices/pci0000:00/0000:00:13.0/usb2/2-0:1.0
+    modalias = "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 2-0:1.0 @ /devices/pci0000:00/0000:00:13.0/usb2
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0001
+    manufacturer = "Linux 2.6.30-gentoo-r5 ohci_hcd"
+    product = "OHCI Host Controller"
+    serial = "0000:00:13.0"
+    bcdDevice = 0206
+    speed = "12"
+  usb device: name = usb2
+    path = /devices/pci0000:00/0000:00:13.0/usb2
+  usb device: name = 1-0:1.0
+    path = /devices/pci0000:00/0000:00:13.5/usb1/1-0:1.0
+    modalias = "usb:v1D6Bp0002d0206dc09dsc00dp00ic09isc00ip00"
+    bInterfaceNumber = 0
+    bInterfaceClass = 9
+    bInterfaceSubClass = 0
+    bInterfaceProtocol = 0
+    if: 1-0:1.0 @ /devices/pci0000:00/0000:00:13.5/usb1
+    bDeviceClass = 9
+    bDeviceSubClass = 0
+    bDeviceProtocol = 0
+    idVendor = 0x1d6b
+    idProduct = 0x0002
+    manufacturer = "Linux 2.6.30-gentoo-r5 ehci_hcd"
+    product = "EHCI Host Controller"
+    serial = "0000:00:13.5"
+    bcdDevice = 0206
+    speed = "480"
+  usb device: name = usb1
+    path = /devices/pci0000:00/0000:00:13.5/usb1
+>> usb.3.1: joydev mod
+----- exec: "/sbin/modprobe joydev " -----
+  FATAL: Module joydev not found.
+----- return code: ? -----
+>> usb.3.2: evdev mod
+----- exec: "/sbin/modprobe evdev " -----
+  FATAL: Module evdev not found.
+----- return code: ? -----
+>> usb.3.3: input
+  input: name = event4, path = /devices/platform/i8042/serio1/input/input4/event4
+    dev = 13:68
+    input device: bus = (null), bus_id = input4 driver = (null)
+      path = /devices/platform/i8042/serio1/input/input4
+  input: name = mouse1, path = /devices/platform/i8042/serio1/input/input4/mouse1
+    dev = 13:33
+    input device: bus = (null), bus_id = input4 driver = (null)
+      path = /devices/platform/i8042/serio1/input/input4
+  input: name = input4, path = /devices/platform/i8042/serio1/input/input4
+    input device: bus = (null), bus_id = serio1 driver = psmouse
+      path = /devices/platform/i8042/serio1
+  input: name = event3, path = /devices/platform/i8042/serio0/input/input3/event3
+    dev = 13:67
+    input device: bus = (null), bus_id = input3 driver = (null)
+      path = /devices/platform/i8042/serio0/input/input3
+  input: name = input3, path = /devices/platform/i8042/serio0/input/input3
+    input device: bus = (null), bus_id = serio0 driver = atkbd
+      path = /devices/platform/i8042/serio0
+  input: name = event2, path = /devices/virtual/input/input2/event2
+    dev = 13:66
+    input device: bus = (null), bus_id = input2 driver = (null)
+      path = /devices/virtual/input/input2
+  input: name = event1, path = /devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1/event1
+    dev = 13:65
+    input device: bus = (null), bus_id = input1 driver = (null)
+      path = /devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1
+  input: name = event0, path = /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0/event0
+    dev = 13:64
+    input device: bus = (null), bus_id = input0 driver = (null)
+      path = /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+  input: name = mouse0, path = /devices/virtual/input/input2/mouse0
+    dev = 13:32
+    input device: bus = (null), bus_id = input2 driver = (null)
+      path = /devices/virtual/input/input2
+  input: name = mice, path = /devices/virtual/input/mice
+    dev = 13:63
+  input: name = input2, path = /devices/virtual/input/input2
+  input: name = input1, path = /devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1
+    input device: bus = (null), bus_id = PNP0C0C:00 driver = button
+      path = /devices/LNXSYSTM:00/device:00/PNP0C0C:00
+  input: name = input0, path = /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+    input device: bus = (null), bus_id = LNXPWRBN:00 driver = button
+      path = /devices/LNXSYSTM:00/LNXPWRBN:00
+>> usb.3.4: lp
+sysfs: no such class: usb
+>> usb.3.5: serial
+sysfs: no such class: tty
+>> edd.1: edd mod
+----- exec: "/sbin/modprobe edd " -----
+  FATAL: Module edd not found.
+----- return code: ? -----
+>> edd.2: edd info
+>> modem.1: serial
+******  started child process 20119 (15s/120s)  ******
+******  stopped child process 20119 (120s)  ******
+>> mouse.2: serial
+******  started child process 20120 (20s/20s)  ******
+******  stopped child process 20120 (20s)  ******
+>> input.1: joydev mod
+----- exec: "/sbin/modprobe joydev " -----
+  FATAL: Module joydev not found.
+----- return code: ? -----
+>> input.1.1: evdev mod
+----- exec: "/sbin/modprobe evdev " -----
+  FATAL: Module evdev not found.
+----- return code: ? -----
+>> input.2: input
+----- /proc/bus/input/devices -----
+  I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+  N: Name="Power Button"
+  P: Phys=LNXPWRBN/button/input0
+  S: Sysfs=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+  U: Uniq=
+  H: Handlers=kbd event0 
+  B: EV=3
+  B: KEY=10000000000000 0
+  
+  I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+  N: Name="Power Button"
+  P: Phys=PNP0C0C/button/input0
+  S: Sysfs=/devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1
+  U: Uniq=
+  H: Handlers=kbd event1 
+  B: EV=3
+  B: KEY=10000000000000 0
+  
+  I: Bus=0017 Vendor=0001 Product=0001 Version=0100
+  N: Name="Macintosh mouse button emulation"
+  P: Phys=
+  S: Sysfs=/devices/virtual/input/input2
+  U: Uniq=
+  H: Handlers=mouse0 event2 
+  B: EV=7
+  B: KEY=70000 0 0 0 0
+  B: REL=3
+  
+  I: Bus=0011 Vendor=0001 Product=0001 Version=ab41
+  N: Name="AT Translated Set 2 keyboard"
+  P: Phys=isa0060/serio0/input0
+  S: Sysfs=/devices/platform/i8042/serio0/input/input3
+  U: Uniq=
+  H: Handlers=kbd event3 
+  B: EV=120013
+  B: KEY=402000000 3803078f800d001 feffffdfffefffff fffffffffffffffe
+  B: MSC=10
+  B: LED=7
+  
+  I: Bus=0011 Vendor=0002 Product=0005 Version=0000
+  N: Name="ImPS/2 Generic Wheel Mouse"
+  P: Phys=isa0060/serio1/input0
+  S: Sysfs=/devices/platform/i8042/serio1/input/input4
+  U: Uniq=
+  H: Handlers=mouse1 event4 
+  B: EV=7
+  B: KEY=70000 0 0 0 0
+  B: REL=103
+  
+----- /proc/bus/input/devices end -----
+bus = 25, name = Power Button
+  handlers = kbd event0
+  key = 00100000000000000000000000000000
+  mouse buttons = 0
+  mouse wheels = 0
+bus = 25, name = Power Button
+  handlers = kbd event1
+  key = 00100000000000000000000000000000
+  mouse buttons = 0
+  mouse wheels = 0
+bus = 23, name = Macintosh mouse button emulation
+  handlers = mouse0 event2
+  key = 00000000000700000000000000000000000000000000000000000000000000000000000000000000
+  rel = 0000000000000003
+  mouse buttons = 3
+  mouse wheels = 0
+bus = 17, name = AT Translated Set 2 keyboard
+  handlers = kbd event3
+  key = 000000040200000003803078f800d001feffffdfffeffffffffffffffffffffe
+  mouse buttons = 0
+  mouse wheels = 0
+bus = 17, name = ImPS/2 Generic Wheel Mouse
+  handlers = mouse1 event4
+  key = 00000000000700000000000000000000000000000000000000000000000000000000000000000000
+  rel = 0000000000000103
+  mouse buttons = 3
+  mouse wheels = 1
+>> kbd.2: uml
+>> cpu.1: cpuinfo
+----- /proc/cpuinfo -----
+  processor	: 0
+  vendor_id	: AuthenticAMD
+  cpu family	: 15
+  model		: 107
+  model name	: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+  stepping	: 2
+  cpu MHz		: 2600.631
+  cache size	: 512 KB
+  physical id	: 0
+  siblings	: 2
+  core id		: 0
+  cpu cores	: 2
+  apicid		: 0
+  initial apicid	: 0
+  fpu		: yes
+  fpu_exception	: yes
+  cpuid level	: 1
+  wp		: yes
+  flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy 3dnowprefetch
+  bogomips	: 5201.26
+  TLB size	: 1024 4K pages
+  clflush size	: 64
+  cache_alignment	: 64
+  address sizes	: 40 bits physical, 48 bits virtual
+  power management: ts fid vid ttp tm stc 100mhzsteps
+  
+  processor	: 1
+  vendor_id	: AuthenticAMD
+  cpu family	: 15
+  model		: 107
+  model name	: AMD Athlon(tm) 64 X2 Dual Core Processor 5000+
+  stepping	: 2
+  cpu MHz		: 2600.631
+  cache size	: 512 KB
+  physical id	: 0
+  siblings	: 2
+  core id		: 1
+  cpu cores	: 2
+  apicid		: 1
+  initial apicid	: 1
+  fpu		: yes
+  fpu_exception	: yes
+  cpuid level	: 1
+  wp		: yes
+  flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy 3dnowprefetch
+  bogomips	: 5200.08
+  TLB size	: 1024 4K pages
+  clflush size	: 64
+  cache_alignment	: 64
+  address sizes	: 40 bits physical, 48 bits virtual
+  power management: ts fid vid ttp tm stc 100mhzsteps
+  
+----- /proc/cpuinfo end -----
+>> kbd.3: serial console
+>> fb.1: read info
+>> net.1: get network data
+sysfs: no such class: net
+>> pppoe.1: looking for pppoe
+>> wlan.1: detecting wlan features
+>> wlan.2: assign udi
+>> isdn.1: list
+>> dsl.1: list
+>> int.2: cdrom
+>> int.3: media
+>> int.4: floppy
+>> int.5: bios
+>> int.6: mouse
+>> int.15: system info
+  system type:
+  acpi: 1
+>> int.7: hdb
+>> int.7.1: modules
+>> int.8: usbscsi
+>> int.9: hotplug
+>> int.10: modem
+>> int.11: wlan
+>> int.12: udev
+-----  udevinfo -----
+-----  udevinfo end -----
+>> int.13: device names
+>> int.14: soft raid
+>> int.15: geo
+>> int.16: parent
+  prop read: rdCR.lZF+r4EgHp4 (failed)
+  old prop read: rdCR.lZF+r4EgHp4 (failed)
+  prop read: rdCR.n_7QNeEnh23 (failed)
+  old prop read: rdCR.n_7QNeEnh23 (failed)
+  prop read: rdCR.EMpH5pjcahD (failed)
+  old prop read: rdCR.EMpH5pjcahD (failed)
+  prop read: rdCR.f5u1ucRm+H9 (failed)
+  old prop read: rdCR.f5u1ucRm+H9 (failed)
+  prop read: rdCR.8uRK7LxiIA2 (failed)
+  old prop read: rdCR.8uRK7LxiIA2 (failed)
+  prop read: rdCR.AJKleuxpiP0 (failed)
+  old prop read: rdCR.AJKleuxpiP0 (failed)
+  prop read: rdCR.9N+EecqykME (failed)
+  old prop read: rdCR.9N+EecqykME (failed)
+  prop read: rdCR.CxwsZFjVASF (failed)
+  old prop read: rdCR.CxwsZFjVASF (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1969_1048 (failed)
+  prop read: B35A.Zt0NPZgx655 (failed)
+  old prop read: B35A.Zt0NPZgx655 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_aa18 (failed)
+  prop read: NXNs.xHzNdX5ujM2 (failed)
+  old prop read: NXNs.xHzNdX5ujM2 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_9505 (failed)
+  prop read: VCu0.xpkqW+WnfiA (failed)
+  old prop read: VCu0.xpkqW+WnfiA (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1022_1103 (failed)
+  prop read: Fhhh.M7aE7ttHy94 (failed)
+  old prop read: Fhhh.M7aE7ttHy94 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1022_1102 (failed)
+  prop read: OMCs.ridUeImaQn3 (failed)
+  old prop read: OMCs.ridUeImaQn3 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1022_1101 (failed)
+  prop read: W1j0.KIhk9ketuO3 (failed)
+  old prop read: W1j0.KIhk9ketuO3 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1022_1100 (failed)
+  prop read: fiDB.ptk_g9XAN03 (failed)
+  old prop read: fiDB.ptk_g9XAN03 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4384 (failed)
+  prop read: qscc.ULOo3yhA66C (failed)
+  old prop read: qscc.ULOo3yhA66C (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_438d (failed)
+  prop read: yX7n.munz_P4C0w7 (failed)
+  old prop read: yX7n.munz_P4C0w7 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4383 (failed)
+  prop read: 5Dex.RJQwAkMqg49 (failed)
+  old prop read: 5Dex.RJQwAkMqg49 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_438c (failed)
+  prop read: Eu86.Kz33gTZHq45 (failed)
+  old prop read: Eu86.Kz33gTZHq45 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4385 (failed)
+  prop read: MZfG.6lm_EvE5STB (failed)
+  old prop read: MZfG.6lm_EvE5STB (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4386 (failed)
+  prop read: c43_.nK_pWh6dvT1 (failed)
+  old prop read: c43_.nK_pWh6dvT1 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_438b (failed)
+  prop read: llZ8.6PvTn1r_vED (failed)
+  old prop read: llZ8.6PvTn1r_vED (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_438a (failed)
+  prop read: tQ4J.b_yjITjHOsC (failed)
+  old prop read: tQ4J.b_yjITjHOsC (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4389 (failed)
+  prop read: 06bT.4a0_pubasTC (failed)
+  old prop read: 06bT.4a0_pubasTC (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4388 (failed)
+  prop read: 9n5e.Z94ELKUtK5C (failed)
+  old prop read: 9n5e.Z94ELKUtK5C (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4387 (failed)
+  prop read: HSco.2l7UslMApiB (failed)
+  old prop read: HSco.2l7UslMApiB (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_4380 (failed)
+  prop read: CLZK.aKJnEV+fDUD (failed)
+  old prop read: CLZK.aKJnEV+fDUD (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_597c (failed)
+  prop read: H0_h.RJIwI_Z8Qh7 (failed)
+  old prop read: H0_h.RJIwI_Z8Qh7 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_5978 (failed)
+  prop read: _Znp.NfWwNi5KJ96 (failed)
+  old prop read: _Znp.NfWwNi5KJ96 (failed)
+  prop read: /org/freedesktop/Hal/devices/pci_1002_5957 (failed)
+  prop read: qLht.UormufgwvT7 (failed)
+  old prop read: qLht.UormufgwvT7 (failed)
+  prop read: rdCR.7RG8lK_UzJ9 (failed)
+  old prop read: rdCR.7RG8lK_UzJ9 (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial_if0 (failed)
+  prop read: KRJj.ptIWmQBJbVE (failed)
+  old prop read: KRJj.ptIWmQBJbVE (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4_if0 (failed)
+  prop read: 7eqy.im6ZNd17JfE (failed)
+  old prop read: 7eqy.im6ZNd17JfE (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3_if0 (failed)
+  prop read: 2XnU.x12_+sEPMN7 (failed)
+  old prop read: 2XnU.x12_+sEPMN7 (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2_if0 (failed)
+  prop read: zPk0.AJzOe6ShP50 (failed)
+  old prop read: zPk0.AJzOe6ShP50 (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1_if0 (failed)
+  prop read: uIhY.PaupGMfzSp8 (failed)
+  old prop read: uIhY.PaupGMfzSp8 (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0_if0 (failed)
+  prop read: pBe4.erpEvbsFWX1 (failed)
+  old prop read: pBe4.erpEvbsFWX1 (failed)
+  prop read: /org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5_if0 (failed)
+  prop read: k4bc.MrJLBLcWB9F (failed)
+  old prop read: k4bc.MrJLBLcWB9F (failed)
+  prop read: /org/freedesktop/Hal/devices/computer_logicaldev_input_1 (failed)
+  prop read: kZYT.9XB1QYZ8Aa7 (failed)
+  old prop read: kZYT.9XB1QYZ8Aa7 (failed)
+  prop read: /org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port_logicaldev_input (failed)
+  prop read: 9ui9.TBWTwSuMeW2 (failed)
+  old prop read: 9ui9.TBWTwSuMeW2 (failed)
+  prop read: /org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port_logicaldev_input (failed)
+  prop read: AH6Q.hI1e_vHaTSC (failed)
+  old prop read: AH6Q.hI1e_vHaTSC (failed)
+  prop read: rdCR.j8NaKXDZtZ6 (failed)
+  old prop read: rdCR.j8NaKXDZtZ6 (failed)
+  prop read: wkFv.j8NaKXDZtZ6 (failed)
+  old prop read: wkFv.j8NaKXDZtZ6 (failed)
+----- /proc/modules -----
+  ide_gd_mod 16776 0 - Live 0xffffffffa037f000
+  ide_generic 2388 0 [permanent], Live 0xffffffffa0036000
+  ide_cd_mod 29416 0 - Live 0xffffffffa0375000
+  ide_core 67712 3 ide_gd_mod,ide_generic,ide_cd_mod, Live 0xffffffffa0362000
+  fglrx 2156232 28 - Live 0xffffffffa0151000 (P)
+  pppoe 11976 0 - Live 0xffffffffa014c000
+  pppox 3480 1 pppoe, Live 0xffffffffa0146000
+  bsd_comp 5680 0 - Live 0xffffffffa013f000
+  ppp_deflate 5232 0 - Live 0xffffffffa0138000
+  zlib_deflate 19640 1 ppp_deflate, Live 0xffffffffa0131000
+  kvm_amd 36268 0 - Live 0xffffffffa0123000
+  kvm 154776 1 kvm_amd, Live 0xffffffffa00fb000
+  udf 73176 0 - Live 0xffffffffa00e4000
+  cifs 207480 0 - Live 0xffffffffa00ac000
+  fuse 55760 0 - Live 0xffffffffa0099000
+  ext4 214160 1 - Live 0xffffffffa005f000
+  jbd2 55584 1 ext4, Live 0xffffffffa004c000
+  i2c_algo_bit 5812 0 - Live 0xffffffffa0048000
+  tun 14224 0 - Live 0xffffffffa003f000
+  scsi_wait_scan 1440 0 - Live 0xffffffffa0039000
+  fb 48496 0 - Live 0xffffffffa0028000
+  bridge 40912 0 - Live 0xffffffffa0019000
+  stp 2580 1 bridge, Live 0xffffffffa0016000
+  test_nx 2528 0 - Live 0xffffffffa0013000
+  crc_itu_t 2048 1 udf, Live 0xffffffffa0010000
+  crc16 2016 1 ext4, Live 0xffffffffa000d000
+  atl1 31768 0 - Live 0xffffffffa0000000
+----- /proc/modules end -----
+  used irqs: 0,1,8,9,12,16,17,18,19,22,24,25,26,27
+=========== end debug info ============
+01: None 00.0: 10105 BIOS
+  [Created at bios.174]
+  Unique ID: rdCR.lZF+r4EgHp4
+  Hardware Class: bios
+  BIOS Keyboard LED Status:
+    Scroll Lock: off
+    Num Lock: off
+    Caps Lock: off
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+02: None 00.0: 10107 System
+  [Created at sys.59]
+  Unique ID: rdCR.n_7QNeEnh23
+  Hardware Class: system
+  Model: "System"
+  Formfactor: "desktop"
+  Driver Info #0:
+    Driver Status: thermal,fan are not active
+    Driver Activation Cmd: "modprobe thermal; modprobe fan"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+03: None 00.0: 10104 FPU
+  [Created at misc.192]
+  Unique ID: rdCR.EMpH5pjcahD
+  Hardware Class: unknown
+  Model: "FPU"
+  I/O Ports: 0xf0-0xff (rw)
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+04: None 00.0: 0801 DMA controller (8237)
+  [Created at misc.206]
+  Unique ID: rdCR.f5u1ucRm+H9
+  Hardware Class: unknown
+  Model: "DMA controller"
+  I/O Ports: 0x00-0x1f (rw)
+  I/O Ports: 0xc0-0xdf (rw)
+  I/O Ports: 0x80-0x8f (rw)
+  DMA: 4
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+05: None 00.0: 0800 PIC (8259)
+  [Created at misc.219]
+  Unique ID: rdCR.8uRK7LxiIA2
+  Hardware Class: unknown
+  Model: "PIC"
+  I/O Ports: 0x20-0x21 (rw)
+  I/O Ports: 0xa0-0xa1 (rw)
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+06: None 00.0: 0802 Timer (8254)
+  [Created at misc.230]
+  Unique ID: rdCR.AJKleuxpiP0
+  Hardware Class: unknown
+  Model: "Timer"
+  IRQ: 0 (149 events)
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+07: None 00.0: 0900 Keyboard controller
+  [Created at misc.251]
+  Unique ID: rdCR.9N+EecqykME
+  Hardware Class: unknown
+  Model: "Keyboard controller"
+  I/O Port: 0x60 (rw)
+  I/O Port: 0x64 (rw)
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+10: None 00.0: 10102 Main Memory
+  [Created at memory.61]
+  Unique ID: rdCR.CxwsZFjVASF
+  Hardware Class: memory
+  Model: "Main Memory"
+  Memory Range: 0x00000000-0x7ffaffff (rw)
+  Memory Size: 2 GB
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+11: PCI 200.0: 0200 Ethernet controller
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1969_1048
+  Unique ID: B35A.Zt0NPZgx655
+  Parent ID: H0_h.RJIwI_Z8Qh7
+  SysFS ID: /devices/pci0000:00/0000:00:06.0/0000:02:00.0
+  SysFS BusID: 0000:02:00.0
+  Hardware Class: network
+  Model: "ASUSTeK Ethernet controller"
+  Vendor: pci 0x1969 
+  Device: pci 0x1048 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x8226 
+  Revision: 0xb0
+  Driver: "atl1"
+  Driver Modules: "atl1"
+  Memory Range: 0xfebc0000-0xfebfffff (rw,non-prefetchable)
+  Memory Range: 0xfeba0000-0xfebbffff (ro,prefetchable,disabled)
+  IRQ: 26 (16512 events)
+  Module Alias: "pci:v00001969d00001048sv00001043sd00008226bc02sc00i00"
+  Driver Info #0:
+    Driver Status: atl1 is active
+    Driver Activation Cmd: "modprobe atl1"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #30 (PCI bridge)
+
+12: PCI 100.1: 0403 Audio device
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_aa18
+  Unique ID: NXNs.xHzNdX5ujM2
+  Parent ID: _Znp.NfWwNi5KJ96
+  SysFS ID: /devices/pci0000:00/0000:00:02.0/0000:01:00.1
+  SysFS BusID: 0000:01:00.1
+  Hardware Class: sound
+  Model: "PC Partner Audio device"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0xaa18 
+  SubVendor: pci 0x174b "PC Partner Limited"
+  SubDevice: pci 0xaa18 
+  Driver: "HDA Intel"
+  Driver Modules: "snd_hda_intel"
+  Memory Range: 0xfeaec000-0xfeaeffff (rw,non-prefetchable)
+  IRQ: 19 (30 events)
+  Module Alias: "pci:v00001002d0000AA18sv0000174Bsd0000AA18bc04sc03i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #31 (PCI bridge)
+
+13: PCI 100.0: 0300 VGA compatible controller (VGA)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_9505
+  Unique ID: VCu0.xpkqW+WnfiA
+  Parent ID: _Znp.NfWwNi5KJ96
+  SysFS ID: /devices/pci0000:00/0000:00:02.0/0000:01:00.0
+  SysFS BusID: 0000:01:00.0
+  Hardware Class: graphics card
+  Model: "PC Partner VGA compatible controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x9505 
+  SubVendor: pci 0x174b "PC Partner Limited"
+  SubDevice: pci 0xe630 
+  Driver: "fglrx_pci"
+  Driver Modules: "fglrx"
+  Memory Range: 0xd0000000-0xdfffffff (rw,prefetchable)
+  Memory Range: 0xfeaf0000-0xfeafffff (rw,non-prefetchable)
+  I/O Ports: 0xe000-0xefff (rw)
+  Memory Range: 0xfeac0000-0xfeadffff (ro,prefetchable,disabled)
+  IRQ: 27 (382436 events)
+  I/O Ports: 0x3c0-0x3df (rw)
+  Module Alias: "pci:v00001002d00009505sv0000174Bsd0000E630bc03sc00i00"
+  Driver Info #0:
+    Driver Status: fglrx is active
+    Driver Activation Cmd: "modprobe fglrx"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #31 (PCI bridge)
+
+14: PCI 18.3: 0600 Host bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1022_1103
+  Unique ID: Fhhh.M7aE7ttHy94
+  SysFS ID: /devices/pci0000:00/0000:00:18.3
+  SysFS BusID: 0000:00:18.3
+  Hardware Class: bridge
+  Model: "AMD K8 [Athlon64/Opteron] Miscellaneous Control"
+  Vendor: pci 0x1022 "AMD"
+  Device: pci 0x1103 "K8 [Athlon64/Opteron] Miscellaneous Control"
+  Module Alias: "pci:v00001022d00001103sv00000000sd00000000bc06sc00i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+15: PCI 18.2: 0600 Host bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1022_1102
+  Unique ID: OMCs.ridUeImaQn3
+  SysFS ID: /devices/pci0000:00/0000:00:18.2
+  SysFS BusID: 0000:00:18.2
+  Hardware Class: bridge
+  Model: "AMD K8 [Athlon64/Opteron] DRAM Controller"
+  Vendor: pci 0x1022 "AMD"
+  Device: pci 0x1102 "K8 [Athlon64/Opteron] DRAM Controller"
+  Module Alias: "pci:v00001022d00001102sv00000000sd00000000bc06sc00i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+16: PCI 18.1: 0600 Host bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1022_1101
+  Unique ID: W1j0.KIhk9ketuO3
+  SysFS ID: /devices/pci0000:00/0000:00:18.1
+  SysFS BusID: 0000:00:18.1
+  Hardware Class: bridge
+  Model: "AMD K8 [Athlon64/Opteron] Address Map"
+  Vendor: pci 0x1022 "AMD"
+  Device: pci 0x1101 "K8 [Athlon64/Opteron] Address Map"
+  Module Alias: "pci:v00001022d00001101sv00000000sd00000000bc06sc00i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+17: PCI 18.0: 0600 Host bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1022_1100
+  Unique ID: fiDB.ptk_g9XAN03
+  SysFS ID: /devices/pci0000:00/0000:00:18.0
+  SysFS BusID: 0000:00:18.0
+  Hardware Class: bridge
+  Model: "AMD K8 [Athlon64/Opteron] HyperTransport Technology Configuration"
+  Vendor: pci 0x1022 "AMD"
+  Device: pci 0x1100 "K8 [Athlon64/Opteron] HyperTransport Technology Configuration"
+  Module Alias: "pci:v00001022d00001100sv00000000sd00000000bc06sc00i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+18: PCI 14.4: 0604 PCI bridge (Subtractive decode)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4384
+  Unique ID: qscc.ULOo3yhA66C
+  SysFS ID: /devices/pci0000:00/0000:00:14.4
+  SysFS BusID: 0000:00:14.4
+  Hardware Class: bridge
+  Model: "ATI PCI bridge"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4384 
+  Module Alias: "pci:v00001002d00004384sv00000000sd00000000bc06sc04i01"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+19: PCI 14.3: 0601 ISA bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_438d
+  Unique ID: yX7n.munz_P4C0w7
+  SysFS ID: /devices/pci0000:00/0000:00:14.3
+  SysFS BusID: 0000:00:14.3
+  Hardware Class: bridge
+  Model: "ASUSTeK ISA bridge"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x438d 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Module Alias: "pci:v00001002d0000438Dsv00001043sd000081EFbc06sc01i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+20: PCI 14.2: 0403 Audio device
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4383
+  Unique ID: 5Dex.RJQwAkMqg49
+  SysFS ID: /devices/pci0000:00/0000:00:14.2
+  SysFS BusID: 0000:00:14.2
+  Hardware Class: sound
+  Model: "ASUSTeK Audio device"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4383 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x82bb 
+  Driver: "HDA Intel"
+  Driver Modules: "snd_hda_intel"
+  Memory Range: 0xfe9f4000-0xfe9f7fff (rw,non-prefetchable)
+  IRQ: 16 (500 events)
+  Module Alias: "pci:v00001002d00004383sv00001043sd000082BBbc04sc03i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+21: PCI 14.1: 0101 IDE interface
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_438c
+  Unique ID: Eu86.Kz33gTZHq45
+  SysFS ID: /devices/pci0000:00/0000:00:14.1
+  SysFS BusID: 0000:00:14.1
+  Hardware Class: storage
+  Model: "ASUSTeK IDE interface"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x438c 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  I/O Ports: 0x1f0-0x1f7 (rw)
+  I/O Port: 0x3f6 (rw)
+  I/O Ports: 0x170-0x177 (rw)
+  I/O Port: 0x376 (rw)
+  I/O Ports: 0xff00-0xff0f (rw)
+  Module Alias: "pci:v00001002d0000438Csv00001043sd000081EFbc01sc01i8a"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+22: PCI 14.0: 0c05 SMBus
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4385
+  Unique ID: MZfG.6lm_EvE5STB
+  SysFS ID: /devices/pci0000:00/0000:00:14.0
+  SysFS BusID: 0000:00:14.0
+  Hardware Class: unknown
+  Model: "ASUSTeK SMBus"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4385 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Revision: 0x14
+  I/O Ports: 0xb00-0xb0f (rw)
+  Module Alias: "pci:v00001002d00004385sv00001043sd000081EFbc0Csc05i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+23: PCI 13.5: 0c03 USB Controller (EHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4386
+  Unique ID: c43_.nK_pWh6dvT1
+  SysFS ID: /devices/pci0000:00/0000:00:13.5
+  SysFS BusID: 0000:00:13.5
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4386 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ehci_hcd"
+  Driver Modules: "ehci_hcd"
+  Memory Range: 0xfe9ff000-0xfe9ff0ff (rw,non-prefetchable)
+  IRQ: 19 (30 events)
+  Module Alias: "pci:v00001002d00004386sv00001043sd000081EFbc0Csc03i20"
+  Driver Info #0:
+    Driver Status: ehci-hcd is not active
+    Driver Activation Cmd: "modprobe ehci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+24: PCI 13.4: 0c03 USB Controller (OHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_438b
+  Unique ID: llZ8.6PvTn1r_vED
+  SysFS ID: /devices/pci0000:00/0000:00:13.4
+  SysFS BusID: 0000:00:13.4
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x438b 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ohci_hcd"
+  Memory Range: 0xfe9fa000-0xfe9fafff (rw,non-prefetchable)
+  IRQ: 18 (2 events)
+  Module Alias: "pci:v00001002d0000438Bsv00001043sd000081EFbc0Csc03i10"
+  Driver Info #0:
+    Driver Status: ohci-hcd is not active
+    Driver Activation Cmd: "modprobe ohci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+25: PCI 13.3: 0c03 USB Controller (OHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_438a
+  Unique ID: tQ4J.b_yjITjHOsC
+  SysFS ID: /devices/pci0000:00/0000:00:13.3
+  SysFS BusID: 0000:00:13.3
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x438a 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ohci_hcd"
+  Memory Range: 0xfe9fb000-0xfe9fbfff (rw,non-prefetchable)
+  IRQ: 17 (23 events)
+  Module Alias: "pci:v00001002d0000438Asv00001043sd000081EFbc0Csc03i10"
+  Driver Info #0:
+    Driver Status: ohci-hcd is not active
+    Driver Activation Cmd: "modprobe ohci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+26: PCI 13.2: 0c03 USB Controller (OHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4389
+  Unique ID: 06bT.4a0_pubasTC
+  SysFS ID: /devices/pci0000:00/0000:00:13.2
+  SysFS BusID: 0000:00:13.2
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4389 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ohci_hcd"
+  Memory Range: 0xfe9fc000-0xfe9fcfff (rw,non-prefetchable)
+  IRQ: 18 (2 events)
+  Module Alias: "pci:v00001002d00004389sv00001043sd000081EFbc0Csc03i10"
+  Driver Info #0:
+    Driver Status: ohci-hcd is not active
+    Driver Activation Cmd: "modprobe ohci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+27: PCI 13.1: 0c03 USB Controller (OHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4388
+  Unique ID: 9n5e.Z94ELKUtK5C
+  SysFS ID: /devices/pci0000:00/0000:00:13.1
+  SysFS BusID: 0000:00:13.1
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4388 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ohci_hcd"
+  Memory Range: 0xfe9fd000-0xfe9fdfff (rw,non-prefetchable)
+  IRQ: 17 (23 events)
+  Module Alias: "pci:v00001002d00004388sv00001043sd000081EFbc0Csc03i10"
+  Driver Info #0:
+    Driver Status: ohci-hcd is not active
+    Driver Activation Cmd: "modprobe ohci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+28: PCI 13.0: 0c03 USB Controller (OHCI)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4387
+  Unique ID: HSco.2l7UslMApiB
+  SysFS ID: /devices/pci0000:00/0000:00:13.0
+  SysFS BusID: 0000:00:13.0
+  Hardware Class: usb controller
+  Model: "ASUSTeK USB Controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4387 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ohci_hcd"
+  Memory Range: 0xfe9fe000-0xfe9fefff (rw,non-prefetchable)
+  IRQ: 16 (500 events)
+  Module Alias: "pci:v00001002d00004387sv00001043sd000081EFbc0Csc03i10"
+  Driver Info #0:
+    Driver Status: ohci-hcd is not active
+    Driver Activation Cmd: "modprobe ohci-hcd"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+29: PCI 12.0: 0106 SATA controller (AHCI 1.0)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_4380
+  Unique ID: CLZK.aKJnEV+fDUD
+  SysFS ID: /devices/pci0000:00/0000:00:12.0
+  SysFS BusID: 0000:00:12.0
+  Hardware Class: storage
+  Model: "ASUSTeK SATA controller"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x4380 
+  SubVendor: pci 0x1043 "ASUSTeK Computer Inc."
+  SubDevice: pci 0x81ef 
+  Driver: "ahci"
+  Driver Modules: "ahci"
+  I/O Ports: 0xd000-0xd007 (rw)
+  I/O Ports: 0xc000-0xc003 (rw)
+  I/O Ports: 0xb000-0xb007 (rw)
+  I/O Ports: 0xa000-0xa003 (rw)
+  I/O Ports: 0x9000-0x900f (rw)
+  Memory Range: 0xfe9ff800-0xfe9ffbff (rw,non-prefetchable)
+  IRQ: 22 (39292 events)
+  Module Alias: "pci:v00001002d00004380sv00001043sd000081EFbc01sc06i01"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+30: PCI 06.0: 0604 PCI bridge (Normal decode)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_597c
+  Unique ID: H0_h.RJIwI_Z8Qh7
+  SysFS ID: /devices/pci0000:00/0000:00:06.0
+  SysFS BusID: 0000:00:06.0
+  Hardware Class: bridge
+  Model: "ATI PCI bridge"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x597c 
+  Driver: "pcieport-driver"
+  IRQ: 25 (no events)
+  Module Alias: "pci:v00001002d0000597Csv00000000sd00000000bc06sc04i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+31: PCI 02.0: 0604 PCI bridge (Normal decode)
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_5978
+  Unique ID: _Znp.NfWwNi5KJ96
+  SysFS ID: /devices/pci0000:00/0000:00:02.0
+  SysFS BusID: 0000:00:02.0
+  Hardware Class: bridge
+  Model: "ATI PCI bridge"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x5978 
+  Driver: "pcieport-driver"
+  IRQ: 24 (no events)
+  Module Alias: "pci:v00001002d00005978sv00000000sd00000000bc06sc04i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+32: PCI 00.0: 0600 Host bridge
+  [Created at pci.288]
+  UDI: /org/freedesktop/Hal/devices/pci_1002_5957
+  Unique ID: qLht.UormufgwvT7
+  SysFS ID: /devices/pci0000:00/0000:00:00.0
+  SysFS BusID: 0000:00:00.0
+  Hardware Class: bridge
+  Model: "ATI Host bridge"
+  Vendor: pci 0x1002 "ATI Technologies Inc"
+  Device: pci 0x5957 
+  SubVendor: pci 0x1002 "ATI Technologies Inc"
+  SubDevice: pci 0x5957 
+  Memory Range: 0x00000000-0x1fffffff (rw,non-prefetchable)
+  Module Alias: "pci:v00001002d00005957sv00001002sd00005957bc06sc00i00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+33: None 00.0: 0700 Serial controller
+  [Created at misc.462]
+  Unique ID: rdCR.7RG8lK_UzJ9
+  Hardware Class: unknown
+  Model: "Serial controller"
+  I/O Ports: 0x3f8-0x3ff (rw)
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+34: USB 00.0: 0000 Unclassified device
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_ac8_303b_noserial_if0
+  Unique ID: KRJj.ptIWmQBJbVE
+  Parent ID: uIhY.PaupGMfzSp8
+  SysFS ID: /devices/pci0000:00/0000:00:13.1/usb3/3-1/3-1:1.0
+  SysFS BusID: 3-1:1.0
+  Hardware Class: unknown
+  Model: "Vimicro PC Camera"
+  Hotplug: USB
+  Vendor: usb 0x0ac8 "Vimicro Corp."
+  Device: usb 0x303b "PC Camera"
+  Revision: "1.00"
+  Speed: 12 Mbps
+  Module Alias: "usb:v0AC8p303Bd0100dcFFdsc00dp00icFFiscFFipFF"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #38 (Hub)
+
+35: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_4_if0
+  Unique ID: 7eqy.im6ZNd17JfE
+  Parent ID: llZ8.6PvTn1r_vED
+  SysFS ID: /devices/pci0000:00/0000:00:13.4/usb6/6-0:1.0
+  SysFS BusID: 6-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ohci_hcd OHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ohci_hcd"
+  Device: usb 0x0001 "OHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.4"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 12 Mbps
+  Module Alias: "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #24 (USB Controller)
+
+36: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_3_if0
+  Unique ID: 2XnU.x12_+sEPMN7
+  Parent ID: tQ4J.b_yjITjHOsC
+  SysFS ID: /devices/pci0000:00/0000:00:13.3/usb5/5-0:1.0
+  SysFS BusID: 5-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ohci_hcd OHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ohci_hcd"
+  Device: usb 0x0001 "OHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.3"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 12 Mbps
+  Module Alias: "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #25 (USB Controller)
+
+37: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_2_if0
+  Unique ID: zPk0.AJzOe6ShP50
+  Parent ID: 06bT.4a0_pubasTC
+  SysFS ID: /devices/pci0000:00/0000:00:13.2/usb4/4-0:1.0
+  SysFS BusID: 4-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ohci_hcd OHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ohci_hcd"
+  Device: usb 0x0001 "OHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.2"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 12 Mbps
+  Module Alias: "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #26 (USB Controller)
+
+38: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_1_if0
+  Unique ID: uIhY.PaupGMfzSp8
+  Parent ID: 9n5e.Z94ELKUtK5C
+  SysFS ID: /devices/pci0000:00/0000:00:13.1/usb3/3-0:1.0
+  SysFS BusID: 3-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ohci_hcd OHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ohci_hcd"
+  Device: usb 0x0001 "OHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.1"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 12 Mbps
+  Module Alias: "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #27 (USB Controller)
+
+39: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_1_0000_00_13_0_if0
+  Unique ID: pBe4.erpEvbsFWX1
+  Parent ID: HSco.2l7UslMApiB
+  SysFS ID: /devices/pci0000:00/0000:00:13.0/usb2/2-0:1.0
+  SysFS BusID: 2-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ohci_hcd OHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ohci_hcd"
+  Device: usb 0x0001 "OHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.0"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 12 Mbps
+  Module Alias: "usb:v1D6Bp0001d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #28 (USB Controller)
+
+40: USB 00.0: 10a00 Hub
+  [Created at usb.122]
+  UDI: /org/freedesktop/Hal/devices/usb_device_1d6b_2_0000_00_13_5_if0
+  Unique ID: k4bc.MrJLBLcWB9F
+  Parent ID: c43_.nK_pWh6dvT1
+  SysFS ID: /devices/pci0000:00/0000:00:13.5/usb1/1-0:1.0
+  SysFS BusID: 1-0:1.0
+  Hardware Class: hub
+  Model: "Linux 2.6.30-gentoo-r5 ehci_hcd EHCI Host Controller"
+  Hotplug: USB
+  Vendor: usb 0x1d6b "Linux 2.6.30-gentoo-r5 ehci_hcd"
+  Device: usb 0x0002 "EHCI Host Controller"
+  Revision: "2.06"
+  Serial ID: "0000:00:13.5"
+  Driver: "hub"
+  Driver Modules: "usbcore"
+  Speed: 480 Mbps
+  Module Alias: "usb:v1D6Bp0002d0206dc09dsc00dp00ic09isc00ip00"
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+  Attached to: #23 (USB Controller)
+
+41: ADB 00.0: 10502 Bus Mouse
+  [Created at input.159]
+  UDI: /org/freedesktop/Hal/devices/computer_logicaldev_input_1
+  Unique ID: kZYT.9XB1QYZ8Aa7
+  Hardware Class: mouse
+  Model: "Apple Macintosh mouse button emulation"
+  Vendor: int 0x0100 "Apple"
+  Device: int 0x0300 "Macintosh mouse button emulation"
+  Compatible to: int 0x0210 0x0003
+  Device File: /dev/input/mice (/dev/input/mouse0)
+  Device Files: /dev/input/mice, /dev/input/mouse0, /dev/input/event2
+  Device Number: char 13:63 (char 13:32)
+  Driver Info #0:
+    Buttons: 3
+    Wheels: 0
+    XFree86 Protocol: explorerps/2
+    GPM Protocol: exps2
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+42: PS/2 00.0: 10800 Keyboard
+  [Created at input.139]
+  UDI: /org/freedesktop/Hal/devices/platform_i8042_i8042_KBD_port_logicaldev_input
+  Unique ID: 9ui9.TBWTwSuMeW2
+  Hardware Class: keyboard
+  Model: "AT Translated Set 2 keyboard"
+  Vendor: int 0x0211 
+  Device: int 0x0001 "AT Translated Set 2 keyboard"
+  Device File: /dev/input/event3
+  Device Number: char 13:67
+  Driver Info #0:
+    XkbRules: xfree86
+    XkbModel: pc104
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+43: PS/2 00.0: 10500 PS/2 Mouse
+  [Created at input.159]
+  UDI: /org/freedesktop/Hal/devices/platform_i8042_i8042_AUX_port_logicaldev_input
+  Unique ID: AH6Q.hI1e_vHaTSC
+  Hardware Class: mouse
+  Model: "ImPS/2 Generic Wheel Mouse"
+  Vendor: int 0x0210 
+  Device: int 0x0013 "ImPS/2 Generic Wheel Mouse"
+  Device File: /dev/input/mice (/dev/input/mouse1)
+  Device Files: /dev/input/mice, /dev/input/mouse1, /dev/input/event4
+  Device Number: char 13:63 (char 13:33)
+  Driver Info #0:
+    Buttons: 3
+    Wheels: 1
+    XFree86 Protocol: explorerps/2
+    GPM Protocol: exps2
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+44: None 00.0: 10103 CPU
+  [Created at cpu.305]
+  Unique ID: rdCR.j8NaKXDZtZ6
+  Hardware Class: cpu
+  Arch: X86-64
+  Vendor: "AuthenticAMD"
+  Model: 15.107.2 "AMD Athlon(tm) 64 X2 Dual Core Processor 5000+"
+  Features: fpu,vme,de,pse,tsc,msr,pae,mce,cx8,apic,sep,mtrr,pge,mca,cmov,pat,pse36,clflush,mmx,fxsr,sse,sse2,ht,syscall,nx,mmxext,fxsr_opt,rdtscp,lm,3dnowext,3dnow,rep_good,extd_apicid,pni,cx16,lahf_lm,cmp_legacy,svm,extapic,cr8_legacy,3dnowprefetch
+  Clock: 2600 MHz
+  BogoMips: 5201.26
+  Cache: 512 kb
+  Units/Processor: 2
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
+
+45: None 01.0: 10103 CPU
+  [Created at cpu.305]
+  Unique ID: wkFv.j8NaKXDZtZ6
+  Hardware Class: cpu
+  Arch: X86-64
+  Vendor: "AuthenticAMD"
+  Model: 15.107.2 "AMD Athlon(tm) 64 X2 Dual Core Processor 5000+"
+  Features: fpu,vme,de,pse,tsc,msr,pae,mce,cx8,apic,sep,mtrr,pge,mca,cmov,pat,pse36,clflush,mmx,fxsr,sse,sse2,ht,syscall,nx,mmxext,fxsr_opt,rdtscp,lm,3dnowext,3dnow,rep_good,extd_apicid,pni,cx16,lahf_lm,cmp_legacy,svm,extapic,cr8_legacy,3dnowprefetch
+  Clock: 2600 MHz
+  BogoMips: 5200.08
+  Cache: 512 kb
+  Units/Processor: 2
+  Config Status: cfg=new, avail=yes, need=no, active=unknown
