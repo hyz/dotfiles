@@ -1,0 +1,34 @@
+# mplayer
+# Write your default config options here!
+
+# Write your default config options here!
+#alias mplayer='mplayer -stop-xscreensaver -zoom -vo gl2'
+
+# unicode=1
+slang=zh,en
+stop-xscreensaver=1
+zoom=1
+#if your graphic card support opengl , you can use vo=gl2
+vo=gl2
+# ao=pulse
+ontop=1
+#good exclude H264 Video codec
+vf=expand=:::::4/3:2
+#fs=1
+
+#subcp=cp936
+# subcp=enca:zh:cp936
+subcp=utf-8
+# font=SimHei
+font="WenQuanYi Zen Hei"
+# font="Microsoft YaHei"
+#font="/usr/share/fonts/wqy-zenhei/wqy-zenhei.ttc"
+subfont="/usr/share/fonts/wqy-zenhei/wqy-zenhei.ttc"
+autosub=1
+fontconfig=1
+
+# ass=1
+# ass-styles= $HOME/.mplayer/my.ass
+# use up style file no need this scale param
+#ass-font-scale=2.5
+
