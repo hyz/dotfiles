@@ -15,13 +15,7 @@ if [ -d ~/bin ] ; then
     PATH=~/bin:"${PATH}"
 fi
 
-#QEMU_AUDIO_DRV=alsa
-QEMU_AUDIO_DRV=pa
-SDL_AUDIODRIVER=pulse
-export QEMU_AUDIO_DRV SDL_AUDIODRIVER
-
 if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
-    date
     xinit
     logout
 fi

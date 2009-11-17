@@ -1,88 +1,27 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
+# /etc/skel/.bashrc
+#
+# This file is sourced by all *interactive* bash shells on startup,
+# including some apparently interactive shells such as scp and rcp
+# that can't tolerate any output.  So make sure this doesn't display
+# anything or bad things will happen !
 
-# If not running interactively, don't do anything
-[ -z "$PS1" ] && return
 
-# don't put duplicate lines in the history. See bash(1) for more options
-export HISTCONTROL=ignoredups
-# ... and ignore same sucessive entries.
-export HISTCONTROL=ignoreboth
-
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
-
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
-
-# set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
+# Test for an interactive shell.  There is no need to set anything
+# past this point for scp and rcp, and it's important to refrain from
+# outputting anything in those cases.
+if [[ $- != *i* ]] ; then
+	# Shell is non-interactive.  Be done now!
+	return
 fi
 
-#tux # set a fancy prompt (non-color, unless we know we "want" color)
-#tux case "$TERM" in
-#tux xterm-color)
-#tux     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-#tux     ;;
-#tux *)
-#tux     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-#tux     ;;
-#tux esac
-#tux 
-#tux # Comment in the above and uncomment this below for a color prompt
-#tux # PS1='${debian_chroot:+($debian_chroot)}\A@\w\$ '
-#tux # PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-#tux 
-#tux # If this is an xterm set the title to user@host:dir
-#tux case "$TERM" in
-#tux xterm*|rxvt*)
-#tux     PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'
-#tux     ;;
-#tux *)
-#tux     ;;
-#tux esac
+HISTCONTROL=ignorespace:erasedups
 
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-#if [ -f ~/.bash_aliases ]; then
-#    . ~/.bash_aliases
-#fi
-
-# enable color support of ls and also add handy aliases
-if [ "$TERM" != "dumb" ]; then
-	#eval "`dircolors -b`"
-	#[ -e "${HOME}/.dir_colors" ] && eval "`dircolors -b ${HOME}/.dir_colors`"
-    alias ls='ls --color=auto'
-    #alias dir='ls --color=auto --format=vertical'
-    #alias vdir='ls --color=auto --format=long'
-fi
-
-# some more ls aliases
-alias ll='ls -l'
-#alias la='ls -A'
-#alias l='ls -CF'
-alias df='df -h'
-alias mv='mv -i'
-
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
-if [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-fi
-
-# -------- # -------- #
-export LANG=en_US.UTF-8
-
+# EDITOR=vi
+LANG=en_GB.UTF-8
+# LC_CTYPE=zh_CN.UTF-8
+# LC_COLLATE=posix
+export HISTCONTROL LANG
 export PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/games/bin
-
-export EDITOR=vi
 
 if [ -d "$HOME/lib" ]; then
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib
@@ -93,20 +32,17 @@ if [ -d "$HOME/lib" ]; then
 	fi
 fi
 
-alias bjam='bjam --v2 --toolset=gcc'
-# alias mplayer='mplayer -fs -ao pulse'
+alias df='df -h'
+alias lynx='lynx -vikeys'
+# alias screen='screen -U -e^jj'
+export LIBGL_DEBUG=verbose
 
-BOOST_ROOT=${HOME}/view/boost
-BOOST_BUILD_PATH=${HOME}/view/boost/tools/build/v2
-export BOOST_ROOT BOOST_BUILD_PATH
+export BOOST_ROOT=$HOME/view/boost
+export BOOST_BUILD_PATH=$BOOST_ROOT/tools/build/v2
 
 ### ! ps aux | grep -q fetchmail && fetchmail &
 
 #eval `ssh-agent`
 #keychain id_rsa
-. $HOME/.keychain/home-sh
-
-if uname -r |grep gentoo; then
-	alias bittorrent-curses='bittorrent-curses --save_in ~/Downloads'
-fi
+. $HOME/.keychain/tux-sh
 
