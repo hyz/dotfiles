@@ -9,12 +9,16 @@ app-arch/zip
 app-crypt/stan
 app-dicts/stardict-langdao-zh-en-gb
 app-dicts/stardict-oxford-en-zh-gb
+app-editors/nedit
 app-editors/vim
 app-emulation/kvm
 app-emulation/qemu
 app-emulation/wine
+app-i18n/fcitx
 app-i18n/ibus-pinyin
+app-misc/ckermit
 app-misc/devtodo
+app-misc/gcal
 app-misc/gentoo
 app-misc/screen
 app-office/calcurse
@@ -45,6 +49,7 @@ dev-libs/protobuf
 dev-python/chardet
 dev-python/cython
 dev-python/dbus-python
+dev-python/pexpect
 dev-python/pycairo
 dev-python/twisted-web
 dev-util/boost-build
@@ -55,6 +60,7 @@ dev-util/darcs
 dev-util/git
 dev-util/gitosis
 dev-util/mercurial
+dev-util/scons
 dev-util/splint
 dev-util/strace
 dev-util/subversion
@@ -144,8 +150,12 @@ net-misc/vde
 net-misc/vnc
 net-p2p/amule
 net-p2p/mldonkey
+net-proxy/dante
 net-proxy/privoxy
+net-proxy/tinyproxy
 rox-base/rox
+sci-astronomy/celestia
+sci-libs/szip
 sys-apps/hwinfo
 sys-apps/iproute2
 sys-apps/lshw
@@ -181,6 +191,7 @@ www-client/w3m
 www-plugins/adobe-flash
 www-plugins/libflashsupport
 www-servers/apache
+www-servers/nginx
 x11-apps/mesa-progs
 x11-apps/xdpyinfo
 x11-apps/xfontsel
@@ -195,6 +206,7 @@ x11-drivers/xf86-video-fbdev
 x11-drivers/xf86-video-vesa
 x11-drivers/xf86-video-vmware
 x11-libs/cairo
+x11-misc/alltray
 x11-misc/dclock
 x11-misc/dmenu
 x11-misc/dzen

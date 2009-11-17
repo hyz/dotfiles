@@ -10,6 +10,7 @@ games-strategy/glest ~amd64
 games-strategy/glob2 ~amd64
 dev-python/dbus-python ~amd64
 dev-haskell/x11 ~amd64
+dev-haskell/utf8-string ~amd64
 dev-util/boost-build ~amd64
 dev-libs/boost ~amd64
 app-text/hnb ~amd64
@@ -32,7 +33,6 @@ www-client/uzbl ~amd64
 media-sound/lastfmplayer ~amd64
 app-arch/duff ~amd64
 media-libs/x264 ~amd64
-dev-haskell/utf8-string ~amd64
 media-video/ffmpeg ~amd64
 media-video/mplayer ~amd64
 

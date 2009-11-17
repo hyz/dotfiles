@@ -1,12 +1,20 @@
 media-sound/pulseaudio -X
+
+app-portage/layman git subversion
+dev-util/git curl webdav bash-completion -gtk tk
+
+x11-libs/cairo svg
+dev-db/mysql -* minimal
+
 dev-lang/python sqlite
 games-kids/gcompris gnet
 net-p2p/mldonkey -gtk
 dev-libs/xerces-c icu
 app-text/acroread -* minimal linguas_zh_CN linguas_en
+net-libs/webkit-gtk -soup pango
+app-emulation/qemu -* sdl alsa gnutls vde ncurses qemu_softmmu_targets_mipsel qemu_softmmu_targets_arm qemu_user_targets_arm qemu_user_targets_armeb qemu_softmmu_targets_i386 qemu_user_targets_i386 qemu_user_targets_mipsel
 media-libs/libmp4v2 utils
-dev-util/subversion -* webdav -neon
-app-portage/layman git subversion
+dev-util/subversion -* webdav
 net-dialup/ppp -gtk
 dev-util/bzr curl
 sys-devel/gcc -gtk -gcj
@@ -15,5 +23,7 @@ app-text/xpdf linguas_zh_CN
 www-client/mozilla-firefox linguas_zh_CN
 
 media-sound/ncmpc lyrics-screen search-screen song-screen
-dev-util/git curl webdav bash-completion -gtk tk
+media-video/ffmpeg x264 xvid
 
+net-proxy/tinyproxy socks5
+app-text/xpdf linguas_zh_CN
