@@ -1,10 +1,10 @@
-#!/bin/sh
 
 export XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE="ibus"
 export QT_IM_MODULE="xim"
 
 ibus-daemon -d -x
+# fcitx &
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
 #devilspie &
@@ -32,6 +32,7 @@ fbpanel &
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG
 #feh --bg-scale Desktop/Untitled/100_0210.JPG
 
+# urxvtd -q -f -o
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
 

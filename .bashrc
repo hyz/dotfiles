@@ -32,6 +32,11 @@ if [ -d "$HOME/lib" ]; then
 	fi
 fi
 
+#QEMU_AUDIO_DRV=alsa
+# QEMU_AUDIO_DRV=pa
+# SDL_AUDIODRIVER=pulse
+# export QEMU_AUDIO_DRV SDL_AUDIODRIVER
+
 alias df='df -h'
 alias lynx='lynx -vikeys'
 # alias screen='screen -U -e^jj'
