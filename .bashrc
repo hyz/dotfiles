@@ -42,8 +42,8 @@ alias lynx='lynx -vikeys'
 # alias screen='screen -U -e^jj'
 export LIBGL_DEBUG=verbose
 
+export BOOST_BUILD_PATH=/usr/share/boost-build-1_40
 export BOOST_ROOT=$HOME/view/boost
-export BOOST_BUILD_PATH=$BOOST_ROOT/tools/build/v2
 
 ### ! ps aux | grep -q fetchmail && fetchmail &
 
