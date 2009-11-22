@@ -13,7 +13,7 @@ sys-devel/gcc -gtk -gcj
 media-gfx/picasa nsplugin
 app-text/xpdf linguas_zh_CN
 www-client/mozilla-firefox linguas_zh_CN
-
 media-sound/ncmpc lyrics-screen search-screen song-screen
 dev-util/git curl webdav bash-completion -gtk tk
-
+net-p2p/amule daemon
+dev-util/global vim

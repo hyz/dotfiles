@@ -54,6 +54,7 @@ dev-util/cvs
 dev-util/darcs
 dev-util/git
 dev-util/gitosis
+dev-util/global
 dev-util/mercurial
 dev-util/splint
 dev-util/strace
@@ -66,6 +67,7 @@ games-arcade/supertux
 games-arcade/tomatoes
 games-arcade/xbubble
 games-kids/gcompris
+games-kids/tuxtype
 games-misc/cowsay
 games-puzzle/anagramarama
 games-puzzle/fish-fillets
@@ -76,6 +78,7 @@ games-strategy/glob2
 games-strategy/tornado
 games-strategy/warzone2100
 games-strategy/wesnoth
+games-strategy/wormux
 mail-client/mutt
 media-fonts/corefonts
 media-fonts/font-misc-misc
@@ -101,7 +104,9 @@ media-sound/sox
 media-sound/vkeybd
 media-tv/xawtv
 media-video/ffmpeg
+media-video/mjpegtools
 media-video/mkvtoolnix
+media-video/motion
 media-video/mplayer
 media-video/spcaview
 media-video/transcode
@@ -146,6 +151,7 @@ net-p2p/amule
 net-p2p/mldonkey
 net-proxy/privoxy
 rox-base/rox
+sci-astronomy/celestia
 sys-apps/hwinfo
 sys-apps/iproute2
 sys-apps/lshw
@@ -195,13 +201,16 @@ x11-drivers/xf86-video-fbdev
 x11-drivers/xf86-video-vesa
 x11-drivers/xf86-video-vmware
 x11-libs/cairo
+x11-misc/alltray
 x11-misc/dclock
 x11-misc/dmenu
 x11-misc/dzen
 x11-misc/fbpanel
 x11-misc/gmrun
+x11-misc/googleearth
 x11-misc/grun
 x11-misc/lndir
+x11-misc/pcmanfm
 x11-misc/remind
 x11-misc/tint2
 x11-misc/xclip
