@@ -88,3 +88,7 @@ let loaded_matchparen = 1
 "let g:SuperTabRetainCompletionType=2
 "let g:SuperTabDefaultCompletionType="<C-X><C-O>"
 
+" VimIM
+let g:vimim_tab_for_one_key=1
+"let g:vimim_one_key=0
+

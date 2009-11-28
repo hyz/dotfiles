@@ -17,7 +17,7 @@ fi
 HISTCONTROL=ignorespace:erasedups
 
 # EDITOR=vi
-LANG=en_GB.UTF-8
+LANG=en_US.UTF-8
 # LC_CTYPE=zh_CN.UTF-8
 # LC_COLLATE=posix
 export HISTCONTROL LANG
@@ -49,5 +49,5 @@ export BOOST_ROOT=$HOME/view/boost
 
 #eval `ssh-agent`
 #keychain id_rsa
-. $HOME/.keychain/tux-sh
+#. $HOME/.keychain/tux-sh
 
