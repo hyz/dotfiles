@@ -6,6 +6,8 @@ app-arch/duff
 app-arch/p7zip
 app-arch/rar
 app-arch/zip
+app-backup/duplicity
+app-backup/rdiff-backup
 app-crypt/stan
 app-dicts/stardict-langdao-zh-en-gb
 app-dicts/stardict-oxford-en-zh-gb
@@ -133,6 +135,7 @@ net-fs/mount-cifs
 net-fs/nfs-utils
 net-fs/samba
 net-ftp/ftp
+net-ftp/oftpd
 net-ftp/proftpd
 net-ftp/tftp-hpa
 net-im/freetalk
