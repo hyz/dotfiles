@@ -6,6 +6,8 @@ syntax on
 filetype plugin on
 filetype indent on
 
+set diffopt+=iwhite
+
 set completeopt=longest,menu
 
 colorschem desert " tango desert delek peachpuff darkblue elflord 
