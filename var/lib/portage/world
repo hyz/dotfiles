@@ -144,6 +144,7 @@ net-libs/webkit-gtk
 net-mail/cyrus-imapd
 net-mail/fetchmail
 net-misc/bridge-utils
+net-misc/bti
 net-misc/curl
 net-misc/dhcp
 net-misc/dhcpcd
@@ -164,6 +165,7 @@ net-proxy/tinyproxy
 rox-base/rox
 sci-astronomy/celestia
 sci-libs/szip
+sys-apps/ed
 sys-apps/hwinfo
 sys-apps/iproute2
 sys-apps/lshw

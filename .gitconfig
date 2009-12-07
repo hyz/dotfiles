@@ -1,0 +1,11 @@
+[user]
+	name = hyz
+	email = jiyong.wu@gmail.com
+[color]
+	status = auto
+	branch = auto
+[diff]
+    external = git_vimdiff.sh
+[pager]
+    diff =
+
