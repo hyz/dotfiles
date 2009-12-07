@@ -43,7 +43,7 @@
 using gcc ;
 using gcc : mipsel : mipsel-linux-gcc ;
 using gcc : arm : arm-linux-gcc ;
-
+# using gcc : mingw : /usr/x86_64-pc-linux-gnu/i686-pc-mingw32/gcc-bin/4.4.2/i686-pc-mingw32-gcc ;
 # Configure specific gcc version, giving alternative name to use.
 # using gcc : 3.2 : g++-3.2 ;
 

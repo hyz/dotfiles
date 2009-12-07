@@ -27,6 +27,7 @@ xrdb -merge .Xresources
 #exec fvwm-themes-start
 
 #rox -p default
+#tint2 &
 fbpanel &
 
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG

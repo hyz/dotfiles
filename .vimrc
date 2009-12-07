@@ -14,6 +14,7 @@ colorschem desert " tango desert delek peachpuff darkblue elflord
 
 set fileencodings=utf-8,gb2312,gbk,big5,euc-jp,euc-kr,latin1,ucs-bom
 
+set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 "set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
 
 set tags+=../tags,~/.tags
