@@ -151,6 +151,9 @@ DataDirectory   /var/lib/tor/data
 #RelayBandwidthRate 50KBytes
 #ExitPolicy reject *:*
 
+# email: bridges@torproject.org
+# get bridges
+#
 User tor
 UseBridges 1
 UpdateBridgesFromAuthority 1
