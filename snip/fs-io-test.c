@@ -54,10 +54,10 @@ int main(int argc, char* argv[])
         while ((x+=y) % 10)
         {
             move_lines(x-y, x);
-            usleep(1000*interval);
         }
         y = -y;
         x += y;
+        usleep(1000*interval);
     }
     return 0;
 }

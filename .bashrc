@@ -37,6 +37,7 @@ fi
 # SDL_AUDIODRIVER=pulse
 # export QEMU_AUDIO_DRV SDL_AUDIODRIVER
 
+alias ll='ls -l'
 alias df='df -h'
 alias lynx='lynx -vikeys'
 # alias screen='screen -U -e^jj'

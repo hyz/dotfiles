@@ -1,8 +1,10 @@
 media-sound/pulseaudio -X
 app-portage/layman git subversion
-dev-util/git curl webdav bash-completion -gtk tk
+net-im/pidgin qq -dbug -gstreamer -dbus
+dev-util/git curl webdav bash-completion tk subversion -gtk
 x11-libs/cairo svg
 dev-db/mysql -* minimal
+# net-misc/dhcp minimal
 dev-lang/python sqlite
 games-kids/gcompris gnet
 net-p2p/mldonkey -gtk
@@ -11,15 +13,19 @@ app-text/acroread -* minimal linguas_zh_CN linguas_en
 net-libs/webkit-gtk -soup pango
 app-emulation/qemu -* sdl alsa gnutls vde ncurses qemu_softmmu_targets_mipsel qemu_softmmu_targets_arm qemu_user_targets_arm qemu_user_targets_armeb qemu_softmmu_targets_i386 qemu_user_targets_i386 qemu_user_targets_mipsel
 media-libs/libmp4v2 utils
-dev-util/subversion -* webdav
 net-dialup/ppp -gtk
 dev-util/bzr curl
 sys-devel/gcc -gtk -gcj
 media-gfx/picasa nsplugin
-app-text/xpdf linguas_zh_CN
 www-client/mozilla-firefox linguas_zh_CN
 media-sound/ncmpc lyrics-screen search-screen song-screen
 net-p2p/amule daemon
-dev-util/global vim
 media-video/ffmpeg x264 xvid
+
+dev-util/global vim
+app-editors/gvim -*
 net-proxy/tinyproxy socks5
+app-text/xpdf linguas_zh_CN
+dev-util/subversion -* webdav-neon
+dev-lang/lua -deprecated
+
