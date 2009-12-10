@@ -1,8 +1,8 @@
 Xft.dpi:97
 
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
-
-xterm.termName: xterm-256color
+XTerm*termName: xterm-256color
+! xterm.termName: xterm-256color
 xterm.geometry: 80x36
 xterm*scrollBar: false
 xterm*rightScrollBar: true
@@ -26,7 +26,9 @@ xterm*faceName: Monaco:antialias=True:pixelsize=15
 xterm*faceNameDoublesize: Microsoft YaHei:pixelsize=16:antialias=True
 xterm*xftAntialias: true
 xterm*cjkWidth: false
-xterm*on2Clicks: regex [^ \n]+
+XTerm*onXClicks: 4
+xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
+! xterm*on4Clicks: regex [^(){}\[\]]+
 !=== fix alt key input
 !!!xterm*eightBitInput: false
 !!!xterm*altSendsEscape: true

@@ -1,5 +1,5 @@
 set dict=/usr/share/dict/words
-
+set t_Co=256
 set ts=4 sw=4 expandtab ai nocp nowrap
 
 syntax on
@@ -10,7 +10,7 @@ set diffopt+=iwhite
 
 set completeopt=longest,menu
 
-colorschem desert " tango desert delek peachpuff darkblue elflord 
+colorscheme desert256 " desert256 inkpot gardener tango desert elflord wombat256 
 
 set fileencodings=utf-8,gb2312,gbk,big5,euc-jp,euc-kr,latin1,ucs-bom
 
