@@ -11,7 +11,7 @@ export PATH=$PATH:$HOME/bin
 
 export HISTSIZE=1000
 export SAVEHIST=1000
-export HISTFILE=$HOME/.zsh_history
+export HISTFILE=$HOME/.zsh/history
 
 alias cp='cp -i'
 alias mv='mv -i'
