@@ -1,6 +1,6 @@
 
-PROMPT='%{[36m%}%/%(!.#.)%{[m%} %% '
-RPROMPT='%{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
+PROMPT='%{[36m%}%~%{[m%} %% '
+RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
 
 export LANG=en_US.UTF-8
 bindkey -v
@@ -19,6 +19,7 @@ alias rm='rm -i'
 alias ls='ls -F --color=auto'
 alias ll='ls -l'
 alias grep='grep --color=auto'
+alias df='df -h'
 
 limit coredumpsize 0
 

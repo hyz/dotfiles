@@ -15,7 +15,8 @@ colorscheme desert256 " desert256 inkpot gardener tango desert elflord wombat256
 set fileencodings=utf-8,gb2312,gbk,big5,euc-jp,euc-kr,latin1,ucs-bom
 
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
-"set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
+" set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
+" gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
 
 set tags+=../tags,~/.tags
 " set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
