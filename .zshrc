@@ -4,7 +4,7 @@ RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
 
 export LANG=en_US.UTF-8
 bindkey -v
-export PATH=$PATH:$HOME/bin
+export PATH=$PATH:$HOME/bin:/sbin:/usr/sbin
 
 #PROMPT='%{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T %{[32m%}%/%{[31m%}$%{[m%} '
 #RPROMPT='%{[31m%}$%{[m%}'
