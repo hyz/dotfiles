@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import pexpect as expect
+import sys, getpass
+import optparse
+
+opt = optparse.OptionParser()
+opt.add_option('-u', '--user', dest='user', default='')
+# opt.add_option('-p', '--password', dest='password', default=False, action='store_true')
+options, hosts = opt.parse_args()
+
+for host in hosts:
+    try:
+        dest = '%s%s%s' % (options.user, options.user and '@', host)
+        c = expect.spawn('ssh '+dest) #, logfile=sys.stdout)
+        # c.setecho(False)
+        while True:
+            x = c.expect([ 'Enter passphrase for key .*: ', '[Pp]assword: ', '\(yes/no\)\?', '#', '$' ])
+            if x in (0,1):
+                pwd = getpass.getpass("%s's password: " % dest)
+                c.sendline(pwd)
+            elif x == 2:
+                c.sendline('yes')
+            else:
+                break
+        c.sendline('')
+        for x in range(3):
+            c.expect([ '#', '$' ])
+            c.sendline(' : %s' % dest)
+        c.expect([ '#', '$' ])
+        c.interact()
+        # c.expect('#')
+        # if '--interact' in sys.argv:
+        #     c.interact()
+        # else:
+        #     c.logfile = sys.stdout
+        #     c.sendline('ps |grep -v "]$" |grep -v grep')
+        #     c.expect('#')
+        #     c.sendline('exit')
+        #     c.expect(expect.EOF)
+        c.close();
+    except Exception, e:
+        pass
+
