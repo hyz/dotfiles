@@ -1,4 +1,4 @@
-tux
+localhost
     description: Desktop Computer
     product: System Product Name
     vendor: System manufacturer
@@ -261,7 +261,7 @@ tux
                       logical name: /dev/sda10
                       capacity: 4024MiB
                  *-logicalvolume:6
-                      description: Linux filesystem partition
+                      description: HPFS/NTFS partition
                       physical id: b
                       logical name: /dev/sda11
                       capacity: 8040MiB
@@ -283,7 +283,7 @@ tux
              configuration: driver=ohci_hcd latency=64
            *-usbhost
                 product: OHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ohci_hcd
                 physical id: 1
                 bus info: usb@2
                 logical name: usb2
@@ -303,22 +303,13 @@ tux
              configuration: driver=ohci_hcd latency=64
            *-usbhost
                 product: OHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ohci_hcd
                 physical id: 1
                 bus info: usb@3
                 logical name: usb3
                 version: 2.06
                 capabilities: usb-1.10
                 configuration: driver=hub slots=2 speed=12.0MB/s
-              *-usb UNCLAIMED
-                   description: Generic USB device
-                   product: PC Camera
-                   vendor: Vimicro Corp.
-                   physical id: 1
-                   bus info: usb@3:1
-                   version: 1.00
-                   capabilities: usb-1.10
-                   configuration: maxpower=160mA speed=12.0MB/s
         *-usb:2
              description: USB Controller
              product: SB600 USB (OHCI2)
@@ -332,7 +323,7 @@ tux
              configuration: driver=ohci_hcd latency=64
            *-usbhost
                 product: OHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ohci_hcd
                 physical id: 1
                 bus info: usb@4
                 logical name: usb4
@@ -352,13 +343,22 @@ tux
              configuration: driver=ohci_hcd latency=64
            *-usbhost
                 product: OHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ohci_hcd
                 physical id: 1
                 bus info: usb@5
                 logical name: usb5
                 version: 2.06
                 capabilities: usb-1.10
                 configuration: driver=hub slots=2 speed=12.0MB/s
+              *-usb
+                   description: Generic USB device
+                   product: PC Camera
+                   vendor: Vimicro Corp.
+                   physical id: 2
+                   bus info: usb@5:2
+                   version: 1.00
+                   capabilities: usb-1.10
+                   configuration: driver=zc3xx maxpower=160mA speed=12.0MB/s
         *-usb:4
              description: USB Controller
              product: SB600 USB (OHCI4)
@@ -372,7 +372,7 @@ tux
              configuration: driver=ohci_hcd latency=64
            *-usbhost
                 product: OHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ohci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ohci_hcd
                 physical id: 1
                 bus info: usb@6
                 logical name: usb6
@@ -392,7 +392,7 @@ tux
              configuration: driver=ehci_hcd latency=64 module=ehci_hcd
            *-usbhost
                 product: EHCI Host Controller
-                vendor: Linux 2.6.30-gentoo-r5 ehci_hcd
+                vendor: Linux 2.6.31-gentoo-r6 ehci_hcd
                 physical id: 1
                 bus info: usb@1
                 logical name: usb1
@@ -410,17 +410,31 @@ tux
              clock: 66MHz
              capabilities: ht cap_list
              configuration: latency=0
-        *-ide UNCLAIMED
+        *-ide
              description: IDE interface
              product: SB600 IDE
              vendor: ATI Technologies Inc
              physical id: 14.1
              bus info: pci@0000:00:14.1
+             logical name: scsi4
              version: 00
              width: 32 bits
              clock: 66MHz
-             capabilities: ide bus_master
-             configuration: latency=0
+             capabilities: ide bus_master emulated
+             configuration: driver=pata_atiixp latency=64 module=pata_atiixp
+           *-cdrom
+                description: DVD reader
+                product: DVD-ROM DVD-127P
+                vendor: PIONEER
+                physical id: 0.1.0
+                bus info: scsi@4:0.1.0
+                logical name: /dev/cdrom
+                logical name: /dev/dvd
+                logical name: /dev/scd0
+                logical name: /dev/sr0
+                version: 1.00
+                capabilities: removable audio dvd
+                configuration: ansiversion=5 status=nodisc
         *-multimedia
              description: Audio device
              product: SBx00 Azalia (Intel HDA)
