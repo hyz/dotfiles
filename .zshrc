@@ -23,6 +23,10 @@ alias df='df -h'
 
 limit coredumpsize 0
 
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey -M vicmd v edit-command-line
+
 # function zle-line-init zle-keymap-select {
 #     RPS1="${${KEYMAP/vicmd/-- NORMAL --}/(main|viins)/-- INSERT --}"
 #     RPS2=$RPS1
