@@ -23,6 +23,7 @@ app-misc/devtodo
 app-misc/gcal
 app-misc/gentoo
 app-misc/screen
+app-misc/tmux
 app-office/calcurse
 app-portage/e-file
 app-portage/eix
@@ -42,8 +43,10 @@ app-text/wv2
 app-text/xchm
 app-text/xpdf
 app-vim/gentoo-syntax
+app-vim/latexsuite
 app-vim/taglist
 dev-db/mysql
+dev-haskell/cabal-install
 dev-libs/elfutils
 dev-libs/geoip
 dev-libs/poppler-glib
@@ -54,6 +57,7 @@ dev-python/dbus-python
 dev-python/pexpect
 dev-python/pycairo
 dev-python/twisted-web
+dev-texlive/texlive-langcjk
 dev-util/boost-build
 dev-util/bzr
 dev-util/cmake
@@ -77,6 +81,7 @@ games-arcade/xbubble
 games-kids/gcompris
 games-kids/tuxtype
 games-misc/cowsay
+games-mud/tintin
 games-puzzle/anagramarama
 games-puzzle/fish-fillets
 games-puzzle/monsterz
@@ -139,6 +144,7 @@ net-ftp/oftpd
 net-ftp/proftpd
 net-ftp/tftp-hpa
 net-im/freetalk
+net-irc/irssi
 net-im/pidgin
 net-libs/webkit-gtk
 net-mail/cyrus-imapd

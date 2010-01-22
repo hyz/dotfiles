@@ -1,7 +1,7 @@
-set dict=/usr/share/dict/words
 set t_Co=256
-set ts=4 sw=4 expandtab ai nocp nowrap
 
+set dict=/usr/share/dict/words
+set ts=4 sw=4 expandtab ai nocp nowrap
 syntax on
 filetype plugin on
 filetype indent on

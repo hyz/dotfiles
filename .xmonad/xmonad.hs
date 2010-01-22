@@ -18,7 +18,8 @@ import qualified Data.Map        as M
 -- certain contrib modules.
 --
 -- myTerminal      = "xterm -e screen -e^jj "
-myTerminal      = "xterm -e tmux -2"
+-- myTerminal      = "xterm -e tmux -2"
+myTerminal      = "xterm"
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
