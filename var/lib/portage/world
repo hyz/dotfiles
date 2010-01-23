@@ -13,7 +13,8 @@ app-dicts/stardict-langdao-zh-en-gb
 app-dicts/stardict-oxford-en-zh-gb
 app-editors/nedit
 app-editors/vim
-app-emulation/kvm
+app-emulation/kvm-kmod
+app-emulation/qemu-kvm
 app-emulation/qemu
 app-emulation/wine
 app-i18n/fcitx
@@ -43,6 +44,7 @@ app-text/wv2
 app-text/xchm
 app-text/xpdf
 app-vim/gentoo-syntax
+app-vim/genutils
 app-vim/latexsuite
 app-vim/taglist
 dev-db/mysql
@@ -101,6 +103,7 @@ media-gfx/feh
 media-gfx/gqview
 media-gfx/graphviz
 media-gfx/imagemagick
+media-gfx/inkscape
 media-gfx/picasa
 media-gfx/pqiv
 media-gfx/xv
@@ -110,6 +113,7 @@ media-plugins/gst-plugins-alsa
 media-sound/gmpc
 media-sound/mpc
 media-sound/mpd
+media-sound/mpg321
 media-sound/ncmpc
 media-sound/ncmpcpp
 media-sound/scmpc
@@ -144,8 +148,9 @@ net-ftp/oftpd
 net-ftp/proftpd
 net-ftp/tftp-hpa
 net-im/freetalk
-net-irc/irssi
+net-im/skype
 net-im/pidgin
+net-irc/irssi
 net-libs/webkit-gtk
 net-mail/cyrus-imapd
 net-mail/fetchmail
@@ -171,6 +176,7 @@ net-proxy/tinyproxy
 rox-base/rox
 sci-astronomy/celestia
 sci-libs/szip
+sys-apps/ack
 sys-apps/ed
 sys-apps/hwinfo
 sys-apps/iproute2
@@ -188,6 +194,7 @@ sys-devel/gdb
 sys-devel/libtool
 sys-fs/dosfstools
 sys-fs/e2fsprogs
+sys-fs/hfsutils
 sys-fs/ntfs3g
 sys-fs/sshfs-fuse
 sys-kernel/gentoo-sources
@@ -223,6 +230,7 @@ x11-drivers/xf86-video-vesa
 x11-drivers/xf86-video-vmware
 x11-libs/cairo
 x11-misc/alltray
+x11-misc/cairo-clock
 x11-misc/dclock
 x11-misc/dmenu
 x11-misc/dzen
@@ -231,6 +239,7 @@ x11-misc/gmrun
 x11-misc/googleearth
 x11-misc/grun
 x11-misc/lndir
+x11-misc/obmenu
 x11-misc/pcmanfm
 x11-misc/remind
 x11-misc/tint2
@@ -242,6 +251,7 @@ x11-plugins/asclock
 x11-plugins/pidgin-fetion
 x11-terms/roxterm
 x11-terms/rxvt-unicode
+x11-terms/xterm
 x11-wm/echinus
 x11-wm/openbox
 x11-wm/xmonad
