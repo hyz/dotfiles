@@ -256,3 +256,9 @@ x11-wm/echinus
 x11-wm/openbox
 x11-wm/xmonad
 x11-wm/xmonad-contrib
+x11-misc/wmctrl
+x11-misc/devilspie
+gnome-extra/zenity
+x11-libs/xosd
+x11-misc/xnee
+app-admin/xtail

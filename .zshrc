@@ -24,8 +24,8 @@ alias df='df -h'
 
 limit coredumpsize 0
 
-autoload -U edit-command-line
-zle -N edit-command-line
+autoload -U        edit-command-line
+zle -N             edit-command-line
 bindkey -M vicmd v edit-command-line
 
 autoload -U compinit; compinit
