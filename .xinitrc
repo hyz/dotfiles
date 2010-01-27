@@ -22,7 +22,7 @@ xrdb -merge .Xresources
 
 #mpd
 
-#exec xmonad
+exec xmonad
 #exec fvwm-crystal
 #exec fvwm-themes-start
 
