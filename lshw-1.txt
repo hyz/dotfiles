@@ -1,0 +1,427 @@
+tux
+    description: Desktop Computer
+    product: 945GCT-M2
+    vendor: ECS
+    version: 1.x
+    serial: 1131
+    width: 32 bits
+    capabilities: smbios-2.5 dmi-2.5 smp-1.4 smp
+    configuration: boot=normal chassis=desktop cpus=1 uuid=00020003-0004-0005-0006-000700080009
+  *-core
+       description: Motherboard
+       product: 945GCT-M2
+       vendor: ECS
+       physical id: 0
+       version: ECS
+       serial: To be filled by O.E.M.
+       slot: To Be Filled By O.E.M.
+     *-firmware
+          description: BIOS
+          vendor: American Megatrends Inc.
+          physical id: 0
+          version: 080012 (02/18/2008)
+          size: 64KiB
+          capacity: 448KiB
+          capabilities: isa pci pnp apm upgrade shadowing escd cdboot bootselect socketedrom edd int13floppy1200 int13floppy720 int13floppy2880 int5printscreen int9keyboard int14serial int17printer int10video acpi usb ls120boot zipboot biosbootspecification
+     *-cpu
+          description: CPU
+          product: Intel(R) Pentium(R) 4 CPU 3.00GHz
+          vendor: Intel Corp.
+          physical id: 4
+          bus info: cpu@0
+          version: 15.4.9
+          serial: 0000-0F49-0000-0000-0000-0000
+          slot: CPU 1
+          size: 3GHz
+          capacity: 3GHz
+          width: 64 bits
+          clock: 200MHz
+          capabilities: boot fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe x86-64 constant_tsc pebs bts pni dtes64 monitor ds_cpl cid cx16 xtpr lahf_lm
+          configuration: id=0
+        *-cache:0
+             description: L1 cache
+             physical id: 5
+             slot: L1-Cache
+             size: 16KiB
+             capacity: 16KiB
+             capabilities: internal write-back data
+        *-cache:1
+             description: L2 cache
+             physical id: 6
+             slot: L2-Cache
+             size: 1MiB
+             capacity: 1MiB
+             capabilities: internal write-back unified
+        *-cache:2 DISABLED
+             description: L3 cache
+             physical id: 7
+             slot: L3-Cache
+             capabilities: internal
+        *-logicalcpu:0
+             description: Logical CPU
+             physical id: 0.1
+             width: 64 bits
+             capabilities: logical
+        *-logicalcpu:1
+             description: Logical CPU
+             physical id: 0.2
+             width: 64 bits
+             capabilities: logical
+     *-memory
+          description: System Memory
+          physical id: f
+          slot: System board or motherboard
+          size: 1GiB
+        *-bank:0
+             description: DIMM SDRAM Synchronous
+             product: ModulePartNumber00
+             vendor: Manufacturer00
+             physical id: 0
+             serial: SerNum00
+             slot: DIMM0
+             size: 1GiB
+             width: 64 bits
+        *-bank:1
+             description: DIMM [empty]
+             product: ModulePartNumber01
+             vendor: Manufacturer01
+             physical id: 1
+             serial: SerNum01
+             slot: DIMM1
+        *-bank:2
+             description: DIMM [empty]
+             product: ModulePartNumber02
+             vendor: Manufacturer02
+             physical id: 2
+             serial: SerNum02
+             slot: DIMM2
+        *-bank:3
+             description: DIMM [empty]
+             product: ModulePartNumber03
+             vendor: Manufacturer03
+             physical id: 3
+             serial: SerNum03
+             slot: DIMM3
+     *-generic UNCLAIMED
+          physical id: 8180
+          bus info: parisc@8180
+     *-pci
+          description: Host bridge
+          product: 82945G/GZ/P/PL Memory Controller Hub
+          vendor: Intel Corporation
+          physical id: 100
+          bus info: pci@0000:00:00.0
+          version: 02
+          width: 32 bits
+          clock: 33MHz
+        *-pci:0
+             description: PCI bridge
+             product: 82945G/GZ/P/PL PCI Express Root Port
+             vendor: Intel Corporation
+             physical id: 1
+             bus info: pci@0000:00:01.0
+             version: 02
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pci pm msi pciexpress normal_decode bus_master cap_list
+           *-display
+                description: VGA compatible controller
+                product: G86 [GeForce 8500 GT]
+                vendor: nVidia Corporation
+                physical id: 0
+                bus info: pci@0000:01:00.0
+                version: a1
+                width: 64 bits
+                clock: 33MHz
+                capabilities: pm msi pciexpress vga_controller bus_master cap_list
+                configuration: driver=nvidia latency=0 module=nvidia
+        *-multimedia
+             description: Audio device
+             product: 82801G (ICH7 Family) High Definition Audio Controller
+             vendor: Intel Corporation
+             physical id: 1b
+             bus info: pci@0000:00:1b.0
+             version: 01
+             width: 64 bits
+             clock: 33MHz
+             capabilities: pm msi pciexpress bus_master cap_list
+             configuration: driver=HDA Intel latency=0 module=snd_hda_intel
+        *-usb:0
+             description: USB Controller
+             product: 82801G (ICH7 Family) USB UHCI Controller #1
+             vendor: Intel Corporation
+             physical id: 1d
+             bus info: pci@0000:00:1d.0
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: uhci bus_master
+             configuration: driver=uhci_hcd latency=0 module=uhci_hcd
+           *-usbhost
+                product: UHCI Host Controller
+                vendor: Linux 2.6.31-gentoo-r6 uhci_hcd
+                physical id: 1
+                bus info: usb@2
+                logical name: usb2
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:1
+             description: USB Controller
+             product: 82801G (ICH7 Family) USB UHCI Controller #2
+             vendor: Intel Corporation
+             physical id: 1d.1
+             bus info: pci@0000:00:1d.1
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: uhci bus_master
+             configuration: driver=uhci_hcd latency=0 module=uhci_hcd
+           *-usbhost
+                product: UHCI Host Controller
+                vendor: Linux 2.6.31-gentoo-r6 uhci_hcd
+                physical id: 1
+                bus info: usb@3
+                logical name: usb3
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:2
+             description: USB Controller
+             product: 82801G (ICH7 Family) USB UHCI Controller #3
+             vendor: Intel Corporation
+             physical id: 1d.2
+             bus info: pci@0000:00:1d.2
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: uhci bus_master
+             configuration: driver=uhci_hcd latency=0 module=uhci_hcd
+           *-usbhost
+                product: UHCI Host Controller
+                vendor: Linux 2.6.31-gentoo-r6 uhci_hcd
+                physical id: 1
+                bus info: usb@4
+                logical name: usb4
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:3
+             description: USB Controller
+             product: 82801G (ICH7 Family) USB UHCI Controller #4
+             vendor: Intel Corporation
+             physical id: 1d.3
+             bus info: pci@0000:00:1d.3
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: uhci bus_master
+             configuration: driver=uhci_hcd latency=0 module=uhci_hcd
+           *-usbhost
+                product: UHCI Host Controller
+                vendor: Linux 2.6.31-gentoo-r6 uhci_hcd
+                physical id: 1
+                bus info: usb@5
+                logical name: usb5
+                version: 2.06
+                capabilities: usb-1.10
+                configuration: driver=hub slots=2 speed=12.0MB/s
+        *-usb:4
+             description: USB Controller
+             product: 82801G (ICH7 Family) USB2 EHCI Controller
+             vendor: Intel Corporation
+             physical id: 1d.7
+             bus info: pci@0000:00:1d.7
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pm debug ehci bus_master cap_list
+             configuration: driver=ehci_hcd latency=0 module=ehci_hcd
+           *-usbhost
+                product: EHCI Host Controller
+                vendor: Linux 2.6.31-gentoo-r6 ehci_hcd
+                physical id: 1
+                bus info: usb@1
+                logical name: usb1
+                version: 2.06
+                capabilities: usb-2.00
+                configuration: driver=hub slots=8 speed=480.0MB/s
+        *-pci:1
+             description: PCI bridge
+             product: 82801 PCI Bridge
+             vendor: Intel Corporation
+             physical id: 1e
+             bus info: pci@0000:00:1e.0
+             version: e1
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pci subtractive_decode bus_master cap_list
+           *-network
+                description: Ethernet interface
+                product: RTL-8139/8139C/8139C+
+                vendor: Realtek Semiconductor Co., Ltd.
+                physical id: 5
+                bus info: pci@0000:02:05.0
+                logical name: eth0
+                version: 10
+                serial: 00:1e:90:e6:91:c8
+                size: 100MB/s
+                capacity: 100MB/s
+                width: 32 bits
+                clock: 33MHz
+                capabilities: pm bus_master cap_list ethernet physical tp mii 10bt 10bt-fd 100bt 100bt-fd autonegotiation
+                configuration: autonegotiation=on broadcast=yes driver=8139too driverversion=0.9.28 duplex=full ip=192.168.1.18 latency=64 link=yes maxlatency=64 mingnt=32 module=8139too multicast=yes port=MII promiscuous=yes speed=100MB/s
+        *-isa
+             description: ISA bridge
+             product: 82801GB/GR (ICH7 Family) LPC Interface Bridge
+             vendor: Intel Corporation
+             physical id: 1f
+             bus info: pci@0000:00:1f.0
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: isa bus_master cap_list
+             configuration: latency=0
+        *-ide:0
+             description: IDE interface
+             product: 82801G (ICH7 Family) IDE Controller
+             vendor: Intel Corporation
+             physical id: 1f.1
+             bus info: pci@0000:00:1f.1
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: ide bus_master
+             configuration: driver=PIIX_IDE latency=0
+           *-ide
+                description: IDE Channel 0
+                physical id: 0
+                bus info: ide@0
+                logical name: ide0
+                clock: 33MHz
+              *-cdrom
+                   description: DVD reader
+                   product: PHILIPS SPD2202P
+                   vendor: Philips
+                   physical id: 1
+                   bus info: ide@0.1
+                   logical name: /dev/hdb
+                   version: EP13
+                   capabilities: packet atapi cdrom removable nonmagnetic dma lba iordy audio dvd
+                   configuration: mode=udma2 status=nodisc
+        *-ide:1
+             description: IDE interface
+             product: 82801GB/GR/GH (ICH7 Family) SATA IDE Controller
+             vendor: Intel Corporation
+             physical id: 1f.2
+             bus info: pci@0000:00:1f.2
+             logical name: scsi0
+             version: 01
+             width: 32 bits
+             clock: 66MHz
+             capabilities: ide pm bus_master cap_list emulated
+             configuration: driver=ata_piix latency=0
+           *-disk
+                description: ATA Disk
+                product: Hitachi HDS72161
+                vendor: Hitachi
+                physical id: 0.0.0
+                bus info: scsi@0:0.0.0
+                logical name: /dev/sda
+                version: P22O
+                serial: PVG904ZHRUMN9V
+                size: 149GiB (160GB)
+                capabilities: partitioned partitioned:dos
+                configuration: ansiversion=5 signature=be70be70
+              *-volume:0
+                   description: Windows FAT volume
+                   vendor: MSDOS5.0
+                   physical id: 1
+                   bus info: scsi@0:0.0.0,1
+                   logical name: /dev/sda1
+                   version: FAT32
+                   serial: 6832-dd6d
+                   size: 37GiB
+                   capacity: 37GiB
+                   capabilities: primary bootable fat initialized
+                   configuration: FATs=2 filesystem=fat
+              *-volume:1
+                   description: Extended partition
+                   physical id: 2
+                   bus info: scsi@0:0.0.0,2
+                   logical name: /dev/sda2
+                   size: 99GiB
+                   capacity: 99GiB
+                   capabilities: primary extended partitioned partitioned:extended
+                 *-logicalvolume:0
+                      description: W95 FAT32 partition
+                      physical id: 5
+                      logical name: /dev/sda5
+                      capacity: 37GiB
+                 *-logicalvolume:1
+                      description: W95 FAT32 partition
+                      physical id: 6
+                      logical name: /dev/sda6
+                      capacity: 12GiB
+                 *-logicalvolume:2
+                      description: W95 FAT32 partition
+                      physical id: 7
+                      logical name: /dev/sda7
+                      capacity: 5122MiB
+                 *-logicalvolume:3
+                      description: FAT16 partition
+                      physical id: 8
+                      logical name: /dev/sda8
+                      capacity: 4094MiB
+                 *-logicalvolume:4
+                      description: FAT16 partition
+                      physical id: 9
+                      logical name: /dev/sda9
+                      capacity: 8189MiB
+                 *-logicalvolume:5
+                      description: FAT16 partition
+                      physical id: a
+                      logical name: /dev/sda10
+                      logical name: /home
+                      capacity: 31GiB
+                      configuration: mount.fstype=ext3 mount.options=rw,noatime,errors=continue,data=writeback state=mounted
+                 *-logicalvolume:6
+                      description: FAT16 partition
+                      physical id: b
+                      logical name: /dev/sda11
+                      capacity: 2047MiB
+              *-volume:2
+                   description: EXT3 volume
+                   vendor: Linux
+                   physical id: 3
+                   bus info: scsi@0:0.0.0,3
+                   logical name: /dev/sda3
+                   logical name: /
+                   version: 1.0
+                   serial: 1a478538-ad66-49b6-b239-f2bd5442fba6
+                   size: 11GiB
+                   capacity: 11GiB
+                   capabilities: primary journaled extended_attributes large_files huge_files recover ext3 ext2 initialized
+                   configuration: created=2008-11-07 16:44:42 filesystem=ext3 modified=2010-01-27 23:00:19 mount.fstype=ext3 mount.options=rw,noatime,errors=continue,data=writeback mounted=2010-01-27 23:00:19 state=mounted
+              *-volume:3
+                   description: EXT3 volume
+                   vendor: Linux
+                   physical id: 4
+                   bus info: scsi@0:0.0.0,4
+                   logical name: /dev/sda4
+                   version: 1.0
+                   serial: c0d3c82a-a072-4b1d-b66c-34c22d39cf5b
+                   size: 509MiB
+                   capacity: 509MiB
+                   capabilities: primary journaled extended_attributes large_files huge_files recover ext3 ext2 initialized
+                   configuration: created=2008-11-07 16:48:42 filesystem=ext3 modified=2009-11-14 00:38:34 mounted=2009-10-10 15:43:46 state=clean
+        *-serial UNCLAIMED
+             description: SMBus
+             product: 82801G (ICH7 Family) SMBus Controller
+             vendor: Intel Corporation
+             physical id: 1f.3
+             bus info: pci@0000:00:1f.3
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             configuration: latency=0
