@@ -1,4 +1,6 @@
 set t_Co=256
+set guifont=Monaco\ 12
+set guioptions=
 
 set dict=/usr/share/dict/words
 set ts=4 sw=4 expandtab ai nocp nowrap
