@@ -5,8 +5,7 @@ export LANG=en_US.UTF-8
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
 #RPROMPT=$'%(0?..%?%)) %{\e[36m%}%n%{\e[35m%}@%{\e[34m%}%M %{\e[33m%}%T%{\e[0m%}'
 
-autoload -U promptinit && promptinit
-prompt joy
+autoload -U promptinit && promptinit && prompt gentoo
 
 export PATH=$PATH:$HOME/bin:/sbin:/usr/sbin
 

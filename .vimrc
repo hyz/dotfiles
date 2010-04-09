@@ -1,5 +1,5 @@
-set t_Co=256
-set guifont=Monaco\ 12
+"set t_Co=256
+set guifont=Monaco\ 14
 set guioptions=
 
 set dict=/usr/share/dict/words
