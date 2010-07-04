@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.33-gentoo-r2
-# Thu Jul  1 22:20:51 2010
+# Sun Jul  4 10:45:56 2010
 #
 CONFIG_64BIT=y
 # CONFIG_X86_32 is not set
@@ -820,7 +820,8 @@ CONFIG_STANDALONE=y
 CONFIG_PREVENT_FIRMWARE_BUILD=y
 CONFIG_FW_LOADER=y
 CONFIG_FIRMWARE_IN_KERNEL=y
-CONFIG_EXTRA_FIRMWARE=""
+CONFIG_EXTRA_FIRMWARE="radeon/R600_rlc.bin"
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
 # CONFIG_DEBUG_DRIVER is not set
 CONFIG_DEBUG_DEVRES=y
 # CONFIG_SYS_HYPERVISOR is not set
