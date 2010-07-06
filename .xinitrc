@@ -3,7 +3,7 @@ export XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE="ibus"
 export QT_IM_MODULE="xim"
 
-# ibus-daemon -d -x
+ibus-daemon -d -x
 # fcitx &
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &

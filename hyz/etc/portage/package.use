@@ -1,31 +1,31 @@
-media-sound/pulseaudio -X
-app-portage/layman git subversion
-net-im/pidgin qq -dbug -gstreamer -dbus
-dev-util/git curl webdav bash-completion tk subversion -gtk
-x11-libs/cairo svg
-dev-db/mysql -* minimal
-# net-misc/dhcp minimal
-dev-lang/python sqlite
-games-kids/gcompris gnet
-net-p2p/mldonkey -gtk
-dev-libs/xerces-c icu
-app-text/acroread -* minimal linguas_zh_CN linguas_en
-net-libs/webkit-gtk -soup pango
-app-emulation/qemu -* sdl alsa gnutls vde ncurses qemu_softmmu_targets_mipsel qemu_softmmu_targets_arm qemu_user_targets_arm qemu_user_targets_armeb qemu_softmmu_targets_i386 qemu_user_targets_i386 qemu_user_targets_mipsel
-media-libs/libmp4v2 utils
-net-dialup/ppp -gtk
-dev-util/bzr curl
-sys-devel/gcc -gtk -gcj
-media-gfx/picasa nsplugin
-www-client/mozilla-firefox linguas_zh_CN
-media-sound/ncmpc lyrics-screen search-screen song-screen
-net-p2p/amule daemon
-media-video/ffmpeg x264 xvid
-
-dev-util/global vim
 app-editors/gvim -*
-net-proxy/tinyproxy socks5
+app-emulation/qemu -* sdl alsa gnutls vde ncurses qemu_softmmu_targets_mipsel qemu_softmmu_targets_arm qemu_user_targets_arm qemu_user_targets_armeb qemu_softmmu_targets_i386 qemu_user_targets_i386 qemu_user_targets_mipsel
+app-i18n/sunpinyin ibus
+app-portage/layman git subversion
+app-text/acroread -* minimal linguas_zh_CN linguas_en
 app-text/xpdf linguas_zh_CN
-dev-util/subversion -* webdav-neon
+dev-db/mysql -* minimal
 dev-lang/lua -deprecated
-
+dev-lang/python sqlite
+dev-libs/xerces-c icu
+dev-util/global vim
+dev-vcs/bzr curl
+dev-vcs/git curl webdav -gtk
+dev-vcs/subversion -* webdav-neon
+games-kids/gcompris gnet
+media-gfx/picasa nsplugin
+media-libs/libmp4v2 utils
+media-sound/ncmpc lyrics-screen search-screen song-screen
+media-sound/pulseaudio -X
+media-video/ffmpeg x264 xvid thread
+net-dialup/ppp -gtk
+net-im/pidgin qq -dbug -gstreamer -dbus
+net-im/skype qt-static
+net-libs/webkit-gtk -soup pango
+# net-misc/dhcp minimal
+net-p2p/amule daemon
+net-p2p/mldonkey -gtk
+net-proxy/tinyproxy socks5
+www-client/mozilla-firefox linguas_zh_CN
+x11-base/xorg-server -hal
+x11-libs/cairo svg
