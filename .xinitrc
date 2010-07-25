@@ -22,7 +22,9 @@ xrdb -merge .Xresources
 
 #mpd
 
-xterm -geometry +0-20 &
+xterm -geometry +96-28 &
+xterm -geometry 128x38+480+0 &
+xterm -geometry 128x38-0-28 &
 
 # exec awesome
 # exec xmonad

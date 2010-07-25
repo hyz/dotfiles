@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re, struct
 
@@ -17,7 +17,7 @@ def pf(lv, desc, n, data):
                     tmp = current.replace('{', '(.{')
                     tmp = tmp.replace('}', '})')
                     # print('\t'*lv, 'USE/CONSUME', current, tmp, sep=', ')
-                    v = re.match('^'+tmp+'(.*)', data).groups()
+                    v = re.match(tmp+'(.*)', data).groups()
                     print('\t'*lv, v)
                     data = v[-1]
                 if dx == ']' or not left:
@@ -29,8 +29,15 @@ def pf(lv, desc, n, data):
         return left, data
     return None,0
 
+def parse(desc, data):
+    pf(0, desc + ']', 1, data)
+
 if __name__ == '__main__':
+    parse('1[1[{1}]]', '35hello5world3foo')
     print ('\t'*0 + data)
     print ('\t'*0 + desc)
-    pf(0, desc+']', 1, data)
+    parse(desc, data) #pf(0, desc+']', 1, data)
+
+# s = 'ffffffff'
+# ''.join(map(lambda x: struct.pack('B', int(x,16)), [ s[x*2:x*2+2] for x in range(len(s)/2) ]))
 
