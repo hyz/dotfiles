@@ -8,12 +8,14 @@ slang=zh,en
 stop-xscreensaver=1
 zoom=1
 #if your graphic card support opengl , you can use vo=gl2
-vo=gl2
+#vo=gl2
 #vo=gl
+vo=vaapi
+va=vaapi
 # ao=pulse
 ontop=1
 #good exclude H264 Video codec
-vf=expand=:::::4/3:2
+#vf=expand=:::::4/3:2
 #fs=1
 fontconfig=1
 

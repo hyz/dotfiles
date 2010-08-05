@@ -1,9 +1,13 @@
-Xft.dpi:97
+Xft.dpi:        96
+Xft.antialias:  true
+Xft.rgba:       rgb
+Xft.hinting:    true
+Xft.hintstyle:  hintslight
 
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
 XTerm*termName: xterm-256color
 ! xterm.termName: xterm-256color
-xterm.geometry: 80x36
+xterm.geometry: 96x54+880+0
 xterm*scrollBar: false
 xterm*rightScrollBar: true
 xterm*loginshell: true

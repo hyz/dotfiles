@@ -287,7 +287,7 @@ Key j   	A	M	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 Key k   	A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 #Key Left	A	M	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 #Key Right	A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
-key Space		A	M	FuncMoveCenter
+key Space	A	M	FuncMoveCenter
 key F6		A	N	FuncMoveCenter
 key Up		W	MS	Exec transset-df --inc 0.1 -i $[w.id]
 key Down	W	MS	Exec transset-df --dec 0.1 -i $[w.id]
@@ -433,8 +433,9 @@ DestroyMenu MenuFvwmRoot
 AddToMenu "MenuFvwmRoot@$[FVWM_USERDIR]/images/menu/menu_side_black.png@"
 + *$[FVWM_USERDIR]/images/menu/menu_up.png* Title
 + "Terminal"%terminal.png%		Exec xterm
-+ "Pcmanfm"%pcmanfm.png%		Exec pcmanfm
-+ "Run.."%run.png%			Exec grun
++ "Chrome"%firefox.png%		Exec chromium
++ "Rox"%pcmanfm.png%			Exec rox
++ "Run.."%run.png%			Exec gmrun
 + ""					Nop
 + "Accessories"%accessories.png%	Popup Accessories
 + "Games"%games.png%			Popup Games
@@ -475,7 +476,7 @@ AddToMenu Graphics Graphics
 DestroyMenu Internet
 AddToMenu Internet Internet
 + "Epiphany"%epiphany.png%		Exec epiphany
-+ "Firefox"%firefox.png%		Exec chromium
++ "Chrome"%firefox.png%		Exec chromium
 + "Opera"%opera.png%			Exec opera
 + "cGmail"%mail.png%			Exec cgmail
 

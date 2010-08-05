@@ -22,30 +22,27 @@ xrdb -merge .Xresources
 
 #mpd
 
-xterm -geometry +96-28 &
-xterm -geometry 128x38+480+0 &
+#xterm -geometry +96-28 &
+#xterm -geometry 128x38+480+0 &
 xterm -geometry 128x38-0-28 &
 
-# exec awesome
-# exec xmonad
-#exec fvwm-crystal
-#exec fvwm-themes-start
+exec xmonad
 
 #rox -p default
-#tint2 &
-fbpanel &
+# tint2 &
+#fbpanel &
 
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG
-#feh --bg-scale Desktop/Untitled/100_0210.JPG
+feh --bg-center Pictures/wallpapers/vladstudio_rainbows_1920x1440.jpg
 
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
 
-# exec compiz
-exec openbox-session
 exec fvwm
+exec openbox-session
 exec awesome
+# exec compiz
 exec echinus
 exec fluxbox
 exec sawfish
