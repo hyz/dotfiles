@@ -1,6 +1,8 @@
 app-editors/gvim -*
+app-emulation/qemu-kvm vde ncurses
 app-emulation/qemu -* sdl alsa gnutls vde ncurses qemu_softmmu_targets_mipsel qemu_softmmu_targets_arm qemu_user_targets_arm qemu_user_targets_armeb qemu_softmmu_targets_i386 qemu_user_targets_i386 qemu_user_targets_mipsel
 app-i18n/sunpinyin ibus
+app-portage/layman darcs
 app-portage/layman git subversion
 app-text/acroread -* minimal linguas_zh_CN linguas_en
 app-text/xpdf linguas_zh_CN
@@ -17,7 +19,7 @@ media-gfx/picasa nsplugin
 media-libs/libmp4v2 utils
 media-sound/ncmpc lyrics-screen search-screen song-screen
 media-sound/pulseaudio -X
-media-video/ffmpeg x264 xvid thread
+media-video/ffmpeg vaapi x264 xvid threads
 net-dialup/ppp -gtk
 net-im/pidgin qq -dbug -gstreamer -dbus
 net-im/skype qt-static
@@ -26,6 +28,9 @@ net-libs/webkit-gtk -soup pango
 net-p2p/amule daemon
 net-p2p/mldonkey -gtk
 net-proxy/tinyproxy socks5
-www-client/mozilla-firefox linguas_zh_CN
+sys-fs/ntfs3g udev -hal
+www-client/firefox linguas_zh_CN
+www-plugins/gnash nsplugin vaapi gstreamer
+www-plugins/lightspark nsplugin
 x11-base/xorg-server -hal
 x11-libs/cairo svg
