@@ -7,7 +7,7 @@ Xft.hintstyle:  hintslight
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
 XTerm*termName: xterm-256color
 ! xterm.termName: xterm-256color
-xterm.geometry: 96x54+880+0
+XTerm.geometry: 100x54
 xterm*scrollBar: false
 xterm*rightScrollBar: true
 xterm*loginshell: true

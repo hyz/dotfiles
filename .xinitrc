@@ -23,10 +23,10 @@ xrdb -merge .Xresources
 #mpd
 
 #xterm -geometry +96-28 &
-#xterm -geometry 128x38+480+0 &
-xterm -geometry 128x38-0-28 &
+#xterm -geometry +480+0 &
+#xterm -geometry -0-28 &
 
-exec xmonad
+#exec xmonad
 
 #rox -p default
 # tint2 &

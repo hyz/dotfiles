@@ -254,7 +254,7 @@ Mouse 4		1 		A   Exec transset-df --inc 0.1 -i $[w.id]
 Mouse 5		1 		A   Exec transset-df --dec 0.1 -i $[w.id]
 
 Mouse 1		R		N   StrokeFunc
-Stroke N456	0 	R	N   Exec xterm
+Stroke N456	0 	R	N   Exec xterm -geometry 106x48
 Stroke N654	0 	R	N   Exec pcmanfm
 Stroke N852	0 	R	N   Exec opera
 Stroke N258	0 	R	N   Exec audacious
@@ -266,13 +266,14 @@ Stroke N258	0 	TSF4	N   Maximize True 0 growup
 Key F4		A	C	Module FvwmForm FvwmFormQuit
 Key q		A	MS	Quit
 key q		A	M	Restart
-key Return	A	MS	Exec xterm
+key Return	A	MS	Exec xterm -geometry 106x48
 Key p		A	MS	None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key p		A	M	Exec dmenu
 Key b		A	MS	Exec chromium
+Key x		A	M 	Exec rox
 Key Tab		A	M	WindowList Root c c NoCurrentDeskTitle
 Key Print	A	A	Exec scrot -q 100 screen-%F_%H%M%S.jpg
-Key F4		A	M	ThisWindow (!Iconic, !Shaded) Close
+#Key F4		A	M	ThisWindow (!Iconic, !Shaded) Close
 Key c		A	MS	ThisWindow (!Iconic, !Shaded) Close
 Key Super_L	A	A	Menu MenuFvwmRoot Rectangle +0+$[menupos] +0 +0
 Key Super_R	A	A	Menu MenuFvwmRoot Rectangle +0+$[menupos] +0 +0
@@ -288,7 +289,7 @@ Key k   	A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 #Key Left	A	M	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 #Key Right	A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 key Space	A	M	FuncMoveCenter
-key F6		A	N	FuncMoveCenter
+#key F6		A	N	FuncMoveCenter
 key Up		W	MS	Exec transset-df --inc 0.1 -i $[w.id]
 key Down	W	MS	Exec transset-df --dec 0.1 -i $[w.id]
 key Right	A	MS	Exec amixer -q sset PCM 5%+
@@ -432,7 +433,7 @@ AddToMenu menu_WindowOpsAdv
 DestroyMenu MenuFvwmRoot
 AddToMenu "MenuFvwmRoot@$[FVWM_USERDIR]/images/menu/menu_side_black.png@"
 + *$[FVWM_USERDIR]/images/menu/menu_up.png* Title
-+ "Terminal"%terminal.png%		Exec xterm
++ "Terminal"%terminal.png%		Exec xterm -geometry 106x48
 + "Chrome"%firefox.png%		Exec chromium
 + "Rox"%pcmanfm.png%			Exec rox
 + "Run.."%run.png%			Exec gmrun
@@ -456,7 +457,7 @@ AddToMenu Accessories Accessories
 + "Gvim"%gvim.png%			Exec gvim
 + "Leafpad"%leafpad.png%		Exec leafpad
 + "Root Terminal"%terminal.png%		Exec gksu xterm
-+ "Terminal"%terminal.png%		Exec xterm
++ "Terminal"%terminal.png%		Exec xterm -geometry 106x48
 + "Xarchiver"%xarchiver.png%		Exec xarchiver
 
 DestroyMenu Games
