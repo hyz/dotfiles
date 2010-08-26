@@ -2,55 +2,78 @@
 # app-admin/eselect-boost ~amd64
 # app-admin/eselect-opengl ~amd64
 # app-admin/eselect-python ~amd64
+app-admin/haskell-updater ~amd64
 app-arch/duff ~amd64
 app-dicts/stardict-langdao-zh-en-gb ~amd64
 app-dicts/stardict-oxford-en-zh-gb ~amd64
 app-emulation/kvm-kmod ~amd64
 app-emulation/qemu-kvm ~amd64
-# app-emulation/wine ~amd64
+app-emulation/wine ~amd64
 app-i18n/ibus ~amd64
 app-i18n/ibus-pinyin ~amd64
+app-i18n/sunpinyin ~amd64
 app-office/calcurse ~amd64
+#app-portage/layman ~amd64
 # app-text/apvlv ~amd64
 app-text/hnb ~amd64
 app-text/sdcv ~amd64
+app-vim/conque ~amd64
 app-vim/genutils ~amd64
-dev-haskell/utf8-string ~amd64
+dev-haskell/cabal ~amd64
 dev-haskell/x11 ~amd64
+dev-lang/ghc ~amd64
 dev-libs/boost ~amd64
-# dev-libs/glib ~amd64
 dev-python/cython ~amd64
-dev-libs/libevent ~amd64
 dev-python/dbus-python ~amd64
-dev-util/boost-build ~amd64
+dev-util/android-sdk-update-manager ~amd64
 dev-util/boost-build ~amd64
 dev-util/gitosis ~amd64
 dev-util/gitosis-gentoo ~amd64
+dev-vcs/darcs ~amd64
+games-arcade/opentyrian ~amd64
 games-kids/gcompris ~amd64
 games-kids/memonix-bin ~amd64
 games-sports/vdrift ~amd64
+games-strategy/dominions2 ~amd64
 games-strategy/glest ~amd64
 games-strategy/glob2 ~amd64
+games-strategy/savage2-bin ~amd64
 games-strategy/warzone2100 ~amd64
+games-strategy/wesnoth ~amd64
+media-fonts/font-util ~amd64
 media-gfx/picasa ~amd64
+media-libs/glew ~amd64
 # media-libs/libmp4v2 ~amd64
+media-libs/mesa ~amd64
 media-libs/x264 ~amd64
 media-sound/lastfmplayer ~amd64
 media-video/ffmpeg ~amd64
 media-video/mplayer ~amd64
 media-video/spcaview ~amd64
 net-im/freetalk ~amd64
-net-libs/libsoup ~amd64
+net-im/skype ~amd64
 net-libs/webkit-gtk ~amd64
 net-misc/asterisk ~amd64
+net-misc/gateway6 ~amd64
+net-misc/googlecl ~amd64
 net-misc/iptux ~amd64
+net-misc/miredo ~amd64
 net-misc/proxychains ~amd64
+sys-devel/llvm ~amd64
+sys-fs/ntfs3g ~amd64
 # sys-kernel/gentoo-sources ~amd64
 # sys-kernel/linux-headers ~amd64
 www-client/chromium ~amd64
 www-client/uzbl ~amd64
+www-plugins/gnash ~amd64
 # www-plugins/libflashsupport ~amd64
+www-plugins/lightspark ~amd64
 www-servers/nginx ~amd64
+x11-apps/xinit ~amd64
+x11-base/xorg-drivers ~amd64
+# x11-base/xorg-server ~amd64
+x11-libs/libdrm ~amd64
+x11-libs/libva ~amd64
 # x11-libs/libXfont ~amd64
 x11-misc/googleearth ~amd64
 x11-misc/tint2 ~amd64
