@@ -19,6 +19,7 @@ ibus-daemon -d -x
 
 xrdb -merge .Xresources
 # xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4
+xset -b
 
 #mpd
 

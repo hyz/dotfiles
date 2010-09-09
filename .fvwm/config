@@ -46,7 +46,7 @@ AddToFunc StartFunction
 + I Exec trayer --align right --transparent true --height 27 --alpha 120 --tint black --widthtype request --heighttype request --SetDockType true --SetPartialStrut false --expand true
 # + I Exec scim -d
 + I Exec ibus-daemon -d -x
-+ I Exec xcompmgr -Cc -O-10 -t-3 -l-4 -r4 &
+# + I Exec xcompmgr -Cc -O-10 -t-3 -l-4 -r4 &
 
 DestroyFunc ExitFunction
 AddToFunc ExitFunction
@@ -553,9 +553,9 @@ AddToMenu MenuConky
 AddToMenu MenuTint
 + start		   		Exec tint2 -c $[FVWM_USERDIR]/ownfiles/tintrc_black
 + stop   			Exec killall tint2
-AddToMenu MenuXcompmgr
-+ start				Exec xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4
-+ stop   			Exec killall xcompmgr
+# AddToMenu MenuXcompmgr
+# + start				Exec xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4
+# + stop   			Exec killall xcompmgr
 
 AddToMenu MenuEditConfigs
 + "fvwm config"			Exec leafpad $FVWM_USERDIR/config
