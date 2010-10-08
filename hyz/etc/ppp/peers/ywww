@@ -1,0 +1,11 @@
+remotename PPTP
+ipparam ywww
+pty "pptp 74.86.150.154 --nolaunchpppd"
+name ywww
+usepeerdns
+require-mppe-128
+require-mppe-40
+refuse-eap
+noauth
+file /etc/ppp/options.pptp
+
