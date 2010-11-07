@@ -221,6 +221,7 @@ Style tint2 !Title, !Borders, Sticky
 Style conky !Title, !Borders, Sticky
 Style chrome !Title, !Borders
 Style chromium !Title, !Borders
+Style chromium-browser !Title, !Borders
 
 
 #############################
