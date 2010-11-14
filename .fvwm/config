@@ -39,8 +39,7 @@ AddToFunc StartFunction
 + I Module FvwmButtons
 + I Module FvwmPager
 + I Test (Init) Exec habak -ms $[walldir]
-# + I Exec tint2 -c $[FVWM_USERDIR]/ownfiles/tintrc_black
-+ I Exec tint2
++ I Exec tint2 -c $[FVWM_USERDIR]/ownfiles/tintrc_black
 + I Exec sleep 3 && conky -c $[FVWM_USERDIR]/ownfiles/conkyrc
 #+ I Exec stalonetray -w -t --geometry 90x28+945-2 --respect-icon-hints --max-width 90
 + I Exec trayer --align right --transparent true --height 27 --alpha 120 --tint black --widthtype request --heighttype request --SetDockType true --SetPartialStrut false --expand true
@@ -219,9 +218,11 @@ Style stalonetray !Title, !Borders, Sticky
 Style trayer !Title, !Borders, Sticky
 Style tint2 !Title, !Borders, Sticky
 Style conky !Title, !Borders, Sticky
+Style Navigator !Title, !Borders
 Style chrome !Title, !Borders
 Style chromium !Title, !Borders
 Style chromium-browser !Title, !Borders
+Style xterm !Title
 
 
 #############################
@@ -255,7 +256,7 @@ Mouse 4		1 		A   Exec transset-df --inc 0.1 -i $[w.id]
 Mouse 5		1 		A   Exec transset-df --dec 0.1 -i $[w.id]
 
 Mouse 1		R		N   StrokeFunc
-Stroke N456	0 	R	N   Exec xterm -geometry 106x48
+Stroke N456	0 	R	N   Exec xterm -geometry 106x55
 Stroke N654	0 	R	N   Exec pcmanfm
 Stroke N852	0 	R	N   Exec opera
 Stroke N258	0 	R	N   Exec audacious
@@ -267,7 +268,7 @@ Stroke N258	0 	TSF4	N   Maximize True 0 growup
 Key F4		A	C	Module FvwmForm FvwmFormQuit
 Key q		A	MS	Quit
 key q		A	M	Restart
-key Return	A	MS	Exec xterm -geometry 106x48
+key Return	A	MS	Exec xterm -geometry 106x55
 Key p		A	MS	None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key p		A	M	Exec dmenu
 Key b		A	MS	Exec chromium
@@ -434,7 +435,7 @@ AddToMenu menu_WindowOpsAdv
 DestroyMenu MenuFvwmRoot
 AddToMenu "MenuFvwmRoot@$[FVWM_USERDIR]/images/menu/menu_side_black.png@"
 + *$[FVWM_USERDIR]/images/menu/menu_up.png* Title
-+ "Terminal"%terminal.png%		Exec xterm -geometry 106x48
++ "Terminal"%terminal.png%		Exec xterm -geometry 106x55
 + "Chrome"%firefox.png%		Exec chromium
 + "Rox"%pcmanfm.png%			Exec rox
 + "Run.."%run.png%			Exec gmrun
@@ -458,7 +459,7 @@ AddToMenu Accessories Accessories
 + "Gvim"%gvim.png%			Exec gvim
 + "Leafpad"%leafpad.png%		Exec leafpad
 + "Root Terminal"%terminal.png%		Exec gksu xterm
-+ "Terminal"%terminal.png%		Exec xterm -geometry 106x48
++ "Terminal"%terminal.png%		Exec xterm -geometry 106x55
 + "Xarchiver"%xarchiver.png%		Exec xarchiver
 
 DestroyMenu Games
