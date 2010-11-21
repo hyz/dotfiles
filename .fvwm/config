@@ -1,4 +1,5 @@
-SetEnv walldir $[FVWM_USERDIR]/wallpapers
+# SetEnv walldir $[FVWM_USERDIR]/wallpapers
+SetEnv walldir Pictures/wallpapers
 ImagePath $[FVWM_USERDIR]/images/icons:+:$[FVWM_USERDIR]/images/deco:+:$[FVWM_USERDIR]/images/menu:+:$[FVWM_USERDIR]/images/buttons
 
 #############################
