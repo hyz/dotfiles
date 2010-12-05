@@ -358,28 +358,28 @@ Mouse 1 W       M   Move-or-Raise
 #####
 # Key bindings.
 #####
-Key i		A	M 	Iconify
-Key q		A	MS	Quit
-key q		A	M	Restart
-#% key Return	A	MS	Exec xterm -geometry 128x54-0+0
-key Return	A	MS 	Exec xterm
-Key p		A	MS	None (*run) Exec grun || gmrun || fbrun || xfrun4
-Key b		A	MS	Exec chromium
-Key x		A	M 	Exec rox
-#% Key F2 A        M   Exec exec gmrun
-#Key F3 A        M   Exec exec emacs
-Key c  A        M   Pick Close
-#% Key c  A        MS  Pick Quit
-#% Key F3 A        M   Pick Close
-#% Key F4 A        M   Pick Close # maybe Destroy
-#% Key F4 A        CM  Quit
-Key j   	A	M	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
-Key k   	A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key q       A    MS    Quit
+key q       A    M    Restart
+#% key Return    A    MS    Exec xterm -geometry 128x54-0+0
+key Return  A    MS     Exec xterm
+Key p       A    MS    None (*run) Exec grun || gmrun || fbrun || xfrun4
+Key b       A    MS    Exec chromium
+Key x       A    M     Exec rox
+#% Key F2 A       M   Exec exec gmrun
+#Key F3 A       M   Exec exec emacs
+Key c       A        M   Pick Close
+#% Key c    A    MS  Pick Quit
+#% Key F3   A    M   Pick Close
+#% Key F4   A    M   Pick Close # maybe Destroy
+#% Key F4   A    CM  Quit
+Key j       A    M   Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key k       A    M   Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 
-Key I  A        SC  All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
-Key Q  A        CM  Pick Resize
-Key W  A        CM  Pick Move
-#% Key N  A        CM  Exec exec knode
+Key i       A    M   Iconify
+Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded !Sticky) Thumbnail
+Key Q       A    CM  Pick Resize
+Key W       A    CM  Pick Move
+#% Key N  A       CM  Exec exec knode
 #Key X  A        CM  Exec exec xine # this doesn't work, change X key to smtin else
 #Key P  A        CM  Exec exec amarok
 #Key G  A        CM  Exec exec gajim
