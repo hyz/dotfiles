@@ -7,7 +7,7 @@ Xft.hintstyle:  hintslight
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
 xterm*termName: xterm-256color
 ! xterm.termName: xterm-256color
-xterm.geometry: 110x54
+!% xterm.geometry: 110x54
 xterm*scrollBar: false
 xterm*rightScrollBar: true
 xterm*loginshell: true
@@ -65,7 +65,7 @@ xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
 URxvt.background: rgba:0000/0000/0000/cccc
 URxvt.depth: 32
-Rxvt.geometry:192×144
+! Rxvt.geometry:192×144
 Rxvt.foreground:antiquewhite
 Rxvt.colorBD:yellow
 Rxvt.colorUL:green
