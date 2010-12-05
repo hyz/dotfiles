@@ -514,7 +514,7 @@ AddToFunc StartFunction
 #####
 # Without Xinerama
 #% + I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-129))x28+0-0 FvwmBar"
-+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]))x28+0-0 FvwmBar"
++ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-129))x28+0-0 FvwmBar"
 # 1280x1024
 #+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-1154))x28+0-0 FvwmBar"
 # 1024x768@1280x1024
@@ -589,7 +589,7 @@ AddToMenu MenuOffice
 + %office-addressbook.png%"Management" Popup MenuManagement
 + "" Nop
 + %office-ooo_writer.png%"Writer" Exec exec /opt/openoffice/program/swriter
-+ %gnome/24x24/apps/accessories-calculator.png%"Calc" Exec exec /opt/openoffice/program/scalc
++ %gnome/24x24/apps/accessories-calculator.png%"Calc" Exec exec xcalc
 + %office-ooo_impress.png%"Impress" Exec exec /opt/openoffice/program/simpress
 + %office-ooo_draw.png%"Draw" Exec exec /opt/openoffice/program/sdraw
 + "" Nop
@@ -1216,7 +1216,7 @@ DestroyModuleConfig FvwmBar: *
 *FvwmBar: Rows 23
 *FvwmBar: Columns 72
 *FvwmBar: (72x3, Padding 0 0, Action(Mouse 1) `Next (CirculateHit, FvwmBar) PipeRead 'echo LockingSlide keep $$(test $$(($[w.y]+$[w.height])) -le $[vp.height] && echo w$$(($[w.height]-$height))p || echo w-$$(($[w.height]-$height))p)'`)
-*FvwmBar: (6x20, Title(Side) " Launch", Left, Icon linux-arch2.png, Action(Mouse 1) `Menu MenuFvwmRoot Rectangle +$left+$top 0 -100m`)
+*FvwmBar: (6x20, Title(Side) " Launch", Left, Icon apple-red.png, Action(Mouse 1) `Menu MenuFvwmRoot Rectangle +$left+$top 0 -100m`)
 *FvwmBar: (66x20, Swallow "FvwmIconMan" `FvwmIconMan`)
 
 
