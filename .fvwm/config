@@ -86,7 +86,8 @@ IgnoreModifiers L2
 
 # Maximized windows don't cover the panel nor taskbar
 # Without Xinerama
-EwmhBaseStruts 0 128 0 28
+#% EwmhBaseStruts 0 128 0 28
+EwmhBaseStruts 0 0 0 28
 # 1280x1024
 #EwmhBaseStruts 0 1144 0 28
 # 1024x768@1280x1024
@@ -142,13 +143,15 @@ Style * Font "xft:Liberation Sans:size=8:encoding=utf-8", BorderWidth 1, HandleW
 Style * Colorset 2, HilightColorset 3, MWMFunctions, MWMDecor, HintOverride
 Style * DecorateTransient, NoPPosition, IconBox 20 20 100 -15, IconGrid 3 3, IconFill left top
 Style * SloppyFocus, MouseFocusClickRaises, TileCascadePlacement, WindowShadeSteps 20
-Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
+#% Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
+Style * GrabFocus, GrabFocusTransient, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
 
 # Iconified windows have Titles
 Colorset 14 fg white, bg black, fgsh black, RootTransparent
-Style * IconTitle, IconTitleColorset 14, HilightIconTitleColorset 14, IconTitleRelief 0
+Style * TitleAtLeft, IconTitle, IconTitleColorset 14, HilightIconTitleColorset 14, IconTitleRelief 0
 Style * IconFont "xft:Aquafont:size=11minspacing=True", IndexedIconName, IconBackgroundPadding 2,
 Style * IconBackgroundRelief 0, IconBackGroundColorset 14
+Style * IconBox -80 240 -1 -1
 
 # Custom gperfection window decoration
 DestroyDecor FperfectionDecor
@@ -203,7 +206,7 @@ Style xclock      NoTitle, Sticky, WindowListSkip
 Style Cairo-clock NoTitle, Sticky, StaysOnTop, WindowListSkip, CirculateSkip
 Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
 # Term
-Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-terminal.png
+Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
 Style urxvt       EWMHMiniIconOverride, MiniIcon gnome-terminal.png, WindowShadeShrinks
 #Style HiddenConsole GrabFocus, Sticky, WindowListSkip, Notitle, StaysOnTop, NoHandles, CirculateSkip
 Style HiddenConsole Sticky, WindowListSkip, Notitle, StaysOnTop, NoHandles, CirculateSkip
@@ -355,16 +358,18 @@ Mouse 1 W       M   Move-or-Raise
 #####
 # Key bindings.
 #####
+Key i		A	M 	Iconify
 Key q		A	MS	Quit
 key q		A	M	Restart
-key Return	A	MS	Exec xterm # -geometry 106x55
+#% key Return	A	MS	Exec xterm -geometry 128x54-0+0
+key Return	A	MS 	Exec xterm
 Key p		A	MS	None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key b		A	MS	Exec chromium
 Key x		A	M 	Exec rox
 #% Key F2 A        M   Exec exec gmrun
 #Key F3 A        M   Exec exec emacs
 Key c  A        M   Pick Close
-Key c  A        MS  Pick Quit
+#% Key c  A        MS  Pick Quit
 #% Key F3 A        M   Pick Close
 #% Key F4 A        M   Pick Close # maybe Destroy
 #% Key F4 A        CM  Quit
@@ -492,7 +497,8 @@ Stroke N3698741 0 R N Exec exec knotes
 AddToFunc StartFunction
 #% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
 + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
-+ I Test (Init) Exec cairo-clock --theme antique --ontop
++ I Test (Init) Exec cairo-clock --theme antique --date
++ I Test (Init) Exec xterm -geometry 128x55-0+0
 + I Module FvwmCommandS
 + I Module FvwmAnimate
 + I Module FvwmEvent
