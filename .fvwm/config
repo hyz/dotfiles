@@ -144,14 +144,15 @@ Style * Colorset 2, HilightColorset 3, MWMFunctions, MWMDecor, HintOverride
 Style * DecorateTransient, NoPPosition, IconBox 20 20 100 -15, IconGrid 3 3, IconFill left top
 Style * SloppyFocus, MouseFocusClickRaises, TileCascadePlacement, WindowShadeSteps 20
 #% Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
-Style * GrabFocus, GrabFocusTransient, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
+Style * MinOverlapPlacement, GrabFocus, GrabFocusTransient, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
 
 # Iconified windows have Titles
 Colorset 14 fg white, bg black, fgsh black, RootTransparent
 Style * TitleAtLeft, IconTitle, IconTitleColorset 14, HilightIconTitleColorset 14, IconTitleRelief 0
 Style * IconFont "xft:Aquafont:size=11minspacing=True", IndexedIconName, IconBackgroundPadding 2,
 Style * IconBackgroundRelief 0, IconBackGroundColorset 14
-Style * IconBox -80 240 -1 -1
+Style * IconBox -80 240 -1 -1, Icon gnome/32x32/mimetypes/unknown.png
+#% Style * UseGravity, AutoDetect
 
 # Custom gperfection window decoration
 DestroyDecor FperfectionDecor
@@ -202,9 +203,9 @@ Style xfig        EWMHMiniIconOVerride, MiniIcon xfig.png
 Style XDiary      EWMHMiniIconOverride, MiniIcon utils-calendar.png
 Style XClipboard  EWMHMiniIconOverride, MiniIcon klipper.png, NoTitle, CirculateSkip, WindowListSkip
 Style stalonetray NoTitle
-Style xclock      NoTitle, Sticky, WindowListSkip
-Style Cairo-clock NoTitle, Sticky, StaysOnTop, WindowListSkip, CirculateSkip
 Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
+Style *lock       !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -0
+#% Style xclock      NoTitle, Sticky, WindowListSkip
 # Term
 Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
 Style urxvt       EWMHMiniIconOverride, MiniIcon gnome-terminal.png, WindowShadeShrinks
@@ -361,7 +362,7 @@ Mouse 1 W       M   Move-or-Raise
 Key q       A    MS    Quit
 key q       A    M    Restart
 #% key Return    A    MS    Exec xterm -geometry 128x54-0+0
-key Return  A    MS     Exec xterm
+key Return  A    MS    Exec xterm -geometry 81x27
 Key p       A    MS    None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key b       A    MS    Exec chromium
 Key x       A    M     Exec rox
@@ -376,7 +377,7 @@ Key j       A    M   Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindo
 Key k       A    M   Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 
 Key i       A    M   Iconify
-Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded !Sticky) Thumbnail
+Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
 Key Q       A    CM  Pick Resize
 Key W       A    CM  Pick Move
 #% Key N  A       CM  Exec exec knode
@@ -700,7 +701,7 @@ AddToMenu MenuUtilities
 #% DestroyMenu MenuXUtils
 #% AddToMenu MenuXUtils
 + %gnome/24x24/apps/accessories-calculator.png%"Xcalc" Exec exec xcalc
-+ %gnome-xterm.png%"Xterminal" Exec exec xterm
++ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 81x32
 + %utils-xman.png%"Xman" Exec exec xman
 + %klipper.png%"Xclipboard" Exec exec kdocker -i /home/wood/.fvwm/icons/klipper.png xclipboard
 + %xload.png%"Xload" Exec exec xload
