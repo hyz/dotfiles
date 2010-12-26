@@ -5,7 +5,11 @@ export LANG=en_US.UTF-8
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
 #RPROMPT=$'%(0?..%?%)) %{\e[36m%}%n%{\e[35m%}@%{\e[34m%}%M %{\e[33m%}%T%{\e[0m%}'
 
-autoload -U promptinit && promptinit && prompt redhat
+autoload -U compinit promptinit
+compinit
+promptinit
+ 
+prompt walters
 
 export PATH=$PATH:$HOME/bin:/sbin:/usr/sbin
 
@@ -21,8 +25,6 @@ bindkey -M vicmd v edit-command-line
 setopt interactive_comments
 bindkey "\e#" vi-pound-insert
 # bindkey "\eq" push-line
-
-autoload -U compinit; compinit
 
 #unalias run-help
 #autoload run-help

@@ -39,6 +39,6 @@ class MyHttpHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     httpd=HTTPServer(('', 8000),MyHttpHandler)
-    print("Server started on 127.0.0.1,port 80.....")
+    print("Server started on 127.0.0.1,port 8000.....")
     httpd.serve_forever()
 
