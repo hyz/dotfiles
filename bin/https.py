@@ -38,7 +38,7 @@ class MyHttpHandler(BaseHTTPRequestHandler):
             self.send_error(404, 'cmd=%d' % cmd)
 
 if __name__ == '__main__':
-    httpd=HTTPServer(('', 80),MyHttpHandler)
-    print("Server started on 127.0.0.1,port 80.....")
+    httpd=HTTPServer(('', 8000),MyHttpHandler)
+    print("Server started on 127.0.0.1,port 8000.....")
     httpd.serve_forever()
 

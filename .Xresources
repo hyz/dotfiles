@@ -5,9 +5,9 @@ Xft.hinting:    true
 Xft.hintstyle:  hintslight
 
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
-XTerm*termName: xterm-256color
+xterm*termName: xterm-256color
 ! xterm.termName: xterm-256color
-XTerm.geometry: 100x54
+!% xterm.geometry: 110x54
 xterm*scrollBar: false
 xterm*rightScrollBar: true
 xterm*loginshell: true
@@ -30,7 +30,7 @@ xterm*faceName: Monaco:antialias=True:pixelsize=15
 xterm*faceNameDoublesize: Microsoft YaHei:pixelsize=16:antialias=True
 xterm*xftAntialias: true
 xterm*cjkWidth: false
-XTerm*onXClicks: 4
+xterm*onXClicks: 4
 xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
 ! xterm*on4Clicks: regex [^(){}\[\]]+
 !=== fix alt key input
@@ -65,7 +65,7 @@ xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
 URxvt.background: rgba:0000/0000/0000/cccc
 URxvt.depth: 32
-Rxvt.geometry:192×144
+! Rxvt.geometry:192×144
 Rxvt.foreground:antiquewhite
 Rxvt.colorBD:yellow
 Rxvt.colorUL:green
