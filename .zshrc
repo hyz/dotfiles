@@ -37,5 +37,5 @@ alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
 
-limit coredumpsize 0
+# limit coredumpsize 0
 
