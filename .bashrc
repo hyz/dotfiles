@@ -21,7 +21,9 @@ LANG=en_US.UTF-8
 # LC_CTYPE=zh_CN.UTF-8
 # LC_COLLATE=posix
 export HISTCONTROL LANG
-export PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/games/bin
+
+#export PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/games/bin
+export PATH=/usr/bin:/bin:/cygdrive/c/Program\ Files/ARM/ADSv1_2/bin:/cygdrive/d/bin:/sbin:/usr/sbin:/cygdrive/c/WINDOWS:/cygdrive/c/Program\ Files/Vim/vim73:/cygdrive/c/WINDOWS/system32:/cygdrive/c/WINDOWS/System32/Wbem
 
 if [ -d "$HOME/lib" ]; then
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib

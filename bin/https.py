@@ -4,11 +4,12 @@ import shutil, struct
 
 class MyHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        try:
-            rf = open('html%s' % self.path, 'rb')
-        except:
-            rf = open('./%s' % self.path, 'rb')
-        #with open('html%s' % self.path, 'rb') as rf:
+        # for x in dir(self): print (x, getattr(self,x)) ; print (self.path)
+        if self.path.startswith('/?'):
+            import io, os
+            rf = io.BytesIO(bytes('\n'.join(os.listdir(self.path[2:])),'GB2312'))
+        else:
+            rf = open('.'+self.path, 'rb')
         self.send_response(200)
         self.send_header("Content-type", "text/plain; charset=gb2312")
         self.send_header("Content-Length", rf.seek(0,2))
@@ -16,6 +17,7 @@ class MyHttpHandler(BaseHTTPRequestHandler):
         rf.seek(0)
         shutil.copyfileobj(rf, self.wfile)
         rf.close();
+        self.finish()
 
     def do_POST(self):
         cmd = 0
@@ -39,6 +41,6 @@ class MyHttpHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     httpd=HTTPServer(('', 8000),MyHttpHandler)
-    print("Server started on 127.0.0.1,port 8000.....")
+    print("Server started on 0.0.0.0:8000 ...")
     httpd.serve_forever()
 

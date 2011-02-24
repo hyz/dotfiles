@@ -1,4 +1,4 @@
-"set t_Co=256
+set t_Co=256
 set guifont=Monaco\ 14
 set guioptions=
 
@@ -14,7 +14,7 @@ set completeopt=longest,menu
 
 colorscheme desert " desert256 inkpot gardener tango desert elflord wombat256 
 
-set fileencodings=utf-8,gb2312,gbk,unicode,big5,euc-jp,euc-kr,latin1,ucs-bom
+set fileencodings=cp936,gb2312,gbk,utf-8,unicode,ucs-2,big5,euc-jp,euc-kr,latin1,ucs-bom
 
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
@@ -22,6 +22,8 @@ set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 
 set tags+=../tags,~/.tags
 " set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
+
+set cscopeprg=mlcscope
 
 "autocmd BufEnter * lcd %:p:h
 autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc

@@ -79,42 +79,46 @@ def ofmt(l, width=0):
         x, y = l
         print '%%%ds' % width % str(x), '#', hexize(y)
 
+def xcode(desc, line):
+    print '===', desc, '==='
+    try:
+        l, y=parse(desc, unhex(line))
+        ofmt(l)
+        if y: print hexize(y)
+    except RuntimeError as e:
+        x, y = e.args
+        print 'Error', x[:16], hexize(y[:16])
+
 if __name__ == '__main__':
     describes = {
-               -1: ('1d,4x,4x,4x,Ns,Nx,1d,2d,N(Ns,Nx,Nx,2d,1d),N(Ns,Nx,2d)', ''),
-                0: ('4x,2d,4x,15s,15x,Ns,4d,16x,Ns,2d,2d,8d,4x,4d,4d', '2d,4x,4d,1x,8d,N(Nx)'),
-             1001: ('4x,Ns,4x,4x,4x,4x', '1x,8s,H(4d,1d,1d,4d,1d),N(1d,Ns),N(Ns),Ns'),
+               -102 : ('8x,Ms,4d,4d,4d', '4d,4d,4d'),
+               -100 : ('4x,1d,4x,4x,4d,16x,Ns,2d,2d,Ns,Ns,Ns,4d', '1d,4x,4d'),
+                 -1 : ('1d,4x,4x,4x,Ns,Nx,1d,2d,N(Ns,Nx,Nx,2d,1d),N(Ns,Nx,2d)', ''),
+                  0 : ('4x,2d,4x,4x,15s,15x,Ns,4d,16x,Ns,2d,2d,8d,4x,4x,4d,4d', '2d,4x,4d,1x,8d,N(Nx)'),
+               1001 : ('4x,Ns,4x,4x,4x,4x', '1x,8s,H(4d,1d,1d,4d,1d),N(1d,Ns),N(Ns),Ns'),
             }
     desc = describes.get(0)
     if len(sys.argv) > 1:
         desc = (sys.argv[1], sys.argv[2]) # tuple([ sys.argv[1] ] * 2)
     while 1:
-        try:
-            line = sys.stdin.readline().strip()
-            if not line:
-                continue
-        except:
-            break
-        if line.strip('?') == '':
-            for x,y in describes.items():
-                print '%4s' % str(x), y
-            print '===', desc, '==='
-        elif line.startswith('&'):
-            desc = describes.get(int(line[1:].strip() or '0'), desc)
-        elif line == '<>':
-            if desc[1]:
-                desc = (desc[1], desc[0])
-        elif line.startswith('='):
-            desc = eval(line.strip('= \t')) #tuple([ line.strip('= \t"\'') ] * 2)
-        else:
-            print '===', desc, '==='
-            try:
-                l, y=parse(desc[0], unhex(line.strip()))
-                ofmt(l)
-                if y: print hexize(y)
-            except RuntimeError as e:
-                x, y = e.args
-                print 'Error', x[:16], hexize(y[:16])
+        line = sys.stdin.readline().strip()
+        if line:
+            if line.strip('?') == '':
+                for x,y in describes.items():
+                    print '%4s' % str(x), y
+                print '===', desc, '==='
+            elif line.startswith('&'):
+                desc = describes.get(int(line[1:].strip() or '0'), desc)
+            elif line == '<>':
+                if desc[1]:
+                    desc = (desc[1], desc[0])
+            elif line.startswith('='):
+                desc = line.strip('= \t') #tuple([ line.strip('= \t"\'') ] * 2)
+            elif line.startswith('!'):
+                desc, line = line.strip('! \t').split()
+                xcode(desc, line)
+            else:
+                xcode(desc[0], line.strip())
 
 # xxd -g0 -p
 # REQ Head:  4x,2d,4x,15x,15x,4x,16x,Ns,2d,2d,8x,4x,4d,4d
