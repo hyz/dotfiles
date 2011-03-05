@@ -3,7 +3,7 @@ export XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE="ibus"
 export QT_IM_MODULE="xim"
 
-# ibus-daemon -d -x
+ibus-daemon -d -x
 # fcitx &
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
@@ -14,7 +14,8 @@ export QT_IM_MODULE="xim"
 #gnome-volume-manager &
 #conky &
 
-#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
+#xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
 #/home/wjy/bin/x-session-rc &
 
 xrdb -merge .Xresources
@@ -27,19 +28,20 @@ xset -b
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
-exec xmonad
+#exec xmonad
 
 #rox -p default
 # tint2 &
 #fbpanel &
 
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG
-#feh --bg-center Pictures/wallpapers/vladstudio_rainbows_1920x1440.jpg
+feh --bg-center Pictures/wallpapers/vladstudio_rainbows_1920x1440.jpg
 
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
 
+#exec subtle
 exec fvwm
 exec awesome
 exec openbox-session

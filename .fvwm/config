@@ -380,6 +380,7 @@ Key i       A    M   Iconify
 Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
 Key Q       A    CM  Pick Resize
 Key W       A    CM  Pick Move
+Key M       A    M   Pick Maximize
 #% Key N  A       CM  Exec exec knode
 #Key X  A        CM  Exec exec xine # this doesn't work, change X key to smtin else
 #Key P  A        CM  Exec exec amarok

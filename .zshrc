@@ -11,7 +11,7 @@ promptinit
  
 prompt walters
 
-export PATH=$PATH:$HOME/bin:/sbin:/usr/sbin
+export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin
 
 export HISTSIZE=1000
 export SAVEHIST=1000
