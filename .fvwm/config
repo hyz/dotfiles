@@ -204,7 +204,7 @@ Style XDiary      EWMHMiniIconOverride, MiniIcon utils-calendar.png
 Style XClipboard  EWMHMiniIconOverride, MiniIcon klipper.png, NoTitle, CirculateSkip, WindowListSkip
 Style stalonetray NoTitle
 Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
-Style *lock       !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -0
+Style *lock       !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 64
 #% Style xclock      NoTitle, Sticky, WindowListSkip
 # Term
 Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
@@ -363,6 +363,7 @@ Key q       A    MS    Quit
 key q       A    M    Restart
 #% key Return    A    MS    Exec xterm -geometry 128x54-0+0
 key Return  A    MS    Exec xterm -geometry 81x27
+Key p       A    M     Exec `dmenu_path | dmenu`
 Key p       A    MS    None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key b       A    MS    Exec chromium
 Key x       A    M     Exec rox

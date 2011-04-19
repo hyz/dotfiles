@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 from http.server import HTTPServer,BaseHTTPRequestHandler
 import shutil, struct
