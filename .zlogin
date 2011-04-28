@@ -9,3 +9,5 @@ if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
     xinit ; mlnet -exit ; logout
 fi
 
+export PYTHONSTARTUP=~/.pythonstartup
+
