@@ -16,6 +16,7 @@ import sys
 
 # change autocomplete to tab
 readline.parse_and_bind("tab: complete")
+readline.set_history_length(10000)
 
 hisfile = os.path.expanduser("~/.python_history")
 
