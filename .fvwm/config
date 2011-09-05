@@ -362,7 +362,7 @@ Mouse 1 W       M   Move-or-Raise
 Key q       A    MS    Quit
 key q       A    M    Restart
 #% key Return    A    MS    Exec xterm -geometry 128x54-0+0
-key Return  A    MS    Exec xterm -geometry 81x27
+key Return  A    MS    Exec xterm -geometry 81x27 -e screen -e^jj -R
 Key p       A    M     Exec `dmenu_path | dmenu`
 Key p       A    MS    None (*run) Exec grun || gmrun || fbrun || xfrun4
 Key b       A    MS    Exec chromium

@@ -28,6 +28,7 @@ xset -b
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
+#exec ck-launch-session gnome-session
 #exec xmonad
 
 #rox -p default
