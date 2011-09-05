@@ -37,5 +37,7 @@ alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
 
+alias todo='todo --database-loaders binary'
+
 # limit coredumpsize 0
 

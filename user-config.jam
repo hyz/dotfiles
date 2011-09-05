@@ -51,7 +51,7 @@
 # -------------------
 
 # Configure msvc (default version, searched for in standard locations and PATH).
-# using msvc ;
+using msvc ;
 
 # Configure specific msvc version (searched for in standard locations and PATH).
 # using msvc : 8.0 ;
