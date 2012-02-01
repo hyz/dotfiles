@@ -8,6 +8,7 @@ syntax on
 filetype plugin on
 filetype indent on
 
+set hlsearch
 set diffopt+=iwhite
 
 set completeopt=longest,menu

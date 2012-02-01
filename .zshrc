@@ -39,5 +39,11 @@ alias df='df -h'
 
 alias todo='todo --database-loaders binary'
 
+alias svndiff='svn diff --diff-cmd wsvndiff'
+
+export EDITOR=vim
+
+alias wpd='cygpath -w '
+
 # limit coredumpsize 0
 
