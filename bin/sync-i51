@@ -23,7 +23,7 @@ if [ -z "$DIRS" ]; then
 fi
 
 for x in $DIRS; do
-    d="$WD/$x
+    d="$WD/$x"
     y=`basename $x`
     [ -d "$x" ] || continue
     if [ -n "$i51" ]; then
@@ -37,6 +37,7 @@ for x in $DIRS; do
 
     [ -d "$K/$y" ] || mkdir -p $K/$y
 
-	find "$x" -maxdepth 2 | grep -E "\.(kit|i51|re|dll)$" |xargs cp -vt "$K/$y"
+	find "$x" -maxdepth 2 -type f | grep -E '\.(kit|i51|re|dll)$' |xargs cp -vt "$K/$y"
+
 done
 
