@@ -1,12 +1,12 @@
 
 T ?= /cygdrive/g
 
-Kitd = $(T)/i51/i51KIT
+DKit = $(T)/i51/i51KIT
 
-all: Tcard
-	@echo "Tcard: $(T)"
-	@[ -e "$(Kitd)/i51TEST" ] && echo "i51TEST"
-	@[ -e "$(T)/i51/i51.log" ] && echo "i51.log"
+toggle: Tcard
+	@echo "T-card: $(T) $(DKit)"
+	@ls "$(DKit)/i51TEST" 2>/dev/null ; true
+	@ls "$(T)/i51/i51.log" 2>/dev/null ; true
 	@echo "make <log|test|clean>"
 
 log: Tcard
@@ -15,27 +15,27 @@ log: Tcard
 test: Tcard
 	touch $(T)/i51/i51.log
 	touch $(T)/i51/i51KIT/i51TEST
-	l=$Kitd/i51TEST ; [ -e $l ] && echo "$l YES" || echo "$l NO"
+	l=$(DKit)/i51TEST ; [ -e $l ] && echo "$l YES" || echo "$l NO"
 
 Tcard: $(T)
-	@[ -d $(Kitd) ] || mkdir -p $(Kitd)
-	@case "$(toggle)" in log) toggle-file-exist $T/i51/i51.log ;; server) toggle-file-exist $T/i51/i51TEST ;; esac
+	@[ -d $(DKit) ] || mkdir -p $(DKit)
+	@case "$(toggle)" in log) rm $(T)/i51/i51.log 2>null || touch $(T)/i51/i51.log ;; server) rm $(DKit)/i51TEST 2>null || touch $(DKit)/i51TEST ;; esac
 
-# find $$d -name "*.kit" -o -name "*.i51" -o -name "*.dll" -exec cp -vft "$(Kitd)/$$d" '{}' \; ; 
+# find $$d -name "*.kit" -o -name "*.i51" -o -name "*.dll" -exec cp -vft "$(DKit)/$$d" '{}' \; ; 
 Dirs=../i51SYS PKiGAPI 51pkpay 51pkGame paydo app-boot
 sync: Tcard
 	for d in $(Dirs); do \
 		[ -d "$$d" ] || continue ; \
-		[ -d "$(Kitd)/$$d" ] || mkdir -p "$(Kitd)/$$d" ; \
-		find $$d | grep -E "(\.kit|\.i51|\.re|\.dll)$$" |xargs cp -vt "$(Kitd)/$$d" ; \
+		[ -d "$(DKit)/$$d" ] || mkdir -p "$(DKit)/$$d" ; \
+		find $$d | grep -E "(\.kit|\.i51|\.re|\.dll)$$" |xargs cp -vt "$(DKit)/$$d" ; \
 	done
-	cp -vRt $(Kitd) Fonts
+	cp -vRt $(DKit) Fonts
 
 clean: Tcard
 	for x in g h i; do [ -e /cygdrive/$$x/i51sn ] && rm -rf /cygdrive/$$x/i51sn ; done ; true
 	rm -rf $(T)/i51/i51KIT/51pkpay ; true
 	rm -rf $(T)/i51/i51SYS ; true
-	rm -vf $t/i51/i51SYS/*.anti
+	rm -vf $(T)/i51/i51SYS/*.anti ; true
 	find $(T)/i51
 
 #-- #!/bin/sh

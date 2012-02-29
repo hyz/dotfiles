@@ -1,0 +1,42 @@
+#!/bin/sh
+
+DIRS=$*
+
+WD=`pwd`
+
+K=$T/i51/i51KIT
+
+[ -d "$T" ] || exit 1
+
+if [ -z "$DIRS" ]; then
+    if [ `basename $WD` = "i51KIT" ]; then
+        i51=1
+        DIRS="*"
+    else
+        DIRS=`basename $WD`
+        WD=`dirname $WD`
+        if [ `basename $WD` != "i51KIT" ]; then
+            exit 2
+        fi
+        cd ..
+    fi
+fi
+
+for x in $DIRS; do
+    d="$WD/$x
+    y=`basename $x`
+    [ -d "$x" ] || continue
+    if [ -n "$i51" ]; then
+        [ -f "$d/$y.i51" ] || continue
+    fi
+
+    # if [ -n "$do_skip" ]; then
+    #     case "$x" in i51*|*Demo|Test*|?) continue ;; esac
+    # fi
+    # echo $x
+
+    [ -d "$K/$y" ] || mkdir -p $K/$y
+
+	find "$x" -maxdepth 2 | grep -E "\.(kit|i51|re|dll)$" |xargs cp -vt "$K/$y"
+done
+

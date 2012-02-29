@@ -1,0 +1,39 @@
+#!/bin/sh
+
+APATH=$1
+NM=`basename $1`
+
+SE=$APATH/$NM.se
+
+[ -d "$APATH" ] && [ -f $SE ] || exit 1
+shift ; eval $*
+
+sexp=
+
+Ver=$Version
+if [ "$Ver" = + ]; then
+    Ver=`grep '^Version:' $SE |awk -F: '{print $2+1}'`
+fi
+if [ -n "$Ver" ]; then
+    sexp="$sexp -e /^Version:/s/:.*/:$Ver/"
+fi
+
+if [ -n "$Endian" ]; then
+    sexp="$sexp -e /^Endian:/s/:.*/:$Endian/"
+fi
+
+if [ -n "$Screen" ]; then
+    sexp="$sexp -e /^Screen:/s/:.*/:$Screen/"
+    s=`echo $Screen |cut -d, -f1`
+    cp -vt $APATH $APATH/Resource/$s/*.re
+	# echo sh $APATH/Resource/resinit.sh $s/normal
+	# echo sh $APATH/Resource/resinit.sh $s/wides
+fi
+
+if [ -n "$sexp" ]; then
+    sed -i $sexp $SE
+    unix2dos $SE
+fi
+
+grep -E "^(Version|Screen|Endian):" $SE
+
