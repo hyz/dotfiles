@@ -13,9 +13,20 @@ prompt walters
 
 export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin
 
-export HISTSIZE=1000
+export HISTSIZE=25000
 export SAVEHIST=1000
 export HISTFILE=$HOME/.zsh/history
+export HISTIGNORE="&:ls:[bf]g:exit:reset:clear"
+# export HISTIGNORE="&:ls:[bf]g:exit:reset:clear:cd*"
+# export HISTFILE=~/.zsh_history
+# export SAVEHIST=250
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_VERIFY
 
 bindkey -v
 autoload -U        edit-command-line
