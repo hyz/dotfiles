@@ -5,11 +5,12 @@ NM=`basename "$1"`
 
 SE=$APATH/$NM.se
 
-[ -d "$APATH" ] && [ -f $SE ] || exit 1
+[ -d "$APATH" ] || exit 1
 shift ; eval $*
 
 sexp=
 
+# Version:1
 Ver=$Version
 if [ "$Ver" = + ]; then
     Ver=`grep '^Version:' $SE |awk -F: '{print $2+1}'`
@@ -18,10 +19,12 @@ if [ -n "$Ver" ]; then
     sexp="$sexp -e /^Version:/s/:.*/:$Ver/"
 fi
 
+# Endian:0
 if [ -n "$Endian" ]; then
     sexp="$sexp -e /^Endian:/s/:.*/:$Endian/"
 fi
 
+# Screen:240x320,240x400,320x480,220x176
 if [ -n "$Screen" ]; then
     sexp="$sexp -e /^Screen:/s/:.*/:$Screen/"
     s=`echo $Screen |cut -d, -f1`
@@ -30,10 +33,16 @@ if [ -n "$Screen" ]; then
 	# echo sh $APATH/Resource/resinit.sh $s/wides
 fi
 
-if [ -n "$sexp" ]; then
-    sed -i $sexp $SE
-    unix2dos $SE
+# Files:kitpay.c,kitdo.c,httpc.c,utility.c,llapi.c
+if [ -n "$Files" ]; then
+    sexp="$sexp -e /^Files:/s/:.*/:$Files/"
+else
+    Files=`/bin/ls -m *.c |tr -d ' '`
+    sexp="$sexp -e /^Files:/s/:.*/:$Files/"
 fi
 
-grep -E "^(Version|Screen|Endian):" $SE
+if [ -n "$sexp" ]; then
+    sed $sexp <&0 > $SE
+    unix2dos -q $SE
+fi
 
