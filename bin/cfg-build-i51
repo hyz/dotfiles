@@ -28,7 +28,7 @@ fi
 if [ -n "$Screen" ]; then
     sexp="$sexp -e /^Screen:/s/:.*/:$Screen/"
     s=`echo $Screen |cut -d, -f1`
-    cp -vt $APATH $APATH/Resource/$s/*.re
+    # cp -vt $APATH $APATH/Resource/$s/*.re
 	# echo sh $APATH/Resource/resinit.sh $s/normal
 	# echo sh $APATH/Resource/resinit.sh $s/wides
 fi
