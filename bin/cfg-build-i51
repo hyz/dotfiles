@@ -43,6 +43,6 @@ fi
 
 if [ -n "$sexp" ]; then
     sed $sexp <&0 > $SE
-    unix2dos -q $SE
+    which unix2dos && unix2dos -q $SE ; true
 fi
 

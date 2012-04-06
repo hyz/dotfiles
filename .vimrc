@@ -13,7 +13,7 @@ set diffopt+=iwhite
 
 set completeopt=longest,menu
 
-colorscheme desert " desert256 inkpot gardener tango desert elflord wombat256 
+colorscheme desert256 " desert desert256 inkpot gardener tango desert elflord wombat256 
 
 set fileencodings=cp936,gb2312,gbk,utf-8,unicode,ucs-2,big5,euc-jp,euc-kr,latin1,ucs-bom
 
