@@ -11,7 +11,7 @@ promptinit
  
 prompt walters
 
-export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin
+export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/cygdrive/c/go/bin:/crosscompiler/bin
 
 export HISTSIZE=25000
 export SAVEHIST=1000
