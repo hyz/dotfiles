@@ -1,5 +1,5 @@
-# export LANG=en_US.UTF-8
-export LANG=en_HK.UTF-8
+export LANG=en_US.UTF-8
+# export LANG=en_HK.UTF-8
 
 #PROMPT='%{[36m%}%~%{[m%} %% '
 #RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
