@@ -499,7 +499,7 @@ Stroke N3698741 0 R N Exec exec knotes
 #####
 AddToFunc StartFunction
 #% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
-+ I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
+# + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
 + I Test (Init) Exec cairo-clock --theme antique --date
 + I Test (Init) Exec xterm -geometry 128x55-0+0
 + I Module FvwmCommandS

@@ -29,7 +29,7 @@ xset -b
 #xterm -geometry -0-28 &
 
 #exec ck-launch-session gnome-session
-exec xmonad
+# exec xmonad
 
 #rox -p default
 # tint2 &
