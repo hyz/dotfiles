@@ -1,4 +1,6 @@
-#include <stdio.h>
+// #include <stdio.h>
+
+#ifdef MAIN
 
 static int s_int;
 extern int e_int;
@@ -12,14 +14,13 @@ extern void e_func(int *val);
 
 int main()
 {
-    int a, b;
-    s_func(a);
-    e_func(&b);
-    return a + b;
+    s_func(&s_int);
+    e_func(&e_int);
+    return (s_int + e_int);
 }
+#else
 
 //////////////
-
 int eg_int;
 
 void e_func(int *val)
@@ -27,4 +28,5 @@ void e_func(int *val)
     *val = 0x00000200;
 }
 
+#endif
 
