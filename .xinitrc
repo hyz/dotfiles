@@ -36,7 +36,7 @@ xset -b
 #fbpanel &
 
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG
-feh --bg-center Pictures/wallpapers/vladstudio_rainbows_1920x1440.jpg
+feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
