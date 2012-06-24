@@ -1,3 +1,5 @@
+export LANG=en_US.UTF-8
+# export LANG=en_HK.UTF-8
 
 export XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE="ibus"
@@ -28,7 +30,7 @@ xset -b
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
-#exec ck-launch-session gnome-session
+# exec ck-launch-session gnome-session
 # exec xmonad
 
 #rox -p default
@@ -44,6 +46,7 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 
 #exec subtle
 exec fvwm
+exec gnome-session
 exec awesome
 exec openbox-session
 # exec compiz
@@ -51,7 +54,6 @@ exec echinus
 exec fluxbox
 exec sawfish
 exec wmaker
-exec gnome-session
 exec startfluxbox
 
 #export OOO_FORCE_DESKTOP=gnome
