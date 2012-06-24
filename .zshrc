@@ -16,8 +16,8 @@ export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin
 
 export HISTSIZE=25000
 export SAVEHIST=1000
-export HISTFILE=$HOME/.zsh/history
-export HISTIGNORE="&:ls:[bf]g:exit:reset:clear"
+export HISTFILE=$HOME/.zhistory
+export HISTIGNORE="&:ls:pwd:[bf]g:exit:reset:clear"
 # export HISTIGNORE="&:ls:[bf]g:exit:reset:clear:cd*"
 # export HISTFILE=~/.zsh_history
 # export SAVEHIST=250
