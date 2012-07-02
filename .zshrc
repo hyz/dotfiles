@@ -1,5 +1,3 @@
-export LANG=en_US.UTF-8
-
 #PROMPT='%{[36m%}%~%{[m%} %% '
 #RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
@@ -13,10 +11,10 @@ prompt walters
 
 export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/cygdrive/c/go/bin:/crosscompiler/bin
 
-export HISTSIZE=25000
+export HISTSIZE=10000
 export SAVEHIST=1000
-export HISTFILE=$HOME/.zsh/history
-export HISTIGNORE="&:ls:[bf]g:exit:reset:clear"
+export HISTFILE=$HOME/.zhistory
+export HISTIGNORE="&:ls:pwd:[bf]g:exit:reset:clear"
 # export HISTIGNORE="&:ls:[bf]g:exit:reset:clear:cd*"
 # export HISTFILE=~/.zsh_history
 # export SAVEHIST=250

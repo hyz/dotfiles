@@ -6,7 +6,7 @@ if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
     #         mlnet &
     #     fi
     # fi
-    xinit ; mlnet -exit ; logout
+    xinit ; which mlnet 2>/dev/null && mlnet -exit ; logout
 fi
 
 export PYTHONSTARTUP=~/.pythonstartup

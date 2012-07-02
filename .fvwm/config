@@ -146,6 +146,9 @@ Style * SloppyFocus, MouseFocusClickRaises, TileCascadePlacement, WindowShadeSte
 #% Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
 Style * MinOverlapPlacement, GrabFocus, GrabFocusTransient, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
 
+# Style * Title, Color Black/MidnightBlue
+# Style * Title, Color White/Black
+
 # Iconified windows have Titles
 Colorset 14 fg white, bg black, fgsh black, RootTransparent
 Style * TitleAtLeft, IconTitle, IconTitleColorset 14, HilightIconTitleColorset 14, IconTitleRelief 0
@@ -204,7 +207,8 @@ Style XDiary      EWMHMiniIconOverride, MiniIcon utils-calendar.png
 Style XClipboard  EWMHMiniIconOverride, MiniIcon klipper.png, NoTitle, CirculateSkip, WindowListSkip
 Style stalonetray NoTitle
 Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
-Style *lock       !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 64
+Style *lock       NoTitle, Sticky, Layer 5, WindowListSkip, CirculateSkip, PositionPlacement -0 -64
+# Style *lock       NoTitle, !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -64
 #% Style xclock      NoTitle, Sticky, WindowListSkip
 # Term
 Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
@@ -359,17 +363,19 @@ Mouse 1 W       M   Move-or-Raise
 #####
 # Key bindings.
 #####
-Key q       A    MS    Quit
-key q       A    M    Restart
-#% key Return    A    MS    Exec xterm -geometry 128x54-0+0
-key Return  A    MS    Exec xterm -geometry 81x27 -e screen -e^jj -R
-Key p       A    M     Exec `dmenu_path | dmenu`
-Key p       A    MS    None (*run) Exec grun || gmrun || fbrun || xfrun4
-Key b       A    MS    Exec chromium
-Key x       A    M     Exec rox
-#% Key F2 A       M   Exec exec gmrun
-#Key F3 A       M   Exec exec emacs
-Key c       A        M   Pick Close
+Key q       A    MS  Quit
+#Key R  A        CM  Restart
+key q       A    M   Restart
+# key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
+key Return  A    M   Exec xterm
+Key Return  A    MS  Exec chromium
+# Key p     A    M  Exec `dmenu_path | dmenu`
+Key p       A    M   Exec dmenu_run
+Key F2      A    M   Exec gmrun
+# Key p       A    MS   None (*run) Exec grun || gmrun || fbrun || xfrun4
+# Key x       A    M    Exec rox
+#Key F3 A        M   Exec exec emacs
+Key c       A    M   Pick Close
 #% Key c    A    MS  Pick Quit
 #% Key F3   A    M   Pick Close
 #% Key F4   A    M   Pick Close # maybe Destroy
@@ -379,30 +385,29 @@ Key k       A    M   Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindo
 
 Key i       A    M   Iconify
 Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
-Key Q       A    CM  Pick Resize
+Key z       A    M   Pick Resize
 Key W       A    CM  Pick Move
 Key M       A    M   Pick Maximize
 #% Key N  A       CM  Exec exec knode
 #Key X  A        CM  Exec exec xine # this doesn't work, change X key to smtin else
 #Key P  A        CM  Exec exec amarok
 #Key G  A        CM  Exec exec gajim
-#Key R  A        CM  Restart
 
 #Key Up      WTSF    SM  empty
 #Key Down    WTSF    SM  emtpy
 #Key Left    WTSF    SM  empty
 #Key Right   WTSF    SM  empty
 
-Key Escape  A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
-Key Super_L A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
-Key Tab     A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
-Key grave   A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
+Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
+Key Super_L     A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
+Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
+Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
 Key Print       A   N   Exec exec ksnapshot
 Key Scroll_Lock A   N   Lower
 Key Pause       A   N   Raise
-#Key Pause       A   N   Thumbnail
+#Key Pause      A   N   Thumbnail
 Key Delete      A   CM  Exec exec kdesktop_lock --forcelock
-#Key Menu    A   A   do some nice action here # this is the "right click" key
+#Key Menu       A   A   do some nice action here # this is the "right click" key
 
 # Multimedia Keys, keycodes defined in .Xmodmap
 #Key XF86AudioPlay         A   A Exec exec dcop amarok player play
@@ -499,9 +504,11 @@ Stroke N3698741 0 R N Exec exec knotes
 #####
 AddToFunc StartFunction
 #% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
-+ I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
-+ I Test (Init) Exec cairo-clock --theme antique --date
-+ I Test (Init) Exec xterm -geometry 128x55-0+0
+# + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
+# + I Test (Init) Exec cairo-clock --theme antique --date
++ I Test (Init) Exec asclock -shape -p -0-0
+# + I Test (Init) Exec xterm -geometry 128x55-0+0
++ I Test (Init) Exec xterm
 + I Module FvwmCommandS
 + I Module FvwmAnimate
 + I Module FvwmEvent
@@ -999,9 +1006,9 @@ AddToFunc Thumbnail
 + I ThisWindow (!Iconic) SetEnv Icon-$[w.id] $[w.iconfile]
 + I ThisWindow (!Shaded, Iconifiable, !Iconic) PipeRead \
     "xwd -silent -id $[w.id] | convert -sample 128 -frame 1x1 \
-    -mattecolor black -quality 0 xwd:- png:$[FVWM_USERDIR]/icon.tmp.$[w.id].png \
-    && echo WindowStyle IconOverride, Icon $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
-    || echo Nop"
+            -mattecolor black -quality 0 xwd:- png:$[FVWM_USERDIR]/icon.tmp.$[w.id].png \
+            && echo WindowStyle IconOverride, Icon $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
+            || echo Nop"
 + I TestRc (Match) Test (f $[w.miniiconfile], f $[FVWM_USERDIR]/icon.tmp.$[w.id].png) PipeRead \
     "composite -geometry +2+4 $[w.miniiconfile] $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
     $[FVWM_USERDIR]/icon.tmp.$[w.id].png; echo Nop"

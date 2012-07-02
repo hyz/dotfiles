@@ -1,0 +1,4 @@
+for x in *.jpg ; do
+    convert -resize "1280x800>" -quality 90 -font ~/.fonts/msyh.ttf -pointsize 48 -fill darkred -gravity SouthEast -draw "text 10,10 '兰之馨'" $x $x.jpg
+done
+
