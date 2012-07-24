@@ -22,14 +22,36 @@
 #define PORT 8000
 // #define ADDR_IP "127.0.0.1"
 
-struct stats {
-    stats() : step(0) { }
+struct cstep {
+    int idcode;
 
-    int step;
+    int seconds;
+
+    std::string first;
+    std::string head;
+    std::string body;
+
+    std::vector<std::pair<std::wstring, std::wstring> > extra;
+};
+
+struct cstat {
+    cstat() : step(-1) { }
+
+    std::map<std::string, std::string> cookies;
+
+    std::map<std::wstring, std::wstring> vars;
+
+    std::string smblock;
+
+    std::vector<struct cstep> steps;
+
+    int stepx, nloop;
+    int idcode;
+
     std::string imsi, smsc;
 };
 
-static std::map<unsigned int, struct stats> stats_;
+static std::map<unsigned int, struct cstat> stats_;
 
 struct content {
     std::string method;
@@ -265,7 +287,7 @@ static int completed(struct connection *c, struct content *req, std::vector<char
 
 static void *rsp_xfmt1(struct connection *c)
 {
-    std::map<unsigned int, struct stats>::iterator it;
+    std::map<unsigned int, struct cstat>::iterator it;
 
     if ( (it = stats_.find(c->cid)) == stats_.end()) {
 
@@ -341,8 +363,10 @@ static void *rsp_xfmt1(struct connection *c)
 
 static void *rsp_xfmt0(struct connection *c)
 {
-    cid, imsi, smsc;
-    req->body;
+    // c->cid, c->imsi, c->smsc;
+
+    c->req.body;
+
     ;
 }
 
@@ -399,6 +423,7 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
 
         if (!init_rsp(c)) {
             delete c;
+            printf("init rsp error");
             return;
         }
         printf("rsp %d start\n", fd);
