@@ -9,8 +9,11 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <ev.h>
-
+#include <assert.h>
 #include <stdint.h>
+#include <iconv.h>
+
+#include <stdexcept>
 #include <algorithm>
 #include <map>
 #include <string>
@@ -21,6 +24,16 @@
 #include "glex.hpp"
 
 // #include <boost/algorithm/string.hpp>
+
+enum {
+    CN_SMBF = 0
+        , CN_SMTX
+        , CN_WAPQ
+        , CN_WAPRSP_2SERV
+        , CN_WAPINIT_2SERV
+        , CN_PUSH_2SERV
+        , CN_MAX
+};
 
 #define PORT 8000
 // #define ADDR_IP "127.0.0.1"
@@ -42,7 +55,7 @@ struct httprsp {
 
     std::string body;
 
-    template <typename I_> init(I_ hd, I_ body, I_ end);
+    template <typename I_> bool initrng(I_ hd, I_ body, I_ end);
 };
 
 struct httpreq {
@@ -54,17 +67,33 @@ struct httpreq {
 
     // std::string contenttype;
     // std::string charset;
-    // int contentlength;
+    int contentlength;
 
     std::string body;
 
-    template <typename I_> init(I_ hd, I_ body, I_ end);
+    template <typename I_> bool initrng(I_ hd, I_ body, I_ end);
+    bool init(const std::string &first, const std::string& head, const std::string& body);
+
+private:
+    bool method_line_parse(const std::string& l)
+    {
+        std::stringstream sl(l);
+        std::string s;
+
+        sl >> this->method >> this->path >> this->ver;
+
+        if (this->method != "GET" && this->method != "POST") {
+            return false;
+        }
+
+        std::cout << this->method << " " << this->path << " " << s << "\n";
+    }
 };
 
 template <typename I_>
 static std::string glex(const std::string& ex, I_ beg, I_ end)
 {
-    Range<I_> _cont, _pat, _ret;
+    Range<std::string::const_iterator> _cont, _pat, _ret;
 
     _cont.begin = beg;
     _cont.end = end;
@@ -99,44 +128,85 @@ std::string unescape(const std::string& url)
 // // boost::algorithm::starts_with();
 static bool starts_with(const std::string& s, const std::string& sub)
 {
-    return (s.size() >= sub.size() && std::equal(sub.begin(), sub.end(), s.begin()))
+    return (s.size() >= sub.size() && std::equal(sub.begin(), sub.end(), s.begin()));
 }
 
-
-template <typename I_>
-bool httpreq::init(I_ beg, I_ end)
+int split1(std::string &k, std::string &v, const std::string &s, const std::string &any)
 {
-    std::string shd(h, hend);
+    size_t pos = s.find_first_of(any);
+    if (pos == std::string::npos) {
+        k.assign(s.begin(), s.begin() + pos);
+        return 1;
+    }
+
+    size_t pos2 = s.find_first_not_of(any, pos);
+    v.assign(s.begin() + pos2, s.end());
+
+    return 2;
+}
+
+static head_iterator headval(std::vector<std::pair<std::string, std::string> >& head, const std::string& k)
+{
+    head_iterator it = head.begin();
+    for (; it != head.end(); ++it) {
+        if (it->first == k) {
+            break;
+        }
+    }
+    return it;
+}
+
+template <typename H>
+bool head_line_parse(H& head, std::string& l)
+{
+    std::string::iterator it, jt;
+
+    if ( (jt = it = std::find(l.begin(), l.end(), ':')) >= l.end()) {
+        return false;
+    }
+
+    while (++jt < l.end() && isspace(*jt))
+        ;
+
+    if (jt < l.end()) {
+        head.push_back(make_pair(std::string(l.begin(), it), std::string(jt, l.end())));
+        std::cout << head.back().first << "=" << head.back().second << "\n";
+    }
+    return true;
+}
+
+bool httpreq::init(const std::string &first, const std::string& head, const std::string& body)
+{
+    method_line_parse(first);
+
+    std::istringstream ss(head);
     std::string l;
 
-    std::stringstream ss(shd);
+    if (std::getline(ss, l)) {
+        head_line_parse(this->head, l);
+    }
+
+    this->body = body;
+    return true;
+}
+
+template <typename I_>
+bool httpreq::initrng(I_ beg, I_ body, I_ end)
+{
+    std::string shd(beg, body);
+    std::string l;
+
+    std::istringstream ss(shd);
 
     if (std::getline(ss, l)) {
-        std::stringstream sl(l);
-        std::string s;
-
-        sl >> this->method >> this->path >> this->ver;
-
-        if (this->method != "GET" && this->method != "POST") {
-            return false;
-        }
-
-        std::cout << this->method << " " << this->path << " " << s << "\n";
+        method_line_parse(l);
     }
 
     while (std::getline(ss, l)) {
-        std::string::iterator it, jt;
-
-        if ( (jt = it = std::find(l.begin(), l.end(), ':')) >= l.end()) // if ( (it = std::search(l.begin(), l.end(), sep.begin(), sep.end())) >= l.end())
-            break;
-
-        while (isspace(*++jt))
-            ;
-
-        this->head.push_back(make_pair(std::string(l.begin(), it), std::string(jt, l.end())));
-
-        std::cout << this->head.back().first << "=" << this->head.back().second << "\n";
+        head_line_parse(this->head, l);
     }
+
+    this->body.assign(body, end);
 
     // this->charset = "utf-8";
     // split1(this->contenttype, this->charset, this->head["Content-Type"], " ;\t");
@@ -145,7 +215,10 @@ bool httpreq::init(I_ beg, I_ end)
     // std::transform(this->charset.begin(), this->charset.end(), this->charset.begin(), std::tolower);
 
     // lexical_cast;
-    // this->contentlength = atoi(this->head["Content-Length"].c_str());
+    head_iterator hi = headval(this->head, "Content-Length");
+    if (hi != this->head.end()) {
+        this->contentlength = atoi(hi->second.c_str());
+    }
 
     // std::cout << this->contenttype << " " << this->charset << " " << this->contentlength << "\n";
 
@@ -153,9 +226,9 @@ bool httpreq::init(I_ beg, I_ end)
 }
 
 template <typename I_>
-bool httprsp::init(I_ beg, I_ end)
+bool httprsp::initrng(I_ beg, I_ body, I_ end)
 {
-    std::string shd(h, hend);
+    std::string shd(beg, body);
     std::string l;
 
     std::stringstream ss(shd);
@@ -182,14 +255,21 @@ bool httprsp::init(I_ beg, I_ end)
         std::cout << this->head.back().first << "=" << this->head.back().second << "\n";
     }
 
-    this->charset = "UTF-8";
-    split1(this->contenttype, this->charset, headval(this->head, "Content-Type"), " ;\t");
+    // this->charset = "UTF-8";
+    head_iterator hi = headval(this->head, "Content-Type");
+    if (hi != this->head.end()) {
+        split1(this->contenttype, this->charset, hi->second, "; \t");
+        std::transform(this->contenttype.begin(), this->contenttype.end(), this->contenttype.begin(), tolower);
+        std::transform(this->charset.begin(), this->charset.end(), this->charset.begin(), toupper);
+    }
 
-    std::transform(this->contenttype.begin(), this->contenttype.end(), this->contenttype.begin(), std::tolower);
-    std::transform(this->charset.begin(), this->charset.end(), this->charset.begin(), std::toupper);
+    hi = headval(this->head, "Content-Type");
+    if (hi != this->head.end()) {
+        // lexical_cast;
+        this->contentlength = atoi(hi->second.c_str());
+    }
 
-    // lexical_cast;
-    this->contentlength = atoi(this->head["Content-Length"].c_str());
+    this->body.assign(body, end);
 
     std::cout << this->contenttype << " " << this->charset << " " << this->contentlength << "\n";
 
@@ -233,7 +313,7 @@ static std::map<unsigned int, struct cstat> stats_;
 struct connection {
     struct ev_io io;
 
-    struct httpreq http;
+    struct httpreq req;
     // int _contlen;
 
     int xpkg;
@@ -371,7 +451,7 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
             return 0;
         }
 
-        if (!req.init(data.begin(), it + 4, it + 4)) {
+        if (!req->initrng(data.begin(), it + 4, it + 4)) {
             return -1;
         }
 
@@ -382,16 +462,18 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
         }
 
         //<---------------
-        std::string cookie = headval(req->head, "Cookie"); //getk("Cookie", req->head);
-        std::cout << cookie << "\n";
-        if (starts_with(cookie, "ck=")) {
+        head_iterator hi = headval(req->head, "Cookie"); //getk("Cookie", req->head);
+        if (hi != req->head.end()) {
+            std::cout << hi->second << "\n";
+            if (starts_with(hi->second, "ck=")) {
 
-            std::string::iterator eq = cookie.begin() + 3;
-            if (std::count(eq, cookie.end(), '/') == 3) {
-                std::replace(eq, cookie.end(), '/', ' ');
+                std::string::iterator eq = hi->second.begin() + 3;
+                if (std::count(eq, hi->second.end(), '/') == 3) {
+                    std::replace(eq, hi->second.end(), '/', ' ');
 
-                std::istringstream ss(eq, cookie.end());
-                ss >> c->cid >> c->imsi >> c->smsc >> c->xpkg;
+                    std::istringstream ss(std::string(eq, hi->second.end()));
+                    ss >> c->cid >> c->imsi >> c->smsc >> c->xpkg;
+                }
             }
         }
         std::cout << "ck: " << ":" << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
@@ -442,6 +524,24 @@ inline std::string headline(const std::string& k, unsigned int len)
     return headline(k, slen);
 }
 
+template <typename I_>
+void part_add(std::string &out, int chn, int seconds, I_ beg, I_ end)
+{
+    std::string s;
+
+    {
+        std::ostringstream o;
+        o << chn << " " << seconds << "\r\n";
+        s = o.str();
+    }
+
+    out.insert(out.end(), s.begin(), s.end());
+    out.insert(out.end(), beg, end);
+
+    s = "\r\n\r\n";
+    out.insert(out.end(), s.begin(), s.end());
+}
+
 static std::string step_go(struct stepreq& step, struct cstat& cst)
 {
     // method line
@@ -484,7 +584,7 @@ static std::string step_fwd(struct cstat& cst)
     if (cst.stepx >= cst.steps.size()) {
         if (--cst.nloop == 0) {
             printf("FIN\n");
-            return assign_rsp(rspbuf, 200, "FIN", 0, 0);
+            return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0);
         }
         cst.stepx = 0;
     }
@@ -496,28 +596,18 @@ static std::string step_fwd(struct cstat& cst)
 }
 
 template <typename I_>
-static bool good_format(struct httprsp &rsp, I_ beg, I_ end)
+static bool is_utf8_doc(struct httprsp &rsp, I_ beg, I_ end)
 {
-    std::string& ctype = headval(rsp.head, "Content-Type");
-    std::string s;
-
-    if (rsp.charset == "utf-8") {
+    if (!rsp.contenttype.empty() && rsp.charset == "UTF-8") {
         return true;
     }
 
-    s = "text";
-    if (ctype.size() < s.size()) {
-        return false;
-    }
-    if (std::equal(s.begin(), s.end(), ctype.begin())) {
+    std::string s = "<?xml";
+    if (std::distance(beg, end) > s.size() && std::equal(s.begin(), s.end(), beg)) {
         return true;
     }
 
-    s = "<?xml";
-    if (std::distance(beg, end) < s.size()) {
-        return false;
-    }
-    if (std::equal(s.begin(), s.end(), beg)) {
+    if (rsp.contenttype.find("vnd.wap") != std::string::npos) {
         return true;
     }
 
@@ -525,19 +615,24 @@ static bool good_format(struct httprsp &rsp, I_ beg, I_ end)
 }
 
 template <typename C_>
+bool _302_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
+{
+    head_iterator hi = headval(rsp.head, "Location");
+    if (hi == rsp.head.end() || hi->second.empty()) {
+        return false;
+    }
+
+    struct stepreq a = sreq;
+    a.path = unescape(hi->second);
+    a.seconds = 1;
+    rspbuf = step_go(a, cst);
+
+    return true;
+}
+
+template <typename C_>
 static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
 {
-    std::string s;
-
-    if (rsp.body.size > 1024*4)
-        return 0;
-    }
-
-    s = "<?xml";
-    if (!std::equal(s.begin(), s.end(), rsp.body.begin())) {
-        return 0;
-    }
-
     const char *v[] = {
         "revalidate*</head>*中国移动*确认*href='$'"
             , "revalidate*</head>*<card*href=\"$\""
@@ -561,45 +656,30 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
     return 0;
 }
 
-int split1(std::string &k, std::string &v, const std::string &s, const std::string &any)
+template <typename M_>
+static void take_cookie(M_& map, struct httprsp& rsp)
 {
-    size_t s = s.find_first_of(any);
-    if (s == std::string::n_pos) {
-        k.assign(s.begin(), s.begin() + s);
-        return 1;
-    }
-
-    size_t e = s.find_first_not_of(any, pos);
-    v.assign(s.begin() + e, s.end());
-
-    return 2;
-}
-
-template <typename C_>
-static void take_cookie(C_& cks, const struct http& http)
-{
-    const std::string& s = headval(http.head, "Set-Cookie");
-    if (s.empty()) {
+    head_iterator hi = headval(rsp.head, "Content-Type");
+    if (hi == rsp.head.end()) {
         return;
     }
 
-    std::string k, v;
+    std::string tmp, k, v;
 
-    split1(k, v, s, ";");
-    s = k;
-    split1(k, v, s, "=");
+    split1(tmp, v, hi->second, ";");
+    split1(k, v, tmp, "=");
 
-    cks.push_back(std::make_pair(k, v)); // cks[k] = v;
+    map[k] = v; // cks.push_back(std::make_pair(k, v));
 }
 
-static char* rsp_xpkg1(struct connection *c)
+static const char* rsp_xpkg1(struct connection *c)
 {
-    std::map<unsigned int, struct cstat>::iterator it = stats_.find(c->cid);
-    if (it == stats_.end()) {
+    std::map<unsigned int, struct cstat>::iterator ic = stats_.find(c->cid);
+    if (ic == stats_.end()) {
         return "Not found ck";
     }
 
-    struct cstat& cst = it->second;
+    struct cstat& cst = ic->second;
     struct httprsp rsp;
 
     if (cst.stepx < 1) {
@@ -607,7 +687,7 @@ static char* rsp_xpkg1(struct connection *c)
     }
 
     std::string::iterator it, jt;
-    char *cr = "\r\n\r\n";
+    const char *cr = "\r\n\r\n";
 
     if ( (it = std::search(c->req.body.begin(), c->req.body.end(), cr, cr + 4)) == c->req.body.end()
             || (jt = std::search(it + 4, c->req.body.end(), cr, cr + 4)) == c->req.body.end()) {
@@ -618,23 +698,32 @@ static char* rsp_xpkg1(struct connection *c)
 
     (c->req.body.begin(), it);
 
-    if (!rsp.init(it, jt, c->req.body.end())) {
+    if (!rsp.initrng(it, jt, c->req.body.end())) {
         return "Bad head";
     }
 
-    if (!good_format(rsp, jt, c->req.body.end())) {
-        // LOG
-        return "Bad format";
-    }
-    rsp.body.assign(jt, c->req.body.end());
-
     take_cookie(cst.cookies, rsp); //it, jt);
 
-    if (auto_fwd(c->buf, rsp, cst.steps[cst.stepx - 1])) {
-        return 0;
+    if (rsp.code == 302) {
+// bool _302_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
+        if (!_302_fwd(c->buf, rsp, cst.steps[cst.stepx - 1].req, cst)) {
+            return "E302";
+        }
+    }
+
+    // if (rsp.code != 206 && is_utf8_doc(rsp, jt, c->req.body.end())) {
+    if (rsp.code == 200 && is_utf8_doc(rsp, jt, c->req.body.end())) {
+        if (std::distance(jt, c->req.body.end()) < 1024*8) {
+            rsp.body.assign(jt, c->req.body.end());
+            if (auto_fwd(c->buf, rsp, cst.steps[cst.stepx - 1].req, cst)) {
+                return 0;
+            }
+        }
     }
 
     if (cst.stepx < cst.steps.size()) {
+        struct cstep& step = cst.steps[cst.stepx - 1];
+
         for (head_iterator i = step.glex.begin()
                 ; i != step.glex.end(); ++i) {
             cst.vars[i->first] = glex(i->second, it, c->req.body.end());
@@ -646,31 +735,13 @@ static char* rsp_xpkg1(struct connection *c)
     return 0;
 }
 
-template <typename I_>
-void part_add(std::string &out, int chn, int seconds, I_ beg, I_ end)
-{
-    std::string s;
-
-    {
-        std::ostringstream o;
-        o << chn << " " << seconds << "\r\n";
-        s = o.str();
-    }
-
-    out.insert(out.end(), s.begin(), s.end());
-    out.insert(out.end(), beg, end);
-
-    s = "\r\n\r\n";
-    out.insert(out.end(), s.begin(), s.end());
-}
-
 struct probuf {
-    char *head;
-    char *data;
-    char *end;
+    const char *head;
+    const char *data;
+    const char *end;
 
-    probuf(int bufsiz, void *buf, int reserved) {
-        head = data = buf;
+    probuf(int bufsiz, const void *buf, int reserved) {
+        head = data = (char*)buf;
         end = data + reserved;
     }
 };
@@ -691,7 +762,7 @@ template <typename Ti>
 Ti pop_int(struct probuf *buf)
 {
     Ti i;
-    pop_raw(buf, &i, sizeof(Ti));
+    pop_raw(buf, sizeof(Ti), (void*)&i);
 
     switch (sizeof(Ti)) {
         case 4:
@@ -709,14 +780,35 @@ std::string pop_string(struct probuf *buf)
     Ti len = pop_int<Ti>(buf);
     std::vector<Tc> s(len / sizeof(Tc));
 
-    pop_raw(buf, len, &s[0]);
+    pop_raw(buf, len, (void*)&s[0]);
 
     if (sizeof(Tc) == 2) {
-        iconv_open("UTF-8", "UTF-16LE");
+        size_t inlen = len;
+        char *inp = (char*) &s[0];
 
-        iconv "utf-16le", "utf-8";
+        std::string utf8;
 
-        return std::string; //(s.begin(), s.end());
+        iconv_t cd;
+        if ( (cd = iconv_open("UTF-8", "UTF-16LE")) == (iconv_t)-1) {
+            perror("iconv_open");
+        } else {
+            utf8.resize(3 * s.size());
+
+            size_t avail = utf8.size();
+            char *outp = &utf8[0];
+
+            // size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
+            if (iconv(cd, &inp, &inlen, &outp, &avail) == (size_t)-1) {
+                perror("iconv");
+                utf8.clear();
+            } else {
+                utf8.resize(utf8.size() - avail);
+            }
+
+            iconv_close(cd);
+        }
+
+        return utf8; //(s.begin(), s.end());
     }
 
     return std::string(s.begin(), s.end());
@@ -726,7 +818,7 @@ static const char *rsp_xpkg0(struct connection *c)
 {
     struct cstat& cst = stats_[c->cid];
 
-    struct probuf pbuf(c->http.body.length(), c->http.body.data(), c->http.body.length());
+    struct probuf pbuf(c->req.body.length(), c->req.body.data(), c->req.body.length());
 
     cst = cstat(); // reset
     cst.imsi = c->imsi;
@@ -735,15 +827,16 @@ static const char *rsp_xpkg0(struct connection *c)
     cst.idcode = pop_int<int32_t>(&pbuf);
     cst.nloop = pop_int<uint8_t>(&pbuf);
 
-    for (int i = 0; i < nloop; ++i) {
+    for (int i = 0; i < cst.nloop; ++i) {
         struct cstep step;
-        std::string qs;
 
         ; pop_int<int16_t>(&pbuf);
 
         // http content
-        qs = pop_string<int16_t,int16_t>(&pbuf) + "\r\n" + pop_string<int16_t,int16_t>(&pbuf) + "\r\n\r\n" + pop_string<int16_t,int16_t>(&pbuf);
-        step.req.init(qs.begin(), qs.end());
+        std::string qfirst = pop_string<int16_t,int16_t>(&pbuf) + "\r\n";
+        std::string qhead = pop_string<int16_t,int16_t>(&pbuf) + "\r\n\r\n";
+        std::string qbody = pop_string<int16_t,int16_t>(&pbuf);
+        step.req.init(qfirst, qhead, qbody);
 
         ; pop_string<uint8_t,int16_t>(&pbuf);
 
@@ -760,13 +853,13 @@ static const char *rsp_xpkg0(struct connection *c)
         step.req.seconds = pop_int<int16_t>(&pbuf);
 
         cst.steps.push_back(step);
-        std::cout << "step " << i << ":\n" << qs << "\n" << step.req.seconds << "\n";
+        std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n" << step.req.seconds << "\n";
     }
 
     // smblocker
     {
         int i, n;
-        void *begin = pbuf.data;
+        const char *begin = pbuf.data;
 
         n = pop_int<uint8_t>(&pbuf);
         for (i = 0; i < n; ++i) {
@@ -783,9 +876,9 @@ static const char *rsp_xpkg0(struct connection *c)
     return 0;
 }
 
-static char* init_rsp(struct connection *c)
+static const char* init_rsp(struct connection *c)
 {
-    char* (*fp[])() = { rsp_xpkg0, rsp_xpkg1 };
+    const char* (*fp[])(struct connection*) = { rsp_xpkg0, rsp_xpkg1 };
 
     if (c->xpkg >= sizeof(fp)/sizeof(fp[0])) {
         return "Bad para";
@@ -828,7 +921,7 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
     }
 
     int y;
-    if ( (y = completed(c, &c->http, c->buf)) < 0) {
+    if ( (y = completed(c, &c->req, c->buf)) < 0) {
         delete c;
 
     } else if (y) {
@@ -842,10 +935,10 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
             } else {
                 // delete c;
                 printf("rsp %d error\n", fd);
-                assign_rsp(c->buf, 404, err, 0,0);
+                assign_rsp(c->buf, 501, err, (char*)0,(char*)0);
             }
         } catch (const std::exception &e) {
-            assign_rsp(c->buf, 404, e.what(), 0,0);
+            assign_rsp(c->buf, 501, e.what(), (char*)0,(char*)0);
         }
 
         ev_io_stop(loop, &c->io);
