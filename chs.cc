@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <iconv.h>
+#include <fcntl.h>
 
 #include <stdexcept>
 #include <algorithm>
@@ -47,7 +48,7 @@ struct httprsp {
     int code;
 
     // std::string first;
-    std::vector<std::pair<std::string, std::string> > head; // std::vector<std::pair<std::string,std::string> > head;
+    std::vector<std::pair<std::string, std::string> > head;
 
     std::string contenttype;
     std::string charset;
@@ -56,6 +57,16 @@ struct httprsp {
     std::string body;
 
     template <typename I_> bool initrng(I_ hd, I_ body, I_ end);
+
+private:
+    void request_line_parse(const std::string& l)
+    {
+        std::stringstream sl(l);
+        std::string tmp;
+
+        sl >> this->ver >> this->code >> tmp;
+        std::cout << this->ver << " " << this->code << " " << tmp << "\n";
+    }
 };
 
 struct httpreq {
@@ -63,7 +74,7 @@ struct httpreq {
     std::string path;
     std::string ver;
 
-    std::vector<std::pair<std::string, std::string> > head; // std::vector<std::pair<std::string,std::string> > head;
+    std::vector<std::pair<std::string, std::string> > head;
 
     // std::string contenttype;
     // std::string charset;
@@ -78,7 +89,6 @@ private:
     bool method_line_parse(const std::string& l)
     {
         std::stringstream sl(l);
-        std::string s;
 
         sl >> this->method >> this->path >> this->ver;
 
@@ -86,7 +96,7 @@ private:
             return false;
         }
 
-        std::cout << this->method << " " << this->path << " " << s << "\n";
+        std::cout << this->method << " " << this->path << " " << this->ver << "\n";
     }
 };
 
@@ -165,12 +175,16 @@ bool head_line_parse(H& head, std::string& l)
         return false;
     }
 
+    if (*l.rbegin() == '\r') {
+        l.resize(l.size() - 1);
+    }
+
     while (++jt < l.end() && isspace(*jt))
         ;
 
     if (jt < l.end()) {
         head.push_back(make_pair(std::string(l.begin(), it), std::string(jt, l.end())));
-        std::cout << head.back().first << "=" << head.back().second << "\n";
+        std::cout << head.back().first << " " << head.back().second << "\n";
     }
     return true;
 }
@@ -187,6 +201,12 @@ bool httpreq::init(const std::string &first, const std::string& head, const std:
     }
 
     this->body = body;
+
+    head_iterator hi = headval(this->head, "Content-Length");
+    if (hi != this->head.end()) {
+        this->contentlength = atoi(hi->second.c_str());
+    }
+
     return true;
 }
 
@@ -207,9 +227,6 @@ bool httpreq::initrng(I_ beg, I_ body, I_ end)
     }
 
     this->body.assign(body, end);
-
-    // this->charset = "utf-8";
-    // split1(this->contenttype, this->charset, this->head["Content-Type"], " ;\t");
 
     // std::transform(this->contenttype.begin(), this->contenttype.end(), this->contenttype.begin(), std::tolower);
     // std::transform(this->charset.begin(), this->charset.end(), this->charset.begin(), std::tolower);
@@ -234,25 +251,11 @@ bool httprsp::initrng(I_ beg, I_ body, I_ end)
     std::stringstream ss(shd);
 
     if (std::getline(ss, l)) {
-        std::stringstream sl(l);
-        std::string tmp;
-
-        sl >> this->ver >> this->code >> tmp;
-        std::cout << this->ver << " " << this->code << " " << tmp << "\n";
+        request_line_parse(l);
     }
 
     while (std::getline(ss, l)) {
-        std::string::iterator it, jt;
-
-        if ( (jt = it = std::find(l.begin(), l.end(), ':')) >= l.end()) // if ( (it = std::search(l.begin(), l.end(), sep.begin(), sep.end())) >= l.end())
-            break;
-
-        while (isspace(*++jt))
-            ;
-
-        this->head.push_back(make_pair(std::string(l.begin(), it), std::string(jt, l.end())));
-
-        std::cout << this->head.back().first << "=" << this->head.back().second << "\n";
+        head_line_parse(this->head, l);
     }
 
     // this->charset = "UTF-8";
@@ -364,6 +367,23 @@ int main(int argc, char **argv)
 
 }
 
+inline int set_nonblocking(int fd)
+{
+    int flags;
+
+    /* If they have O_NONBLOCK, use the Posix way to do it */
+#if 1 //defined(O_NONBLOCK)
+    /* Fixme: O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5. */
+    if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+        flags = 0;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#else
+    /* Otherwise, use the old way of doing it */
+    flags = 1;
+    return ioctl(fd, FIOBIO, &flags);
+#endif
+}     
+
 static void *init_listener(struct ev_io *ls, char *ipaddr, int port)
 {
 	struct sockaddr_in sa;
@@ -376,8 +396,7 @@ static void *init_listener(struct ev_io *ls, char *ipaddr, int port)
 
     int val = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-
-    //setnonblocking(listener);
+    set_nonblocking(fd);
 
 	bzero(&sa, sizeof(sa));
 	sa.sin_family = PF_INET;
@@ -405,18 +424,20 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
 	socklen_t salen = sizeof(sa);
 	int newfd;
 
-	struct connection *c = new connection(loop);
+	while ( (newfd = accept(ls->fd, (struct sockaddr *)&sa, &salen)) >= 0) {
+        struct connection *c = new connection(loop);
 
-	if ( (newfd = accept(ls->fd, (struct sockaddr *)&sa, &salen)) < 0) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("accept");
-        }
-        delete c;
-        return;
+        set_nonblocking(newfd);
+
+        ev_io_init(&c->io, cb_read, newfd, EV_READ);
+        ev_io_start(loop, &c->io);
+
+        std::cout << "from: " << sa.sin_addr.s_addr << "\n";
 	}
 
-	ev_io_init(&c->io, cb_read, newfd, EV_READ);
-	ev_io_start(loop, &c->io);
+    if (errno != EAGAIN && errno != EWOULDBLOCK) {
+        perror("accept");
+    }
 }
 
 // static const std::string& getk(const std::string &k, std::map<std::string, std::string> &hds)
@@ -469,14 +490,16 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
 
                 std::string::iterator eq = hi->second.begin() + 3;
                 if (std::count(eq, hi->second.end(), '/') == 3) {
+                    std::string tmp;
                     std::replace(eq, hi->second.end(), '/', ' ');
 
                     std::istringstream ss(std::string(eq, hi->second.end()));
-                    ss >> c->cid >> c->imsi >> c->smsc >> c->xpkg;
+                    ss >> tmp >> c->imsi >> c->smsc >> c->xpkg;
+                    c->cid = strtol(tmp.c_str(), 0, 16);
                 }
             }
         }
-        std::cout << "ck: " << ":" << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
+        std::cout << "ck: " << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
         //<---------------
     }
 
@@ -500,9 +523,12 @@ static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (st
     o << "HTTP/1.1 " << code << " " << shd << "\r\n"
         "Server: nginx/1.0.11\r\n"
         "Content-Type: application/octet-stream\r\n"
-        "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
+        "Set-Cookie: ck=ff/130/135/0\r\n"
+        << "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
 
     const std::string& s = o.str();
+
+    std::cout << s << "\n";
 
     rsp.assign(s.begin(), s.end());
 
@@ -582,10 +608,11 @@ static std::string step_fwd(struct cstat& cst)
     std::string rspbuf;
 
     if (cst.stepx >= cst.steps.size()) {
-        if (--cst.nloop == 0) {
-            printf("FIN\n");
+        if (cst.nloop <= 0) {
             return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0);
+            // throw std::logic_error("No steps");
         }
+        --cst.nloop;
         cst.stepx = 0;
     }
 
@@ -750,65 +777,72 @@ int pop_raw(struct probuf *buf, int len, void *out)
 {
     int n = (buf->end - buf->data);
 
-    n = std::min(n, len);
-    if (out && n > 0)
-        memcpy(out, buf->data, n);
-    buf->data += n;
+    if (len <= n) {
+        if (out)
+            memcpy(out, buf->data, n);
+        buf->data += len; //(len = std::min(n, len));
+        return len;
+    }
 
-    return n;
+    return 0;
 }
 
 template <typename Ti>
 Ti pop_int(struct probuf *buf)
 {
-    Ti i;
-    pop_raw(buf, sizeof(Ti), (void*)&i);
-
-    switch (sizeof(Ti)) {
-        case 4:
-            return ntohl(i);
-        case 2:
-            return ntohs(i);
+    Ti i = 0;
+    if (pop_raw(buf, sizeof(Ti), (void*)&i) == sizeof(Ti)) {
+        switch (sizeof(Ti)) {
+            case 4:
+                return ntohl(i);
+            case 2:
+                return ntohs(i);
+        }
     }
 
     return i;
 }
 
+inline int siz_buf(struct probuf *buf) { return (buf->end - buf->data); }
+
 template <typename Ti, typename Tc>
 std::string pop_string(struct probuf *buf)
 {
-    Ti len = pop_int<Ti>(buf);
-    std::vector<Tc> s(len / sizeof(Tc));
+    std::vector<Tc> s;
+    Ti len;
+    if ( (len = pop_int<Ti>(buf)) > 0 && len <= siz_buf(buf)) {
+        s.resize(len / sizeof(Tc));
 
-    pop_raw(buf, len, (void*)&s[0]);
+        pop_raw(buf, len, (void*)&s[0]);
 
-    if (sizeof(Tc) == 2) {
-        size_t inlen = len;
-        char *inp = (char*) &s[0];
+        if (sizeof(Tc) == 2) {
+            size_t inlen = len;
+            char *inp = (char*) &s[0];
 
-        std::string utf8;
+            std::string utf8;
 
-        iconv_t cd;
-        if ( (cd = iconv_open("UTF-8", "UTF-16LE")) == (iconv_t)-1) {
-            perror("iconv_open");
-        } else {
-            utf8.resize(3 * s.size());
-
-            size_t avail = utf8.size();
-            char *outp = &utf8[0];
-
-            // size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
-            if (iconv(cd, &inp, &inlen, &outp, &avail) == (size_t)-1) {
-                perror("iconv");
-                utf8.clear();
+            iconv_t cd;
+            if ( (cd = iconv_open("UTF-8", "UTF-16LE")) == (iconv_t)-1) {
+                perror("iconv_open");
             } else {
-                utf8.resize(utf8.size() - avail);
+                utf8.resize(3 * s.size());
+
+                size_t avail = utf8.size();
+                char *outp = &utf8[0];
+
+                // size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
+                if (iconv(cd, &inp, &inlen, &outp, &avail) == (size_t)-1) {
+                    perror("iconv");
+                    utf8.clear();
+                } else {
+                    utf8.resize(utf8.size() - avail);
+                }
+
+                iconv_close(cd);
             }
 
-            iconv_close(cd);
+            return utf8; //(s.begin(), s.end());
         }
-
-        return utf8; //(s.begin(), s.end());
     }
 
     return std::string(s.begin(), s.end());
@@ -876,7 +910,7 @@ static const char *rsp_xpkg0(struct connection *c)
     return 0;
 }
 
-static const char* init_rsp(struct connection *c)
+static const char* setup_rsp(struct connection *c)
 {
     const char* (*fp[])(struct connection*) = { rsp_xpkg0, rsp_xpkg1 };
 
@@ -897,7 +931,7 @@ static int recvbuf(std::string& buf, int fd)
     n = std::max(n, 1024*8);
     buf.resize(siz + n);
 
-    if ( (n = recv(fd, &buf[siz], n, 0)) > 0) {
+    while ( (n = recv(fd, &buf[siz], n, 0)) > 0) {
         buf.resize(siz + n);
     }
 
@@ -925,20 +959,21 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
         delete c;
 
     } else if (y) {
+        const char* bye = "bye.";
         printf("recv %d completed\n", fd);
 
         try {
             const char *err;
 
-            if ( (err = init_rsp(c)) == 0) {
+            if ( (err = setup_rsp(c)) == 0) {
                 printf("rsp %d ok\n", fd);
             } else {
                 // delete c;
                 printf("rsp %d error\n", fd);
-                assign_rsp(c->buf, 501, err, (char*)0,(char*)0);
+                assign_rsp(c->buf, 501, err, bye,bye+4);
             }
         } catch (const std::exception &e) {
-            assign_rsp(c->buf, 501, e.what(), (char*)0,(char*)0);
+            assign_rsp(c->buf, 501, e.what(), bye,bye+4);
         }
 
         ev_io_stop(loop, &c->io);
@@ -956,7 +991,7 @@ static int sendbuf(int fd, std::string &buf)
 {
     int n;
 
-	if ( (n = send(fd, &buf[0], buf.size(), 0)) > 0) {
+	while ( (n = send(fd, &buf[0], buf.size(), 0)) > 0) {
         buf.erase(buf.begin(), buf.begin() + n);
     }
 
