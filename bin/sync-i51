@@ -37,7 +37,7 @@ for x in $DIRS; do
 
     [ -d "$K/$y" ] || mkdir -p $K/$y
 
-    find "$x" -maxdepth 2 -type f -path "*.i51" -o -path "*.kit" -o -path "*.dll" -o -path "*.re" |xargs cp -vt "$K/$y"
+    find "$x" -maxdepth 1 -type f -path "*.i51" -o -path "*.kit" -o -path "*.dll" -o -path "*.re" |xargs cp -vt "$K/$y"
 	# find "$x" -maxdepth 2 -type f | grep -E '\.(kit|i51|re|dll)$' |xargs cp -vt "$K/$y"
 
 done
