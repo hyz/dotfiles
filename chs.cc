@@ -737,7 +737,7 @@ static const char* rsp_xpkg1(struct connection *c)
 
     // if (rsp.code != 206 && is_utf8_doc(rsp, jt, c->req.body.end())) {
     if (rsp.code == 200) {
-        if (std::distance(jt, c->req.body.end()) < 1024*8) {
+        if (std::distance(jt, c->req.body.end()) < 1024*32) {
             rsp.body.assign(jt, c->req.body.end());
         }
 
