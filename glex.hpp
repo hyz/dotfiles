@@ -197,10 +197,27 @@ void *globex(Range<I_> *ret, Range<I_> *pat, Range<I_> *_cont)
         assert(0);
     }
 
-    ret->begin = rres0.begin.base() + 1;
+    ret->begin = rres0.begin.base(); // + 1;
     ret->end = res1.begin;
 
     return ret;
+}
+
+template <typename I_>
+static std::string glex(const std::string& ex, I_ beg, I_ end)
+{
+    Range<std::string::const_iterator> _cont, _pat, _ret;
+
+    _cont.begin = beg;
+    _cont.end = end;
+    _pat.begin = ex.begin();
+    _pat.end = ex.end();
+
+    if (globex(&_ret, &_pat, &_cont)) {
+        return std::string(_ret.begin, _ret.end);
+    }
+
+    return "";
 }
 
 template <typename M>
