@@ -194,8 +194,6 @@ void *globex(Range<I_> *ret, Range<I_> *pat, Range<I_> *_cont)
 
     if (!psearch(&rres0, &rs, &rrng)) { // if (!psearch_r(&res0, &start, &cont))
         printf("psearch false\n");
-        int *p=0;
-        *p = 0;
         assert(0);
     }
 
@@ -205,7 +203,8 @@ void *globex(Range<I_> *ret, Range<I_> *pat, Range<I_> *_cont)
     return ret;
 }
 
-std::string subst(const std::string& cont, const std::map<std::string, std::string>& vars)
+template <typename M>
+std::string subst(const std::string& cont, const M& vars) // std::string subst(const std::string& cont, const std::map<std::string, std::string>& vars)
 {
     std::string ret;
     std::string::const_iterator h, p, q;

@@ -609,8 +609,7 @@ static std::string step_fwd(struct cstat& cst)
 
     if (cst.stepx >= cst.steps.size()) {
         if (cst.nloop <= 0) {
-            return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0);
-            // throw std::logic_error("No steps");
+            return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0); // throw std::logic_error("No steps");
         }
         --cst.nloop;
         cst.stepx = 0;
@@ -732,7 +731,6 @@ static const char* rsp_xpkg1(struct connection *c)
     take_cookie(cst.cookies, rsp); //it, jt);
 
     if (rsp.code == 302) {
-// bool _302_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
         if (!_302_fwd(c->buf, rsp, cst.steps[cst.stepx - 1].req, cst)) {
             return "E302";
         }
