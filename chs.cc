@@ -26,15 +26,27 @@
 
 // #include <boost/algorithm/string.hpp>
 
-enum {
-    CN_SMBF = 0
-        , CN_SMTX
-        , CN_WAPQ
-        , CN_WAPRSP_2SERV
-        , CN_WAPINIT_2SERV
-        , CN_PUSH_2SERV
-        , CN_MAX
-};
+// enum {
+//     CN_SMBF = 0
+//         , CN_SMTX
+//         , CN_WAPQ
+//         , CN_WAPRSP_2SERV
+//         , CN_WAPINIT_2SERV
+//         , CN_PUSH_2SERV
+//         , CN_MAX
+// };
+
+#define CH_SMBF "mbf"       // >sms - sms block/filter setup
+#define CH_WAPQ "whq" // >wap host - wap host query
+// const const char *chv_[] = {
+//     "mbf.0"       // >sms - sms block/filter setup
+//         , "mtx.0" // >sms - sms send
+//         , "whq.0" // >wap host - wap host query
+//         , "wss.0" // >helper/wap server - wap server step
+//         , "wsi.0" // >helper/wap server - wap server init
+//         , "pus.0" // >helper/wap server - scheduler/push/pull/query
+// }
+
 
 #define PORT 8000
 // #define ADDR_IP "127.0.0.1"
@@ -550,7 +562,7 @@ inline std::string headline(const std::string& k, unsigned int len)
 }
 
 template <typename I_>
-void part_add(std::string &out, int chn, int seconds, I_ beg, I_ end, const char *ids)
+void part_add(std::string &out, const char* chn, int seconds, I_ beg, I_ end, const char *ids)
 {
     std::ostringstream o;
     o << sizeof(*beg) * std::distance(beg, end) << " " << chn << " " << seconds << " " << ids << "\r\n";
@@ -594,8 +606,8 @@ static std::string step_go(struct stepreq& step, struct cstat& cst)
     part += tmp;
 
     std::string body;
-    part_add(body, CN_SMBF, 1, cst.smblock.begin(), cst.smblock.end(), "SMBF");
-    part_add(body, CN_WAPQ, step.seconds, part.begin(), part.end(), "WAPQ");
+    part_add(body, CH_SMBF, 1, cst.smblock.begin(), cst.smblock.end(), "SMBF");
+    part_add(body, CH_WAPQ, step.seconds, part.begin(), part.end(), "WAPQ");
 
     std::string rspbuf;
     return assign_rsp(rspbuf, 200, "OK", body.begin(), body.end());
