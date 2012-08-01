@@ -535,7 +535,7 @@ static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (st
     o << "HTTP/1.1 " << code << " " << shd << "\r\n"
         "Server: nginx/1.0.11\r\n"
         "Content-Type: application/octet-stream\r\n"
-        "Set-Cookie: ck=ff/130/135/0\r\n"
+        "Set-Cookie: ck=7f/100010/100011/0; Path=/ig/chs\r\n"
         << "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
 
     const std::string& s = o.str();
