@@ -77,7 +77,7 @@ private:
         std::string tmp;
 
         sl >> this->ver >> this->code >> tmp;
-        std::cout << this->ver << " " << this->code << " " << tmp << "\n";
+        // std::cout << this->ver << " " << this->code << " " << tmp << "\n";
     }
 };
 
@@ -108,25 +108,19 @@ private:
             return false;
         }
 
-        std::cout << this->method << " " << this->path << " " << this->ver << "\n";
+        // std::cout << this->method << " " << this->path << " " << this->ver << "\n";
         return true;
     }
 };
 
 std::string unescape(const std::string& url)
 {
-    std::string esc;
-    std::string::const_iterator it = url.begin();
-    unsigned int pstart = 0, pos = 0;
+    std::string esc = url;
+    unsigned int pos = 0;
 
-    while ( (pos = url.find("&amp;", pstart)) != std::string::npos) {
-        esc.insert(esc.end(), it + pstart, it + pos+1);
-        pstart = pos + 5;
+    while ( (pos = esc.find("&amp;", pos)) != std::string::npos) {
+        esc.erase(++pos, 4);
     }
-
-    //if (it + pstart < url.end()) {
-    esc.insert(esc.end(), it + pstart, url.end());
-    //}
 
     return esc;
 }
@@ -187,7 +181,7 @@ bool head_line_parse(H& head, std::string& l)
 
     if (jt < l.end()) {
         head.push_back(make_pair(std::string(l.begin(), it), std::string(jt, l.end())));
-        std::cout << head.back().first << " " << head.back().second << "\n";
+        // std::cout << head.back().first << " " << head.back().second << "\n";
     }
     return true;
 }
@@ -286,7 +280,7 @@ bool httprsp::initrng(I_ beg, I_ body, I_ end)
 
     this->body.assign(body, end);
 
-    std::cout << this->contenttype << " " << this->charset << " " << this->contentlength << "\n";
+    // std::cout << this->contenttype << " " << this->charset << " " << this->contentlength << "\n";
 
     return true;
 }
@@ -301,7 +295,7 @@ struct cstep {
     // std::string method, path;
     // std::string head;
     // std::string body;
-    int idcode;
+    // int idcode;
 
     std::vector<std::pair<std::string, std::string> > glex;
 };
@@ -318,7 +312,7 @@ struct cstat {
     std::vector<struct cstep> steps;
 
     unsigned int stepx, nloop;
-    int idcode;
+    // int idcode;
 
     std::string imsi, smsc;
 };
@@ -444,7 +438,7 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
         ev_io_init(&c->io, cb_read, newfd, EV_READ);
         ev_io_start(loop, &c->io);
 
-        std::cout << "from: " << sa.sin_addr.s_addr << "\n";
+        std::cout << "from: " << ntohl(sa.sin_addr.s_addr) << "\n";
 	}
 
     if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -484,6 +478,8 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
             return 0;
         }
 
+        std::cout.write(data.data(), std::distance(data.begin(), it + 4));
+
         if (!req->initrng(data.begin(), it + 4, it + 4)) {
             return -1;
         }
@@ -497,7 +493,7 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
         //<---------------
         head_iterator hi = headval(req->head, "Cookie"); //getk("Cookie", req->head);
         if (hi != req->head.end()) {
-            std::cout << hi->second << "\n";
+            // std::cout << hi->second << "\n";
             if (starts_with(hi->second, "ck=")) {
 
                 std::string::iterator eq = hi->second.begin() + 3;
@@ -511,7 +507,7 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
                 }
             }
         }
-        std::cout << "ck: " << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
+        // std::cout << "ck: " << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
         //<---------------
     }
 
@@ -520,6 +516,8 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
     }
 
     if (!data.empty()) {
+        // std::copy(data.begindd);
+        // std::cout.write(data.data(), data.size());
         req->body.assign(data.begin(), data.end());
     }
 
@@ -540,7 +538,7 @@ static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (st
 
     const std::string& s = o.str();
 
-    std::cout << s << "\n";
+    std::cout << "\n" << s;
 
     rsp.assign(s.begin(), s.end());
 
@@ -868,7 +866,9 @@ static const char *rsp_xpkg0(struct connection *c)
     cst.imsi = c->imsi;
     cst.smsc = c->smsc;
 
-    cst.idcode = pop_int<int32_t>(&pbuf);
+    int32_t idcode;
+    pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
+
     cst.nloop = pop_int<uint8_t>(&pbuf);
 
     for (unsigned int i = 0; i < cst.nloop; ++i) {
@@ -912,7 +912,8 @@ static const char *rsp_xpkg0(struct connection *c)
             pop_int<int16_t>(&pbuf); // duration
         }
 
-        cst.smblock.assign(begin, pbuf.data);
+        cst.smblock.assign((char*)&idcode, sizeof(idcode));
+        cst.smblock.insert(cst.smblock.end(), begin, pbuf.data);
     }
 
     c->buf = step_fwd(cst);
@@ -1023,7 +1024,7 @@ static void cb_write(struct ev_loop *loop, struct ev_io * _c, int revents)
 
     if (c->buf.empty()) { //c->rsp.ptr >= c->rsp.end) {
         delete c;
-        std::cout << "______\n\n";
+        std::cout << "``````````\n";
     }
 }
 
