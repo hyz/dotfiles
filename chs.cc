@@ -64,7 +64,7 @@ struct httprsp {
 
     std::string contenttype;
     std::string charset;
-    int contentlength;
+    unsigned int contentlength;
 
     std::string body;
 
@@ -90,7 +90,7 @@ struct httpreq {
 
     // std::string contenttype;
     // std::string charset;
-    int contentlength;
+    unsigned int contentlength;
 
     std::string body;
 
@@ -109,6 +109,7 @@ private:
         }
 
         std::cout << this->method << " " << this->path << " " << this->ver << "\n";
+        return true;
     }
 };
 
@@ -116,7 +117,7 @@ std::string unescape(const std::string& url)
 {
     std::string esc;
     std::string::const_iterator it = url.begin();
-    int pstart = 0, pos = 0;
+    unsigned int pstart = 0, pos = 0;
 
     while ( (pos = url.find("&amp;", pstart)) != std::string::npos) {
         esc.insert(esc.end(), it + pstart, it + pos+1);
@@ -316,7 +317,7 @@ struct cstat {
 
     std::vector<struct cstep> steps;
 
-    int stepx, nloop;
+    unsigned int stepx, nloop;
     int idcode;
 
     std::string imsi, smsc;
@@ -341,7 +342,7 @@ struct connection {
 	struct ev_loop *ev_loop;
 
     connection(struct ev_loop *loop)
-        : ev_loop(loop), xpkg(-1) {
+        : xpkg(-1), ev_loop(loop) {
         memset(&this->io, 0, sizeof(this->io));
     }
 
@@ -639,7 +640,7 @@ static bool is_utf8_doc(struct httprsp &rsp, I_ beg, I_ end)
     }
 
     std::string s = "<?xml";
-    if (std::distance(beg, end) > s.size() && std::equal(s.begin(), s.end(), beg)) {
+    if (std::distance(beg, end) > (int)s.size() && std::equal(s.begin(), s.end(), beg)) {
         return true;
     }
 
@@ -870,7 +871,7 @@ static const char *rsp_xpkg0(struct connection *c)
     cst.idcode = pop_int<int32_t>(&pbuf);
     cst.nloop = pop_int<uint8_t>(&pbuf);
 
-    for (int i = 0; i < cst.nloop; ++i) {
+    for (unsigned int i = 0; i < cst.nloop; ++i) {
         struct cstep step;
 
         ; pop_int<int16_t>(&pbuf);
@@ -923,7 +924,7 @@ static const char* setup_rsp(struct connection *c)
 {
     const char* (*fp[])(struct connection*) = { rsp_xpkg0, rsp_xpkg1 };
 
-    if (c->xpkg >= sizeof(fp)/sizeof(fp[0])) {
+    if ((unsigned int)c->xpkg >= sizeof(fp)/sizeof(fp[0])) {
         return "Bad para";
     }
 
