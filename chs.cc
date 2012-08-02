@@ -314,7 +314,7 @@ struct cstat {
     unsigned int stepx, nloop;
     // int idcode;
 
-    std::string imsi, smsc;
+    // std::string imsi, smsc;
 };
 
 static std::map<unsigned int, struct cstat> stats_;
@@ -438,6 +438,8 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
         ev_io_init(&c->io, cb_read, newfd, EV_READ);
         ev_io_start(loop, &c->io);
 
+        inet_pton
+        inet_pton
         std::cout << "from: " << ntohl(sa.sin_addr.s_addr) << "\n";
 	}
 
@@ -863,8 +865,9 @@ static const char *rsp_xpkg0(struct connection *c)
     struct probuf pbuf(c->req.body.length(), c->req.body.data(), c->req.body.length());
 
     cst = cstat(); // reset
-    cst.imsi = c->imsi;
-    cst.smsc = c->smsc;
+
+    cst.vars["IMSI"] = c->imsi;
+    cst.vars["SMSC"] = c->smsc;
 
     int32_t idcode;
     pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
