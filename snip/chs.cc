@@ -364,6 +364,8 @@ int main(int argc, char **argv)
     if (!init_listener(&listener, 0, PORT))
         return 1;
 
+    std::cout << "listen on ... " << PORT << "\n";
+
 	ev_io_start(loop, &listener);
 
 	ev_loop(loop, 0);
@@ -621,6 +623,7 @@ static std::string step_fwd(struct cstat& cst)
     std::string rspbuf;
 
     if (cst.stepx >= cst.steps.size()) {
+        std::cout << "loop " << cst.nloop << " done.\n";
         if (cst.nloop <= 0) {
             return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0); // throw std::logic_error("No steps");
         }
