@@ -14,6 +14,8 @@
 #include <iconv.h>
 #include <fcntl.h>
 
+#include <arpa/inet.h>
+
 #include <stdexcept>
 #include <algorithm>
 #include <map>
@@ -438,9 +440,9 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
         ev_io_init(&c->io, cb_read, newfd, EV_READ);
         ev_io_start(loop, &c->io);
 
-        inet_pton
-        inet_pton
-        std::cout << "from: " << ntohl(sa.sin_addr.s_addr) << "\n";
+        char ap[32];
+
+        std::cout << "from: " << ls->fd << "/" << inet_ntop(AF_INET, &sa.sin_addr, ap, 32) << "\n";
 	}
 
     if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -576,7 +578,7 @@ void part_add(std::string &out, const char* chn, int seconds, I_ beg, I_ end, co
 static std::string step_go(struct stepreq& step, struct cstat& cst)
 {
     // method line
-    std::string path = subst(step.path, cst.vars);
+    std::string path = unescape(subst(step.path, cst.vars));
     std::string part = step.method + " " + path + " " + step.ver + "\r\n"; // s = subst(step.first, cst.vars);
 
     // heads
