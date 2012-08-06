@@ -701,17 +701,28 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
 template <typename M_>
 static void take_cookie(M_& map, struct httprsp& rsp)
 {
-    head_iterator hi = headval(rsp.head, "Set-Cookie");
-    if (hi == rsp.head.end()) {
-        return;
+    for (head_iterator hi = rsp.head.begin(); hi != rsp.head.end(); ++hi) {
+        if (hi->first == "Set-Cookie") {
+            std::string tmp, k, v;
+
+            split1(tmp, v, hi->second, ";");
+            split1(k, v, tmp, "=");
+
+            map[k] = v; // cks.push_back(std::make_pair(k, v));
+        }
     }
 
-    std::string tmp, k, v;
+    // head_iterator hi = headval(rsp.head, "Set-Cookie");
+    // if (hi == rsp.head.end()) {
+    //     return;
+    // }
 
-    split1(tmp, v, hi->second, ";");
-    split1(k, v, tmp, "=");
+    // std::string tmp, k, v;
 
-    map[k] = v; // cks.push_back(std::make_pair(k, v));
+    // split1(tmp, v, hi->second, ";");
+    // split1(k, v, tmp, "=");
+
+    // map[k] = v; // cks.push_back(std::make_pair(k, v));
 }
 
 static const char* rsp_xpkg1(struct connection *c)
