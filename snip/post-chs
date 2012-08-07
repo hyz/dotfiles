@@ -1,0 +1,13 @@
+#!/bin/sh
+
+clen=`wc -c <$1`
+
+echo -ne "POST http://ws.pkingame.net:8000/ig/chs HTTP/1.1\r\n"
+echo -ne "Content-Type: application/octet-stream\r\n"
+echo -ne "User-Agent: NokiaN73-1/4.0727.2.4.1 Series60/3.0 Profile/MIDP-2.0 Configuration/CLDC-1.1\r\n"
+echo -ne "Cookie: ck=7f/1000011/1000011/${2:-1}\r\n"
+echo -ne "Content-Length: $clen\r\n"
+echo -ne "\r\n"
+
+cat $1
+
