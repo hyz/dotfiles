@@ -303,7 +303,7 @@ struct cstep {
 };
 
 struct cstat {
-    cstat() : stepx(0), nloop(0) { }
+    cstat() : stepx(0), n_repeat(0) { }
 
     std::map<std::string, std::string> cookies;
 
@@ -313,7 +313,7 @@ struct cstat {
 
     std::vector<struct cstep> steps;
 
-    unsigned int stepx, nloop;
+    unsigned int stepx, n_repeat;
     // int idcode;
 
     // std::string imsi, smsc;
@@ -623,11 +623,11 @@ static std::string step_fwd(struct cstat& cst)
     std::string rspbuf;
 
     if (cst.stepx >= cst.steps.size()) {
-        std::cout << "loop " << cst.nloop << " done.\n";
-        if (cst.nloop <= 0) {
+        std::cout << "loop " << cst.n_repeat << " done.\n";
+        if (cst.n_repeat <= 0) {
             return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0); // throw std::logic_error("No steps");
         }
-        --cst.nloop;
+        --cst.n_repeat;
         cst.stepx = 0;
     }
 
@@ -797,6 +797,8 @@ struct probuf {
         head = data = (char*)buf;
         end = data + reserved;
     }
+
+    int size() const { return (end - data); }
 };
 
 int pop_raw(struct probuf *buf, int len, void *out)
@@ -888,9 +890,7 @@ static const char *rsp_xpkg0(struct connection *c)
     int32_t idcode;
     pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
 
-    cst.nloop = pop_int<uint8_t>(&pbuf);
-
-    for (unsigned int i = 0; i < cst.nloop; ++i) {
+    for (unsigned int i = 0, n = pop_int<uint8_t>(&pbuf); i < n; ++i) {
         struct cstep step;
 
         ; pop_int<int16_t>(&pbuf);
@@ -919,13 +919,14 @@ static const char *rsp_xpkg0(struct connection *c)
         std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n" << step.req.seconds << "\n";
     }
 
+    cst.n_repeat = pop_int<uint8_t>(&pbuf);
+
     // smblocker
+    if (pbuf.size() > 0)
     {
-        int i, n;
         const char *begin = pbuf.data;
 
-        n = pop_int<uint8_t>(&pbuf);
-        for (i = 0; i < n; ++i) {
+        for (int i = 0, n = pop_int<uint8_t>(&pbuf); i < n; ++i) {
             pop_string<uint8_t,int8_t>(&pbuf); // num-pat
             pop_string<uint8_t,int16_t>(&pbuf); // cont-pat
             pop_int<int16_t>(&pbuf); // duration
