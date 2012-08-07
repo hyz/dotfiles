@@ -778,7 +778,9 @@ static const char* rsp_xpkg1(struct connection *c)
             struct cstep& step = cst.steps[cst.stepx - 1];
 
             for (head_iterator i = step.glex.begin(); i != step.glex.end(); ++i) {
-                cst.vars[i->first] = glex(i->second, it, c->req.body.end());
+                std::string& sval = cst.vars[i->first];
+                sval = glex(i->second, it, c->req.body.end());
+                std::cout << "Ex result: " << i->first << " {" << sval << "}\n";
             }
         }
     }
@@ -890,7 +892,7 @@ static const char *rsp_xpkg0(struct connection *c)
     int32_t idcode;
     pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
 
-    for (unsigned int i = 0, n = pop_int<uint8_t>(&pbuf); i < n; ++i) {
+    for (unsigned int i = 0, nstep = pop_int<uint8_t>(&pbuf); i < nstep; ++i) {
         struct cstep step;
 
         ; pop_int<int16_t>(&pbuf);
@@ -899,6 +901,9 @@ static const char *rsp_xpkg0(struct connection *c)
         std::string qfirst = pop_string<int16_t,int16_t>(&pbuf) + "\r\n";
         std::string qhead = pop_string<int16_t,int16_t>(&pbuf) + "\r\n\r\n";
         std::string qbody = pop_string<int16_t,int16_t>(&pbuf);
+
+        std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n";
+
         step.req.init(qfirst, qhead, qbody);
 
         ; pop_string<uint8_t,int16_t>(&pbuf);
@@ -910,20 +915,19 @@ static const char *rsp_xpkg0(struct connection *c)
             std::string ex = pop_string<uint8_t,int16_t>(&pbuf);
             step.glex.push_back(std::make_pair(kw, ex));
 
-            std::cout << "Ex: " << kw << "<=" << ex << "\n";
+            std::cout << "Ex: " << kw << " {" << ex << "}\n";
         }
 
         step.req.seconds = pop_int<int16_t>(&pbuf);
 
         cst.steps.push_back(step);
-        std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n" << step.req.seconds << "\n";
+        std::cout << "seconds " << step.req.seconds << "\n";
     }
 
     cst.n_repeat = pop_int<uint8_t>(&pbuf);
 
     // smblocker
-    if (pbuf.size() > 0)
-    {
+    if (pbuf.size() > 0) {
         const char *begin = pbuf.data;
 
         for (int i = 0, n = pop_int<uint8_t>(&pbuf); i < n; ++i) {

@@ -234,13 +234,16 @@ std::string subst(const std::string& cont, const M& vars) // std::string subst(c
             throw std::logic_error("REPL-1");
         }
 
-        std::map<std::string, std::string>::const_iterator iter = vars.find(std::string(p+2, q));
+        std::string k(p+2, q);
+        std::map<std::string, std::string>::const_iterator iter = vars.find(k);
         if (iter == vars.end()) {
             throw std::logic_error("REPL-2");
         }
 
         ret.insert(ret.end(), h, p);
         ret += iter->second;
+
+        std::cout << "REPL " << k << " {" << iter->second << "}\n";
 
         h = q+2;
     }
