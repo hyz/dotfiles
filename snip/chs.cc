@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <iconv.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include <arpa/inet.h>
 
@@ -22,7 +23,17 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <iostream>
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
 
 #include "glex.hpp"
 
@@ -313,19 +324,28 @@ struct cstat {
 
     std::vector<struct cstep> steps;
 
-    unsigned int stepx, n_repeat;
-    // int idcode;
+    unsigned int stepx;
+    unsigned int n_repeat;
 
     // std::string imsi, smsc;
+
+    unsigned int _stime; // TODO
+
+    unsigned int _size_self; // TODO
 };
 
-static std::map<unsigned int, struct cstat> stats_;
+struct cstat;
+
+typedef unsigned int cid_t;
+static std::map<cid_t, struct cstat> stats_;
 
 struct connection {
     struct ev_io io;
 
     struct httpreq req;
     // int _contlen;
+
+    unsigned int _actime; // TODO
 
     int xpkg;
     unsigned int cid;
@@ -356,25 +376,47 @@ static void cb_read(struct ev_loop *loop, struct ev_io *c, int revents);
 static void cb_write(struct ev_loop *loop, struct ev_io *c, int revents);
 // static void finalize(struct ev_loop *loop, struct connection *c, int code);
 
+static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents);
+static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents);
+static void restore_stats(const char *filename);
+// static void signal_init(void);
+
+struct ev_loop *loop_;
+
 int main(int argc, char **argv)
 {
-	struct ev_loop *loop = ev_loop_new(EVBACKEND_EPOLL);
 	struct ev_io listener;
+    struct ev_signal sigterm, sigint;
+    struct ev_signal sigusr1;
 
-    if (!init_listener(&listener, 0, PORT))
+    loop_ = ev_loop_new(EVBACKEND_EPOLL);
+
+    if (argc == 2) {
+        restore_stats(argv[1]);
+    }
+    // signal_init();
+
+    ev_signal_init(&sigint, cb_sigterm, SIGINT);
+    ev_signal_init(&sigterm, cb_sigterm, SIGTERM);
+    ev_signal_init(&sigusr1, cb_sigusr1, SIGUSR1);
+
+    ev_signal_start(loop_, &sigint);
+    ev_signal_start(loop_, &sigterm);
+    ev_signal_start(loop_, &sigusr1);
+
+    if (!init_listener(&listener, 0, PORT)) {
         return 1;
+    }
+    printf("listen on ... %d\n", PORT);
 
-    std::cout << "listen on ... " << PORT << "\n";
+	ev_io_start(loop_, &listener);
 
-	ev_io_start(loop, &listener);
-
-	ev_loop(loop, 0);
+	ev_loop(loop_, 0);
 
     close(listener.fd);
-	ev_loop_destroy(loop);
+	ev_loop_destroy(loop_);
 
 	return 0;
-
 }
 
 inline int set_nonblocking(int fd)
@@ -624,10 +666,9 @@ static std::string step_fwd(struct cstat& cst)
 
     if (cst.stepx >= cst.steps.size()) {
         std::cout << "loop " << cst.n_repeat << " done.\n";
-        if (cst.n_repeat <= 0) {
+        if (--cst.n_repeat <= 0) {
             return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0); // throw std::logic_error("No steps");
         }
-        --cst.n_repeat;
         cst.stepx = 0;
     }
 
@@ -725,7 +766,7 @@ static void take_cookie(M_& map, struct httprsp& rsp)
     // map[k] = v; // cks.push_back(std::make_pair(k, v));
 }
 
-static const char* rsp_xpkg1(struct connection *c)
+static const char* xpkg1(struct connection *c)
 {
     std::map<unsigned int, struct cstat>::iterator ic = stats_.find(c->cid);
     if (ic == stats_.end()) {
@@ -878,7 +919,7 @@ std::string pop_string(struct probuf *buf)
     return std::string(s.begin(), s.end());
 }
 
-static const char *rsp_xpkg0(struct connection *c)
+static const char *xpkg0(struct connection *c)
 {
     struct cstat& cst = stats_[c->cid];
 
@@ -909,8 +950,7 @@ static const char *rsp_xpkg0(struct connection *c)
         ; pop_string<uint8_t,int16_t>(&pbuf);
 
         // extracter
-        int n = pop_int<uint8_t>(&pbuf);
-        for (int j = 0; j < n; ++j) {
+        for (int j = 0, n = pop_int<uint8_t>(&pbuf); j < n; ++j) {
             std::string kw = pop_string<uint8_t,int16_t>(&pbuf);
             std::string ex = pop_string<uint8_t,int16_t>(&pbuf);
             step.glex.push_back(std::make_pair(kw, ex));
@@ -925,8 +965,9 @@ static const char *rsp_xpkg0(struct connection *c)
     }
 
     cst.n_repeat = pop_int<uint8_t>(&pbuf);
+    std::cout << "repeat " << cst.n_repeat << "\n";
 
-    // smblocker
+    // sm filter
     if (pbuf.size() > 0) {
         const char *begin = pbuf.data;
 
@@ -947,13 +988,13 @@ static const char *rsp_xpkg0(struct connection *c)
 
 static const char* setup_rsp(struct connection *c)
 {
-    const char* (*fp[])(struct connection*) = { rsp_xpkg0, rsp_xpkg1 };
+    const char* (*fp[])(struct connection*) = { xpkg0, xpkg1 };
 
-    if ((unsigned int)c->xpkg >= sizeof(fp)/sizeof(fp[0])) {
-        return "Bad para";
+    if ((unsigned int)c->xpkg < sizeof(fp)/sizeof(fp[0])) {
+        return (fp[c->xpkg])(c);
     }
 
-    return (fp[c->xpkg])(c);
+    return "Bad para";
 }
 
 static int recvbuf(std::string& buf, int fd)
@@ -1065,5 +1106,105 @@ static void cb_write(struct ev_loop *loop, struct ev_io * _c, int revents)
 // 
 //     // ev_io_init(c, cb_read, fd, EV_READ);
 //     // ev_io_start(loop, c);
+// }
+
+
+namespace boost {
+    namespace serialization {
+
+        template<class Archive>
+        void serialize(Archive & ar, httpreq & o, const unsigned int version)
+        {
+            ar & o.method;
+            ar & o.path;
+            ar & o.ver;
+
+            ar & o.head;
+
+            ar & o.contentlength;
+            ar & o.body;
+        }
+
+        template<class Archive>
+        void serialize(Archive & ar, stepreq & o, const unsigned int version)
+        {
+            ar & boost::serialization::base_object<httpreq>(o);
+            ar & o.seconds;
+        }
+
+        template<class Archive>
+        void serialize(Archive & ar, cstep & o, const unsigned int version)
+        {
+            ar & o.req;
+            ar & o.glex;
+        }
+
+        template<class Archive>
+        void serialize(Archive & ar, cstat & o, const unsigned int version)
+        {
+            ar & o.cookies;
+            ar & o.vars;
+            ar & o.smblock;
+            ar & o.steps;
+            ar & o.stepx;
+            ar & o.n_repeat;
+            ar & o._stime;
+            ar & o._size_self;
+        }
+
+    } // namespace serialization
+} // namespace boost
+
+
+// static void sig_save_stats(int sig, siginfo_t *siginfo, void *context)
+// {
+//     std::ofstream ofs("chs.arc");
+//     if (ofs) {
+//         boost::archive::text_oarchive oa(ofs);
+//         oa << stats_;
+//     }
+// }
+
+static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents)
+{
+    std::ofstream ofs("ch.arc");
+    if (ofs) {
+        boost::archive::text_oarchive oa(ofs);
+        oa << stats_;
+    }
+}
+static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents)
+{
+    cb_sigusr1(loop, sig, revents);
+    ev_unloop(loop_, EVUNLOOP_ALL);
+}
+
+
+static void restore_stats(const char *filename)
+{
+    std::ifstream ifs(filename);
+    if (ifs) {
+        boost::archive::text_iarchive ia(ifs);
+        ia >> stats_;
+    }
+} 
+
+// static void signal_init(void)
+// {
+// 	struct sigaction act;
+// 
+//     memset(&act, 0, sizeof(act));
+//  
+// 	act.sa_sigaction = sig_save_stats;
+// 	act.sa_flags = SA_SIGINFO;
+//  
+// 	if (sigaction(SIGTERM, &act, NULL) < 0) {
+// 		perror ("sigaction TERM");
+// 	}
+// 
+// 	if (sigaction(SIGUSR1, &act, NULL) < 0) {
+// 		perror ("sigaction USR1");
+// 	}
+// 
 // }
 
