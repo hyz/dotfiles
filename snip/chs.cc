@@ -26,8 +26,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+// #include <boost/archive/text_oarchive.hpp>
+// #include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
@@ -148,7 +150,7 @@ static bool ends_with(const std::string& s, const std::string& sub)
     return (s.size() >= sub.size() && std::equal(sub.rbegin(), sub.rend(), s.rbegin()));
 }
 
-bool split1(std::string &k, std::string &v, const std::string &s, const std::string &any)
+bool split1(std::string &k, std::string &v, const std::string &s, const char* any)
 {
     size_t pos = s.find_first_of(any);
     if (pos == std::string::npos) { // || pos2 == std::string::npos) {
@@ -347,9 +349,11 @@ struct connection {
 
     unsigned int _actime; // TODO
 
-    int xpkg;
     unsigned int cid;
+    int trac;
+    int xpkg;
 
+    std::string imei;
     std::string imsi;
     std::string smsc;
 
@@ -366,6 +370,7 @@ struct connection {
         if (this->io.fd > 0) {
             ev_io_stop(this->ev_loop, &this->io);
             close(this->io.fd);
+            printf("%d closed\n", this->io.fd);
         }
     }
 };
@@ -512,6 +517,44 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
 //     return atoi(val.c_str());
 // }
 
+template <typename M_>
+static void set_cookies(M_& map, struct httprsp& rsp)
+{
+    for (head_iterator hi = rsp.head.begin(); hi != rsp.head.end(); ++hi) {
+        if (hi->first == "Set-Cookie") {
+            std::string tmp, k, v;
+
+            split1(tmp, v, hi->second, ";");
+            split1(k, v, tmp, "=");
+
+            map[k] = v; // cks.push_back(std::make_pair(k, v));
+        }
+    }
+}
+
+static bool cookie(std::map<std::string, std::string>& cookies, const std::string &cval)
+{
+    std::string::const_iterator it;
+    std::string::const_iterator beg = cval.begin();
+    std::string::const_iterator end = cval.end();
+    
+    while (beg < end && (it = std::find(beg, end, '=')) < end) {
+        std::string k(beg, it++);
+
+        beg = std::find(it, end, ';');
+        cookies[k].assign(it, beg);
+
+        if (beg < end) {
+            ++beg;
+        }
+
+        while (beg < end && isspace(*beg))
+            ++beg;
+    }
+
+    return true;
+}
+
 static int completed(struct connection *c, struct httpreq *req, std::string &data)
 {
     if (req->method.empty()) {
@@ -541,19 +584,64 @@ static int completed(struct connection *c, struct httpreq *req, std::string &dat
         //<---------------
         head_iterator hi = headval(req->head, "Cookie"); //getk("Cookie", req->head);
         if (hi != req->head.end()) {
-            // std::cout << hi->second << "\n";
-            if (starts_with(hi->second, "ck=")) {
+            std::map<std::string, std::string> cookies;
 
-                std::string::iterator eq = hi->second.begin() + 3;
-                if (std::count(eq, hi->second.end(), '/') == 3) {
-                    std::string tmp;
-                    std::replace(eq, hi->second.end(), '/', ' ');
-
-                    std::istringstream ss(std::string(eq, hi->second.end()));
-                    ss >> tmp >> c->imsi >> c->smsc >> c->xpkg;
-                    c->cid = strtol(tmp.c_str(), 0, 16);
-                }
+            if (!cookie(cookies, hi->second))
+            {
+                return -2;
             }
+
+            std::string& ci = cookies["ci"];
+            std::string& cj = cookies["cj"];
+
+            if (std::count(ci.begin(), ci.end(), '/') < 2) {
+                return -5;
+            }
+            if (std::count(cj.begin(), cj.end(), '/') < 2) {
+                return -5;
+            }
+
+            std::replace(ci.begin(), ci.end(), '/', ' ');
+            std::istringstream sci(ci);
+            sci >> c->imei >> c->imsi >> c->smsc;
+
+            std::replace(cj.begin(), cj.end(), '/', ' ');
+            std::istringstream scj(cj);
+            scj >> c->cid >> c->trac >> c->xpkg;
+
+            // ss >> tmp >> c->imsi >> c->smsc >> c->imei >> c->xpkg;
+            // c->cid = strtol(tmp.c_str(), 0, 16);
+
+            // std::cout << hi->second << "\n";
+            // std::string a, b;
+            // std::string tmp, tmp2;
+
+            // if (split1(a, b, hi->seconds, "; ") /*&& split1(ci, tmp2, tmp, "; ")*/) {
+            //     std::string cj, ci;
+            //     if (starts_with(a, "cj=")) {
+            //         if (starts_with(b, "ci=")) {
+            //         cj = a;
+            //         }
+            //     }
+            //     else if () {
+            //     }
+            //     if (cjs) {}
+            // }
+
+            // if (starts_with(cj, "cj=")) {
+            //     std::string::iterator eq = hi->second.begin() + 3;
+
+            //     if (std::count(eq, hi->second.end(), '/') < 4) {
+            //         return -2;
+            //     }
+
+            //     std::string tmp;
+            //     std::replace(eq, hi->second.end(), '/', ' ');
+
+            //     std::istringstream ss(std::string(eq, hi->second.end()));
+            //     ss >> tmp >> c->imsi >> c->smsc >> c->imei >> c->xpkg;
+            //     c->cid = strtol(tmp.c_str(), 0, 16);
+            // }
         }
         // std::cout << "ck: " << c->cid << " " << c->imsi << " " << c->smsc << " " << c->xpkg << "\n";
         //<---------------
@@ -581,7 +669,7 @@ static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (st
     o << "HTTP/1.1 " << code << " " << shd << "\r\n"
         "Server: nginx/1.0.11\r\n"
         "Content-Type: application/octet-stream\r\n"
-        "Set-Cookie: ck=7f/100010/100011/0; Path=/ig/chs\r\n"
+        "Set-Cookie: cj=7f/0/0; ci=100010/100011/100012; Path=/ig/chs\r\n"
         << "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
 
     const std::string& s = o.str();
@@ -608,18 +696,18 @@ inline std::string headline(const std::string& k, unsigned int len)
     return headline(k, slen);
 }
 
-template <typename I_>
-void part_add(std::string &out, const char* chn, int seconds, I_ beg, I_ end, const char *ids)
+template <typename C_>
+void part_add(std::string &out, const char* chn, int seconds, int trac, C_& c)
 {
     std::ostringstream o;
-    o << sizeof(*beg) * std::distance(beg, end) << " " << chn << " " << seconds << " " << ids << "\r\n";
+    o << sizeof(typename C_::size_type) * c.size() << " " << chn << " " << seconds << " " << trac << " /ig/chs\r\n";
 
     out += o.str(); // out.insert(out.end(), s.begin(), s.end());
-    out.insert(out.end(), beg, end);
+    out.insert(out.end(), c.begin(), c.end());
     out += "\r\n\r\n"; // out.insert(out.end(), eoh, eoh + 4);
 }
 
-static std::string step_go(struct stepreq& step, struct cstat& cst)
+static std::string step_go(struct stepreq& step, struct cstat& cst, int trac)
 {
     // method line
     std::string path = unescape(subst(step.path, cst.vars));
@@ -639,6 +727,7 @@ static std::string step_go(struct stepreq& step, struct cstat& cst)
     if (!cst.cookies.empty()) {
         std::ostringstream o;
         std::map<std::string, std::string>::iterator i = cst.cookies.begin();
+
         o << i->first << "=" << i->second;
         for (++i; i != cst.cookies.end(); ++i) {
             o << "; " << i->first << "=" << i->second;
@@ -653,8 +742,8 @@ static std::string step_go(struct stepreq& step, struct cstat& cst)
     part += tmp;
 
     std::string body;
-    part_add(body, CH_SMBF, 1, cst.smblock.begin(), cst.smblock.end(), "SMBF");
-    part_add(body, CH_WAPQ, step.seconds, part.begin(), part.end(), "WAPQ");
+    part_add(body, CH_SMBF,            1, trac, cst.smblock);
+    part_add(body, CH_WAPQ, step.seconds, trac, part);
 
     std::string rspbuf;
     return assign_rsp(rspbuf, 200, "OK", body.begin(), body.end());
@@ -672,8 +761,8 @@ static std::string step_fwd(struct cstat& cst)
         cst.stepx = 0;
     }
 
-    rspbuf = step_go(cst.steps[cst.stepx].req, cst);
     ++cst.stepx;
+    rspbuf = step_go(cst.steps[cst.stepx-1].req, cst, cst.stepx);
 
     return (rspbuf);
 }
@@ -698,7 +787,7 @@ static bool is_utf8_doc(struct httprsp &rsp, I_ beg, I_ end)
 }
 
 template <typename C_>
-bool _302_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
+bool _3xx_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct cstat& cst)
 {
     head_iterator hi = headval(rsp.head, "Location");
     if (hi == rsp.head.end() || hi->second.empty()) {
@@ -708,7 +797,7 @@ bool _302_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct csta
     struct stepreq a = sreq;
     a.path = unescape(hi->second);
     a.seconds = 1;
-    rspbuf = step_go(a, cst);
+    rspbuf = step_go(a, cst, cst.stepx);
 
     return true;
 }
@@ -729,7 +818,7 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
                 struct stepreq a = sreq;
                 a.path = unescape(url);
                 a.seconds = 1;
-                rspbuf = step_go(a, cst);
+                rspbuf = step_go(a, cst, cst.stepx);
                 return &rspbuf;
             }
         } catch (...) {
@@ -739,41 +828,24 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
     return 0;
 }
 
-template <typename M_>
-static void take_cookie(M_& map, struct httprsp& rsp)
-{
-    for (head_iterator hi = rsp.head.begin(); hi != rsp.head.end(); ++hi) {
-        if (hi->first == "Set-Cookie") {
-            std::string tmp, k, v;
+template <typename M>
+struct scoped_eraser {
+    M& m_;
+    typename M::iterator i_;
 
-            split1(tmp, v, hi->second, ";");
-            split1(k, v, tmp, "=");
-
-            map[k] = v; // cks.push_back(std::make_pair(k, v));
+    scoped_eraser(M& m, typename M::iterator i) : m_(m), i_(i) {}
+    ~scoped_eraser() {
+        if (i_ != m_.end()) {
+            std::cout << i_->first << " erased, " << i_->second.n_repeat << "\n";
+            m_.erase(i_);
         }
     }
 
-    // head_iterator hi = headval(rsp.head, "Set-Cookie");
-    // if (hi == rsp.head.end()) {
-    //     return;
-    // }
+    void release() { i_ = m_.end(); }
+};
 
-    // std::string tmp, k, v;
-
-    // split1(tmp, v, hi->second, ";");
-    // split1(k, v, tmp, "=");
-
-    // map[k] = v; // cks.push_back(std::make_pair(k, v));
-}
-
-static const char* xpkg1(struct connection *c)
+static const char* xpkg1(struct connection *c, struct cstat& cst)
 {
-    std::map<unsigned int, struct cstat>::iterator ic = stats_.find(c->cid);
-    if (ic == stats_.end()) {
-        return "Not found ck";
-    }
-
-    struct cstat& cst = ic->second;
     struct httprsp rsp;
 
     if (cst.stepx < 1) {
@@ -796,10 +868,10 @@ static const char* xpkg1(struct connection *c)
         return "Bad head";
     }
 
-    take_cookie(cst.cookies, rsp); //it, jt);
+    set_cookies(cst.cookies, rsp); //it, jt);
 
-    if (rsp.code == 302) {
-        if (!_302_fwd(c->buf, rsp, cst.steps[cst.stepx - 1].req, cst)) {
+    if (rsp.code >= 300 && rsp.code < 400) {
+        if (!_3xx_fwd(c->buf, rsp, cst.steps[cst.stepx - 1].req, cst)) {
             return "E302";
         }
         return 0;
@@ -820,6 +892,7 @@ static const char* xpkg1(struct connection *c)
 
             for (head_iterator i = step.glex.begin(); i != step.glex.end(); ++i) {
                 std::string& sval = cst.vars[i->first];
+                // TODO: ? continue
                 sval = glex(i->second, it, c->req.body.end());
                 std::cout << "Ex result: " << i->first << " {" << sval << "}\n";
             }
@@ -921,14 +994,13 @@ std::string pop_string(struct probuf *buf)
 
 static const char *xpkg0(struct connection *c)
 {
-    struct cstat& cst = stats_[c->cid];
+    struct cstat cst;
 
     struct probuf pbuf(c->req.body.length(), c->req.body.data(), c->req.body.length());
 
-    cst = cstat(); // reset
-
     cst.vars["IMSI"] = c->imsi;
     cst.vars["SMSC"] = c->smsc;
+    cst.vars["IMEI"] = c->imei;
 
     int32_t idcode;
     pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
@@ -955,7 +1027,7 @@ static const char *xpkg0(struct connection *c)
             std::string ex = pop_string<uint8_t,int16_t>(&pbuf);
             step.glex.push_back(std::make_pair(kw, ex));
 
-            std::cout << "Ex: " << kw << " {" << ex << "}\n";
+            std::cout << "Ex: " << kw << " //" << ex << "//\n";
         }
 
         step.req.seconds = pop_int<int16_t>(&pbuf);
@@ -983,18 +1055,34 @@ static const char *xpkg0(struct connection *c)
 
     c->buf = step_fwd(cst);
 
+    if (cst.n_repeat > 0) {
+        stats_[c->cid] = cst;
+    }
     return 0;
 }
 
 static const char* setup_rsp(struct connection *c)
 {
-    const char* (*fp[])(struct connection*) = { xpkg0, xpkg1 };
-
-    if ((unsigned int)c->xpkg < sizeof(fp)/sizeof(fp[0])) {
-        return (fp[c->xpkg])(c);
+    if (c->trac == 0)
+    {
+        return xpkg0(c);
     }
 
-    return "Bad para";
+    std::map<unsigned int, struct cstat>::iterator it = stats_.find(c->cid);
+    if (it == stats_.end())
+    {
+        return "Not found ck";
+    }
+
+    scoped_eraser<std::map<unsigned int, struct cstat> > scoped(stats_, it);
+
+    const char *ret = xpkg1(c, it->second);
+    if (ret == 0 && it->second.n_repeat > 0)
+    {
+        scoped.release();
+    }
+
+    return ret;
 }
 
 static int recvbuf(std::string& buf, int fd)
@@ -1160,7 +1248,7 @@ namespace boost {
 // {
 //     std::ofstream ofs("chs.arc");
 //     if (ofs) {
-//         boost::archive::text_oarchive oa(ofs);
+//         boost::archive::binary_oarchive oa(ofs);
 //         oa << stats_;
 //     }
 // }
@@ -1169,7 +1257,7 @@ static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents)
 {
     std::ofstream ofs("ch.arc");
     if (ofs) {
-        boost::archive::text_oarchive oa(ofs);
+        boost::archive::binary_oarchive oa(ofs);
         oa << stats_;
     }
 }
@@ -1184,7 +1272,7 @@ static void restore_stats(const char *filename)
 {
     std::ifstream ifs(filename);
     if (ifs) {
-        boost::archive::text_iarchive ia(ifs);
+        boost::archive::binary_iarchive ia(ifs);
         ia >> stats_;
     }
 } 

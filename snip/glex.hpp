@@ -213,11 +213,11 @@ static std::string glex(const std::string& ex, I_ beg, I_ end)
     _pat.begin = ex.begin();
     _pat.end = ex.end();
 
-    if (globex(&_ret, &_pat, &_cont)) {
-        return std::string(_ret.begin, _ret.end);
+    if (!globex(&_ret, &_pat, &_cont)) {
+        throw std::logic_error("Ex null");
     }
 
-    return "";
+    return std::string(_ret.begin, _ret.end);
 }
 
 template <typename M>
