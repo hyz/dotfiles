@@ -1,13 +1,45 @@
 #!/bin/sh
 
-clen=`wc -c <$1`
+trac=$1
+fn=$2
+host=${3:-192.168.1.151}
+port=${4:-8000}
 
-echo -ne "POST http://ws.pkingame.net:8000/ig/chs HTTP/1.1\r\n"
-echo -ne "Content-Type: application/octet-stream\r\n"
-echo -ne "User-Agent: NokiaN73-1/4.0727.2.4.1 Series60/3.0 Profile/MIDP-2.0 Configuration/CLDC-1.1\r\n"
-echo -ne "Cookie: ck=7f/1000011/1000011/${2:-1}\r\n"
-echo -ne "Content-Length: $clen\r\n"
-echo -ne "\r\n"
+if [ $# -lt 2 -o ! -f "$fn" ]; then
+    exit 1
+fi
+# echo $trac $fn $host $port
 
-cat $1
+clen=`stat -c "%s" $fn`
+
+# echo -ne "POST http://ws.pkingame.net:8000/ig/chs HTTP/1.1\r\n"
+# echo -ne "Content-Type: application/octet-stream\r\n"
+# echo -ne "User-Agent: NokiaN73-1/4.0727.2.4.1 Series60/3.0 Profile/MIDP-2.0 Configuration/CLDC-1.1\r\n"
+# echo -ne "Cookie: cj=100/$trac/$trac; ci=1000011/1000012/1000013\r\n"
+# echo -ne "Content-Length: $clen\r\n"
+# echo -ne "\r\n"
+# 
+# cat $fn
+
+# POST /ig/chs HTTP/1.1
+# Host: ws.pkingame.net:8000
+# Content-Type: application/octet-stream
+# Cookie: cj=685322241/0/0; ci=357470005665264/460029194251377/+8613800755500
+# Content-Length: 1023
+# Via: WTP/1.1 GDGZ-PB-GW018-WAP22 (Nokia WAP Gateway 4.1 CD1/ECD13_E/4.1.05)
+# X-Forwarded-For: 10.66.0.247
+# X-Source-ID: SZHGGSN403BNk
+# X-Nokia-CONNECTION_MODE: TCP
+# X-Up-Bearer-Type: GPRS
+# X-Nokia-gateway-id: NWG/4.1/Build4.1.05
+# x-up-bear-type: GPRS/EDGE
+# accept: */*
+
+echo -ne "POST /ig/chs HTTP/1.1\r\n"\
+"Host: ws.pkingame.net:8000\r\n"\
+"Content-Type: application/octet-stream\r\n"\
+"Cookie: cj=685322241/$trac/$trac; ci=357470005665264/460029194251377/+8613800755500\r\n"\
+"Content-Length: $clen\r\n"\
+"accept: */*\r\n"\
+"\r\n" | cat - $fn |nc $host $port
 

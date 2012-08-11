@@ -52,7 +52,7 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 
 export EDITOR=vim
 
-alias er='explorer "`cygpath -w $(pwd)`"'
+alias er='explorer "`cygpath -w $(pwd)`" &'
 
 # limit coredumpsize 0
 

@@ -669,7 +669,7 @@ static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (st
     o << "HTTP/1.1 " << code << " " << shd << "\r\n"
         "Server: nginx/1.0.11\r\n"
         "Content-Type: application/octet-stream\r\n"
-        "Set-Cookie: cj=7f/0/0; ci=100010/100011/100012; Path=/ig/chs\r\n"
+        "Set-Cookie: cj=7f/0/0; ci=100010/100011/100012; Domain=ws.pkingame.net; Path=/\r\n"
         << "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
 
     const std::string& s = o.str();
@@ -696,14 +696,18 @@ inline std::string headline(const std::string& k, unsigned int len)
     return headline(k, slen);
 }
 
-template <typename C_>
-void part_add(std::string &out, const char* chn, int seconds, int trac, C_& c)
+//template <typename C_>
+void part_add(std::string &out, const char* chn, int seconds, int trac, const std::string& cont)
 {
-    std::ostringstream o;
-    o << sizeof(typename C_::size_type) * c.size() << " " << chn << " " << seconds << " " << trac << " /ig/chs\r\n";
+    //time_t ct = time(0);
+    // asctime, ctime
 
+    std::ostringstream o;
+    o << cont.size() << " " << chn << " " << seconds << " " << trac << " OK";
     out += o.str(); // out.insert(out.end(), s.begin(), s.end());
-    out.insert(out.end(), c.begin(), c.end());
+    out += "\r\n\r\n";
+
+    out += cont; // out.insert(out.end(), cont.begin(), cont.end());
     out += "\r\n\r\n"; // out.insert(out.end(), eoh, eoh + 4);
 }
 
@@ -1177,7 +1181,7 @@ static void cb_write(struct ev_loop *loop, struct ev_io * _c, int revents)
 
     if (c->buf.empty()) { //c->rsp.ptr >= c->rsp.end) {
         delete c;
-        std::cout << "``````````\n";
+        std::cout << "#-#-#-#-#\n";
     }
 }
 
