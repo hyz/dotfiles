@@ -5,7 +5,7 @@
 	status = auto
 	branch = auto
 [diff]
-    # external = git_vimdiff.sh
+    external = git_vimdiff.sh
 [pager]
     diff =
 
