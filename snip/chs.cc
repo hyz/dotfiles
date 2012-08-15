@@ -72,7 +72,7 @@ struct httprsp {
     // std::string method;
     // std::string path;
     std::string ver;
-    int code;
+    unsigned int code;
 
     // std::string first;
     std::vector<std::pair<std::string, std::string> > head;
@@ -83,18 +83,34 @@ struct httprsp {
 
     std::string body;
 
-    template <typename I_> bool makersp(I_ hd, I_ body, I_ end);
+    bool makersp(const char* begin, const char* end);
 
 private:
-    void request_line_parse(const std::string& l)
+    bool request_line_parse(const std::string& l)
     {
         std::stringstream sl(l);
         std::string tmp;
+        //
+        std::cout << l;
 
         sl >> this->ver >> this->code >> tmp;
+        if (this->code > 800 || this->code < 100)
+            return false;
         // std::cout << this->ver << " " << this->code << " " << tmp << "\n";
+        return true;
     }
 };
+
+static head_iterator headval(std::vector<std::pair<std::string, std::string> >& head, const std::string& k)
+{
+    head_iterator it = head.begin();
+    for (; it != head.end(); ++it) {
+        if (it->first == k) {
+            break;
+        }
+    }
+    return it;
+}
 
 struct httpreq {
     std::string method;
@@ -191,17 +207,6 @@ bool split1(std::string &k, std::string &v, const std::string &s, const char* an
     return true;
 }
 
-static head_iterator headval(std::vector<std::pair<std::string, std::string> >& head, const std::string& k)
-{
-    head_iterator it = head.begin();
-    for (; it != head.end(); ++it) {
-        if (it->first == k) {
-            break;
-        }
-    }
-    return it;
-}
-
 template <typename H>
 bool head_line_parse(H& head, std::string& l)
 {
@@ -227,8 +232,7 @@ bool head_line_parse(H& head, std::string& l)
 
 bool httpreq::init(const std::string &first, const std::string& head, const std::string& body)
 {
-    static bool method_line_parse(std::string& method, std::string& path, std::string& ver, const std::string& l)
-    method_line_parse(first);
+    method_line_parse(this->method, this->path, this->ver, first);
 
     std::istringstream ss(head);
     std::string l;
@@ -291,10 +295,10 @@ bool httpreq::makereq(I_ beg, I_ end)
     return true;
 }
 
-bool httprsp::makersp(char* begin, char* end)
+bool httprsp::makersp(const char* begin, const char* end)
 {
     const char *cr = "\r\n\r\n";
-    char* _body = std::search(begin, end, cr, cr+4);
+    const char* _body = std::search(begin, end, cr, cr+4);
     if (_body == end) {
         return false;
     }
@@ -305,7 +309,8 @@ bool httprsp::makersp(char* begin, char* end)
     std::stringstream ss(shd);
 
     if (std::getline(ss, l)) {
-        request_line_parse(l);
+        if (!request_line_parse(l))
+            return false;
     }
 
     while (std::getline(ss, l)) {
@@ -358,7 +363,7 @@ struct wcstep {
 };
 
 struct wcstat {
-    wcstat() : stepx(0), n_repeat(0), maxdownload(0xffff) { }
+    wcstat() : maxdownload(0xffff), stepx(0), n_repeat(0) { }
 
     std::map<std::string, std::string> cookies;
 
@@ -620,7 +625,7 @@ static bool completed(struct connection *c, struct httpreq *req, std::string &da
             throw std::logic_error("Cookie ck error");
         }
 
-        c->cid = atoi(ick->second->data());
+        c->cid = atoi(ick->second.c_str());
 
         // std::string& ck = ick->second;
         // if (std::count(ck.begin(), ck.end(), '/') < 2) {
@@ -699,7 +704,7 @@ static std::string step_go(struct stepreq& step, wcstat& wc, int trac)
             }
         }
         if (it->first == "DownloadRange") {
-            wc.maxdownload = atoi(it->second.data());
+            wc.maxdownload = atoi(it->second.c_str());
             continue;
         }
 
@@ -735,14 +740,17 @@ static std::string step_fwd(struct wcstat& wc, int stepidx)
 {
     std::string rspbuf;
 
-    if (stepidx >= wc.steps.size()) {
-        std::cout << "loop " << wc.n_repeat << " done.\n";
+    if ((size_t)stepidx == wc.steps.size()) {
+        // std::cout << "loop " << wc.n_repeat << " done.\n";
+
         if (--wc.n_repeat <= 0) {
             return assign_rsp(rspbuf, 200, "FIN", (char*)0, (char*)0); // throw std::logic_error("No steps");
         }
 
         stepidx = 0;
     }
+
+    printf("fwd %d/%d, loop %d\n", stepidx, wc.steps.size(), wc.n_repeat);
 
     ++wc.stepx;
     rspbuf = step_go(wc.steps[stepidx].req, wc, stepidx + 1);
@@ -788,13 +796,19 @@ bool _3xx_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcst
 template <typename C_>
 static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcstat& wc, int trac)
 {
+    // <?xml*<card*中国移动提醒*GPRS通信费*确认*href='$'
+    // <?xml*<card*onenterforward*href=\"$\"
+    // <?xml*<card*ontimer=\"$\"
+        // "revalidate*</head>*中国移动*确认*href='$'"
+            // , "revalidate*</head>*<card*href=\"$\""
+            // , "<?xml*<card*onenterforward*href=\"$\""
     const char *v[] = {
-        "revalidate*</head>*中国移动*确认*href='$'"
-            , "revalidate*</head>*<card*href=\"$\""
+        "<?xml*<card*中国移动提醒*GPRS通信费*确认*href='$'"
             , "<?xml*<card*onenterforward*href=\"$\""
+            , "<?xml*<card*ontimer=\"$\""
     };
 
-    for (int i = 0; i < 3; ++i) {
+    for (unsigned int i = 0; i < sizeof(v)/sizeof(v[0]); ++i) {
         try {
             std::string url = glex(v[i], rsp.body.begin(), rsp.body.end());
             if (!url.empty()) {
@@ -811,27 +825,27 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
     return 0;
 }
 
-typedef std::map<unsigned int, struct wcstat> >::iterator wcstat_iter;
+typedef std::map<unsigned int, struct wcstat>::iterator wcstat_iter;
 
 struct wcscoped {
     wcstat_iter i_;
 
-    scoped_eraser() : i_(stats_.end()) {}
-    ~scoped_eraser() {
-        if (i_ != m_.end()) {
+    wcscoped() : i_(stats_.end()) {}
+    ~wcscoped() {
+        if (i_ != stats_.end()) {
             std::cout << i_->first << " erased, " << i_->second.n_repeat << "\n";
-            m_.erase(i_);
+            stats_.erase(i_);
         }
     }
 
-    void ref(int cid) {
-        wcstat c;
-        std::pair<wcstat_iter, bool> ret = stats_.insert(c);
+    wcstat& ref(int cid) {
+        wcstat wc;
+        std::pair<wcstat_iter, bool> ret = stats_.insert(std::make_pair(cid,wc));
         i_ = ret.first;
-        return *ret.first;
+        return ret.first->second;
     }
 
-    void release() { i_ = m_.end(); }
+    void release() { i_ = stats_.end(); }
 };
 
 // static void parse_vars(cst.vars, const std::string &in)
@@ -854,9 +868,9 @@ struct wcscoped {
 //     // vars["IMEI"] = c->imei;
 // }
 
-static const char* wapnext(struct connection *c, struct wcstat& cst, char *body, char *end, int stepidx)
+static const char* wapnext(struct connection *c, struct wcstat& cst, const char *body, const char *end, int stepidx)
 {
-    char *begin;
+    const char *begin;
     const char *cr = "\r\n\r\n";
 
     // request headers skipped
@@ -893,14 +907,15 @@ static const char* wapnext(struct connection *c, struct wcstat& cst, char *body,
             return 0;
         }
 
-        if (stepidx < cst.steps.size()) {
+        if ((size_t)stepidx > 0 && (size_t)stepidx < cst.steps.size()) {
             struct wcstep& step = cst.steps[stepidx - 1];
 
             for (head_iterator i = step.glex.begin(); i != step.glex.end(); ++i) {
                 std::string& sval = cst.vars[i->first];
                 // TODO: ? continue
-                sval = glex(i->second, it, c->req.body.end());
-                std::cout << "Ex result: " << i->first << " {" << sval << "}\n";
+                std::cout << "Ex: " << i->first << " {" << i->second << "}";
+                sval = glex(i->second, rsp.body.begin(), rsp.body.end());
+                std::cout << "result: " << i->first << " {" << sval << "}\n";
             }
         }
     }
@@ -999,19 +1014,18 @@ std::string pop_string(struct probuf *buf)
     return std::string(s.begin(), s.end());
 }
 
-static const char *wapinit(struct connection *c, struct wcstat &wc, char* body, char* end)
+static const char *wapinit(struct connection *c, struct wcstat &wc, const char* body, const char* end)
 {
-    // struct wcstat wc;
-    struct probuf pbuf(body, end);
+    wc = wcstat();
 
-    wc.maxdownload = 0xffff;
+    struct probuf pbuf(body, end);
 
     int32_t idcode;
     pop_raw(&pbuf, sizeof(idcode), &idcode); // idcode = pop_int<int32_t>(&pbuf);
 
     unsigned int nstep = pop_int<uint8_t>(&pbuf);
     if (nstep == 0 || nstep > 16) {
-        return "Steps count error"
+        return "Steps count error";
     }
 
     for (unsigned int i = 0; i < nstep; ++i) {
@@ -1047,7 +1061,7 @@ static const char *wapinit(struct connection *c, struct wcstat &wc, char* body, 
 
     wc.n_repeat = pop_int<uint8_t>(&pbuf);
     if (wc.n_repeat == 0 || wc.n_repeat > 8) {
-        return "Repeat count error"
+        return "Repeat count error";
     }
     std::cout << "Nstep " << nstep << ", Nrepeat " << wc.n_repeat << "\n";
 
@@ -1070,18 +1084,12 @@ static const char *wapinit(struct connection *c, struct wcstat &wc, char* body, 
     return 0;
 }
 
-inline wcstat_iter& wcref(int cid)
+template <typename I>
+std::pair<I,I>* value_p(std::pair<I,I> *val, const char *k, std::pair<I,I> pinf)
 {
-    struct wcstat c;
-    std::pair<wcstat_iter, bool> ret = stats_.insert(c);
-    return *ret.first;
-}
+    I kend = k + strlen(k);
 
-std::pair<char*>* value_p(std::pair<char*> *val, const char *k, std::pair<char*> pinf)
-{
-    const char* kend = k + strlen(k);
-
-    char *p = std::search(pinf.first, pinf.second, k, kend);
+    I p = std::search(pinf.first, pinf.second, k, kend);
 
     if (!p) {
         return 0;
@@ -1093,14 +1101,15 @@ std::pair<char*>* value_p(std::pair<char*> *val, const char *k, std::pair<char*>
     }
 
     val->first = p;
-    while (p < pinf.second && !isspace(*p++))
-        ;
+    while (p < pinf.second && !isspace(*p))
+        ++p;
     val->second = p;
 
     return val;
 }
 
-std::string first_tok(std::pair<char*> *pcs)
+template <typename I>
+std::string first_tok(std::pair<I,I> *pcs)
 {
     std::string s;
     std::istringstream ss(std::string(pcs->first, pcs->second));
@@ -1121,6 +1130,21 @@ std::string first_tok(std::pair<char*> *pcs)
     // return std::string(p, pcs->first);
 }
 
+template <typename I>
+static I skipspace(I beg, I end)
+{
+    while (beg < end && isspace(*beg))
+        ++beg;
+    return beg;
+}
+
+template <typename I>
+std::ostream& operator<<(std::ostream& out, const std::pair<I,I>& p)
+{
+    out.write(p.first, p.second - p.first);
+    return out;
+}
+
 static const char* setup_rsp(struct connection *c, std::string& bodydata)
 {
     if (bodydata.empty()) {
@@ -1132,28 +1156,41 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
 
     // std::istringstream ss(bodydata);
 
-    std::pair<char*> infp, val;
-
-    infp.first = bodydata.data();
+    // infp.first = bodydata.data();
     // infp.second = infp.first + bodydata.size();
-    infp.second = std::find(infp.first, bodydata.data() + bodydata.size(), '\n');
+    // infp.first = skipspace(bodydata.data(), infp.second);
+    // infp.second = std::find(infp.first, infp.second + bodydata.size(), '\n');
 
-    while ( (infp.first = skipspace(infp.first, infp.second)) < infp.second)
-    {
-        char *ends;
+    std::pair<const char*,const char*> cmdp, val;
 
-        std::string cname = first_tok(&infp);
-
-        if (value_p(&val, "size", infp)) {
-            ends = infp.second + atoi(val.first);
+    const char *realend = bodydata.data() + bodydata.size();
+    cmdp.first = bodydata.data();
+    while (1) {
+        cmdp.first = skipspace(cmdp.first, realend);
+        cmdp.second = std::find(cmdp.first, realend, '\n');
+        if (cmdp.second < realend) {
+            ++cmdp.second;
         }
 
-        if (cname == "Ch-Variable") {
-            std::pair<char*> imei, imsi, smsc;
+        if (cmdp.first >= cmdp.second)
+            break;
 
-            if (!value_p(&imei, "IMEI", infp)
-                    || !value_p(&imsi, "IMSI", infp)
-                    || !value_p(&smsc, "SMSC", infp)) {
+        const char *endc = cmdp.second;
+
+        std::cout << cmdp << "\n";
+
+        if (value_p(&val, "size", cmdp)) {
+            endc += atoi(val.first);
+        }
+
+        std::string cname = first_tok(&cmdp);
+
+        if (cname == "Ch-Variables") {
+            std::pair<const char*, const char*> imei, imsi, smsc;
+
+            if (!value_p(&imei, "IMEI", cmdp)
+                    || !value_p(&imsi, "IMSI", cmdp)
+                    || !value_p(&smsc, "SMSC", cmdp)) {
                 return "Ch vars error";
             }
 
@@ -1162,9 +1199,9 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
             wc.vars["SMSC"].assign(smsc.first, smsc.second);
 
         } else {
-            int trac;
+            unsigned int trac;
 
-            if ( !value_p(&val, "trac", infp)) {
+            if ( !value_p(&val, "trac", cmdp)) {
                 return "trac error";
             }
             trac = atoi(val.first);
@@ -1173,19 +1210,19 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
                 if (trac != 0) {
                     return "trac should zero";
                 }
-                wapinit(c, wc.second, infp.second, ends);
+                wapinit(c, wc, cmdp.second, endc);
 
             } else if (cname == "Ch-Response") {
-                if (trac == 0 || trac >= wc.steps.size()) {
+                if (trac == 0 || trac > wc.steps.size()) {
                     return "trac val error";
                 }
 
-                wapnext(c, wc.second, infp.second, ends, trac);
+                wapnext(c, wc, cmdp.second, endc, trac);
             }
         }
 
-        infp.first = ends;
-        infp.second = std::find(ends, bodydata.data() + bodydata.size(), '\n');
+        cmdp.first = endc;
+        // infp.second = std::find(ends, bodydata.data() + bodydata.size(), '\n');
     }
     scoped.release();
 
