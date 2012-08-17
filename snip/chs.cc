@@ -398,7 +398,7 @@ struct connection {
 
     unsigned int cid;
     int trac;
-    int xpkg;
+    int _; //xpkg;
 
     std::string imei;
     std::string imsi;
@@ -409,7 +409,7 @@ struct connection {
 	struct ev_loop *ev_loop;
 
     connection(struct ev_loop *loop)
-        : xpkg(-1), ev_loop(loop) {
+        : ev_loop(loop) {
         memset(&this->io, 0, sizeof(this->io));
     }
 
@@ -677,27 +677,29 @@ inline std::string headline(const std::string& k, unsigned int len)
 }
 
 //template <typename C_>
-void part_add(std::string &out, const char* chn, int seconds, int trac, wcstat &wc, const std::string& cont)
+void part_add(std::string &out, const char* chn, int seconds, int trac, bool inc_body, wcstat &wc, const std::string& cont)
 {
     //time_t ct = time(0);
     // asctime, ctime
 
     std::ostringstream o;
-    o << chn << " size=" << cont.size() << " gap=" << seconds << " trac=" << trac << " maxd=" << wc.maxdownload << "\r\n";
+    o << chn << " size=" << cont.size() << " gap=" << seconds << " trac=" << trac << " inc_body=" << inc_body << " maxd=" << wc.maxdownload << "\r\n";
     out += o.str(); // out.insert(out.end(), s.begin(), s.end());
     out += cont; // out.insert(out.end(), cont.begin(), cont.end());
     out += "\r\n\r\n"; // out.insert(out.end(), eoh, eoh + 4);
 }
 
-static std::string step_go(struct stepreq& step, wcstat& wc, int trac)
+static std::string step_go(struct stepreq& req, bool inc_body, wcstat& wc, int trac)
 {
+    // struct stepreq& req = step.req;
+
     // method line
-    std::string path = unescape(subst(step.path, wc.vars));
-    std::string part = step.method + " " + path + " " + step.ver + "\r\n"; // s = subst(step.first, cst.vars);
+    std::string path = unescape(subst(req.path, wc.vars));
+    std::string part = req.method + " " + path + " " + req.ver + "\r\n"; // s = subst(step.first, cst.vars);
 
     // heads
-    head_iterator it = step.head.begin();
-    for ( ; it != step.head.end(); ++it) {
+    head_iterator it = req.head.begin();
+    for ( ; it != req.head.end(); ++it) {
         if (starts_with(path, "http:")) {
             if (ends_with(it->first, "Host")) {
                 continue;
@@ -722,15 +724,15 @@ static std::string step_go(struct stepreq& step, wcstat& wc, int trac)
         part += headline("Cookies", o.str()); // s = o.str(); // part.insert(part.end(), s.begin(), s.end());
     }
 
-    std::string tmp = subst(step.body, wc.vars);
+    std::string tmp = subst(req.body, wc.vars);
 
     part += headline("Content-Length", tmp.size()); // s = o.str(); // part.insert(part.end(), s.begin(), s.end());
     part += "\r\n";
     part += tmp;
 
     std::string body;
-    part_add(body, CH_SMBF,            1, trac, wc, wc.smblock);
-    part_add(body, CH_WAPQ, step.seconds, trac, wc, part);
+    part_add(body, CH_SMBF,           1, trac, inc_body, wc, wc.smblock);
+    part_add(body, CH_WAPQ, req.seconds, trac, inc_body, wc, part);
 
     std::string rspbuf;
     return assign_rsp(rspbuf, 200, "OK", body.begin(), body.end());
@@ -753,7 +755,7 @@ static std::string step_fwd(struct wcstat& wc, int stepidx)
     printf("fwd %d/%d, loop %d\n", stepidx, wc.steps.size(), wc.n_repeat);
 
     ++wc.stepx;
-    rspbuf = step_go(wc.steps[stepidx].req, wc, stepidx + 1);
+    rspbuf = step_go(wc.steps[stepidx].req, !wc.steps[stepidx].glex.empty(), wc, stepidx + 1);
 
     return (rspbuf);
 }
@@ -788,7 +790,9 @@ bool _3xx_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcst
     struct stepreq a = sreq;
     a.path = unescape(hi->second);
     a.seconds = 1;
-    rspbuf = step_go(a, wc, trac);
+
+    assert(trac > 0);
+    rspbuf = step_go(a, !wc.steps[trac-1].glex.empty(), wc, trac);
 
     return true;
 }
@@ -807,15 +811,17 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
             , "<?xml*<card*onenterforward*href=\"$\""
             , "<?xml*<card*ontimer=\"$\""
     };
+    assert(trac > 0);
 
     for (unsigned int i = 0; i < sizeof(v)/sizeof(v[0]); ++i) {
         try {
             std::string url = glex(v[i], rsp.body.begin(), rsp.body.end());
             if (!url.empty()) {
                 struct stepreq a = sreq;
+
                 a.path = unescape(url);
                 a.seconds = 1;
-                rspbuf = step_go(a, wc, trac);
+                rspbuf = step_go(a, !wc.steps[trac-1].glex.empty(), wc, trac);
                 return &rspbuf;
             }
         } catch (...) {
@@ -1205,6 +1211,7 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
                 return "trac error";
             }
             trac = atoi(val.first);
+            printf("ck=%d steps %d/%d \n", c->cid, trac, wc.steps.size());
 
             if (cname == "Ch-Init") {
                 if (trac != 0) {
@@ -1304,15 +1311,10 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
         printf("peer-closed %d\n", fd);
     }
 
-    // int y;
-    // if ( (y = completed(c, &c->req, c->buf)) < 0) {
-    //     delete c;
-
-    // } else if (y) {
     try {
         if (!completed(c, &c->req, c->buf)) {
             if (n == 0 || c->buf.size() > 1023 * 32) {
-                printf("Large data\n");
+                printf("Recv size error %d || %u\n", n, c->buf.size());
                 delete c;
             }
             return;
@@ -1325,15 +1327,18 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
     }
 
     const char *err = 0;
+    std::string _err;
 
     try {
         err = setup_rsp(c, c->req.body);
     } catch (const std::exception &e) {
-        err = e.what();
+        _err = e.what();
+        err = _err.c_str();
     }
 
     if (err) {
         const char *bye = "bye.";
+        std::cout << "\n";
         assign_rsp(c->buf, 501, err, bye,bye+4);
         // TODO: log c->req
     }
@@ -1372,7 +1377,7 @@ static void cb_write(struct ev_loop *loop, struct ev_io * _c, int revents)
 
     if (c->buf.empty()) { //c->rsp.ptr >= c->rsp.end) {
         delete c;
-        std::cout << "#-#-#-#-#\n";
+        std::cout << "#---#---#---#---#\n";
     }
 }
 
