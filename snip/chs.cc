@@ -363,7 +363,9 @@ struct wcstep {
 };
 
 struct wcstat {
-    wcstat() : maxdownload(0xffff), stepx(0), n_repeat(0) { }
+    wcstat(unsigned int id_=0) : id(id_), maxdownload(0xffff), stepx(0), n_repeat(0) { }
+
+    unsigned int id;
 
     std::map<std::string, std::string> cookies;
 
@@ -380,13 +382,14 @@ struct wcstat {
 
     // std::string imsi, smsc;
 
-    unsigned int _stime; // TODO
+    unsigned int _act_time; // TODO
 
     unsigned int _size_self; // TODO
 };
 
 typedef unsigned int cid_t;
-static std::map<cid_t, wcstat> stats_;
+static std::list<wcstat> stats_;
+static std::map<unsigned int, std::list<wcstat>::iterator> stats_idx_;
 
 struct connection {
     struct ev_io io;
@@ -420,6 +423,41 @@ struct connection {
             printf("%d closed\n", this->io.fd);
         }
     }
+};
+
+struct wcscoped
+{
+    typedef std::list<wcstat>::iterator wcstat_iter;
+    typedef std::map<unsigned int, wcstat_iter>::iterator idx_iter;
+
+    idx_iter iidx_;
+
+    wcscoped() : iidx_(stats_idx_.end()) {}
+
+    ~wcscoped() {
+        if (iidx_ != stats_idx_.end()) {
+            std::cout << "\n" << iidx_->first << " erased, " << iidx_->second->n_repeat << "\n";
+
+            stats_.erase(iidx_->second);
+            stats_idx_.erase(iidx_);
+        }
+    }
+
+    wcstat& ref(int cid) {
+        std::pair<idx_iter, bool> ret = stats_idx_.insert(std::make_pair(cid, wcstat_iter()));
+        iidx_ = ret.first;
+
+        if (ret.second) {
+            stats_.push_front(wcstat());
+            iidx_->second = stats_.begin();
+        }
+
+        iidx_->second->_act_time = time(0);
+
+        return *iidx_->second;
+    }
+
+    void release() { iidx_ = stats_idx_.end(); }
 };
 
 static void *init_listener(struct ev_io *ls, char *ipaddr, int port);
@@ -831,29 +869,6 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
     return 0;
 }
 
-typedef std::map<unsigned int, struct wcstat>::iterator wcstat_iter;
-
-struct wcscoped {
-    wcstat_iter i_;
-
-    wcscoped() : i_(stats_.end()) {}
-    ~wcscoped() {
-        if (i_ != stats_.end()) {
-            std::cout << i_->first << " erased, " << i_->second.n_repeat << "\n";
-            stats_.erase(i_);
-        }
-    }
-
-    wcstat& ref(int cid) {
-        wcstat wc;
-        std::pair<wcstat_iter, bool> ret = stats_.insert(std::make_pair(cid,wc));
-        i_ = ret.first;
-        return ret.first->second;
-    }
-
-    void release() { i_ = stats_.end(); }
-};
-
 // static void parse_vars(cst.vars, const std::string &in)
 // {
 //     std::istringstream ss(in);
@@ -1022,7 +1037,7 @@ std::string pop_string(struct probuf *buf)
 
 static const char *wapinit(struct connection *c, struct wcstat &wc, const char* body, const char* end)
 {
-    wc = wcstat();
+    wc = wcstat(c->cid);
 
     struct probuf pbuf(body, end);
 
@@ -1158,7 +1173,7 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
     }
 
     wcscoped scoped;
-    wcstat& wc = scoped.ref(c->cid); // wcstat_iter cit = wcref(c->cid);
+    wcstat& wc = scoped.ref(c->cid);
 
     // std::istringstream ss(bodydata);
 
@@ -1430,13 +1445,15 @@ namespace boost {
         template<class Archive>
         void serialize(Archive & ar, wcstat & o, const unsigned int version)
         {
+            ar & o.id;
             ar & o.cookies;
             ar & o.vars;
             ar & o.smblock;
             ar & o.steps;
+            ar & o.maxdownload;
             ar & o.stepx;
             ar & o.n_repeat;
-            ar & o._stime;
+            ar & o._act_time;
             ar & o._size_self;
         }
 
@@ -1455,10 +1472,14 @@ namespace boost {
 
 static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents)
 {
-    std::ofstream ofs("ch.arc");
+    using namespace std;
+
+    ofstream ofs("ch.arc", ios::binary|ios::trunc|ios::out);
     if (ofs) {
-        boost::archive::binary_oarchive oa(ofs);
-        oa << stats_;
+        boost::archive::binary_oarchive arc(ofs);
+        arc << stats_;
+
+        cout << "stats saved\n";
     }
 }
 static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents)
@@ -1470,10 +1491,20 @@ static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents)
 
 static void restore_stats(const char *filename)
 {
-    std::ifstream ifs(filename);
+    using namespace std;
+
+    ifstream ifs(filename, ios::binary|ios::in);
     if (ifs) {
-        boost::archive::binary_iarchive ia(ifs);
-        ia >> stats_;
+        boost::archive::binary_iarchive arc(ifs);
+        arc >> stats_;
+
+        for (std::list<wcstat>::iterator it = stats_.begin();
+                it != stats_.end();
+                ++it) {
+            stats_idx_[it->id] = it;
+        }
+
+        cout << "stats restored; from " << filename << "\n";
     }
 } 
 
