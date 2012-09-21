@@ -230,14 +230,14 @@ std::string subst(const std::string& cont, const M& vars) // std::string subst(c
 
     h = cont.begin();
     while ( (p = std::search(h, cont.end(), dollar2.begin(), dollar2.end())) < cont.end()) {
-        std::cout << "REPL: ";
+        printf("REPL: ");
 
         if ( (q = std::search(p+2, cont.end(), dollar2.begin(), dollar2.end())) >= cont.end()) {
             throw std::logic_error("REPL-1");
         }
 
         std::string k(p+2, q);
-        std::cout << k;
+        printf(k.c_str());
 
         std::map<std::string, std::string>::const_iterator iter = vars.find(k);
         if (iter == vars.end()) {
@@ -247,7 +247,7 @@ std::string subst(const std::string& cont, const M& vars) // std::string subst(c
         ret.insert(ret.end(), h, p);
         ret += iter->second;
 
-        std::cout << " {" << iter->second << "}\n";
+        printf(" {%s}\n", iter->second.c_str());
 
         h = q+2;
     }

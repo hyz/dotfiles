@@ -26,7 +26,7 @@
 #include <fstream>
 #include <iostream>
 
-// #include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 // #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -36,6 +36,10 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+
+#include <boost/lexical_cast.hpp>
+
+#include <boost/format.hpp>
 
 #include "glex.hpp"
 
@@ -63,12 +67,12 @@
 // }
 
 
-#define PORT 8000
 // #define ADDR_IP "127.0.0.1"
 
 typedef std::vector<std::pair<std::string, std::string> >::iterator head_iterator;
 
-struct httprsp {
+struct response
+{
     // std::string method;
     // std::string path;
     std::string ver;
@@ -91,11 +95,13 @@ private:
         std::stringstream sl(l);
         std::string tmp;
         //
-        std::cout << l;
+        // std::cout << l;
 
         sl >> this->ver >> this->code >> tmp;
-        if (this->code > 800 || this->code < 100)
+        if (this->code > 800 || this->code < 100) {
             return false;
+        }
+
         // std::cout << this->ver << " " << this->code << " " << tmp << "\n";
         return true;
     }
@@ -112,7 +118,8 @@ static head_iterator headval(std::vector<std::pair<std::string, std::string> >& 
     return it;
 }
 
-struct httpreq {
+struct request
+{
     std::string method;
     std::string path;
     std::string ver;
@@ -167,6 +174,23 @@ private:
         return false;
     }
 };
+
+inline int set_nonblocking(int fd)
+{
+    int flags;
+
+    /* If they have O_NONBLOCK, use the Posix way to do it */
+#if 1 //defined(O_NONBLOCK)
+    /* Fixme: O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5. */
+    if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+        flags = 0;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#else
+    /* Otherwise, use the old way of doing it */
+    flags = 1;
+    return ioctl(fd, FIOBIO, &flags);
+#endif
+}
 
 std::string unescape(const std::string& url)
 {
@@ -230,7 +254,7 @@ bool head_line_parse(H& head, std::string& l)
     return true;
 }
 
-bool httpreq::init(const std::string &first, const std::string& head, const std::string& body)
+bool request::init(const std::string &first, const std::string& head, const std::string& body)
 {
     method_line_parse(this->method, this->path, this->ver, first);
 
@@ -252,7 +276,7 @@ bool httpreq::init(const std::string &first, const std::string& head, const std:
 }
 
 template <typename I_>
-bool httpreq::makereq(I_ beg, I_ end)
+bool request::makereq(I_ beg, I_ end)
 {
     const char *cr = "\r\n\r\n";
 
@@ -295,7 +319,7 @@ bool httpreq::makereq(I_ beg, I_ end)
     return true;
 }
 
-bool httprsp::makersp(const char* begin, const char* end)
+bool response::makersp(const char* begin, const char* end)
 {
     const char *cr = "\r\n\r\n";
     const char* _body = std::search(begin, end, cr, cr+4);
@@ -337,7 +361,7 @@ bool httprsp::makersp(const char* begin, const char* end)
     hi = headval(this->head, "Content-Length");
     if (hi != this->head.end()) {
         // lexical_cast;
-        this->contentlength = atoi(hi->second.c_str());
+        this->contentlength = boost::lexical_cast<unsigned int>(hi->second);
     }
 
     this->body.assign(_body, end);
@@ -347,12 +371,13 @@ bool httprsp::makersp(const char* begin, const char* end)
     return true;
 }
 
-struct stepreq : httpreq {
+struct stepreq : request {
     // std::string first;
     int seconds;
 };
 
-struct wcstep {
+struct wcstep
+{
     struct stepreq req;
     // std::string method, path;
     // std::string head;
@@ -362,10 +387,16 @@ struct wcstep {
     std::vector<std::pair<std::string, std::string> > glex;
 };
 
-struct wcstat {
-    wcstat(unsigned int id_=0) : id(id_), maxdownload(0xffff), stepx(0), n_repeat(0) { }
+typedef int64_t clientid_type;
 
-    unsigned int id;
+static clientid_type logcid_ = 0;
+
+struct wcstat
+{
+    wcstat(clientid_type id_=0);
+    ~wcstat();
+
+    clientid_type cid;
 
     std::map<std::string, std::string> cookies;
 
@@ -380,26 +411,125 @@ struct wcstat {
     unsigned int stepx;
     unsigned int n_repeat;
 
-    // std::string imsi, smsc;
-
-    unsigned int _act_time; // TODO
+    unsigned int _atime; // TODO
 
     unsigned int _size_self; // TODO
+
+    void log(const std::string& cont, bool lself = false);
 };
 
-typedef unsigned int cid_t;
+wcstat::wcstat(clientid_type id_) : cid(id_), maxdownload(0xffff), stepx(0), n_repeat(0)
+{
+    if (this->cid == logcid_) {
+        time_t t = time(0);
+        this->log(ctime(&t));
+    }
+}
+wcstat::~wcstat()
+{
+    if (this->cid == logcid_) {
+        time_t t = time(0);
+        this->log(ctime(&t), true);
+    }
+}
+
+void wcstat::log(const std::string& msg, bool lself)
+{
+    using namespace std;
+
+    char fn[64];
+    sprintf(fn, "%lld.log", this->cid);
+
+    ofstream ofs(fn, ios::binary|ios::app);
+    if (ofs) {
+        if (lself) {
+            boost::archive::text_oarchive arc(ofs);
+            arc & *this;
+        }
+
+        if (!msg.empty()) {
+            ofs << msg;
+        }
+        ofs << "\n";
+    }
+}
+
+typedef std::list<wcstat>::iterator wcstat_iter;
+
 static std::list<wcstat> stats_;
-static std::map<unsigned int, std::list<wcstat>::iterator> stats_idx_;
+static std::map<clientid_type, wcstat_iter> stats_idx_;
 
-struct connection {
-    struct ev_io io;
+struct wcscoped
+{
+    typedef std::map<clientid_type, wcstat_iter>::iterator idx_iter;
 
-    struct httpreq req;
+    idx_iter iidx_;
+
+    wcscoped() : iidx_(stats_idx_.end()) {}
+
+    ~wcscoped();
+
+    wcstat& ref() {
+        iidx_->second->_atime = time(0);
+        return *iidx_->second;
+    }
+
+    wcstat& initref(clientid_type cid);
+
+    void unref() { iidx_ = stats_idx_.end(); }
+};
+
+wcscoped::~wcscoped()
+{
+    if (iidx_ != stats_idx_.end()) {
+        printf("\n#id=%x erased; Nrepeat %d\n", (unsigned int)iidx_->first, iidx_->second->n_repeat); // std::cout << "\n#" << iidx_->first << " erased, " << iidx_->second->n_repeat << "\n";
+
+        stats_.erase(iidx_->second);
+        stats_idx_.erase(iidx_);
+    }
+}
+
+wcstat& wcscoped::initref(clientid_type cid)
+{
+    std::pair<idx_iter, bool> ret = stats_idx_.insert(std::make_pair(cid, wcstat_iter()));
+    iidx_ = ret.first;
+
+    if (ret.second) {
+        stats_.push_front(wcstat(cid));
+        iidx_->second = stats_.begin();
+        printf("%llu new state\n", cid);
+    }
+    return ref();
+}
+
+
+struct wcreader : private wcscoped
+{
+    int events;
+    std::string buf;
+
+    clientid_type completed(struct request *req);
+    const char* commands(std::string& out, std::string& bodydata);
+
+public:
+    wcreader() : events(EV_READ) {}
+    int operator()(int fd, std::string& out);
+};
+
+#define MEMB_OFFSET(T, memb_name) ((int)&(((T*)0x10000)->memb_name) - 0x10000)
+#define GTHIS(memb_addr, T, memb_name) ((T*)((char*)(memb_addr) - MEMB_OFFSET(T, memb_name)))
+
+struct connection
+{
+    struct ev_io ev_io_;
+    struct ev_timer ev_timer_;
+
+    struct request req;
     // int _contlen;
 
     unsigned int _actime; // TODO
 
-    unsigned int cid;
+    // unsigned int cid;
     int trac;
     int _; //xpkg;
 
@@ -411,59 +541,145 @@ struct connection {
 
 	struct ev_loop *ev_loop;
 
-    connection(struct ev_loop *loop)
-        : ev_loop(loop) {
-        memset(&this->io, 0, sizeof(this->io));
-    }
+    struct wcreader reader;
 
-    ~connection() {
-        if (this->io.fd > 0) {
-            ev_io_stop(this->ev_loop, &this->io);
-            close(this->io.fd);
-            printf("%d closed\n", this->io.fd);
-        }
-    }
+public:
+    connection(struct ev_loop *loop, int fd);
+
+    ~connection();
+
+    void check() {}
+
+private:
+    static void cb_timer(struct ev_loop *loop, struct ev_timer *w, int revents);
+
+    static int _cb_read(connection *self, int fd);
+    static int _cb_write(connection *self, int fd);
+    static void cb_rdwr(struct ev_loop *loop, struct ev_io *_c, int revents);
 };
 
-struct wcscoped
+connection::connection(struct ev_loop *loop, int fd)
+    : ev_loop(loop)
 {
-    typedef std::list<wcstat>::iterator wcstat_iter;
-    typedef std::map<unsigned int, wcstat_iter>::iterator idx_iter;
+    memset(&this->ev_io_, 0, sizeof(this->ev_io_));
+    memset(&this->ev_timer_, 0, sizeof(this->ev_timer_));
 
-    idx_iter iidx_;
+    set_nonblocking(fd);
 
-    wcscoped() : iidx_(stats_idx_.end()) {}
+    ev_io_init(&this->ev_io_, cb_rdwr, fd, EV_READ);
+    ev_timer_init(&this->ev_timer_, cb_timer, 90, 0);
 
-    ~wcscoped() {
-        if (iidx_ != stats_idx_.end()) {
-            std::cout << "\n" << iidx_->first << " erased, " << iidx_->second->n_repeat << "\n";
+    ev_io_start(loop, &this->ev_io_);
+    ev_timer_start(loop, &this->ev_timer_);
+}
 
-            stats_.erase(iidx_->second);
-            stats_idx_.erase(iidx_);
+connection::~connection()
+{
+    if (this->ev_io_.fd > 0) {
+        ev_timer_stop(this->ev_loop, &this->ev_timer_);
+        ev_io_stop(this->ev_loop, &this->ev_io_);
+
+        close(this->ev_io_.fd);
+
+        printf("~connection %d\n", this->ev_io_.fd);
+    }
+    printf("#---#---#---#---#\n");
+}
+
+void connection::cb_timer(struct ev_loop *loop, struct ev_timer *w, int revents)
+{
+    time_t ct = time(0);
+    connection *self = GTHIS(w, struct connection, ev_timer_);
+
+    if (ct - self->_actime > 180) {
+        printf("#timeout %d - %d\n", (int)ct, (int)self->_actime);
+        delete self;
+        return;
+    }
+
+    ev_timer_stop(loop, w);
+    ev_timer_set(w, 60, 0);
+    ev_timer_start(loop, w);
+}
+
+int connection::_cb_read(connection *self, int fd) //(struct ev_loop *loop, struct ev_io *_c, int revents)
+{
+    try {
+        if (self->reader(fd, self->buf) < 0) {
+            return -1;
+        }
+
+    } catch (const std::exception& e) {
+        printf("read error %s\n", e.what());
+
+        return -4;
+    }
+    return 0;
+}
+
+// static int sendbuf(int fd, std::string &buf)
+// {
+//     int n;
+// 
+// 	while ( (n = send(fd, &buf[0], buf.size(), 0)) > 0) {
+//         buf.erase(buf.begin(), buf.begin() + n);
+//     }
+// 
+//     return n;
+// }
+
+int connection::_cb_write(connection *self, int fd) // (struct ev_loop *loop, struct ev_io * _c, int revents)
+{
+    int n;
+
+    if ( (n = send(fd, self->buf.data(), self->buf.size(), 0)) > 0) {
+        self->buf.erase(self->buf.begin(), self->buf.begin() + n);
+    } else if (n < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        }
+        perror("send");
+    }
+
+    return n;
+}
+
+void connection::cb_rdwr(struct ev_loop *loop, struct ev_io *_c, int revents)
+{
+    connection *self = GTHIS(_c, connection,ev_io_);
+    int evt = 0;
+    const char *err = "";
+
+    if ((revents & EV_READ) && (self->reader.events & EV_READ)) {
+        if (_cb_read(self, _c->fd) < 0) {
+            err = "read err";
+            goto ret_del;
         }
     }
 
-    wcstat& ref(int cid) {
-        std::pair<idx_iter, bool> ret = stats_idx_.insert(std::make_pair(cid, wcstat_iter()));
-        iidx_ = ret.first;
-
-        if (ret.second) {
-            stats_.push_front(wcstat());
-            iidx_->second = stats_.begin();
+    if (revents & EV_WRITE) {
+        if (_cb_write(self, _c->fd) < 0) {
+            err = "write err";
+            goto ret_del;
         }
-
-        iidx_->second->_act_time = time(0);
-
-        return *iidx_->second;
     }
 
-    void release() { iidx_ = stats_idx_.end(); }
-};
+    evt = (self->reader.events | (self->buf.empty() ? 0 : EV_WRITE));
+    if (evt) {
+        ev_io_stop(loop, &self->ev_io_);
+        ev_io_init(&self->ev_io_, cb_rdwr, _c->fd, evt);
+        ev_io_start(loop, &self->ev_io_);
+        self->_actime = time(0);
+        return;
+    }
+
+ret_del:
+    printf("%d: %x~%x %s\n", _c->fd, revents, evt, err);
+    delete self;
+}
 
 static void *init_listener(struct ev_io *ls, char *ipaddr, int port);
 static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents);
-static void cb_read(struct ev_loop *loop, struct ev_io *c, int revents);
-static void cb_write(struct ev_loop *loop, struct ev_io *c, int revents);
 // static void finalize(struct ev_loop *loop, struct connection *c, int code);
 
 static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents);
@@ -471,20 +687,53 @@ static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents)
 static void restore_stats(const char *filename);
 // static void signal_init(void);
 
-struct ev_loop *loop_;
+static struct ev_loop *loop_;
 
-int main(int argc, char **argv)
+static unsigned short port_ = 8000;
+static const char *arc_ = "wserver.arc";
+
+static void set_options(int argc, char *argv[])
 {
-	struct ev_io listener;
+    int bg = 0;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string opt(argv[i]);
+
+        if (opt == "-p") {
+            if (++i < argc)
+                port_ = atoi(argv[i]);
+        } else if (opt == "-a") {
+            if (++i < argc)
+                arc_ = argv[i];
+        } else if (opt == "-d") {
+            if (++i < argc)
+                chdir(argv[i]);
+        } else if (opt == "-b") {
+            bg = 1;
+        }
+    }
+
+    signal(SIGHUP, SIG_IGN);
+    if (bg) {
+        daemon(1, 0);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    struct ev_io listener;
     struct ev_signal sigterm, sigint;
     struct ev_signal sigusr1;
 
+    set_options(argc, argv);
+    restore_stats(arc_);
+
     loop_ = ev_loop_new(EVBACKEND_EPOLL);
 
-    if (argc == 2) {
-        restore_stats(argv[1]);
+    if (!init_listener(&listener, 0, port_)) {
+        return 1;
     }
-    // signal_init();
+    printf("listen on ... %d\n", port_);
 
     ev_signal_init(&sigint, cb_sigterm, SIGINT);
     ev_signal_init(&sigterm, cb_sigterm, SIGTERM);
@@ -494,70 +743,48 @@ int main(int argc, char **argv)
     ev_signal_start(loop_, &sigterm);
     ev_signal_start(loop_, &sigusr1);
 
-    if (!init_listener(&listener, 0, PORT)) {
-        return 1;
-    }
-    printf("listen on ... %d\n", PORT);
+    ev_io_start(loop_, &listener);
 
-	ev_io_start(loop_, &listener);
-
-	ev_loop(loop_, 0);
+    ev_loop(loop_, 0);
 
     close(listener.fd);
-	ev_loop_destroy(loop_);
+    ev_loop_destroy(loop_);
 
-	return 0;
+    return 0;
 }
-
-inline int set_nonblocking(int fd)
-{
-    int flags;
-
-    /* If they have O_NONBLOCK, use the Posix way to do it */
-#if 1 //defined(O_NONBLOCK)
-    /* Fixme: O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5. */
-    if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
-        flags = 0;
-    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-#else
-    /* Otherwise, use the old way of doing it */
-    flags = 1;
-    return ioctl(fd, FIOBIO, &flags);
-#endif
-}     
 
 static void *init_listener(struct ev_io *ls, char *ipaddr, int port)
 {
-	struct sockaddr_in sa;
-	int fd;
+    struct sockaddr_in sa;
+    int fd;
 
-	if ( (fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		perror("socket");
-		exit(1);
-	}
+    if ( (fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("socket");
+        exit(1);
+    }
 
     int val = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
     set_nonblocking(fd);
 
-	bzero(&sa, sizeof(sa));
-	sa.sin_family = PF_INET;
-	sa.sin_port = htons(PORT);
-	sa.sin_addr.s_addr = INADDR_ANY; //inet_addr(ADDR_IP);
+    bzero(&sa, sizeof(sa));
+    sa.sin_family = PF_INET;
+    sa.sin_port = htons(port_);
+    sa.sin_addr.s_addr = INADDR_ANY; //inet_addr(ADDR_IP);
 
-	if (bind(fd, (struct sockaddr *)&sa, sizeof(struct sockaddr)) < 0) {
-		perror("bind");
-		exit(1);
-	}
+    if (bind(fd, (struct sockaddr *)&sa, sizeof(struct sockaddr)) < 0) {
+        perror("bind");
+        exit(1);
+    }
 
-	if (listen(fd, 1024) < 0) {
-		perror("listen");
-		exit(1);
-	}
+    if (listen(fd, 1024) < 0) {
+        perror("listen");
+        exit(1);
+    }
 
-	ev_io_init(ls, cb_accept, fd, EV_READ);
+    ev_io_init(ls, cb_accept, fd, EV_READ);
 
-	return ls;
+    return ls;
 }
 
 static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
@@ -567,16 +794,13 @@ static void cb_accept(struct ev_loop *loop, struct ev_io *ls, int revents)
 	int newfd;
 
 	while ( (newfd = accept(ls->fd, (struct sockaddr *)&sa, &salen)) >= 0) {
-        struct connection *c = new connection(loop);
-
-        set_nonblocking(newfd);
-
-        ev_io_init(&c->io, cb_read, newfd, EV_READ);
-        ev_io_start(loop, &c->io);
+        struct connection *c = new connection(loop, newfd);
+        c->check();
 
         char ap[32];
 
-        std::cout << "from: " << ls->fd << "/" << inet_ntop(AF_INET, &sa.sin_addr, ap, 32) << "\n";
+        printf("#accept %d/%s\n", newfd, inet_ntop(AF_INET, &sa.sin_addr, ap, 32));
+        // std::cout << "#accept " << ls->fd << "/" << inet_ntop(AF_INET, &sa.sin_addr, ap, 32) << "\n";
 	}
 
     if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -617,7 +841,7 @@ static void set_cookies(M_& map, H_& hds)
     }
 }
 
-static bool cookie(std::map<std::string, std::string>& cookies, const std::string &cval)
+static bool cookie_parse(std::map<std::string, std::string>& cookies, const std::string &cval)
 {
     std::string::const_iterator it;
     std::string::const_iterator beg = cval.begin();
@@ -640,62 +864,24 @@ static bool cookie(std::map<std::string, std::string>& cookies, const std::strin
     return true;
 }
 
-static bool completed(struct connection *c, struct httpreq *req, std::string &data)
-{
-    if (data.size() > 1024 * 32) {
-        throw std::logic_error("Too large req");
-    }
-
-    if (!req->makereq(data.begin(), data.end())) {
-        return false;
-    }
-
-    head_iterator hi = headval(req->head, "Cookie"); //getk("Cookie", req->head);
-    if (hi != req->head.end()) {
-        std::map<std::string, std::string> cookies;
-
-        if (!cookie(cookies, hi->second)) {
-            throw std::logic_error("Cookie error");
-        }
-
-        std::map<std::string, std::string>::iterator ick = cookies.find("ck");;
-        if (ick == cookies.end()) {
-            throw std::logic_error("Cookie ck error");
-        }
-
-        c->cid = atoi(ick->second.c_str());
-
-        // std::string& ck = ick->second;
-        // if (std::count(ck.begin(), ck.end(), '/') < 2) {
-        //     throw std::logic_error("Cookie ck val error");
-        // }
-
-        // std::replace(ck.begin(), ck.end(), '/', ' ');
-        // std::istringstream sck(ck);
-        // sck >> c->cid >> c->trac;
-    }
-
-    return true;
-}
-
 template <typename C_, typename I_>
 static C_& assign_rsp(C_& rsp, int code, const char *shd, I_ beg, I_ end) // (std::vector<char>& rsp, std::vector<char>& body)
 {
-    // "Date: Tue, 24 Jul 2012 07:53:48 GMT\r\n"
+    printf("\nHTTP/1.1 %d %s\n\n", code, shd);
+
     std::ostringstream o;
 
     o << "HTTP/1.1 " << code << " " << shd << "\r\n"
-        "Server: nginx/1.0.11\r\n"
-        "Content-Type: application/octet-stream\r\n"
-        "Set-Cookie: cj=7f/0/0; ci=100010/100011/100012; Domain=ws.pkingame.net; Path=/\r\n"
-        << "Content-Length: " << std::distance(beg, end) << "\r\n\r\n";
+        "Server: nginx/1.0.11" "\r\n"
+        "Content-Type: application/octet-stream" "\r\n"
+        "Set-Cookie: ck=100010/100011/100012; Domain=ws.pkingame.net; Path=/" "\r\n"
+        "Content-Length: " << std::distance(beg, end) << "\r\n"
+        "\r\n";
 
     const std::string& s = o.str();
-
-    std::cout << "\n" << s;
+    // printf("\n%s", s.c_str()); // std::cout << "\n" << s;
 
     rsp.assign(s.begin(), s.end());
-
     if (beg < end) {
         rsp.insert(rsp.end(), beg, end);
     }
@@ -722,9 +908,13 @@ void part_add(std::string &out, const char* chn, int seconds, int trac, bool inc
 
     std::ostringstream o;
     o << chn << " size=" << cont.size() << " gap=" << seconds << " trac=" << trac << " inc_body=" << inc_body << " maxd=" << wc.maxdownload << "\r\n";
-    out += o.str(); // out.insert(out.end(), s.begin(), s.end());
-    out += cont; // out.insert(out.end(), cont.begin(), cont.end());
-    out += "\r\n\r\n"; // out.insert(out.end(), eoh, eoh + 4);
+
+    const std::string& h = o.str();
+    out += h;
+    out += cont;
+    out += "\r\n\r\n";
+
+    printf("%s", h.c_str());
 }
 
 static std::string step_go(struct stepreq& req, bool inc_body, wcstat& wc, int trac)
@@ -759,7 +949,11 @@ static std::string step_go(struct stepreq& req, bool inc_body, wcstat& wc, int t
         for (++i; i != wc.cookies.end(); ++i) {
             o << "; " << i->first << "=" << i->second;
         }
-        part += headline("Cookies", o.str()); // s = o.str(); // part.insert(part.end(), s.begin(), s.end());
+
+        const std::string& co = o.str();
+        printf("Cookies %s", co.c_str());
+
+        part += headline("Cookies", co); // s = o.str(); // part.insert(part.end(), s.begin(), s.end());
     }
 
     std::string tmp = subst(req.body, wc.vars);
@@ -799,7 +993,7 @@ static std::string step_fwd(struct wcstat& wc, int stepidx)
 }
 
 // template <typename I_>
-// static bool is_utf8_doc(struct httprsp &rsp, I_ beg, I_ end)
+// static bool is_utf8_doc(struct response &rsp, I_ beg, I_ end)
 // {
 //     if (!rsp.contenttype.empty() && rsp.charset == "UTF-8") {
 //         return true;
@@ -818,7 +1012,7 @@ static std::string step_fwd(struct wcstat& wc, int stepidx)
 // }
 
 template <typename C_>
-bool _3xx_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcstat& wc, int trac)
+bool _3xx_fwd(C_& rspbuf, struct response& rsp, struct stepreq& sreq, struct wcstat& wc, int trac)
 {
     head_iterator hi = headval(rsp.head, "Location");
     if (hi == rsp.head.end() || hi->second.empty()) {
@@ -836,7 +1030,7 @@ bool _3xx_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcst
 }
 
 template <typename C_>
-static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struct wcstat& wc, int trac)
+static C_* auto_fwd(C_& rspbuf, struct response& rsp, struct stepreq& sreq, struct wcstat& wc, int trac)
 {
     // <?xml*<card*中国移动提醒*GPRS通信费*确认*href='$'
     // <?xml*<card*onenterforward*href=\"$\"
@@ -889,7 +1083,7 @@ static C_* auto_fwd(C_& rspbuf, struct httprsp& rsp, struct stepreq& sreq, struc
 //     // vars["IMEI"] = c->imei;
 // }
 
-static const char* wapnext(struct connection *c, struct wcstat& cst, const char *body, const char *end, int stepidx)
+static const char* wapnext(std::string& out, struct wcstat& wc, const char *body, const char *end, int stepidx)
 {
     const char *begin;
     const char *cr = "\r\n\r\n";
@@ -902,16 +1096,16 @@ static const char* wapnext(struct connection *c, struct wcstat& cst, const char 
     }
     begin += 4; // body += 4;
 
-    struct httprsp rsp;
+    struct response rsp;
 
     if (!rsp.makersp(begin, end)) {
         return "Bad head";
     }
 
-    set_cookies(cst.cookies, rsp.head); //it, jt);
+    set_cookies(wc.cookies, rsp.head); //it, jt);
 
     if (rsp.code >= 300 && rsp.code < 400) {
-        if (!_3xx_fwd(c->buf, rsp, cst.steps[stepidx - 1].req, cst, stepidx)) {
+        if (!_3xx_fwd(out, rsp, wc.steps[stepidx - 1].req, wc, stepidx)) {
             return "E302";
         }
         return 0;
@@ -924,24 +1118,24 @@ static const char* wapnext(struct connection *c, struct wcstat& cst, const char 
         // }
         // if (is_utf8_doc(rsp, jt, c->req.body.end()))
 
-        if (auto_fwd(c->buf, rsp, cst.steps[stepidx - 1].req, cst, stepidx)) {
+        if (auto_fwd(out, rsp, wc.steps[stepidx - 1].req, wc, stepidx)) {
             return 0;
         }
 
-        if ((size_t)stepidx > 0 && (size_t)stepidx < cst.steps.size()) {
-            struct wcstep& step = cst.steps[stepidx - 1];
+        if ((size_t)stepidx > 0 && (size_t)stepidx < wc.steps.size()) {
+            struct wcstep& step = wc.steps[stepidx - 1];
 
             for (head_iterator i = step.glex.begin(); i != step.glex.end(); ++i) {
-                std::string& sval = cst.vars[i->first];
+                std::string& sval = wc.vars[i->first];
                 // TODO: ? continue
-                std::cout << "Ex: " << i->first << " {" << i->second << "}";
+                printf("Ex: %s {%s}", i->first.c_str(), i->second.c_str());
                 sval = glex(i->second, rsp.body.begin(), rsp.body.end());
-                std::cout << "result: " << i->first << " {" << sval << "}\n";
+                printf("result %s {%s}\n", i->first.c_str(), sval.c_str()); // std::cout << "result: " << i->first << " {" << sval << "}\n";
             }
         }
     }
 
-    c->buf = step_fwd(cst, stepidx);
+    out = step_fwd(wc, stepidx);
 
     return 0;
 }
@@ -1035,10 +1229,8 @@ std::string pop_string(struct probuf *buf)
     return std::string(s.begin(), s.end());
 }
 
-static const char *wapinit(struct connection *c, struct wcstat &wc, const char* body, const char* end)
+static const char *wapinit(std::string& out, struct wcstat &wc, const char* body, const char* end)
 {
-    wc = wcstat(c->cid);
-
     struct probuf pbuf(body, end);
 
     int32_t idcode;
@@ -1059,7 +1251,8 @@ static const char *wapinit(struct connection *c, struct wcstat &wc, const char* 
         std::string qhead = pop_string<int16_t,int16_t>(&pbuf) + "\r\n\r\n";
         std::string qbody = pop_string<int16_t,int16_t>(&pbuf);
 
-        std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n";
+        printf("step %d:\n%s%s%s\n", i, qfirst.c_str(), qhead.c_str(), qbody.c_str());
+        // std::cout << "step " << i << ":\n" << qfirst << qhead << qbody << "\n";
 
         step.req.init(qfirst, qhead, qbody);
 
@@ -1071,26 +1264,27 @@ static const char *wapinit(struct connection *c, struct wcstat &wc, const char* 
             std::string ex = pop_string<uint8_t,int16_t>(&pbuf);
             step.glex.push_back(std::make_pair(kw, ex));
 
-            std::cout << "Ex: " << kw << " {" << ex << "}\n";
+            printf("Ex: %s {%s}\n", kw.c_str(), ex.c_str());
         }
 
         step.req.seconds = pop_int<int16_t>(&pbuf);
 
         wc.steps.push_back(step);
-        std::cout << "seconds " << step.req.seconds << "\n";
+        printf("seconds %d\n", step.req.seconds); // std::cout << "seconds " << step.req.seconds << "\n";
     }
 
     wc.n_repeat = pop_int<uint8_t>(&pbuf);
+    pop_int<uint16_t>(&pbuf); // Not used seconds
     if (wc.n_repeat == 0 || wc.n_repeat > 8) {
         return "Repeat count error";
     }
-    std::cout << "Nstep " << nstep << ", Nrepeat " << wc.n_repeat << "\n";
+    printf("Nstep %d, Nrepeat %d\n", nstep, wc.n_repeat); // std::cout << "Nstep " << nstep << ", Nrepeat " << wc.n_repeat << "\n";
 
     // sm filter
     if (pbuf.size() > 0) {
         const char *begin = pbuf.data;
-
-        for (int i = 0, n = pop_int<uint8_t>(&pbuf); i < n; ++i) {
+int n = pop_int<uint8_t>(&pbuf);
+        for (int i = 0; i < n; ++i) {
             pop_string<uint8_t,int8_t>(&pbuf); // num-pat
             pop_string<uint8_t,int16_t>(&pbuf); // cont-pat
             pop_int<int16_t>(&pbuf); // duration
@@ -1098,9 +1292,11 @@ static const char *wapinit(struct connection *c, struct wcstat &wc, const char* 
 
         wc.smblock.assign((char*)&idcode, sizeof(idcode));
         wc.smblock.insert(wc.smblock.end(), begin, pbuf.data);
+
+        printf("smfl %d %d %d\n", n, pbuf.data - begin, wc.smblock.size());
     }
 
-    c->buf = step_fwd(wc, 0);
+    out = step_fwd(wc, 0);
 
     return 0;
 }
@@ -1137,18 +1333,6 @@ std::string first_tok(std::pair<I,I> *pcs)
 
     ss >> s;
     return s;
-
-    // char *p = pcs->first;
-    // if (p < pcs->second && isspace(*p))
-    //     ++p;
-    // if (p == pcs->second)
-    //     return "";
-
-    // pcs->first = p + 1;
-    // if (pcs->first < pcs->second && !isspace(*pcs->first))
-    //     ++pcs->first;
-
-    // return std::string(p, pcs->first);
 }
 
 template <typename I>
@@ -1166,23 +1350,12 @@ std::ostream& operator<<(std::ostream& out, const std::pair<I,I>& p)
     return out;
 }
 
-static const char* setup_rsp(struct connection *c, std::string& bodydata)
+const char* wcreader::commands(std::string& out, std::string& bodydata)
 {
-    if (bodydata.empty()) {
-        return "No data";
-    }
-
-    wcscoped scoped;
-    wcstat& wc = scoped.ref(c->cid);
-
-    // std::istringstream ss(bodydata);
-
-    // infp.first = bodydata.data();
-    // infp.second = infp.first + bodydata.size();
-    // infp.first = skipspace(bodydata.data(), infp.second);
-    // infp.second = std::find(infp.first, infp.second + bodydata.size(), '\n');
+    wcstat& wc = this->ref();
 
     std::pair<const char*,const char*> cmdp, val;
+    std::map<std::string, std::string> vars;
 
     const char *realend = bodydata.data() + bodydata.size();
     cmdp.first = bodydata.data();
@@ -1193,12 +1366,13 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
             ++cmdp.second;
         }
 
-        if (cmdp.first >= cmdp.second)
+        if (cmdp.first >= cmdp.second) {
             break;
+        }
 
         const char *endc = cmdp.second;
 
-        std::cout << cmdp << "\n";
+        fwrite(cmdp.first, 1, cmdp.second - cmdp.first, stdout); // std::cout << cmdp << "\n";
 
         if (value_p(&val, "size", cmdp)) {
             endc += atoi(val.first);
@@ -1215,137 +1389,149 @@ static const char* setup_rsp(struct connection *c, std::string& bodydata)
                 return "Ch vars error";
             }
 
-            wc.vars["IMEI"].assign(imei.first, imei.second);
-            wc.vars["IMSI"].assign(imsi.first, imsi.second);
-            wc.vars["SMSC"].assign(smsc.first, smsc.second);
+            vars["IMEI"].assign(imei.first, imei.second);
+            vars["IMSI"].assign(imsi.first, imsi.second);
+            vars["SMSC"].assign(smsc.first, smsc.second);
 
-        } else {
+            wc.vars.insert(vars.begin(), vars.end());
+
+        } else if (cname == "Ch-Response" || cname == "Ch-Init") {
             unsigned int trac;
 
             if ( !value_p(&val, "trac", cmdp)) {
                 return "trac error";
             }
             trac = atoi(val.first);
-            printf("ck=%d steps %d/%d \n", c->cid, trac, wc.steps.size());
+            printf("ck=%llu steps %d/%d \n", wc.cid, trac, wc.steps.size());
 
             if (cname == "Ch-Init") {
                 if (trac != 0) {
                     return "trac should zero";
                 }
-                wapinit(c, wc, cmdp.second, endc);
+
+                wc = wcstat(wc.cid);
+                wc.vars = vars;
+                wapinit(out, wc, cmdp.second, endc);
 
             } else if (cname == "Ch-Response") {
                 if (trac == 0 || trac > wc.steps.size()) {
                     return "trac val error";
                 }
 
-                wapnext(c, wc, cmdp.second, endc, trac);
+                wapnext(out, wc, cmdp.second, endc, trac);
             }
         }
 
         cmdp.first = endc;
-        // infp.second = std::find(ends, bodydata.data() + bodydata.size(), '\n');
     }
-    scoped.release();
 
     return 0;
-    // begin = NXTFIELD(cname, end);
-
-    // // Ch-Variable
-    // //
-
-    // // Ch-Init
-    // //
-
-    // // Ch-Response
-    // //
-
-    // // const char *cr = "\r\n\r\n";
-    // // if ( (body = std::search(begin, end, cr, cr+4)) == end) {
-    // //     return "Bad body";
-    // // }
-    // // body += 4;
-
-    // std::map<unsigned int, struct cstat>::iterator it = stats_.find(c->cid);
-    // if (it == stats_.end()) {
-    //     return wapinit(c, body, end);
-    // }
-
-    // scoped_eraser<std::map<unsigned int, struct cstat> > scoped(stats_, it);
-
-    // if ((ret = wapnext(c, it->second, body, end)) == 0 && it->second.n_repeat > 0) {
-    //     scoped.release();
-    // }
-
-    // // if (c->trac == 0)
-    // // {
-    // //     return "trac == 0 error";
-    // // }
-    // // // if (it->second.stepx < 1) { return "Invalid step"; }
-
-    // // const char *ret = rspnext(c, it->second, begin, body, end);
-
-    // // if (ret == 0 && it->second.n_repeat > 0)
-    // // {
-    // //     scoped.release();
-    // // }
-
-    // return ret;
 }
 
-static int recvbuf(std::string& buf, int fd)
+static int recvbuf(std::string& buf, int fd) // throw
 {
-    int n, siz;
+    size_t siz = buf.size();
 
-    siz = buf.size();
-    n = buf.capacity() - siz;
-
-    n = std::max(n, 1024*8);
-    buf.resize(siz + n);
-
-    while ( (n = recv(fd, &buf[siz], n, 0)) > 0) {
-        buf.resize(siz + n);
+    int n, nr = 0;
+    char tmpbuf[4096];
+    while ( (n = recv(fd, &tmpbuf[0], sizeof(tmpbuf), 0)) > 0) {
+        buf.insert(buf.end(), &tmpbuf[0], &tmpbuf[n]);
+        ++nr;
     }
 
-    return n;
+    if (n < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            n = (int)(buf.size() - siz);
+            goto nxt_pos;
+        }
+        perror("recv");
+        throw std::logic_error(strerror(errno));
+    }
+nxt_pos:
+
+    printf("%d +++ %d, %d\n", siz, buf.size(), nr);
+
+    return n; //(int)(buf.size() - siz);
 }
 
-static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
+clientid_type wcreader::completed(struct request *req)
 {
-    struct connection *c = (struct connection*)_c;
-    int fd = _c->fd;
+    if (this->buf.size() > 1024 * 32) {
+        throw std::logic_error("Too large req");
+    }
+
+    if (!req->makereq(this->buf.begin(), this->buf.end())) {
+        return 0;
+    }
+
+    head_iterator hi = headval(req->head, "Cookie"); //getk("Cookie", req->head);
+
+    if (hi == req->head.end()) {
+        throw std::logic_error("ck not found");
+    }
+
+    std::map<std::string, std::string> cookies;
+
+    if (!cookie_parse(cookies, hi->second)) {
+        throw std::logic_error("Cookie error");
+    }
+
+    std::map<std::string, std::string>::iterator ick = cookies.find("ck");;
+    if (ick == cookies.end()) {
+        throw std::logic_error("Cookie ck error");
+    }
+    printf("cid %s %s\n", hi->second.c_str(), ick->second.c_str());
+
+    return boost::lexical_cast<clientid_type>(ick->second);
+}
+
+int wcreader::operator()(int fd, std::string& out)
+{
 	int n;
 
-    if ( (n = recvbuf(c->buf, fd)) < 0) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("recv");
-            delete c;
-            return;
-        }
-	} else if (n == 0) {
+    if ( (n = recvbuf(this->buf, fd)) == 0) {
         printf("peer-closed %d\n", fd);
     }
 
+    struct stepreq req;
+
     try {
-        if (!completed(c, &c->req, c->buf)) {
-            if (n == 0 || c->buf.size() > 1023 * 32) {
-                printf("Recv size error %d || %u\n", n, c->buf.size());
-                delete c;
+        clientid_type cid;
+
+        if ( (cid = this->completed(&req)) == 0) {
+            if (n == 0 || this->buf.size() > 1024 * 128) {
+                printf("Recv size error %d || %u\n", n, this->buf.size());
+                return -2;
             }
-            return;
+            return 0;
         }
-        printf("recv %d completed\n", fd);
+        if (req.body.empty()) {
+            return -3;
+        }
+
+        this->events = 0;
+        wcstat& c0 = this->initref(cid);
+
+        if (c0.cid == logcid_) { c0.log(this->buf); }
+
+        printf("recv %d %lld completed\n", fd, cid);
+
     } catch (const std::exception& e) {
-        printf("not complete %s\n", e.what());
-        delete c;
-        return;
+        printf("fail completed %s\n", e.what());
+        return -3;
     }
 
     const char *err = 0;
     std::string _err;
 
+    wcstat& wc = this->ref();
+
     try {
-        err = setup_rsp(c, c->req.body);
+        err = commands(out, req.body);
+        if (!err && wc.n_repeat > 0) {
+            this->unref();
+        }
+
     } catch (const std::exception &e) {
         _err = e.what();
         err = _err.c_str();
@@ -1353,47 +1539,12 @@ static void cb_read(struct ev_loop *loop, struct ev_io *_c, int revents)
 
     if (err) {
         const char *bye = "bye.";
-        std::cout << "\n";
-        assign_rsp(c->buf, 501, err, bye,bye+4);
-        // TODO: log c->req
+        assign_rsp(out, 501, err, bye,bye+4);
     }
 
-    ev_io_stop(loop, &c->io);
-    ev_io_init(&c->io, cb_write, fd, EV_WRITE);
-    ev_io_start(loop, &c->io);
+    if (wc.cid == logcid_) { wc.log(out); }
 
-}
-
-static int sendbuf(int fd, std::string &buf)
-{
-    int n;
-
-	while ( (n = send(fd, &buf[0], buf.size(), 0)) > 0) {
-        buf.erase(buf.begin(), buf.begin() + n);
-    }
-
-    return n;
-}
-
-static void cb_write(struct ev_loop *loop, struct ev_io * _c, int revents)
-{
-    struct connection *c = (struct connection*)_c;
-    int fd = _c->fd;
-    int n;
-
-    if ( (n = sendbuf(fd, c->buf)) < 0) { // if ( (n = send(fd, c->rsp.ptr, c->rsp.end - c->rsp.ptr, 0)) < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            return;
-        }
-        perror("send");
-        delete c;
-        return;
-    }
-
-    if (c->buf.empty()) { //c->rsp.ptr >= c->rsp.end) {
-        delete c;
-        std::cout << "#---#---#---#---#\n";
-    }
+    return 1;
 }
 
 // static void finalize(struct ev_loop *loop, struct connection *c, int code)
@@ -1416,7 +1567,7 @@ namespace boost {
     namespace serialization {
 
         template<class Archive>
-        void serialize(Archive & ar, httpreq & o, const unsigned int version)
+        void serialize(Archive & ar, request & o, const unsigned int version)
         {
             ar & o.method;
             ar & o.path;
@@ -1431,7 +1582,7 @@ namespace boost {
         template<class Archive>
         void serialize(Archive & ar, stepreq & o, const unsigned int version)
         {
-            ar & boost::serialization::base_object<httpreq>(o);
+            ar & boost::serialization::base_object<request>(o);
             ar & o.seconds;
         }
 
@@ -1445,7 +1596,7 @@ namespace boost {
         template<class Archive>
         void serialize(Archive & ar, wcstat & o, const unsigned int version)
         {
-            ar & o.id;
+            ar & o.cid;
             ar & o.cookies;
             ar & o.vars;
             ar & o.smblock;
@@ -1453,38 +1604,44 @@ namespace boost {
             ar & o.maxdownload;
             ar & o.stepx;
             ar & o.n_repeat;
-            ar & o._act_time;
+            ar & o._atime;
             ar & o._size_self;
         }
 
     } // namespace serialization
 } // namespace boost
 
+// std::ofstream ofs_;
+// std::streambuf *orig_outbuf_ = 0;
 
-// static void sig_save_stats(int sig, siginfo_t *siginfo, void *context)
-// {
-//     std::ofstream ofs("chs.arc");
-//     if (ofs) {
-//         boost::archive::binary_oarchive oa(ofs);
-//         oa << stats_;
-//     }
-// }
+// inline boost::format fmt(const char *s) { return boost::format(s); }
+// std::cout << fmt("%1 %2 %3") % 1 % 2 % 3;
 
 static void cb_sigusr1(struct ev_loop *loop, struct ev_signal *sig, int revents)
 {
+    std::ifstream ifs("/tmp/cid");
+    if (ifs) {
+        ifs >> logcid_;
+    }
+}
+
+static void save_arc(const char *fn)
+{
     using namespace std;
 
-    ofstream ofs("ch.arc", ios::binary|ios::trunc|ios::out);
+    ofstream ofs(fn, ios::binary|ios::trunc|ios::out);
     if (ofs) {
         boost::archive::binary_oarchive arc(ofs);
         arc << stats_;
 
-        cout << "stats saved\n";
+        printf("%s saved\n", fn);
     }
 }
+
 static void cb_sigterm(struct ev_loop *loop, struct ev_signal *sig, int revents)
 {
-    cb_sigusr1(loop, sig, revents);
+    save_arc(arc_);
+
     ev_unloop(loop_, EVUNLOOP_ALL);
 }
 
@@ -1501,10 +1658,10 @@ static void restore_stats(const char *filename)
         for (std::list<wcstat>::iterator it = stats_.begin();
                 it != stats_.end();
                 ++it) {
-            stats_idx_[it->id] = it;
+            stats_idx_[it->cid] = it;
         }
 
-        cout << "stats restored; from " << filename << "\n";
+        printf("stats restored; from %s\n", filename); // cout << "stats restored; from " << filename << "\n";
     }
 } 
 
@@ -1526,4 +1683,20 @@ static void restore_stats(const char *filename)
 // 	}
 // 
 // }
+
+
+// static void
+// one_minute_cb (struct ev_loop *loop, ev_timer *w, int revents)
+// {
+//   // .. one minute over, w is actually stopped right here
+//     ev_timer_stop (loop, timer);
+//     ev_timer_set (timer, 60., 0.);
+//     ev_timer_start (loop, timer);
+// 
+// }
+// 
+// ev_timer mytimer;
+// ev_timer_init (&mytimer, one_minute_cb, 60., 0.);
+// ev_timer_start (loop, &mytimer);
+
 

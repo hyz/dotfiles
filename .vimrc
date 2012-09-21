@@ -15,7 +15,8 @@ set completeopt=longest,menu
 
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 
-set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
+" set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
+set fileencodings=UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
 
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include

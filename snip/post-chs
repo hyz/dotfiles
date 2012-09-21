@@ -1,16 +1,19 @@
 #!/bin/sh
 
 trac=$1
-fn=$2
+afile=$2
 host=${3:-192.168.1.151}
 port=${4:-8000}
 
-if [ $# -lt 2 -o ! -f "$fn" ]; then
+imsi=${IMSI:-460028118651432}
+sn=${SN:-11}
+
+if [ $# -lt 2 -o ! -f "$afile" ]; then
     exit 1
 fi
-# echo $trac $fn $host $port
+echo $trac $afile $host $port
 
-clen=`stat -c "%s" $fn`
+fsize=`stat -c "%s" $afile`
 
 # echo -ne "POST http://ws.pkingame.net:8000/ig/chs HTTP/1.1\r\n"
 # echo -ne "Content-Type: application/octet-stream\r\n"
@@ -19,7 +22,7 @@ clen=`stat -c "%s" $fn`
 # echo -ne "Content-Length: $clen\r\n"
 # echo -ne "\r\n"
 # 
-# cat $fn
+# cat $afile
 
 # POST /ig/chs HTTP/1.1
 # Host: ws.pkingame.net:8000
@@ -35,11 +38,23 @@ clen=`stat -c "%s" $fn`
 # x-up-bear-type: GPRS/EDGE
 # accept: */*
 
+cmd=Ch-Response
+if [ $trac = 0 ]; then
+    cmd=Ch-Init
+fi
+
+echo -ne "Ch-Variables IMEI=357470005665264 IMSI=$imsi SMSC=+8613800755500\r\n\r\n \r\n" >/tmp/chp
+echo -ne "$cmd trac=$trac size=$fsize\r\n" >>/tmp/chp
+cat $afile >>/tmp/chp
+echo -ne "Ch-Variables IMEI=357470005665264 IMSI=$imsi SMSC=+8613800755500\r\n" >>/tmp/chp
+
+clen=`stat -c "%s" /tmp/chp`
+
 echo -ne "POST /ig/chs HTTP/1.1\r\n"\
 "Host: ws.pkingame.net:8000\r\n"\
 "Content-Type: application/octet-stream\r\n"\
-"Cookie: cj=685322241/$trac/$trac; ci=357470005665264/460029194251377/+8613800755500\r\n"\
+"Cookie: ck=$imsi\r\n"\
 "Content-Length: $clen\r\n"\
 "accept: */*\r\n"\
-"\r\n" | cat - $fn |nc $host $port
+"\r\n" | cat - /tmp/chp |nc $host $port
 

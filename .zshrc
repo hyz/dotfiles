@@ -56,3 +56,6 @@ alias er='explorer "`cygpath -w $(pwd)`" &'
 
 # limit coredumpsize 0
 
+export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
+# /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
+

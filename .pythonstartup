@@ -8,27 +8,27 @@
 # Note that PYTHONSTARTUP does *not* expand "~", so you have to put in the
 # full path to your home directory.
 
-import atexit
-import os
-import readline
-import rlcompleter
-import sys
-
-# change autocomplete to tab
-readline.parse_and_bind("tab: complete")
-readline.set_history_length(10000)
-
-hisfile = os.path.expanduser("~/.python_history")
-
-def save_history(hisfile=hisfile):
-    import readline
-    readline.write_history_file(hisfile)
-
-if os.path.exists(hisfile):
-    readline.read_history_file(hisfile)
-
-atexit.register(save_history)
-
-# anything not deleted (sys and os) will remain in the interpreter session
-del atexit, readline, rlcompleter, save_history, hisfile
+# import atexit
+# import os
+# import readline
+# import rlcompleter
+# import sys
+# 
+# # change autocomplete to tab
+# readline.parse_and_bind("tab: complete")
+# readline.set_history_length(10000)
+# 
+# hisfile = os.path.expanduser("~/.python_history")
+# 
+# def save_history(hisfile=hisfile):
+#     import readline
+#     readline.write_history_file(hisfile)
+# 
+# if os.path.exists(hisfile):
+#     readline.read_history_file(hisfile)
+# 
+# atexit.register(save_history)
+# 
+# # anything not deleted (sys and os) will remain in the interpreter session
+# del atexit, readline, rlcompleter, save_history, hisfile
 
