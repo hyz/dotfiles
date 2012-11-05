@@ -5,7 +5,7 @@ export XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE="ibus"
 export QT_IM_MODULE="xim"
 
-ibus-daemon -d -x
+# ibus-daemon -d -x
 # fcitx &
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
@@ -16,7 +16,8 @@ ibus-daemon -d -x
 #gnome-volume-manager &
 #conky &
 
-xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+#xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 #xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
 #/home/wjy/bin/x-session-rc &
 
