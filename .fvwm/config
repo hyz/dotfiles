@@ -136,9 +136,11 @@ MenuStyle * ItemFormat "%.2|%.5i%.5l%.5i%2.3>%2|"
 
 ColormapFocus FollowsFocus
 
-# Window styles
-Colorset 2 fg #888888, bg black, IconAlpha 40
-Colorset 3 fg white, bg black, fgsh black, IconAlpha 100
+### Window styles
+# Colorset 2 fg #888888, bg black, IconAlpha 40
+# Colorset 3 fg white, bg black, fgsh black, IconAlpha 100
+Colorset 2 fg #888888, bg gray, IconAlpha 40
+Colorset 3 fg black, bg gray, fgsh gray, IconAlpha 100
 Style * Font "xft:Liberation Sans:size=8:encoding=utf-8", BorderWidth 1, HandleWidth 1
 Style * Colorset 2, HilightColorset 3, MWMFunctions, MWMDecor, HintOverride
 Style * DecorateTransient, NoPPosition, IconBox 20 20 100 -15, IconGrid 3 3, IconFill left top
