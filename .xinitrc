@@ -16,10 +16,6 @@ ibus-daemon -d -x
 #gnome-volume-manager &
 #conky &
 
-xmodmap $HOME/.Xmodmap
-#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
-#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
-#xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 #/home/wjy/bin/x-session-rc &
 
 xrdb -merge .Xresources
@@ -45,6 +41,11 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
+
+#xmodmap $HOME/.Xmodmap
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
+#xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 
 #exec subtle
 exec fvwm

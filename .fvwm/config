@@ -365,11 +365,17 @@ Mouse 1 W       M   Move-or-Raise
 #####
 # Key bindings.
 #####
+Key Up      A   M Pick AnimatedMove keep 0p
+Key Left      A   M Pick AnimatedMove 0p keep
+Key Down      A   M Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
+Key Right      A   M Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
+# Pick CentreWindow (126/2) (28/2) Animated
+###
 Key q       A    MS  Quit
 #Key R  A        CM  Restart
 key q       A    M   Restart
 # key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
-key Return  A    M   Exec xterm
+key Return  A    M   Exec xterm -geometry 128x32
 Key Return  A    MS  Exec chromium
 # Key p     A    M  Exec `dmenu_path | dmenu`
 Key p       A    M   Exec dmenu_run
@@ -400,15 +406,17 @@ Key M       A    M   Pick Maximize
 #Key Left    WTSF    SM  empty
 #Key Right   WTSF    SM  empty
 
-Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
-Key Super_L     A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
-Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
-Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
-Key Print       A   N   Exec exec ksnapshot
-Key Scroll_Lock A   N   Lower
-Key Pause       A   N   Raise
+Key Tab      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
+# Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
+# Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
+# Key Super_L     A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
+# Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
+# Key Print       A   N   Exec exec ksnapshot
+Key Print       A   N   Exec import /tmp/.import.png && feh /tmp/.import.png
+# Key Scroll_Lock A   N   Lower
+# Key Pause       A   N   Raise
 #Key Pause      A   N   Thumbnail
-Key Delete      A   CM  Exec exec kdesktop_lock --forcelock
+#Key Delete      A   CM  Exec exec kdesktop_lock --forcelock
 #Key Menu       A   A   do some nice action here # this is the "right click" key
 
 # Multimedia Keys, keycodes defined in .Xmodmap
@@ -712,7 +720,7 @@ AddToMenu MenuUtilities
 #% DestroyMenu MenuXUtils
 #% AddToMenu MenuXUtils
 + %gnome/24x24/apps/accessories-calculator.png%"Xcalc" Exec exec xcalc
-+ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 81x32
++ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 128x32
 + %utils-xman.png%"Xman" Exec exec xman
 + %klipper.png%"Xclipboard" Exec exec kdocker -i /home/wood/.fvwm/icons/klipper.png xclipboard
 + %xload.png%"Xload" Exec exec xload
@@ -913,7 +921,7 @@ AddToMenu MenuFvwmStopModule
 #####
 DestroyFunc FvwmViewManPage
 AddToFunc FvwmViewManPage
-+ I Exec exec xterm -fg White -bg DarkBlue -g 80x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0"
++ I Exec exec xterm -fg White -bg DarkBlue -g 128x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0"
 
 DestroyMenu FvwmManPagesMenu
 AddToMenu   FvwmManPagesMenu "FVWM Man Pages" Title

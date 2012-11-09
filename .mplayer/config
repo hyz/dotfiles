@@ -18,7 +18,7 @@ vo=vdpau
 #vo=vaapi
 #va=vaapi
 # ao=pulse
-ao=oss
+# ao=oss
 ontop=1
 #good exclude H264 Video codec
 #vf=expand=:::::4/3:2
