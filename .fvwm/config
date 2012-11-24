@@ -367,7 +367,7 @@ Mouse 1 W       M   Move-or-Raise
 #####
 Key Up      A   M Pick AnimatedMove keep 0p
 Key Left      A   M Pick AnimatedMove 0p keep
-Key Down      A   M Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
+Key Down      A   M Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height] - 28))p"
 Key Right      A   M Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
 # Pick CentreWindow (126/2) (28/2) Animated
 ###
@@ -413,6 +413,8 @@ Key Tab      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
 # Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
 # Key Print       A   N   Exec exec ksnapshot
 Key Print       A   N   Exec import /tmp/.import.png && feh /tmp/.import.png
+Key Page_Down     A   M   Lower
+Key Page_Up       A   M   Raise
 # Key Scroll_Lock A   N   Lower
 # Key Pause       A   N   Raise
 #Key Pause      A   N   Thumbnail

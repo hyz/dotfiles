@@ -9,7 +9,7 @@ promptinit
  
 prompt walters
 
-export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools
+export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools:/opt/google-appengine-python
 
 export HISTSIZE=10000
 export SAVEHIST=1000
