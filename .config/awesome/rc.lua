@@ -11,6 +11,8 @@ require("naughty")
 -- Themes define colours, icons, and wallpapers
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
+browser = "firefox"
+
 -- This is used later as the default terminal and editor to run.
 terminal = "xterm"
 editor = "vim"
@@ -161,6 +163,8 @@ root.buttons(awful.util.table.join(
 ))
 -- }}}
 
+prevmaster = nil
+
 -- {{{ Key bindings
 globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
@@ -185,16 +189,35 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
-    awful.key({ modkey,           }, "Tab",
-        function ()
-            awful.client.focus.history.previous()
-            if client.focus then
-                client.focus:raise()
-            end
-        end),
+    --- awful.key({ modkey,           }, "Tab",
+    --- --awful.key({ modkey,           }, "Return", function (c) c:swap(awful.client.getmaster()) end),
+    ---     function ()
+    ---         m = awful.client.getmaster()
+    ---         if m.focus then
+    ---             m:swap(prevmaster)
+    ---         else
+    ---             ;
+    ---         end
+    ---         prevmaster = m
+    ---         -- local c = awful.client.getmaster()
+    ---         -- if c.focus then
+    ---         --     awful.client.focus.history.previous()
+    ---         --     if client.focus then
+    ---         --         c:swap(client.focus)
+    ---         --         -- client.focus:raise()
+    ---         --     end
+    ---         -- else -- if client.focus then
+    ---         --     c:swap(client.focus)
+    ---         -- end
+    ---         awful.client.focus.history.previous()
+    ---         if client.focus then
+    ---             client.focus:raise()
+    ---         end
+    ---     end),
 
     -- Standard program
-    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey, "Mod4"    }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey, "Mod4"    }, "space", function () awful.util.spawn(browser) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -225,6 +248,7 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey,           }, "t",      awful.client.floating.toggle                     ),
+    awful.key({ modkey,           }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
@@ -233,6 +257,17 @@ clientkeys = awful.util.table.join(
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
+        end),
+    awful.key({ modkey,           }, "Tab",
+        function (c)
+            m = awful.client.getmaster()
+            if c == m then
+                c:swap(prevmaster)
+            else
+                c:swap(m);
+            end
+            prevmaster = m
+            client.focus = awful.client.getmaster()
         end)
 )
 
@@ -335,6 +370,6 @@ end)
 
 -- client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 -- client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
-client.add_signal("focus", function(c) c.border_color = "#ff6644" end)
+client.add_signal("focus", function(c) c.border_color = "#773322" end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
