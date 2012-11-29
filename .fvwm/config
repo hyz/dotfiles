@@ -96,7 +96,7 @@ EwmhBaseStruts 0 0 0 28
 #EwmhBaseStruts 0 1470 0 28
 
 ClickTime 550
-DeskTopSize 3x3
+DeskTopSize 1x1
 DesktopName 0 Desktop
 DesktopName 1 Space
 DesktopName 2 Vortex
@@ -413,13 +413,15 @@ Key Tab      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
 # Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
 # Key Print       A   N   Exec exec ksnapshot
 Key Print       A   N   Exec import /tmp/.import.png && feh /tmp/.import.png
-Key Page_Down     A   M   Lower
-Key Page_Up       A   M   Raise
+#Key Page_Down     A   M   Lower
+#Key Page_Up       A   M   Raise
 # Key Scroll_Lock A   N   Lower
 # Key Pause       A   N   Raise
 #Key Pause      A   N   Thumbnail
 #Key Delete      A   CM  Exec exec kdesktop_lock --forcelock
 #Key Menu       A   A   do some nice action here # this is the "right click" key
+Key Page_Down     A   M  GotoDesk -1
+Key Page_Up       A   M  GotoDesk +1
 
 # Multimedia Keys, keycodes defined in .Xmodmap
 #Key XF86AudioPlay         A   A Exec exec dcop amarok player play
@@ -515,12 +517,6 @@ Stroke N3698741 0 R N Exec exec knotes
 # Fvwm initialize
 #####
 AddToFunc StartFunction
-#% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
-# + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
-# + I Test (Init) Exec cairo-clock --theme antique --date
-+ I Test (Init) Exec asclock -shape -p -0-0
-# + I Test (Init) Exec xterm -geometry 128x55-0+0
-+ I Test (Init) Exec xterm
 + I Module FvwmCommandS
 + I Module FvwmAnimate
 + I Module FvwmEvent
@@ -528,8 +524,9 @@ AddToFunc StartFunction
 + I Module FvwmEvent FvwmSoundEvents
 + I Module FvwmEvent FvwmWindowEvents
 + I Module FvwmAuto FvwmAutohide -menter FuncAutoEnter
-#% + I Module FvwmButtons -g 126x$[vp.height]-0+0 FvwmShelf
-#% + I Module FvwmButtons -g 18x42+0+-28 DeskControl
+#+ I Module FvwmButtons -g 126x$[vp.height]-0+0 FvwmShelf
+#+ I Module FvwmButtons -g 18x42+0+-28 DeskControl
+#+ I Module FvwmButtons -g 18x42+0-28 DeskControl
 
 #####
 # Taskbar and menu
@@ -543,6 +540,15 @@ AddToFunc StartFunction
 #+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-1410))x28+0-0 FvwmBar"
 # 1024x768@1600x1200
 #+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-1480))x28+0-0 FvwmBar"
+
+#
+#% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
+# + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
+# + I Test (Init) Exec cairo-clock --theme antique --date
+# + I Test (Init) Exec asclock -shape -p -0-0
++ I Test (Init) Exec oclock -transparent -fg orange
+#+ I Test (Init) Exec xterm -geometry
++ I Test (Init) PipeRead "echo Exec xterm -geometry $$(($[vp.width]/3*2))x$$(($[vp.height]-28))+0+0"
 
 + I Test (Init) Exec exec /usr/bin/root-tail -g 670x150+0+100 -wordwrap -font cure -reverse /var/log/everything.log,white /var/log/auth.log,white
 #% + I Test (Init) Test (x urxvt) StartHiddenConsole

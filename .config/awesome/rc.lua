@@ -26,18 +26,18 @@ modkey = "Mod1"
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
 {
-    awful.layout.suit.spiral.dwindle,
-    awful.layout.suit.floating,
-    awful.layout.suit.tile,
-    awful.layout.suit.tile.left,
-    awful.layout.suit.tile.bottom,
-    awful.layout.suit.tile.top,
-    awful.layout.suit.fair,
-    awful.layout.suit.fair.horizontal,
-    awful.layout.suit.spiral,
-    awful.layout.suit.max,
-    awful.layout.suit.max.fullscreen,
-    awful.layout.suit.magnifier
+    awful.layout.suit.tile
+    , awful.layout.suit.magnifier
+    -- , awful.layout.suit.tile.left
+    , awful.layout.suit.tile.bottom
+    -- , awful.layout.suit.tile.top
+    -- , awful.layout.suit.fair
+    -- , awful.layout.suit.fair.horizontal
+    -- , awful.layout.suit.spiral
+    -- , awful.layout.suit.max
+    -- , awful.layout.suit.max.fullscreen
+    -- , awful.layout.suit.floating
+    , awful.layout.suit.spiral.dwindle
 }
 -- }}}
 
@@ -221,6 +221,7 @@ globalkeys = awful.util.table.join(
 
 clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
+    awful.key({ modkey,           }, "F4",     function (c) c:kill()                         end),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey,           }, "t",      awful.client.floating.toggle                     ),
@@ -287,7 +288,8 @@ root.keys(globalkeys)
 awful.rules.rules = {
     -- All clients will match this rule.
     { rule = { },
-      properties = { border_width = beautiful.border_width,
+      properties = { border_width = 2,
+      --  border_width = beautiful.border_width,
                      border_color = beautiful.border_normal,
                      focus = true,
                      keys = clientkeys,
@@ -331,6 +333,8 @@ client.add_signal("manage", function (c, startup)
     end
 end)
 
-client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
+-- client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
+-- client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+client.add_signal("focus", function(c) c.border_color = "#ff6644" end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}

@@ -48,9 +48,9 @@ xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 #xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 
 #exec subtle
+exec awesome
 exec fvwm
 exec gnome-session
-exec awesome
 exec openbox-session
 # exec compiz
 exec echinus

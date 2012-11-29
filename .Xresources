@@ -5,7 +5,7 @@ Xft.hinting:    true
 Xft.hintstyle:  hintslight
 
 !!! XTerm <=== <=== <=== !!! <=== <=== <===
-xterm*termName: xterm-256color
+!xterm*termName: xterm-256color
 ! xterm.termName: xterm-256color
 !% xterm.geometry: 110x54
 xterm*scrollBar: false
@@ -64,35 +64,36 @@ xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
 !Xft.dpi:96
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
 URxvt.background: rgba:0000/0000/0000/cccc
-URxvt.depth: 32
+! URxvt.depth: 32
 ! Rxvt.geometry:192×144
-Rxvt.foreground:antiquewhite
-Rxvt.colorBD:yellow
-Rxvt.colorUL:green
-Rxvt.scrollBar:Fault
-Rxvt.scrollBar_right:True
-Rxvt.scrollBar_floating: True
-Rxvt.scrollstyle: next
-Rxvt.saveLines:10000
-Rxvt.color0:black
-Rxvt.color1:red3
-Rxvt.color2:springgreen
-Rxvt.color3:wheat3
-Rxvt.color4:navy
-Rxvt.color5:magenta4
-Rxvt.color6:steelblue1
-Rxvt.color7:gray85
-Rxvt.color8:gray10
-Rxvt.color9:SkyBlue3
-Rxvt.color10:chartreuse3
-Rxvt.color11:lightgoldenrod2
-Rxvt.color12:SkyBlue1
-Rxvt.color13:pink1
-Rxvt.color14:lightblue1
-Rxvt.color15:#dbeff9
-Rxvt.preeditType:Root
-Rxvt.transparency:255 
-! Rxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
-! Rxvt.menu:/etc/X11/rxvt.menu
+URxvt.foreground:antiquewhite
+URxvt.colorBD:yellow
+URxvt.colorUL:green
+URxvt.scrollBar:Fault
+URxvt.scrollBar_right:True
+URxvt.scrollBar_floating: True
+URxvt.scrollstyle: next
+URxvt.saveLines:10000
+URxvt.color0:black
+URxvt.color1:red3
+URxvt.color2:springgreen
+URxvt.color3:wheat3
+URxvt.color4:navy
+URxvt.color5:magenta4
+URxvt.color6:steelblue1
+URxvt.color7:gray85
+URxvt.color8:gray10
+URxvt.color9:SkyBlue3
+URxvt.color10:chartreuse3
+URxvt.color11:lightgoldenrod2
+URxvt.color12:SkyBlue1
+URxvt.color13:pink1
+URxvt.color14:lightblue1
+URxvt.color15:#dbeff9
+URxvt.preeditType:Root
+! URxvt.transparency:255 
+URxvt.transparency:0 
+! URxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
+! URxvt.menu:/etc/X11/rxvt.menu
 URxvt.font: xft:Monaco:pixelsize=14:antialias=true,xft:Microsoft YaHei:pixelsize=14:antialias=true
 
