@@ -9,8 +9,6 @@ promptinit
  
 prompt walters
 
-export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools:/opt/google-appengine-python
-
 export HISTSIZE=10000
 export SAVEHIST=1000
 export HISTFILE=$HOME/.zhistory
@@ -56,6 +54,11 @@ alias er='explorer "`cygpath -w $(pwd)`" &'
 
 # limit coredumpsize 0
 
-export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
+export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools
+
+#export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
 # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
+
+export NDK_ROOT=/opt/android-ndk
+export COCOS2DX_ROOT=/opt/cocos2d
 
