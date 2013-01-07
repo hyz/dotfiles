@@ -59,6 +59,6 @@ export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/to
 #export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
 # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
 
-export NDK_ROOT=/opt/android-ndk
+export NDK_ROOT=/opt/android-ndk SDK_ROOT=/opt/android-sdk
 export COCOS2DX_ROOT=/opt/cocos2d
 

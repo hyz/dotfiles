@@ -375,8 +375,8 @@ Key q       A    MS  Quit
 #Key R  A        CM  Restart
 key q       A    M   Restart
 # key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
-key Return  A    M   Exec xterm -geometry 128x32
-Key Return  A    MS  Exec chromium
+key Return  A    MS  Exec xterm -geometry 128x32
+#Key b  A    MS  Exec chromium
 # Key p     A    M  Exec `dmenu_path | dmenu`
 Key p       A    M   Exec dmenu_run
 Key F2      A    M   Exec gmrun
