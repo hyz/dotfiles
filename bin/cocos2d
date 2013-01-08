@@ -1,0 +1,11 @@
+#!/bin/sh
+
+COCOS2D_DIR=$HOME/cocos2d
+export LD_LIBRARY_PATH=$COCOS2D_DIR/lib/linux/Debug:$COCOS2D_DIR/cocos2dx/platform/third_party/blackberry/libraries/x86:$COCOS2D_DIR/cocos2dx/platform/third_party/linux/glew-1.7.0/glew-1.7.0/lib:$COCOS2D_DIR/CocosDenshion/third_party/fmod/api/lib:$COCOS2D_DIR/CocosDenshion/third_party/fmod/lib64/api/lib
+
+exec $*
+
+# $COCOS2D_DIR/lib/linux/Release
+# $COCOS2D_DIR/cocos2dx/platform/third_party/blackberry/libraries/armle-v7
+# $COCOS2D_DIR/cocos2dx/platform/third_party/linux/glew-1.7.0/glew-1.7.0/config
+# $COCOS2D_DIR/CocosDenshion/proj.linux

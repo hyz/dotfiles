@@ -406,9 +406,8 @@ Key M       A    M   Pick Maximize
 #Key Left    WTSF    SM  empty
 #Key Right   WTSF    SM  empty
 
-Key Tab      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
-# Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
-# Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
+Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
+Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
 # Key Super_L     A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
 # Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
 # Key Print       A   N   Exec exec ksnapshot
