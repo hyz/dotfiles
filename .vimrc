@@ -25,7 +25,7 @@ set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 set tags+=../tags,~/.tags
 " set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
 
-set cscopeprg=mlcscope
+" set cscopeprg=mlcscope
 
 "autocmd BufEnter * lcd %:p:h
 autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
