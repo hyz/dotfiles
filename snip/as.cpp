@@ -20,32 +20,41 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
 struct response
 {
+    socket_ptr socket_;
+    asio::streambuf streambuf_;
+
+    typedef boost::shared_ptr<response> this_shptr;
+
     response(socket_ptr socket)
         : socket_(socket)
     {
     }
 
-    void handle_write_request(const boost::system::error_code& err)
+    static void start(this_shptr obj)
+    {
+        if (obj->streambuf_.size() > 0)
+        {
+            // asio::async_write;
+        }
+    }
+
+    static void handle_error(this_shptr obj, const boost::system::error_code& err, int w)
+    {
+    }
+
+    static void handle_write_request(this_shptr obj, const boost::system::error_code& err)
     {
         if (err)
         {
-            return handle_error(err, 9);
+            return handle_error(obj, err, 9);
         }
-
-        asio::async_read_until(socket_, streambuf_, "\r\n",
-                bind(&response::handle_method_line, this,
-                    asio::placeholders::error));
     }
-
-    socket_ptr socket_;
-
-    asio::streambuf streambuf_;
 };
 
 struct request
 {
     socket_ptr socket_;
-    asio::streambuf request_;
+    asio::streambuf streambuf_;
 
     int content_length_;
     std::string ckval_;
@@ -61,7 +70,7 @@ struct request
     {
         // socket_->get_io_service();
 
-        asio::async_read_until(*socket_, streambuf_, "\r\n",
+        asio::async_read_until(*obj->socket_, obj->streambuf_, "\r\n",
                 bind(&request::handle_method_line, obj, asio::placeholders::error));
     }
 
@@ -74,13 +83,13 @@ private:
             {
                 ;
             }
-            return handle_error(sh_ptr, err, 1);
+            return handle_error(obj, err, 1);
         }
 
-        // Check that response is OK.
+        // Check that  is OK.
         std::string method, uri, ver;
 
-        std::istream istream(&streambuf_);
+        std::istream istream(&obj->streambuf_);
         istream >> method >> uri;
         // std::string status_message;
         std::getline(istream, ver);
@@ -93,10 +102,10 @@ private:
     {
         if (err)
         {
-            return handle_error(err, 2);
+            return handle_error(obj, err, 2);
         }
 
-        // Process obj response headers.
+        // Process obj  headers.
         asio::streambuf& sbuf = obj->streambuf_;
         std::istream istream(&sbuf);
         std::string line;
@@ -155,18 +164,24 @@ private:
 
         size_t left = obj->streambuf_.size() - obj->content_length_;
 
-        shared_ptr<resposne> rsp(new response(obj->socket_));
+        shared_ptr<response> rsp(new response(obj->socket_));
         std::istream ins(&obj->streambuf_);
         std::ostream outs(&rsp->streambuf_);
         handle_request(outs, ins);
         response::start(rsp);
 
         if (obj->streambuf_.size() > left)
+        {
             obj->streambuf_.consume(obj->streambuf_.size() - left);
+        }
 
         // Next request
         asio::async_read_until(*obj->socket_, obj->streambuf_, "\r\n",
                 bind(&request::handle_method_line, obj, asio::placeholders::error));
+    }
+
+    static void handle_request(std::ostream& outs, std::istream& ins)
+    {
     }
 
     static void handle_error(sh_ptr obj, const boost::system::error_code& err, int w)
@@ -185,15 +200,16 @@ struct Main
 
     /// Acceptor used to listen for incoming connections.
     asio::ip::tcp::acceptor acceptor_;
+    socket_ptr socket_;
 
     /// The connection manager which owns all live connections.
-    connection_manager connection_manager_;
+    // connection_manager connection_manager_;
 
     /// The next connection to be accepted.
-    connection_ptr new_request_;
+    // connection_ptr new_request_;
 
     /// The handler for all incoming requests.
-    request_handler request_handler_;
+    // request_handler request_handler_;
 
     std::map<std::string, std::string> glomap_;
 
@@ -201,13 +217,16 @@ struct Main
     void bye() { }
 
     void handle_accept(const boost::system::error_code& e);
+    void handle_error(const boost::system::error_code& e)
+    {
+    }
 };
 
 Main::Main(asio::io_service& io_service, const char* addr, const char* port)
-  : acceptor_(io_service),
-    connection_manager_(),
-    new_request_(),
-    // request_handler_(doc_root)
+  : acceptor_(io_service)
+    // , connection_manager_()
+    // , new_request_()
+    // , request_handler_(doc_root)
 {
     // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
 
@@ -260,16 +279,15 @@ int main(int argc, char* argv[])
     asio::io_service io_service;
 
     /// The signal_set is used to register for process termination notifications.
-    asio::signal_set sigstop;
-    asio::signal_set sigw;
+    asio::signal_set sigstop(io_service);
+    asio::signal_set sigw(io_service);
 
-    sigstop(io_service),
     sigstop.add(SIGINT);
     sigstop.add(SIGTERM);
 #if defined(SIGQUIT)
     sigstop.add(SIGQUIT);
 #endif // defined(SIGQUIT)
-    sigstop.async_wait(bind(asio::io_service::stop, &io_service));
+    sigstop.async_wait(bind(&asio::io_service::stop, &io_service));
 
     Main m(io_service, "0", argv[1]);
 
