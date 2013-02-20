@@ -29,7 +29,7 @@ xterm*faceName: Monaco:antialias=True:pixelsize=15
 !! xterm*faceNameDoublesize: wenquanyi bitmap song:pixelsize=16:antialias=True
 xterm*faceNameDoublesize: Microsoft YaHei:pixelsize=16:antialias=True
 xterm*xftAntialias: true
-xterm*cjkWidth: false
+!! xterm*cjkWidth: false
 xterm*onXClicks: 4
 xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
 ! xterm*on4Clicks: regex [^(){}\[\]]+
