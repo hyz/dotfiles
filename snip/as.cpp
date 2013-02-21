@@ -2,9 +2,11 @@
 #include <istream>
 #include <ostream>
 #include <string>
-#include <boost/asio.hpp>
+#include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/smart_ptr.hpp>
 #include <boost/regex.hpp>
+#include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -12,6 +14,7 @@
 using boost::format;
 
 using boost::bind;
+using boost::function;
 using boost::shared_ptr;
 
 using boost::asio::ip::tcp;
@@ -19,53 +22,91 @@ namespace asio = boost::asio;
 
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
-struct socket_writer
+struct socwriter : boost::noncopyable, boost::enable_shared_from_this<socwriter>
 {
-    socket_writer(socket_ptr socket)
-        : socket_(socket)
-    {
-    }
+    socwriter(socket_ptr soc, function<void (socket_ptr)> fin) : soc_(soc), fin_(fin) {}
 
-    static void start(shared_ptr<socket_writer> obj)
+    ~socwriter() { fin_(soc_); }
+
+    void send(const std::string& s)
     {
-        if (obj->wbuf_.size() == 0 && obj->tmpbuf_.size() > 0)
+        bool empty = ls_.empty();
+
+        ls_.push_back(s);
+
+        if (empty)
         {
-            std::ostream outs(&obj->wbuf_);
-            outs << &obj->tmpbuf_;
-            // obj->tmpbuf_.consume(obj->tmpbuf_.size()); // ?
-
-            asio::async_write(*obj->socket_ , obj->wbuf_
-                    , bind(&socket_writer::_write, obj, asio::placeholders::error)
+            asio::async_write(*soc_, asio::buffer(ls_.front())
+                    , bind(&socwriter::writeb, shared_from_this(), asio::placeholders::error)
                     );
         }
     }
 
-    asio::streambuf* rdbuf() { return &tmpbuf_; }
-
 private:
-    socket_ptr socket_;
-    asio::streambuf wbuf_;
-    asio::streambuf tmpbuf_;
+    shared_ptr<tcp::socket> soc_;
+    function<void (socket_ptr)> fin_;
 
-    typedef boost::shared_ptr<socket_writer> this_shptr;
+    std::list<std::string> ls_;
 
-private:
-    static void _write(this_shptr obj, const boost::system::error_code& err)
+    void writeb(const boost::system::error_code& err)
     {
         if (err)
         {
-            return _error(obj, err, 9);
+            return ;//_error(obj, err, 9);
         }
 
-        // if (obj->wbuf_.size() == 0 && obj->tmpbuf_.size() > 0)
-        start(obj);
-    }
+        ls_.pop_front();
 
-    static void _error(this_shptr obj, const boost::system::error_code& err, int w)
-    {
-        std::cout << "socket_writer error: " << err.message() << "\n";
+        if (!ls_.empty())
+        {
+            asio::async_write(*soc_, asio::buffer(ls_.front())
+                    , bind(&socwriter::writeb, shared_from_this(), asio::placeholders::error)
+                    );
+        }
     }
 };
+
+struct sender
+{
+    typedef socwriter worker;
+    typedef shared_ptr<worker> worker_ptr;
+
+    ~sender();
+
+    function<void (const std::string&)> hire(shared_ptr<tcp::socket> soc);
+    //worker_ptr hire(shared_ptr<tcp::socket> soc);
+
+    void finish(socket_ptr soc)
+    {
+        hired_.erase(soc->native_handle());
+    }
+
+private:
+    typedef std::map<tcp::socket::native_type, boost::weak_ptr<worker> > hired_t;
+    typedef typename hired_t::iterator iterator;
+
+    hired_t hired_;
+};
+
+sender::~sender()
+{
+    //for (iterator i = hired_.begin(); i != hired_.end(); ++i)
+        //i->second->soc_->cancel();
+}
+
+function<void (const std::string&)> sender::hire(shared_ptr<tcp::socket> soc) //, std::streambuf* buf)
+{
+    sender::worker_ptr ker(new worker(soc, bind(&sender::finish, this, _1)));
+
+    boost::weak_ptr<worker> _w(ker);
+    std::pair<iterator, bool> ret = hired_.insert(std::make_pair(soc->native_handle(), _w));
+    if (!ret.second)
+    {
+        ker = ret.first->second.lock();
+    }
+
+    return bind(&worker::send, ker, _1);
+}
 
 struct http_headers : std::vector<std::pair<std::string, std::string> >
 {
@@ -103,7 +144,7 @@ std::ostream& operator<<(std::ostream& outs, const http_headers& headers)
     return outs;
 }
 
-struct request
+struct http_request
 {
     std::string method;
     std::string uri;
@@ -113,44 +154,55 @@ struct request
     std::vector<char> cont;
 };
 
-static void rsp_request(std::ostream& outs, const request& req)
+struct httprsp_echo //struct http_responser
 {
-    outs << req.method << " " << req.uri << " " << req.http_version << "\r\n"
-        << req.headers << "\r\n"
-        ;
-    outs.write(&req.cont[0], req.cont.size());
-}
+    typedef function<void (const std::string&)> send_fn_t;
 
-struct request_reader
-{
-    request_reader(socket_ptr socket, function<void (std::ostream&, const request&)>& rsp)
-        : socket_(socket)
-        , rsp_req_(rsp)
-        , writer_(new socket_writer(socket))
+    httprsp_echo(function<send_fn_t (socket_ptr)> hire)
+        : hire_(hire)
     {
     }
 
-    static void start( shared_ptr<tcp::socket> soc)
+    void query(shared_ptr<tcp::socket> soc, const http_request& req)
     {
-        shared_ptr<request_reader> obj(new request_reader(soc, rsp_request));
+        std::ostringstream outs;
 
-        asio::async_read_until(*obj->socket_, obj->reqbuf_, "\r\n",
-                bind(&request_reader::handle_method_line, obj, asio::placeholders::error));
+        outs << req.method << " " << req.uri << " " << req.http_version << "\r\n"
+            << req.headers << "\r\n"
+            ;
+        if (!req.cont.empty())
+            outs.write(&req.cont[0], req.cont.size());
+
+        // shared_ptr<sender::worker> ker = hire_(soc);
+        send_fn_t sendfn = hire_(soc);
+        sendfn(outs.str());
     }
 
 private:
-    typedef boost::shared_ptr<request_reader> this_shptr;
+    function<send_fn_t (socket_ptr)> hire_;
+};
+
+struct protohttp_reader : boost::enable_shared_from_this<protohttp_reader>, boost::noncopyable
+{
+    protohttp_reader(shared_ptr<tcp::socket> soc
+            , function<void (socket_ptr, const http_request&)> rsp)
+        : socket_(soc), rsp_(rsp)
+    {
+        asio::async_read_until(*socket_, rsbuf_, "\r\n",
+                bind(&protohttp_reader::handle_method_line, shared_from_this(), asio::placeholders::error));
+    }
+
+private:
+    typedef boost::shared_ptr<protohttp_reader> this_shptr;
 
     socket_ptr socket_;
-    asio::streambuf reqbuf_;
-    request req_;
+    asio::streambuf rsbuf_;
+    http_request req_;
 
-    function<void (std::ostream&, const request&)> rsp_req_;
-
-    shared_ptr<socket_writer> writer_;
+    function<void (socket_ptr, const http_request&)> rsp_;
 
 private:
-    static void handle_method_line(this_shptr obj, const boost::system::error_code& err)
+    void handle_method_line(const boost::system::error_code& err)
     {
         if (err)
         {
@@ -158,40 +210,40 @@ private:
             {
                 ;
             }
-            return _error(obj, err, 1);
+            return _error(err, 1);
         }
 
-        obj->req_ = request();
+        req_ = http_request();
 
         // Check that  is OK.
-        std::istream ins(&obj->reqbuf_);
-        ins >> obj->req_.method;
-        boost::trim(obj->req_.method);
-        if (obj->req_.method.empty())
+        std::istream ins(&rsbuf_);
+        ins >> req_.method;
+        boost::trim(req_.method);
+        if (req_.method.empty())
         {
-            asio::async_read_until(*obj->socket_, obj->reqbuf_, "\r\n",
-                    bind(&request_reader::handle_method_line, obj, asio::placeholders::error));
+            asio::async_read_until(*socket_, rsbuf_, "\r\n",
+                    bind(&protohttp_reader::handle_method_line, shared_from_this(), asio::placeholders::error));
             return;
         }
 
-        ins >> obj->req_.uri >> obj->req_.http_version;
+        ins >> req_.uri >> req_.http_version;
 
-        std::cout << obj->req_.method << " " << obj->req_.uri << " " << obj->req_.http_version << "\n";
+        std::cout << req_.method << " " << req_.uri << " " << req_.http_version << "\n";
         std::string tmp;
         std::getline(ins, tmp);
 
-        asio::async_read_until(*obj->socket_, obj->reqbuf_, "\r\n\r\n",
-                bind(&request_reader::handle_headers, obj, asio::placeholders::error));
+        asio::async_read_until(*socket_, rsbuf_, "\r\n\r\n",
+                bind(&protohttp_reader::handle_headers, shared_from_this(), asio::placeholders::error));
     }
 
-    static void handle_headers(this_shptr obj, const boost::system::error_code& err)
+    void handle_headers(const boost::system::error_code& err)
     {
         if (err)
         {
-            return _error(obj, err, 2);
+            return _error(err, 2);
         }
 
-        asio::streambuf& sbuf = obj->reqbuf_;
+        asio::streambuf& sbuf = rsbuf_;
         std::istream ins(&sbuf);
         std::string line;
         boost::regex expr("^\\s*([\\w\\-]+)\\s*:\\s*(.*?)\\s*$");
@@ -203,44 +255,42 @@ private:
             {
                 std::string k(res[1].first, res[1].second);
                 std::string val(res[2].first, res[2].second);
-                obj->req_.headers[k] = val;
+                req_.headers[k] = val;
 
                 if (k == "Content-Length" || k == "Content-length")
                 {
-                    obj->req_.cont.resize(boost::lexical_cast<int>(val));
+                    req_.cont.resize(boost::lexical_cast<int>(val));
                 }
             }
 
             std::cout << line << "\n";
         }
 
-        std::cout << format("content len %d - %d\n") % obj->req_.cont.size() % sbuf.size()
+        std::cout << format("content len %d - %d\n") % req_.cont.size() % sbuf.size()
             ;
 
-        asio::async_read(*obj->socket_ , sbuf
-                , asio::transfer_at_least(obj->req_.cont.size())
-                , bind(&request_reader::handle_content, obj, asio::placeholders::error));
+        asio::async_read(*socket_ , sbuf
+                , asio::transfer_at_least(req_.cont.size())
+                , bind(&protohttp_reader::handle_content, shared_from_this(), asio::placeholders::error));
     }
 
-    static void handle_content(this_shptr obj, const boost::system::error_code& err)
+    void handle_content(const boost::system::error_code& err)
     {
         if (err)
         {
-            return _error(obj, err, 3);
+            return _error(err, 3);
         }
 
-        obj->reqbuf_.sgetn(&obj->req_.cont[0], obj->req_.cont.size());
+        rsbuf_.sgetn(&req_.cont[0], req_.cont.size());
 
-        std::ostream outs(obj->writer_->rdbuf());
-        rsp_req_(outs, obj->req_);
-        socket_writer::start(obj->writer_);
+        rsp_(socket_, req_);
 
-        // Next request
-        asio::async_read_until(*obj->socket_, obj->reqbuf_, "\r\n",
-                bind(&request_reader::handle_method_line, obj, asio::placeholders::error));
+        // Next http_request
+        asio::async_read_until(*socket_, rsbuf_, "\r\n",
+                bind(&protohttp_reader::handle_method_line, shared_from_this(), asio::placeholders::error));
     }
 
-    static void _error(this_shptr obj, const boost::system::error_code& err, int w)
+    static void _error(const boost::system::error_code& err, int w)
     {
         std::cout << "Error: " << err.message() << "\n";
 
@@ -250,55 +300,68 @@ private:
     }
 };
 
-struct acceptor
+struct http_reader
 {
-    acceptor(asio::io_service& io_service, const char* addr, const char* port);
+    typedef protohttp_reader reader_t;
 
-    static void start(shared_ptr<acceptor> obj)
+    http_reader(function<void (socket_ptr, const http_request&)> fn) : fn_(fn) {}
+
+    void start(socket_ptr soc)
     {
-        obj->acceptor_.listen();
+        new reader_t(soc, fn_); // shared_ptr<reader_t> er = new reader_t(soc, fn_); // er->start();
+    }
 
-        obj->socket_.reset(new tcp::socket(obj->acceptor_.get_io_service()));
-        obj->acceptor_.async_accept(*obj->socket_,
-                bind(&acceptor::handle_accept, obj, asio::placeholders::error)
+    function<void (socket_ptr, const http_request&)> fn_;
+};
+
+struct socket_acceptor
+{
+    socket_acceptor(asio::io_service& io_service, const char* addr, const char* port, function<void (socket_ptr)> fn);
+
+    void start()
+    {
+        acceptor_.listen();
+
+        socket_.reset(new tcp::socket(acceptor_.get_io_service()));
+        acceptor_.async_accept(*socket_,
+                bind(&socket_acceptor::handle_accept, this, asio::placeholders::error)
                 );
     }
 
 private:
-    asio::ip::tcp::acceptor acceptor_;
-    socket_ptr socket_;
+    tcp::acceptor acceptor_;
+    shared_ptr<tcp::socket> socket_;
 
-    std::map<std::string, std::string> glomap_;
-
-    function<void (socket_ptr)> fn_socket_ready_;
+    function<void (socket_ptr)> fn_;
 
 private:
-    static void handle_accept(shared_ptr<acceptor> obj, const boost::system::error_code& e)
+    void handle_accept(const boost::system::error_code& e)
     {
         if (e)
         {
-            return _error(obj, e);
+            return _error(e);
         }
 
-        std::cout << "accepted " << obj->socket_->local_endpoint() << "%" << obj->socket_->remote_endpoint() << "\n";
+        std::cout << "accepted " << socket_->local_endpoint() << "%" << socket_->remote_endpoint() << "\n";
 
-        fn_socket_ready_(obj->socket_);
+        fn_(socket_);
 
-        obj->socket_.reset(new tcp::socket(obj->acceptor_.get_io_service()));
-        obj->acceptor_.async_accept(*obj->socket_,
-                bind(&acceptor::handle_accept, obj, asio::placeholders::error));
+        socket_.reset(new tcp::socket(acceptor_.get_io_service()));
+        acceptor_.async_accept(*socket_,
+                bind(&socket_acceptor::handle_accept, this, asio::placeholders::error));
     }
 
-    static void _error(shared_ptr<acceptor> obj, const boost::system::error_code& err)
+    void _error(const boost::system::error_code& err)
     {
         std::cout << "acceptor error: " << err.message() << "\n";
     }
 };
 
-acceptor::acceptor(asio::io_service& io_service, const char* addr, const char* port
-        , const function<void (socket_ptr)>& fn)
-  : acceptor_(io_service)
-    , fn_socket_ready_(fn)
+socket_acceptor::socket_acceptor(asio::io_service& io_service
+        , const char* addr, const char* port
+        , function<void (socket_ptr)> fn)
+    : acceptor_(io_service)
+    , fn_(fn)
 {
     asio::ip::tcp::resolver resolver(acceptor_.get_io_service());
     asio::ip::tcp::resolver::query query(addr, port);
@@ -338,13 +401,12 @@ int main(int argc, char* argv[])
 #endif // defined(SIGQUIT)
         sigstop.async_wait(bind(&asio::io_service::stop, &io_service));
 
-        socket_writer writer;
-        http_responser responser(writer);
-        http_reader reader(responser);
-        socket_accpter(reader);
+        sender sender;
+        httprsp_echo responser(bind(&sender::hire, &sender, _1));
+        http_reader reader(bind(&httprsp_echo::query, &responser, _1, _2));
+        socket_acceptor acceptor(io_service, "0", argv[1], bind(&http_reader::start, &reader, _1));
 
-        shared_ptr<acceptor> a(new acceptor(io_service, "0", argv[1], request_reader::start));
-        acceptor::start(a);
+        acceptor.start();
 
         io_service.run();
         std::cout << "bye.\n";
