@@ -2,6 +2,7 @@
 #include <string.h>
 #include <string>
 // #include <stack>
+#include <stdexcept>
 #include <algorithm>
 #include <iostream>
 
@@ -23,8 +24,7 @@ struct jsnode
 
 class jsax
 {
-    struct nullnode : jsnode
-    {
+    struct nullnode : jsnode {
         virtual jsnode* New(const std::string& k, const char* beg, const char* end) { return this; }
         virtual void Fin(const std::string& k, jsnode* nd) {}
 
@@ -45,19 +45,19 @@ class jsax
         key_t(int y=0) { u.s[0]=u.s[1]=0; ty = y; }
     };
 
-    struct exfail : std::exception
-    {
+    struct exfail : std::invalid_argument {
         int errno;
         const char *pos;
 
-        exfail(const char *p=0, int ec = 1) {
-            pos = p;
-            errno = ec;
-        }
+        exfail(int ec = 1, const char *p = 0, const char *e = 0)
+            : std::invalid_argument(std::string(p,e)) {
+                pos = p;
+                errno = ec;
+            }
     };
 
 // #define ERR_R(p) do{err_ = 1; return p;}while(0)
-#define ERR_R(p) do{ throw exfail(p, 1); }while(0)
+#define ERR_R(p,e) do{ throw exfail(1,p,e); }while(0)
 
 public:
     const int parse(jsnode* nd, const char* beg, const char* end, const char **pos)
@@ -92,11 +92,11 @@ private:
         const char* const sbeg = beg = skipss(beg, end);
 
         if (*beg != '{' && *beg != '[')
-            ERR_R(beg);
+            ERR_R(sbeg,end);
 
         const char* p = skipss(beg+1, end);
         if (p == end)
-            ERR_R(sbeg);
+            ERR_R(sbeg,end);
         if (*p == *sbeg+2)
             return p + 1;
 
@@ -114,7 +114,7 @@ private:
                 beg = this->_string(beg, end, xk.u.s);
                 beg = skipss(beg, end);
                 if (beg == end || *beg != ':')
-                    ERR_R(beg);
+                    ERR_R(beg,end);
                 ++beg;
             }
             beg = this->walk(nd, beg, end, xk);
@@ -123,7 +123,7 @@ private:
         } while (*beg == ',');
 
         if (*beg != *sbeg+2)
-            ERR_R(beg);
+            ERR_R(beg,end);
 
         return beg + 1;
     }
@@ -164,7 +164,7 @@ private:
                     break;
 
                 default:
-                    ERR_R(beg);
+                    ERR_R(beg,end);
             }
 
             this->_Set(pnd, xk, vals, ty);
@@ -177,10 +177,10 @@ private:
     {
         const char* const sbeg = beg = skipss(beg, end);
         if ((*beg != '"' && *beg != '\'') || beg+1 >= end)
-            ERR_R(sbeg);
+            ERR_R(sbeg,end);
         beg = std::find(beg+1, end, *sbeg);
         if (beg == end)
-            ERR_R(sbeg);
+            ERR_R(sbeg,end);
         ret[0] = sbeg+1;
         ret[1] = beg;
         return beg+1;
@@ -192,12 +192,12 @@ private:
         if (*sbeg == '-' || *sbeg == '+')
             ++beg;
         if (beg == end || !isdigit(*beg))
-            ERR_R(sbeg);
+            ERR_R(sbeg,end);
         for (++beg; beg < end; ++beg)
             if (!isdigit(*beg) && *beg != '.')
                 break;
         if (std::count(sbeg, beg, '.') > 1)
-            ERR_R(sbeg);
+            ERR_R(sbeg,end);
         ret[0] = sbeg;
         ret[1] = beg;
         return beg;
@@ -210,19 +210,19 @@ private:
         {
             if (end - beg < 4
                     || beg[1] != 'r' || beg[2] != 'u' || beg[3] != 'e')
-                ERR_R(beg);
+                ERR_R(beg,end);
             beg += 4;
         }
         else if (*sbeg == 'F' || *sbeg == 'f')
         {
             if (end - beg < 5
                     || beg[1] != 'a' || beg[2] != 'l' || beg[3] != 's' || beg[4] != 'e')
-                ERR_R(beg);
+                ERR_R(beg,end);
             beg += 5;
         }
         else
         {
-            ERR_R(beg);
+            ERR_R(beg,end);
         }
 
         ret[0] = sbeg;
