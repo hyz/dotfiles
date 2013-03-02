@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <string>
-#include <stack>
+// #include <stack>
 #include <algorithm>
 #include <iostream>
 
@@ -9,11 +9,11 @@ struct jsnode
 {
     enum { Ty_Str=1, Ty_Int, Ty_Bool };
 
-    virtual jsnode* Enter(const std::string& k, const char* beg, const char* end) { return 0; }
-    virtual void Exit(const std::string& k, jsnode* nd) {}
+    virtual jsnode* New(const std::string& k, const char* beg, const char* end) { return 0; }
+    virtual void Fin(const std::string& k, jsnode* nd) {}
 
-    virtual jsnode* Enter(int k, const char* beg, const char* end) { return 0; }
-    virtual void Exit(int k, jsnode* nd) {}
+    virtual jsnode* New(int k, const char* beg, const char* end) { return 0; }
+    virtual void Fin(int k, jsnode* nd) {}
 
     virtual void Set(const std::string& k, const char* beg, const char* end, int ty) {}
     virtual void Set(int k, const char* beg, const char* end, int ty) {}
@@ -23,6 +23,18 @@ struct jsnode
 
 class jsax
 {
+    struct nullnode : jsnode
+    {
+        virtual jsnode* New(const std::string& k, const char* beg, const char* end) { return this; }
+        virtual void Fin(const std::string& k, jsnode* nd) {}
+
+        virtual jsnode* New(int k, const char* beg, const char* end) { return this; }
+        virtual void Fin(int k, jsnode* nd) {}
+
+        virtual void Set(const std::string& k, const char* beg, const char* end, int ty) {}
+        virtual void Set(int k, const char* beg, const char* end, int ty) {}
+    };
+
     struct key_t {
         union {
             const char *s[2];
@@ -33,32 +45,28 @@ class jsax
         key_t(int y=0) { u.s[0]=u.s[1]=0; ty = y; }
     };
 
-    struct pxfail : std::exception
+    struct exfail : std::exception
     {
         int errno;
         const char *pos;
 
-        pxfail(const char *p=0, int ec = 1) {
+        exfail(const char *p=0, int ec = 1) {
             pos = p;
             errno = ec;
         }
     };
 
 // #define ERR_R(p) do{err_ = 1; return p;}while(0)
-#define ERR_R(p) do{ throw pxfail(p, 1); }while(0)
-
-    // std::stack<jsnode*> stack_;
-    // int err_;
+#define ERR_R(p) do{ throw exfail(p, 1); }while(0)
 
 public:
     const int parse(jsnode* nd, const char* beg, const char* end, const char **pos)
     {
-        // stack_.push(initial);
         int ec = 0;
 
         try {
             beg = this->_Array(nd, beg, end);
-        } catch (const pxfail& e) {
+        } catch (const exfail& e) {
             beg = e.pos;
             ec = e.errno;
         } catch (...) {
@@ -68,14 +76,15 @@ public:
         if (pos)
             *pos = beg;
         return ec;
+    }
 
-        // jsnode::value_t xk;
-        // beg = this->walk(nd, beg, end, xk);
-
-        // stack_.pop();
-        //assert (stack_.empty());
-
-        // return beg;
+private:
+    static const char* skipss(const char* beg, const char* end)
+    {
+        for (; beg != end; ++beg)
+            if (!isspace(*beg))
+                break;
+        return beg;
     }
 
     const char *_Array(jsnode* nd, const char* beg, const char* end)
@@ -91,25 +100,22 @@ public:
         if (*p == *sbeg+2)
             return p + 1;
 
+        key_t xk;
+        xk.ty = *sbeg;
         do {
             ++beg;
 
-            key_t xk;
-            if (*sbeg == '{')
+            if (xk.ty == '[')
             {
-                xk.ty = '{';
-                beg = this->_string(beg, end, xk.u.s);
-                beg = skipss(beg, end);
-                if (beg == end || *beg != ':')
-                {
-                    ERR_R(beg);
-                }
-                ++beg;
+                xk.u.i++;
             }
             else
             {
-                xk.ty = '[';
-                xk.u.i++;
+                beg = this->_string(beg, end, xk.u.s);
+                beg = skipss(beg, end);
+                if (beg == end || *beg != ':')
+                    ERR_R(beg);
+                ++beg;
             }
             beg = this->walk(nd, beg, end, xk);
 
@@ -122,21 +128,12 @@ public:
         return beg + 1;
     }
 
-private:
-    static const char* skipss(const char* beg, const char* end)
-    {
-        for (; beg != end; ++beg)
-            if (!isspace(*beg))
-                break;
-        return beg;
-    }
-
     const char *walk(jsnode* pnd, const char* beg, const char* end, const key_t& xk)
     {
         beg = skipss(beg, end);
         if (beg < end)
         {
-            static jsnode jc_;
+            static nullnode jc_;
             jsnode* jc;
 
             int ty = 0;
@@ -147,7 +144,7 @@ private:
                     if ( (jc = this->_New(pnd, xk, beg, end)) == 0)
                         jc = &jc_;
                     beg = this->_Array(jc, beg, end);
-                    this->_Done(pnd, xk, jc); // stack_.pop();
+                    this->_Done(pnd, xk, jc);
                     return beg;
 
                 case '"': case '\'':
@@ -236,15 +233,15 @@ private:
     jsnode* _New(jsnode *pnd, const key_t& xk, const char* beg, const char* end)
     {
         if (xk.ty == '[')
-            return pnd->Enter(xk.u.i, beg, end);
-        return pnd->Enter(std::string(xk.u.s[0], xk.u.s[1]), beg, end);
+            return pnd->New(xk.u.i, beg, end);
+        return pnd->New(std::string(xk.u.s[0], xk.u.s[1]), beg, end);
     }
     void _Done(jsnode *pnd, const key_t& xk, jsnode *nd)
     {
         if (xk.ty == '[')
-            pnd->Exit(xk.u.i, nd);
+            pnd->Fin(xk.u.i, nd);
         else
-            pnd->Exit(std::string(xk.u.s[0], xk.u.s[1]), nd);
+            pnd->Fin(std::string(xk.u.s[0], xk.u.s[1]), nd);
     }
     void _Set(jsnode *pnd, const key_t& xk, const char* v[2], int ty)
     {
@@ -259,11 +256,21 @@ struct P : jsnode
 {
     //enum { Ty_Str=1, Ty_Int, Ty_Bool };
 
-    virtual jsnode* Enter(const std::string& k, const char* beg, const char* end) { return this; }
-    virtual void Exit(const std::string& k, jsnode* nd) {}
+    virtual jsnode* New(const std::string& k, const char* beg, const char* end) {
+        std::cout << "New " << k << ":" << std::string(beg,end) << "\n";
+        return this;
+    }
+    virtual void Fin(const std::string& k, jsnode* nd) {
+        std::cout << "Fin " << k << "\n";
+    }
 
-    virtual jsnode* Enter(int k, const char* beg, const char* end) { return this; }
-    virtual void Exit(int k, jsnode* nd) {}
+    virtual jsnode* New(int k, const char* beg, const char* end) {
+        std::cout << "New " << k << ":" << std::string(beg,end) << "\n";
+        return this;
+    }
+    virtual void Fin(int k, jsnode* nd) {
+        std::cout << "Fin " << k << "\n";
+    }
 
     virtual void Set(const std::string& k, const char* beg, const char* end, int ty) {
         std::cout << k << "=" << std::string(beg,end) << "\n";
