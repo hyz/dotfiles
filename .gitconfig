@@ -9,3 +9,5 @@
 [pager]
     diff =
 
+[push]
+	default = simple
