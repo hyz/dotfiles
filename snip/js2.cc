@@ -94,24 +94,55 @@ jsexins& operator>>(jsexins& jis, std::string& s)
     return jis;
 }
 
-jsexins& operator>>(jsexins& jis, int& i)
+static long jsex_longint(jsexins& jis)
 {
-    switch (jsex_peekc(jis))
+    jsex_skips(jis);
+
+    const char* sign = 0;
+    const char* d = jis.cur;
+    const char* dot = 0;
+    const char* p = jis.cur;
+
+_Next:
+    if (p < jis.end) switch (*p)
     {
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '-': case '+':
-            {
-                const char* e = jis.cur;
-                while (e < jis.end && std::isdigit(*e))
-                    ++e;
-                i = atoi(jis.cur);
-                jis.cur = e;
-            }
-            break;
+        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+            ++p;
+            goto _Next;
+        case '-': case '+':
+            if (sign)
+                JSEX(jis);
+            sign = p++;
+            d = p;
+            goto _Next;
+        case '.':
+            if (dot)
+                JSEX(jis);
+            dot = p++;
+            goto _Next;
         default:
-            JSEX(jis);
+            break;
     }
-    return jis;
+    if (d == p)
+        JSEX(jis);
+    jis.cur = p;
+
+    if (!sign)
+        sign = "+";
+
+    return atoi(d) * ((int)',' - (int)(*sign));
 }
+
+template <typename T> jsexins& jsex_xint(jsexins& jis, T& x) { x = (T)jsex_longint(jis); return jis; }
+
+inline jsexins& operator>>(jsexins& jis, int& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, unsigned int& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, short& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, unsigned short& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, long& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, unsigned long& i) { return jsex_xint(jis, i); }
+// inline jsexins& operator>>(jsexins& jis, char& i) { return jsex_xint(jis, i); }
+inline jsexins& operator>>(jsexins& jis, unsigned char& i) { return jsex_xint(jis, i); }
 
 jsexins& operator>>(jsexins& jis, bool& b)
 {
@@ -217,16 +248,16 @@ jsexins& operator>>(jsexins& jis, const jsexnull& nul)
     return jis;
 }
 
-// { 'int': 1, "str": "s", "vec" :[1,2,3], "b" : { "int" : 9, 'str': '""'} }
+// { 'int': 1, "str": "s", "vec" :[1,2,3], "b" : { "int" : 9, 'str': '""'}, "": False }
 struct A : jsexnode
 {
-    int aint;
+    short aint;
     std::string astr;
     std::vector<int> vec;
 
     struct B : jsexnode
     {
-        int bint;
+        short bint;
         std::string bstr;
 
         virtual void jsex_kv(jsexins& jis, const std::string& k)
@@ -236,7 +267,22 @@ struct A : jsexnode
             else if (k == "str")
                 jis >> bstr;
         }
+        void print()
+        {
+            std::cout << "bint=" << bint << "\n"
+                << "bstr=" << bstr << "\n"
+                ;
+        }
     } b;
+
+    void print()
+    {
+        std::cout << "aint=" << aint << "\n"
+            << "astr=" << astr << "\n"
+            << "vec=[" << vec[0] << ",...," << vec[vec.size()-1] << "]\n"
+            ;
+        b.print();
+    }
 
     virtual void jsex_kv(jsexins& jis, const std::string& k)
     {
@@ -260,8 +306,9 @@ int main(int ac, char *const av[])
 
         A a;
         jis >> a;
+        a.print();
 
-        std::cout.write(jis.beg, jis.cur - jis.beg);
+        std::cout.write(jis.cur, jis.end - jis.cur);
         std::cout << "\n";
     }
 
