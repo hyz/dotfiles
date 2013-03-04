@@ -2,16 +2,8 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include <algorithm>
+// #include <algorithm>
 #include <iostream>
-
-struct jsexins;
-
-struct jsexnode
-{
-    virtual void jsex_kv(jsexins& jis, const std::string& k) = 0;
-    virtual ~jsexnode() {}
-};
 
 struct jsexins
 {
@@ -22,6 +14,18 @@ struct jsexins
     jsexins(const char* b=0, const char* e=0) { beg = b; end = e; cur = beg; }
 };
 
+struct jsexc : jsexins, std::invalid_argument
+{
+    jsexc(const jsexins& jis)
+        : jsexins(jis), std::invalid_argument(std::string(jis.cur,jis.end))
+    {}
+};
+
+struct jsexnode
+{
+    virtual void jsex_kv(jsexins& jis, const std::string& k) = 0;
+    virtual ~jsexnode() {}
+};
 jsexins& operator>>(jsexins& jis, jsexnode& a);
 
 struct jsexnull {};
@@ -32,13 +36,6 @@ struct jsexdictnull : jsexnode
     virtual void jsex_kv(jsexins& jis, const std::string& k) {
         jis >> jsexnull();
     }
-};
-
-struct jsexc : jsexins, std::invalid_argument
-{
-    jsexc(const jsexins& jis)
-        : jsexins(jis), std::invalid_argument(std::string(jis.cur,jis.end))
-    {}
 };
 
 #define JSEX(ji) do{ throw jsexc(ji); }while(0)
@@ -54,12 +51,14 @@ jsexins& jsex_skips(jsexins& jis)
 inline int jsex_peekc(jsexins& jis)
 {
     jsex_skips(jis);
+    if (jis.cur >= jis.end)
+        JSEX(jis);
     return *jis.cur;
 }
 
 inline int jsex_getc(jsexins& jis)
 {
-    jsex_skips(jis);
+    // jsex_skips(jis);
     if (jis.cur >= jis.end)
         JSEX(jis);
     return *jis.cur++;
@@ -141,28 +140,41 @@ inline jsexins& operator>>(jsexins& jis, short& i) { return jsex_xint(jis, i); }
 inline jsexins& operator>>(jsexins& jis, unsigned short& i) { return jsex_xint(jis, i); }
 inline jsexins& operator>>(jsexins& jis, long& i) { return jsex_xint(jis, i); }
 inline jsexins& operator>>(jsexins& jis, unsigned long& i) { return jsex_xint(jis, i); }
-// inline jsexins& operator>>(jsexins& jis, char& i) { return jsex_xint(jis, i); }
 inline jsexins& operator>>(jsexins& jis, unsigned char& i) { return jsex_xint(jis, i); }
 
-jsexins& operator>>(jsexins& jis, bool& b)
+inline jsexins& operator>>(jsexins& jis, char& c)
 {
-    switch (jsex_getc(jis))
+    jsex_skips(jis);
+    if (jis.cur == jis.end)
+        JSEX(jis);
+    c = *jis.cur++;
+    return jis;
+}
+
+inline bool is_starts(const char* p, const char* end, const char* s)
+{
+    while (p < end && *s && *p == *s)
+        ++p, ++s;
+    return (*s==0);
+}
+
+jsexins& operator>>(jsexins& jis, bool& ret)
+{
+    jsex_skips(jis);
+
+    if (jis.cur >= jis.end)
+        JSEX(jis);
+    switch (*jis.cur++)
     {
         case 't': case 'T':
-            {
-                char a[3];
-                jsex_getc_n(jis, a, 3);
-                if (memcmp("rue", a, 3))
-                    JSEX(jis);
-            }
+            if (!is_starts(jis, "rue"))
+                JSEX(jis);
+            ret = true;
             break;
         case 'f': case 'F':
-            {
-                char a[4];
-                jsex_getc_n(jis, a, 4);
-                if (memcmp("alse", a, 4))
-                    JSEX(jis);
-            }
+            if (!is_starts(jis, "alse"))
+                JSEX(jis);
+            ret = false;
             break;
         default:
             JSEX(jis);
