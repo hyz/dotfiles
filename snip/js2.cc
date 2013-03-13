@@ -3,285 +3,387 @@
 #include <cstring>
 #include <string>
 #include <vector>
-// #include <algorithm>
+#include <algorithm>
 #include <iostream>
 
-struct jsexins
-{
-    const char* beg;
-    const char* end;
-    mutable const char* cur;
+using std::find;
 
-    jsexins(const char* b=0, const char* e=0) { beg = b; end = e; cur = beg; }
+struct jsrange
+{
+    const char *begin;
+    const char *end;
+    jsrange(const char* b=0, const char *e=0) { begin = b; end = e; }
+
+    inline bool operator==(const jsrange& l)
+        { return (begin == l.begin && end == l.end); }
 };
 
-struct jsexc : jsexins, std::invalid_argument
+struct jsexc : std::invalid_argument
 {
-    jsexc(const jsexins& jis)
-        : jsexins(jis), std::invalid_argument(std::string(jis.cur,jis.end))
-    {}
+    const char *begin;
+    const char *end;
+
+    jsexc(const jsrange& r)
+        : std::invalid_argument(std::string(r.begin,r.end))
+    { begin = r.begin; end = r.end; }
+
+    static void raise(const jsrange& r) { throw jsexc(r); }
 };
 
-struct jsexnode
+
+inline bool empty(jsrange& r)
 {
-    virtual void jsex_kv(jsexins& jis, const std::string& k) = 0;
-    virtual ~jsexnode() {}
+    return r.begin == r.end;
+}
+
+inline char front(jsrange& r)
+{
+    if (empty(r))
+        jsexc::raise(r);
+    return *r.begin;
+}
+
+inline char back(jsrange& r)
+{
+    if (empty(r))
+        jsexc::raise(r);
+    return *(r.end-1);
+}
+
+// struct jsexspaces : jsrange {}; jsinput& operator>>(jsinput& jis, jsexspaces& sps);
+
+struct jsinput : jsrange
+{
+    jsinput(const jsrange& r) : jsrange(r.begin, r.end) {}
+    jsinput() {}
 };
-jsexins& operator>>(jsexins& jis, jsexnode& a);
 
-struct jsexnull {};
-jsexins& operator>>(jsexins& jis, const jsexnull& nul);
+struct jsnumber : jsrange
+{ };
 
-struct jsexdictnull : jsexnode
+struct jsbool : jsrange
+{ };
+
+struct jsstring : jsrange
+{ };
+
+struct jsany : jsrange
+{ };
+
+// template <typename T> struct jsexarray : jsrange {};
+// template <typename T> struct jsexdict : jsrange {};
+
+jsinput& operator>>(jsinput& jis, const jsany& nul);
+
+struct jsstruct
 {
-    virtual void jsex_kv(jsexins& jis, const std::string& k) {
-        jis >> jsexnull();
-    }
+    virtual void jsex_kv(jsinput& jis, const std::string& k) = 0;
+    virtual ~jsstruct() {}
 };
 
-#define JSEX(ji) do{ throw jsexc(ji); }while(0)
+jsinput& operator>>(jsinput& jis, jsstruct& a);
 
-const char* skips(const char *cur, const char* end)
+//struct jsexdictnull : jsstruct
+//{
+//    virtual void jsex_kv(jsinput& jis, const std::string& k) {
+//        jis >> jsany();
+//    }
+//};
+
+////////////////////
+//
+//
+//
+
+//jsinput& operator>>(jsinput& jis, jsexspaces& sps)
+//{
+//    sps.begin = find(jis.begin, jis.end, IsSpace());
+//    sps.end = find(sps.begin, jis.end, NotSpace());
+//    return jis;
+//}
+
+jsinput& jsextract(jsinput& jis, jsstring& ret)
 {
-    for (; cur != end; ++cur)
-        if (!std::isspace(*cur))
+    jis.begin = ret.begin = find(jis.begin, jis.end, NotSpace());
+
+    switch (front(jis)) {
+        case '"': case '\'':
             break;
-    return cur;
-}
-
-// inline int jsex_peekc(jsexins& jis)
-// {
-//     jis.cur = skips(jis.cur, jis.end);
-//     if (jis.cur >= jis.end)
-//         JSEX(jis);
-//     return *jis.cur;
-// }
-
-inline char jsex_peekc_skips(jsexins& jis)
-{
-    jis.cur = skips(jis.cur, jis.end);
-    if (jis.cur >= jis.end)
-        JSEX(jis);
-    return *jis.cur;
-}
-
-inline char jsex_peekc(jsexins& jis)
-{
-    if (jis.cur >= jis.end)
-        JSEX(jis);
-    return *jis.cur;
-}
-
-inline char jsex_getc_skips(jsexins& jis)
-{
-    jis.cur = skips(jis.cur, jis.end);
-    if (jis.cur >= jis.end)
-        JSEX(jis);
-    return *jis.cur++;
-}
-
-inline char jsex_getc(jsexins& jis)
-{
-    if (jis.cur >= jis.end)
-        JSEX(jis);
-    return *jis.cur++;
-}
-
-jsexins& operator>>(jsexins& jis, std::string& s)
-{
-    jis.cur = skips(jis.cur, jis.end);
-
-    int q;
-    switch ( (q = jsex_getc(jis))) {
-        case '"': case '\'': break;
-        default: JSEX(jis);
+        default: jsexc::raise(jis);
     }
 
-    const char *p = jis.cur;
-    while (p < jis.end && *p != q)
-        ++p;
-    if (p == jis.end)
-        JSEX(jis);
+    ret.end = ++jis.begin;
+    do {
+        if (front(jis) == front(ret))
+            break;
+    } while (++jis.begin < jis.end);
 
-    s.assign(jis.cur, p);
-    jis.cur = p+1;
+    if (empty(jis))
+        jsexc::raise(jis);
+    ret.end = ++jis.begin;
 
     return jis;
 }
 
-static long jsex_longint(jsexins& jis)
+inline jsinput& operator>>(jsinput& jis, std::string& ret)
 {
-    jis.cur = skips(jis.cur, jis.end);
+    jsstring s;
+    jsextract(jis, s);
+    ret.assign(s.begin+1, s.end-1);
+    return jis;
+}
 
+jsinput& jsextract(jsinput& jis, jsnumber& ret)
+{
     const char* sign = 0;
-    const char* d = jis.cur;
+    const char* d = 0;
     const char* dot = 0;
-    const char* p = jis.cur;
+
+    jis.begin = ret.begin = find(jis.begin, jis.end, NotSpace());
 
 Nxt_Char:
-    if (p < jis.end) switch (*p)
+    switch (front(jis))
     {
         case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-            ++p;
+            if (!d)
+                d = jis.begin;
+            ++jis.begin;
             goto Nxt_Char;
         case '-': case '+':
-            if (sign)
-                JSEX(jis);
-            sign = p++;
-            d = p;
+            if (sign || d)
+                jsexc::raise(jis);
+            sign = jis.begin++;
             goto Nxt_Char;
         case '.':
             if (dot)
-                JSEX(jis);
-            dot = p++;
+                jsexc::raise(jis);
+            dot = jis.begin++;
             goto Nxt_Char;
         default:
             break;
     }
-    if (d == p)
-        JSEX(jis);
-    jis.cur = p;
+    if (!d || dot+1 == jis.begin)
+        jsexc::raise(jis);
+    ret.end = jis.begin;
 
-    if (!sign)
-        sign = "+";
-
-    return atoi(d) * ((int)',' - (int)(*sign));
-}
-
-template <typename T> jsexins& jsex_xint(jsexins& jis, T& x) { x = (T)jsex_longint(jis); return jis; }
-
-inline jsexins& operator>>(jsexins& jis, int& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, unsigned int& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, short& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, unsigned short& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, long& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, unsigned long& i) { return jsex_xint(jis, i); }
-inline jsexins& operator>>(jsexins& jis, unsigned char& i) { return jsex_xint(jis, i); }
-
-inline jsexins& operator>>(jsexins& jis, char& c)
-{
-    c = jsex_getc_skips(jis);
     return jis;
 }
+
+template <typename T> jsinput& jsex_xint(jsinput& jis, T& x)
+{
+    jsnumber numb;
+    jsextract(jis, numb);
+    std::istringstream ins(numb.begin, numb.end);
+    ins >> x;
+    return jis;
+}
+
+inline jsinput& operator>>(jsinput& jis, int& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, unsigned int& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, short& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, unsigned short& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, long& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, unsigned long& i) { return jsex_xint(jis, i); }
+inline jsinput& operator>>(jsinput& jis, unsigned char& i) { return jsex_xint(jis, i); }
+
+//inline jsinput& operator>>(jsinput& jis, char& c)
+//{
+//    jsexspaces sp;
+//    return jis >> sp >> c;
+//}
 
 inline bool is_starts(const char* p, const char* end, const char* s)
 {
     while (p < end && *s && *p == *s)
-        ++p, ++s;
+        { ++p; ++s; }
     return (*s==0);
 }
 
-jsexins& operator>>(jsexins& jis, bool& ret)
+jsinput& jsextract(jsinput& jis, jsbool& ret)
 {
-    switch (jsex_getc_skips(jis))
+    jis.begin = ret.begin = find(jis.begin, jis.end, NotSpace());
+    switch (front(jis))
     {
         case 't': case 'T':
-            if (!is_starts(jis.cur, jis.end, "rue"))
-                JSEX(jis);
-            jis.cur += 3;
-            ret = true;
+            if (!is_starts(jis.begin+1, jis.end, "rue"))
+                jsexc::raise(jis);
+            jis.begin += 4;
             break;
         case 'f': case 'F':
-            if (!is_starts(jis.cur, jis.end, "alse"))
-                JSEX(jis);
-            jis.cur += 4;
-            ret = false;
+            if (!is_starts(jis.begin+1, jis.end, "alse"))
+                jsexc::raise(jis);
+            jis.begin += 5;
             break;
         default:
-            JSEX(jis);
+            jsexc::raise(jis);
     }
+    ret.end = jis.begin;
+
+    return jis;
+}
+
+jsinput& operator>>(jsinput& jis, bool& ret)
+{
+    jsbool b;
+    jsextract(jis, b);
+    ret = (b.end - b.begin == 4);
+    return jis;
+}
+
+template <>
+struct jsvector : jsarray_base
+{
+    virtual void element(jsinput& jis) { jsany a; jis >> a; }
+};
+
+template <typename C>
+struct jsvector : jsarray_base
+{
+    C *vec_;
+    jsvector(C* a) { vec_ = a; }
+
+    virtual void element(jsinput& jis)
+    {
+        vec_->resize(vec_->size() + 1);
+        jis >> vec_->back();
+    }
+};
+
+jsinput& jsextract(jsinput& jis, jsarray_base& ret)
+{
+    jis.begin = ret.begin = find(jis.begin, jis.end, NotSpace());
+
+    if (front(jis) != '[')
+        jsexc::raise(jis);
+
+    ret.end = find(jis.begin + 1, jis.end, NotSpace());
+    if (ret.end < jis.end)
+        ++ret.end;
+    if (back(ret) == ']')
+    {
+        jis.begin = ret.end;
+        return jis;
+    }
+
+    do {
+        ++jis.begin;
+        jis = ret.element(jis);
+        jis.begin = find(jis.begin, jis.end, NotSpace());
+    } while (front(jis) == ',');
+
+    if (front(jis) != ']')
+        jsexc::raise(jis);
+    ret.end = ++jis.begin;
 
     return jis;
 }
 
 template <typename T>
-jsexins& operator>>(jsexins& jis, std::vector<T>& v)
+jsinput& operator>>(jsinput& jis, std::vector<T>& v)
 {
-    if (jsex_getc_skips(jis) != '[')
-        JSEX(jis);
-    if (jsex_peekc_skips(jis) == ']')
-        { ++jis.cur; return jis; }
-
-    char chr;
-        do {
-            T x;
-            jis >> x;
-            v.push_back(x);
-    } while ( (chr = jsex_getc_skips(jis)) == ',');
-
-    if (chr != ']')
-            JSEX(jis);
-
-    return jis;
+    jsvector<std::vector<T> > vec(v);
+    return jsextract(jis, vec);
 }
 
-jsexins& operator>>(jsexins& jis, jsexnode& a)
+struct jsstruct_range : jsrange
 {
-    if (jsex_getc_skips(jis) != '{')
-        JSEX(jis);
-    if (jsex_peekc_skips(jis) == '}')
-        { ++jis.cur; return jis; }
+    jsstruct *node;
+    jsstruct_range(jsstruct *a) { node = a; }
+};
 
-    char chr ;
+jsinput& jsextract(jsinput& jis, jsstruct_range& ret)
+{
+    jis.begin = ret.begin = find(jis.begin, jis.end, NotSpace());
+
+    if (front(jis) != '{')
+        jsexc::raise(jis);
+
+    ret.end = find(jis.begin + 1, jis.end, NotSpace());
+    if (ret.end < jis.end)
+        ++ret.end();
+    if (back(ret) == '}')
+    {
+        jis.begin = ret.end;
+        return jis;
+    }
+
     do {
-        std::string k;
-        jis >> k;
-        if (jsex_getc_skips(jis) != ':')
-            JSEX(jis);
+        jsstring k;
+        jsextract(jis, k);
 
-        const char *cur = jis.cur;
-        a.jsex_kv(jis, k);
+        // jsspaces sp; char chr; jis >> sp >> chr >> sp;
+        jis.begin = find(jis.begin, jis.end, NotSpace());
+        if (front(jis) != ':')
+            jsexc::raise(jis);
+        jis.begin = find(jis.begin+1, jis.end, NotSpace());
 
-        if (cur == jis.cur)
-            jis >> jsexnull();
+        jsrange v = jis;
+        if (ret.node)
+            ret.node->jsex_kv(jis, std::string(k.begin, k.end));
+        if (v == jis)
+        {
+            jsany a;
+            jsextract(jis, a);
+        }
 
-    } while ( (chr = jsex_getc_skips(jis)) == ',');
+        jis.begin = find(jis.begin, jis.end, NotSpace());
+    } while (front(jis) == ',');
 
-    if (chr  != '}')
-        JSEX(jis);
+    if (front(jis) != '}')
+        jsexc::raise(jis);
+    ret.end = ++jis.begin;
 
     return jis;
 }
 
-jsexins& operator>>(jsexins& jis, const jsexnull& nul)
+jsinput& operator>>(jsinput& jis, jsstruct& a)
 {
-    switch (jsex_peekc_skips(jis))
+    jsstruct_range jn(&a);
+    return jsextract(jis, jn);
+}
+
+jsinput& operator>>(jsinput& jis, jsany& nul)
+{
+    jis.begin = nul.begin = find(jis.begin, jis.end, NotSpace());
+    switch (front(jis))
     {
         case 't': case 'T': case 'f': case 'F':
-            { bool b; jis >> b; }
+            { jsbool b; jsextract(jis, b); }
             break;
-        case '"':
-            { std::string x; jis >> x; }
+        case '"': case '\'':
+            { jsstring x; jsextract(jis, x); }
             break;
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '-': case '+':
-            { long x; jis >> x; }
+        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+        case '-': case '+':
+            { jsnumber x; jsextract(jis, x); }
             break;
         case '[':
-            { std::vector<jsexnull> v; jis >> v; }
+            { jsvector<> a; jsextract(jis, a); }
             break;
         case '{':
-            { jsexdictnull x; jis >> x; }
+            { jsstruct_range a(0); jsextract(jis, a); }
             break;
         default:
-            JSEX(jis);
+            jsexc::raise(jis);
     }
+    nul.end = jis.begin;
 
     return jis;
 }
 
 // { 'int': 1, "str": "s", 'foo':"foo", "vec" :[1,2,3], "b" : { "int" : 9, 'str': '""'}, "": False }
-struct A : jsexnode
+struct A : jsstruct
 {
     short aint;
     std::string astr;
     std::vector<int> vec;
 
-    struct B : jsexnode
+    struct B : jsstruct
     {
         short bint;
         std::string bstr;
 
-        virtual void jsex_kv(jsexins& jis, const std::string& k)
+        virtual void jsex_kv(jsinput& jis, const std::string& k)
         {
             if (k == "int")
                 jis >> bint;
@@ -305,7 +407,7 @@ struct A : jsexnode
         b.print();
     }
 
-    virtual void jsex_kv(jsexins& jis, const std::string& k)
+    virtual void jsex_kv(jsinput& jis, const std::string& k)
     {
         if (k == "int")
             jis >> aint;
@@ -323,13 +425,13 @@ int main(int ac, char *const av[])
     std::string line;
     while (std::getline(std::cin, line))
     {
-        jsexins jis(&line[0], &line[0] + line.size());
+        jsinput jis(&line[0], &line[0] + line.size());
 
         A a;
         jis >> a;
         a.print();
 
-        std::cout.write(jis.cur, jis.end - jis.cur);
+        std::cout.write(jis.begin, jis.end - jis.begin);
         std::cout << "\n";
     }
 
