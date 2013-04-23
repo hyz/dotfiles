@@ -54,15 +54,24 @@ alias er='explorer "`cygpath -w $(pwd)`" &'
 
 # limit coredumpsize 0
 
-export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools
-
 #export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
 # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
 
 
-export ANDROID_HOME=/opt/android-sdk
+ANDROID_ROOT_PREFIX=/opt/android-
 
-export ANDROID_NDK_ROOT=/opt/android-ndk NDK_ROOT=/opt/android-ndk
-export ANDROID_SDK_ROOT=/opt/android-sdk SDK_ROOT=/opt/android-sdk
+NDK_ROOT=/opt/android-ndk
+SDK_ROOT=/opt/android-sdk
+#SDK_ROOT=/opt/adt-bundle-linux-x86-20130219/sdk
+
+ANDROID_NDK_ROOT=$NDK_ROOT
+ANDROID_SDK_ROOT=$SDK_ROOT
+ANDROID_HOME=$SDK_ROOT
+
+PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:$NDK_ROOT:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
+
+export PATH NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
+
 export COCOS2DX_ROOT=$HOME/cocos2d
+# /opt/adt-bundle-linux-x86-20130219/sdk
 
