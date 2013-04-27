@@ -1,8 +1,14 @@
+#!/bin/sh
+#
 # https://wiki.archlinux.org/index.php/MAC_Address_Spoofing
 # package iproute2
+#
+# 00:e0:6f:10:c0:a8
 
-ip link show eth0
+[ $# -gt 0 ] || exit 1
+
 ip link set dev eth0 down
-ip link set dev eth0 address XX:XX:XX:XX:XX:XX
+ip link set dev eth0 address $1
 ip link set dev eth0 up
+ip link show eth0
 
