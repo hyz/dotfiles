@@ -1,0 +1,11 @@
+#!/bin/sh
+
+while true; do
+    usleep 100000
+    date
+    echo $*
+    fortune
+    cat ~/test/.rdata
+    fortune
+done
+
