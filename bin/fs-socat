@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# socat TCP-L:12345,reuseaddr,fork EXEC:"fs-socat /etc/passwd"
+# socat TCP-L:12345,reuseaddr,crlf EXEC:"fs-socat /etc/passwd"
+
+filename=$1
+
+cat <<EoF |sed 's/$/\r/'
+HTTP/1.1 200 OK
+Content-Description: File Transfer
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=$(basename $filename)
+Content-Transfer-Encoding: binary
+Expires: 0
+Cache-Control: must-revalidate, post-check=0, pre-check=0
+Pragma: public
+Content-Length: $(stat -c '%s' $filename)
+
+EoF
+
+cat "$filename"
+
