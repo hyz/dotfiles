@@ -2,6 +2,8 @@
 #include <istream>
 #include <ostream>
 #include <string>
+#include <list>
+#include <vector>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/smart_ptr.hpp>
@@ -66,15 +68,14 @@ private:
     }
 };
 
-struct sender
+struct Sender
 {
     typedef socwriter worker_t;
     typedef shared_ptr<worker_t> worker_ptr;
 
-    ~sender();
+    ~Sender();
 
-    function<void (const std::string&)> hire(socket_ptr soc);
-    //worker_ptr hire(shared_ptr<tcp::socket> soc);
+    function<void (const std::string&)> associate(socket_ptr soc);
 
     void finish(socket_ptr soc)
     {
@@ -88,15 +89,15 @@ private:
     hired_t hired_;
 };
 
-sender::~sender()
+Sender::~Sender()
 {
     //for (iterator i = hired_.begin(); i != hired_.end(); ++i)
         //i->second->soc_->cancel();
 }
 
-function<void (const std::string&)> sender::hire(socket_ptr soc) //, std::streambuf* buf)
+function<void (const std::string&)> Sender::associate(socket_ptr soc) //, std::streambuf* buf)
 {
-    sender::worker_ptr ker(new worker_t(soc, bind(&sender::finish, this, _1)));
+    Sender::worker_ptr ker(new worker_t(soc, bind(&Sender::finish, this, _1)));
 
     boost::weak_ptr<worker_t> _w(ker);
     std::pair<iterator, bool> ret = hired_.insert(std::make_pair(soc->native_handle(), _w));
@@ -154,16 +155,16 @@ struct http_request
     std::vector<char> cont;
 };
 
-struct httprsp_echo //struct http_responser
+struct MyService //struct http_responser
 {
     typedef function<void (const std::string&)> send_fn_t;
 
-    httprsp_echo(function<send_fn_t (socket_ptr)> hire)
-        : hire_(hire)
+    MyService(function<send_fn_t (socket_ptr)> a)
+        : assoc_(a)
     {
     }
 
-    void query(socket_ptr soc, const http_request& req)
+    void work(socket_ptr soc, const http_request& req)
     {
         std::ostringstream outs;
 
@@ -173,36 +174,38 @@ struct httprsp_echo //struct http_responser
         if (!req.cont.empty())
             outs.write(&req.cont[0], req.cont.size());
 
-        send_fn_t sendfn = hire_(soc);
-        sendfn(outs.str());
+        send_fn_t fn = assoc_(soc);
+        fn(outs.str());
     }
 
 private:
-    function<send_fn_t (socket_ptr)> hire_;
+    function<send_fn_t (socket_ptr)> assoc_;
 };
 
-struct http_reader_impl : boost::enable_shared_from_this<http_reader_impl> //, boost::noncopyable
+struct Http_reader_impl : boost::enable_shared_from_this<Http_reader_impl> //, boost::noncopyable
 {
-    http_reader_impl(socket_ptr soc
+    typedef Http_reader_impl this_type;
+
+    Http_reader_impl(socket_ptr soc
             , function<void (socket_ptr, const http_request&)> rsp)
-        : socket_(soc), rsp_(rsp)
+        : socket_(soc), fwdp_(rsp)
     {
     }
 
     void start()
     {
         asio::async_read_until(*socket_, rsbuf_, "\r\n",
-                bind(&http_reader_impl::handle_method_line, shared_from_this(), asio::placeholders::error));
+                bind(&this_type::handle_method_line, shared_from_this(), asio::placeholders::error));
     }
 
 private:
-    typedef boost::shared_ptr<http_reader_impl> this_shptr;
+    typedef boost::shared_ptr<this_type> this_shptr;
 
     socket_ptr socket_;
     asio::streambuf rsbuf_;
     http_request req_;
 
-    function<void (socket_ptr, const http_request&)> rsp_;
+    function<void (socket_ptr, const http_request&)> fwdp_;
 
 private:
     void handle_method_line(const boost::system::error_code& err)
@@ -225,7 +228,7 @@ private:
         if (req_.method.empty())
         {
             asio::async_read_until(*socket_, rsbuf_, "\r\n",
-                    bind(&http_reader_impl::handle_method_line, shared_from_this(), asio::placeholders::error)
+                    bind(&this_type::handle_method_line, shared_from_this(), asio::placeholders::error)
                     );
             return;
         }
@@ -237,7 +240,7 @@ private:
         std::cout << req_.method << " " << req_.uri << " " << req_.http_version << "\n";
 
         asio::async_read_until(*socket_, rsbuf_, "\r\n\r\n",
-                bind(&http_reader_impl::handle_headers, shared_from_this(), asio::placeholders::error));
+                bind(&this_type::handle_headers, shared_from_this(), asio::placeholders::error));
     }
 
     void handle_headers(const boost::system::error_code& err)
@@ -275,7 +278,7 @@ private:
 
         asio::async_read(*socket_ , sbuf
                 , asio::transfer_at_least(req_.cont.size())
-                , bind(&http_reader_impl::handle_content, shared_from_this(), asio::placeholders::error));
+                , bind(&this_type::handle_content, shared_from_this(), asio::placeholders::error));
     }
 
     void handle_content(const boost::system::error_code& err)
@@ -287,11 +290,11 @@ private:
 
         rsbuf_.sgetn(&req_.cont[0], req_.cont.size());
 
-        rsp_(socket_, req_);
+        fwdp_(socket_, req_);
 
         // Next http_request
         asio::async_read_until(*socket_, rsbuf_, "\r\n",
-                bind(&http_reader_impl::handle_method_line, shared_from_this(), asio::placeholders::error));
+                bind(&this_type::handle_method_line, shared_from_this(), asio::placeholders::error));
     }
 
     static void _error(const boost::system::error_code& err, int w)
@@ -304,24 +307,27 @@ private:
     }
 };
 
-struct http_reader
+template <typename Impl>
+struct Reader
 {
-    typedef http_reader_impl worker_t;
+    typedef Impl worker_t;
 
-    http_reader(function<void (socket_ptr, const http_request&)> fn) : fn_(fn) {}
+    Reader(function<void (socket_ptr, const http_request&)> fn)
+        : fn_(fn) {}
 
-    void accept(socket_ptr soc)
+    void work(socket_ptr soc)
     {
         shared_ptr<worker_t> wk(new worker_t(soc, fn_));
         wk->start();
     }
 
     function<void (socket_ptr, const http_request&)> fn_;
+    std::vector<socket_ptr> soclist_;
 };
 
-struct socket_acceptor
+struct Acceptor
 {
-    socket_acceptor(asio::io_service& io_service, const char* addr, const char* port, function<void (socket_ptr)> fn);
+    Acceptor(asio::io_service& io_service, const char* addr, const char* port, function<void (socket_ptr)> fn);
 
     void start()
     {
@@ -329,7 +335,7 @@ struct socket_acceptor
 
         socket_.reset(new tcp::socket(acceptor_.get_io_service()));
         acceptor_.async_accept(*socket_,
-                bind(&socket_acceptor::handle_accept, this, asio::placeholders::error)
+                bind(&Acceptor::handle_accept, this, asio::placeholders::error)
                 );
     }
 
@@ -353,7 +359,7 @@ private:
 
         socket_.reset(new tcp::socket(acceptor_.get_io_service()));
         acceptor_.async_accept(*socket_,
-                bind(&socket_acceptor::handle_accept, this, asio::placeholders::error));
+                bind(&Acceptor::handle_accept, this, asio::placeholders::error));
     }
 
     void _error(const boost::system::error_code& err)
@@ -362,7 +368,7 @@ private:
     }
 };
 
-socket_acceptor::socket_acceptor(asio::io_service& io_service
+Acceptor::Acceptor(asio::io_service& io_service
         , const char* addr, const char* port
         , function<void (socket_ptr)> fn)
     : acceptor_(io_service)
@@ -406,10 +412,10 @@ int main(int argc, char* argv[])
 #endif // defined(SIGQUIT)
         sigstop.async_wait(bind(&asio::io_service::stop, &io_service));
 
-        sender sender;
-        httprsp_echo responser(bind(&sender::hire, &sender, _1));
-        http_reader reader(bind(&httprsp_echo::query, &responser, _1, _2));
-        socket_acceptor acceptor(io_service, "0", argv[1], bind(&http_reader::accept, &reader, _1));
+        Sender sender;
+        MyService server(bind(&Sender::associate, &sender, _1));
+        Reader<Http_reader_impl> reader(bind(&MyService::work, &server, _1, _2));
+        Acceptor acceptor(io_service, "0", argv[1], bind(&Reader::work, &reader, _1));
 
         acceptor.start();
 

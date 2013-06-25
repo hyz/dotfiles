@@ -1,0 +1,19 @@
+
+# root@192.168.11.1 #PWD: None
+# dreambox 192.168.254.1 #PWD: admin
+# 192.168.2.198,197,196
+
+fusermount -u /usr/lib/lua/luci
+sshfs wood@192.168.11.11:/home/wood/wrt/luci /usr/lib/lua/luci -o nonempty
+sshfs wood@192.168.11.11:/home/wood/wrt/luci-static /www/luci-static -o nonempty
+
+/usr/sbin/uhttpd -f -h /www -r OpenWrt -x /cgi-bin -t 60 -T 30 -A 1 -n 3 -R -p 0.0.0.0:80
+rm -rf /tmp/luci-*
+
+sudo wrt/tcp_flood -c 1 -I eth0 -H 00:e0:6f:10:c0:fe -T 20:dc:e6:fd:6c:b5 -P 12345 -s 192.168.3.36-192.168.3.40 192.168.1.55
+socat TCP-L:12345,fork EXEC:cat
+
+sshfs wood@192.168.3.254:/home/wood/wrt/luci /usr/lib/lua/luci -o nonempty
+
+git diff --name-status fa8667bbcae2aef9e1e38079aedb1457e1649ac6 |grep -v '^D' |awk '{print $2}' |cpio -pud /tmp/u
+
