@@ -27,6 +27,8 @@ set tags+=../tags,~/.tags
 
 " set cscopeprg=mlcscope
 
+set makeprg=b2
+
 "autocmd BufEnter * lcd %:p:h
 autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 
@@ -101,4 +103,6 @@ let loaded_matchparen = 1
 " VimIM
 let g:vimim_tab_for_one_key=1
 "let g:vimim_one_key=0
+
+
 
