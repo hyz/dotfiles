@@ -38,7 +38,8 @@ using namespace boost;
 int main(int ac, char *const av[])
 {
     filesystem::path pa(av[1]);
-    cout << pa.is_absolute() << "\n";
+    filesystem::path ext = pa.extension();
+    cout << pa.is_absolute() << " " << ext << "\n";
 
     filesystem::path p1(RES_DIR);
     p1 /= pa;
