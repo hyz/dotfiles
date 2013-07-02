@@ -10,4 +10,4 @@
     diff =
 
 [push]
-	default = simple
+    # default = simple

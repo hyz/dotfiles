@@ -1,3 +1,5 @@
+# export HOSTNAME=devel
+
 #PROMPT='%{[36m%}%~%{[m%} %% '
 #RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
@@ -74,4 +76,7 @@ export PATH NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
 
 export COCOS2DX_ROOT=$HOME/cocos2d
 # /opt/adt-bundle-linux-x86-20130219/sdk
+
+export BOOST_BUILD_PATH=/usr/share/boost/build/v2
+
 
