@@ -7,3 +7,8 @@ $ mysql -u root -p
 
 $ mysql -u lindu -p lindu_test
 
+$ mysqldump -d -u lindu -p lindu_test > lindu_test.sql
+$
+$ mysql -u root -p lindu_test < lindu_test.sql
+$
+
