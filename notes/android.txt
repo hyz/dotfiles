@@ -1,0 +1,13 @@
+android --help
+android
+android avd
+
+adb --help
+adb install bin/HelloCpp-debug.apk
+adb uninstall org.cocos2dx.hellocpp
+
+# ant -Dsdk.dir=path/to/android/sdk/root/dir -Dtarget=targeted-android-sdk-version
+ant -Dsdk.dir=/opt/android-sdk debug
+
+android create project --target "android-15" --name World --path /tmp/World --activity MainActivity --package com.example.world
+
