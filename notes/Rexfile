@@ -1,0 +1,17 @@
+user "wood";
+password "432";
+pass_auth;
+
+group myserver => "localhost", "192.168.1.55";
+
+desc "Get the uptime of all server";
+task "uptime", group => "myserver", sub {
+    say run "uptime";
+};
+
+desc "...";
+task "x", group => "myserver", sub {
+    say run "free";
+    # service "apache2" => "start";
+} 
+
