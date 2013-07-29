@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
 #include <boost/range.hpp>
 #include <boost/filesystem.hpp>
 
@@ -19,12 +20,91 @@ using namespace boost;
 using namespace std;
 // using boost::asio::ip::tcp;
 
-template <typename R> void notify(const R & r)
+template <typename Sink, typename T>
+void stringv(const Sink& k, T& arg)
 {
+    k( lexical_cast<string>(arg) );
+}
+
+template <typename Sink, typename T, typename... Args>
+void stringv(const Sink& k, T& arg, Args... args)
+{
+    k( lexical_cast<string>(arg) );
+    return stringv(k, args...);
+}
+
+template <typename... Args>
+pid_t spawn(filesystem::path& fsp, Args... args)
+{
+    vector<string> argv;
+    stringv([&argv](const string& s){ argv.push_back(s); }
+            , fsp.string(), fsp.filename().string()
+            , args...);
+
+    cout << "spawn: " << argv << endl;
+
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        return pid;
+    }
+
+    if (pid == 0)
+    {
+        vector<char*> av;
+        for_each(argv.begin(), argv.end(),
+                [&av](string& a){ av.push_back(const_cast<char*>(a.c_str())); });
+        av.push_back(0);
+
+        execv(av[0], &av[1]);
+
+        // BOOST_ASSERT(false);
+        exit(123);
+    }
+
+    return pid;
+}
+
+template <typename Fn>
+void walk(const filesystem::path& path, const Fn& fn)
+{
+    if (filesystem::is_directory(path))
+    {
+        for_each(filesystem::directory_iterator(path), filesystem::directory_iterator(),
+                [&fn](boost::filesystem::directory_entry& it) {
+                    walk(it.path(), fn);
+                });
+    }
+    else if (filesystem::is_regular(path)) // filesystem::is_symlink(path) 
+    {
+        // cout << path << endl;
+        fn(path);
+    }
+    else
+    {
+        cout << "Unknown " << path << endl;
+    }
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const vector<T>& v)
+{
+    for_each(v.begin(), v.end(), [](const T& t){ cout << t << " "; } );
+    return out; // << p.id() << ":" << p.path();
+}
+
+template <typename R, typename... Args>
+void notify(const R & r, Args... args)
+{
+    string msg;
+    stringv([&msg](const string& s){ msg += " " + s; }, args...);
+
+    cout << "notify:" << r << ":" << msg << endl;
+
     typedef typename range_iterator<R>::type iterator;
     for (iterator i = std::begin(r); i != std::end(r); ++i)
     {
-        sendsms(*i, "Warning: Server Core-Dump.");
+        sendsms(*i, msg);
     }
 }
 
@@ -43,65 +123,60 @@ struct proc
     const filesystem::path& path() const { return path_; }
 };
 
+inline std::ostream& operator<<(std::ostream& out, const proc& p)
+{
+    return out << p.id() << ":" << p.path();
+}
+
 pid_t proc::start()
 {
-    pid_t pid = fork();
-    if (pid < 0)
+    pid_t pid = spawn(path_, "start"); //(path_, "start")
+    if (pid > 0)
     {
-        // LOG
-        return 0;
+        pid_ = pid;
+        cout << *this << " started" << endl;
     }
-
-    if (pid == 0)
-    {
-        execl(path_.c_str(), path_.c_str(), 0);
-        BOOST_ASSERT(false);
-    }
-    else // (pid > 0)
-    {
-        this->pid_ = pid;
-    }
-
     return pid;
 }
 
 void proc::stop()
 {
-    // man 7 signal
     if (pid_ > 0)
     {
+        cout << *this << " stopped" << endl;
+        // spawn(path_, "stop");
+
         kill(pid_, SIGTERM);
         kill(pid_, SIGKILL);
         pid_ = 0;
     }
 }
 
-std::vector<proc>& list_procs(std::vector<proc>& procs, const filesystem::path& path)
+void check_procs(const filesystem::path& path, std::vector<proc>& procs)
 {
-    if (filesystem::is_directory(path))
-    {
-        for_each(filesystem::directory_iterator(path), filesystem::directory_iterator(),
-                [&procs](boost::filesystem::directory_entry& it) {
-                    list_procs(procs, it.path());
-                });
-    }
-    else if (filesystem::is_regular(path)) // filesystem::is_symlink(path) 
-    {
-        auto i = find_if(procs.begin(), procs.end(),
-                [&path](proc& p){ return p.path()==path; });
-        if (i == procs.end()) {
-            i = procs.insert(procs.end(), proc(path));
-            i->start();
-        // } else {
-        //     i->stop();
-        //     procs.erase(i, procs.end());
-        }
-    }
+    std::vector<proc> oldps(std::move(procs)); // oldps.swap(procs);
+    BOOST_ASSERT(empty(procs));
 
-    return procs;
+    walk(path, [&oldps,&procs](const filesystem::path& path) {
+            auto i = find_if(oldps.begin(), oldps.end()
+                    , [&path](proc& p) { return p.path() == path; });
+            if (i == oldps.end()) {
+                i = procs.insert(procs.end(), proc(path));
+                i->start();
+            } else {
+                cout << *i << endl;
+                procs.insert(procs.end(), *i);
+                oldps.erase(i);
+            }
+        });
+
+    for_each(oldps.begin(), oldps.end(), [](proc& p){ p.stop(); } );
+
+    cout << "check " << path << " " << procs << endl;
 }
 
-// const char* phones[] = { "13798378429", "13798378429" };
+static void sig(int sig) {}
+
 int main(int argc, char* argv[])
 {
     if (argc == 1)
@@ -112,37 +187,38 @@ int main(int argc, char* argv[])
 
     filesystem::path path = filesystem::system_complete(argv[1]);
     if (!filesystem::exists(path))
-    {
         exit(2);
-    }
+    cout << "The path: " << argv[1] << " " << path << endl;
 
-    daemon(0, 0);
+    // daemon(0, 0);
+    signal(SIGHUP, sig);
+    signal(SIGCHLD, sig);
+    auto phones = make_iterator_range(&argv[2], &argv[argc]);
 
     std::vector<proc> procs;
 
-    while (1)
+    while (filesystem::exists(path))
     {
-        while (procs.empty())
-        {
-            list_procs(procs, path);
-            if (procs.empty())
-                sleep(9);
-        }
+        check_procs(path, procs);
 
         int status;
-        pid_t pid = wait(&status);
-        // LOG
+        pid_t pid = waitpid(-1, &status, WNOHANG);
+        if (pid > 0)
+        {
+            cout << "waited:" << pid << ":" << status << endl;
+            for_each(procs.begin(), procs.end(),
+                    [&pid,&phones](proc& p) {
+                        if (p.id() == pid) {
+                            cout << "crash:" << p << endl;
+                            notify( phones, "Warning:", p.path().string() );
+                            p.stop();
+                            sleep(1);
+                            p.start();
+                        }
+                    });
+        }
 
-        notify( make_iterator_range(&argv[1], &argv[argc]) );
-        sleep(1);
-
-        for_each(procs.begin(), procs.end(),
-                [&pid](proc& p) {
-                    if (p.id() == pid) {
-                        p.stop();
-                        p.start();
-                    }
-                });
+        sleep(90);
     }
 
     return 0;
