@@ -25,8 +25,8 @@ $soap->decode_utf8 = false;
 
 $namespace = 'http://sdkhttp.eucp.b2m.cn/';
 
-$serialNumber = '3SDK-EMY-0130-PEURL';
-$sessionKey = '3fc2719ce96ebdf42b6dc1a1d8303e1b';
+$serialNumber = '';
+$sessionKey = '';
 
 $sendTime = '';
 $addSerial = '';
@@ -55,5 +55,7 @@ $result = $soap->call("sendSMS",$params,$namespace);
 
 return $result;
 
+# sn = '3SDK-EMY-0130-PEURL';
+# sk = '3fc2719ce96ebdf42b6dc1a1d8303e1b';
 ?>
 
