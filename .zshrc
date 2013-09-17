@@ -79,6 +79,6 @@ export PATH NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
 export COCOS2DX_ROOT=$HOME/cocos2d
 # /opt/adt-bundle-linux-x86-20130219/sdk
 
-export BOOST_BUILD_PATH=/usr/share/boost/build/v2
+# export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
 
