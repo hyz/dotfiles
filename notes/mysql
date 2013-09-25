@@ -12,6 +12,7 @@ $
 $ mysql -u root -p lindu_test < lindu_test.sql
 $
 
+//DROP TABLE IF EXISTS `client_users_view`;
 //DROP VIEW IF EXISTS `client_users_view`;
 //CREATE VIEW `client_users_view` AS select `t1`.`user_id` AS `user_id`,`t1`.`id` AS `id`,`t1`.`mac` AS `mac`,`t1`.`spot` AS `spot`,`t1`.`act_time` AS `act_time`,`t1`.`cache` AS `cache`,`t2`.`UserId` AS `UserId`,`t2`.`UserPhone` AS `UserPhone`,`t2`.`mail` AS `mail`,`t2`.`UserName` AS `UserName`,`t2`.`password` AS `password`,`t2`.`nick` AS `nick`,`t2`.`age` AS `age`,`t2`.`constellation` AS `constellation`,`t2`.`sex` AS `sex`,`t2`.`signature` AS `signature`,`t2`.`icon` AS `icon` from (`users` `t2` left join `clients` `t1` on((`t1`.`user_id` = `t2`.`UserId`)));
 
