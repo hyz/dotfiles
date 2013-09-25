@@ -27,27 +27,32 @@ public:
       )
     : io_service_(io_service)
       , socket_(io_service)
-      , dl_alive_(io_service)
+      , deadline_(io_service)
   {
     do_connect(endpoint_iterator);
     token_ = token;
-    dl_alive_.expires_from_now(boost::posix_time::seconds(0));
+    deadline_.expires_from_now(boost::posix_time::seconds(0));
+    keep_alive();
   }
 
   void close(boost::system::error_code ec)
   {
     io_service_.post([this]() { socket_.close(); });
+    deadline_.cancel();
     std::cout << ec << " close\n";
   }
 
+  bool is_open() const { return socket_.is_open(); }
+
+private:
   void keep_alive()
   {
-    bool expired = (dl_alive_.expires_at() <= asio::deadline_timer::traits_type::now());
+    bool expired = (deadline_.expires_at() <= asio::deadline_timer::traits_type::now());
     if (expired)
     {
-        // dl_alive_.async_wait([this]() { this->keep_alive(); });
-        dl_alive_.async_wait(std::bind(&chat_client::keep_alive, this));
-        dl_alive_.expires_from_now(boost::posix_time::seconds(33));
+        // deadline_.async_wait([this]() { this->keep_alive(); });
+        deadline_.expires_from_now(boost::posix_time::seconds(33));
+        deadline_.async_wait(std::bind(&chat_client::keep_alive, this));
 
         json::object hdobj;
         hdobj ("method","hello") ("token",token_) ;
@@ -66,9 +71,6 @@ public:
     }
   }
 
-  bool is_open() const { return socket_.is_open(); }
-
-private:
   void write(const std::string& msg)
   {
     io_service_.post(
@@ -172,7 +174,7 @@ private:
   asio::io_service& io_service_;
   tcp::socket socket_;
   std::string token_;
-  asio::deadline_timer dl_alive_;
+  asio::deadline_timer deadline_;
 
 
   union { uint16_t h[2]; char s[4]; uint32_t len; } read_size_;
@@ -226,7 +228,7 @@ int main(int ac, char* const av[])
     auto endpoint_iterator = resolver.resolve({ host_, port_ });
 
     chat_client c(io_service, endpoint_iterator, token);
-    c.keep_alive();
+    // c.keep_alive();
 
     // std::thread t([&io_service](){ io_service.run(); });
     // while (c.is_open())
