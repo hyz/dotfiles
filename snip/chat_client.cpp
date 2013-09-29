@@ -14,7 +14,7 @@ namespace asio = boost::asio;
 typedef std::deque<std::string> message_queue;
 
 static std::string mac_ = "00:11:22";
-static std::string gwid_ = "KKLink-001";
+static std::string spot_; // = "KK1007A";
 static std::string host_ = "127.0.0.1";
 static std::string port_ = "9900";
 
@@ -37,8 +37,10 @@ public:
 
   void close(boost::system::error_code ec)
   {
-    io_service_.post([this]() { socket_.close(); });
-    deadline_.cancel();
+    io_service_.post([this]() {
+                socket_.close();
+                deadline_.cancel();
+            });
     std::cout << ec << " close\n";
   }
 
@@ -54,35 +56,23 @@ private:
         deadline_.expires_from_now(boost::posix_time::seconds(33));
         deadline_.async_wait(std::bind(&chat_client::keep_alive, this));
 
-        json::object hdobj;
-        hdobj ("method","hello") ("token",token_) ;
-        // if (!gwid_.empty() && !mac_.empty())
-        // {
-        //     hdobj ("mac",mac_) ("gwid",gwid_);
-        // }
+        json::object head;
+        head ("method","hello") ("token",token_) ;
 
-        std::string hds = json::encode(hdobj);
-
-        decltype(read_size_) u;
-        u.h[0] = htons(static_cast<short>(hds.size()));
-        u.h[1] = htons(2);
-
-        this->write(std::string(&u.s[0],sizeof(u)) + hds + "{}");
-    }
-  }
-
-  void write(const std::string& msg)
-  {
-    io_service_.post(
-        [this, msg]()
+        json::object body;
+        if (!spot_.empty())
         {
-          bool write_in_progress = !write_msgs_.empty();
-          write_msgs_.push_back(msg);
-          if (!write_in_progress)
-          {
-            do_write();
-          }
-        });
+            body ("spotsid",spot_);
+        }
+
+        std::string heads = json::encode(head);
+        std::string bodys = json::encode(body);
+        decltype(read_size_) u;
+        u.h[0] = htons(static_cast<short>(heads.size()));
+        u.h[1] = htons(static_cast<short>(bodys.size()));
+
+        this->write(std::string(&u.s[0],sizeof(u)) + heads + bodys);
+    }
   }
 
   void do_connect(tcp::resolver::iterator endpoint_iterator)
@@ -92,42 +82,23 @@ private:
         {
           if (!ec)
           {
-            do_read_header();
+            do_read_size();
           }
         });
   }
 
-  void do_read_header()
+  void do_read_size()
   {
-      std::cout << "do read header " << sizeof(read_size_) << "\n";
-    asio::async_read(socket_,
-        asio::buffer(&read_size_.s[0], sizeof(read_size_)),
+    // std::cout << "do read size " << sizeof(read_size_) << "\n";
+    asio::async_read(socket_, asio::buffer(&read_size_.s[0], sizeof(read_size_)),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
-            read_msg_.resize( ntohs(read_size_.h[0]) + ntohs(read_size_.h[1]) );
-            do_read_body();
-          }
-          else
-          {
-          close(ec); // socket_.close();
-          }
-        });
-  }
-
-  void do_read_body()
-  {
-      std::cout << "do read body " << read_msg_.size() << "\n";
-    asio::async_read(socket_,
-        asio::buffer(const_cast<char*>(read_msg_.data()), read_msg_.size()),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-            std::cout << read_msg_ << "\n";
-            ack( json::decode(std::string(read_msg_.data(), ntohs(read_size_.h[0]))) );
-            do_read_header();
+            read_size_.h[0] = ntohs(read_size_.h[0]);
+            read_size_.h[1] = ntohs(read_size_.h[1]);
+            read_msg_.resize( read_size_.h[0] + read_size_.h[1] );
+            do_read_data();
           }
           else
           {
@@ -136,27 +107,83 @@ private:
         });
   }
 
-  void ack(json::object jso)
+  void do_read_data()
   {
-    jso.put("method", "ack");
-    std::string hds = json::encode(jso);
+    asio::async_read(socket_, asio::buffer(const_cast<char*>(read_msg_.data()), read_msg_.size()),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+            std::cout << ">>> "<< read_msg_ << "\n";
 
+            json::object head = json::decode(&read_msg_[0], &read_msg_[read_size_.h[0]]);
+            json::object body = json::decode(&read_msg_[read_size_.h[0]], &read_msg_[read_msg_.size()]);
+
+            ack( head );
+
+            process(head, body);
+
+            do_read_size();
+          }
+          else
+          {
+            close(ec); // socket_.close();
+          }
+        });
+  }
+
+  void process(const json::object & head, const json::object & body)
+  {
+      const std::string & meth = head.get<std::string>("method");
+      std::cout <<"=== "<< meth << "\n";
+
+      if (meth == "chat/in-spot")
+      {
+          spot_ = body.get<std::string>("content");
+      }
+      else if (meth == "chat/out-spot")
+      {
+          spot_ = std::string();
+      }
+  }
+
+  void ack(json::object head)
+  {
+    head.put("token", token_);
+    head.put("method", "ack");
+
+    std::string heads = json::encode(head);
     decltype(read_size_) u;
-    u.h[0] = htons(static_cast<short>(hds.size()));
+    u.h[0] = htons(static_cast<short>(heads.size()));
     u.h[1] = htons(2);
+    this->write(std::string(&u.s[0],sizeof(u)) + heads + "{}");
+  }
 
-    this->write(std::string(&u.s[0],sizeof(u)) + hds + "{}");
+  void write(const std::string& msg)
+  {
+    io_service_.post(
+        [this, msg]()
+        {
+        // std::cout << msg << "#POST\n";
+          bool write_in_progress = !write_msgs_.empty();
+          write_msgs_.push_back(msg);
+          if (!write_in_progress)
+          {
+            do_write();
+          }
+        });
   }
 
   void do_write()
   {
+    // std::cout << "do write " << write_msgs_.front() << "\n";
     asio::async_write(socket_,
         asio::buffer(write_msgs_.front().data(), write_msgs_.front().length()),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
-            std::cout << write_msgs_.front() << std::endl;
+            std::cout << "<<< "<< write_msgs_.front() << std::endl;
             write_msgs_.pop_front();
             if (!write_msgs_.empty())
             {
@@ -196,7 +223,7 @@ std::string args(int ac, char * const av[])
         ("host,h", po::value<std::string>(&host_)->default_value(host_), "host to connect")
         ("port,p", po::value<std::string>(&port_)->default_value(port_), "port used when connect")
         ("mac", po::value<std::string>(&mac_)->default_value(mac_), "the macaddress")
-        ("gwid", po::value<std::string>(&gwid_)->default_value(gwid_), "the gwid")
+        ("spot", po::value<std::string>(&spot_)->default_value(spot_), "spot group-id")
         ("token", po::value<std::string>(&token)->required(), "client id")
         ;
     po::positional_options_description pos_desc;
