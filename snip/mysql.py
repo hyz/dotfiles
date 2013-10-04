@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import MySQLdb
 
 db = MySQLdb.connect(host="127.0.0.1", user="lindu", passwd="lindu12345", db="lindu_moon")
