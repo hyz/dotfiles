@@ -1,10 +1,12 @@
 #xmodmap $HOME/.Xmodmap
-xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 #xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
 #xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+#
 #$ xmodmap -pk | grep -i caps
 # 66 0xffe5 (Caps_Lock)
 #$ xmodmap -e 'keycode 66 = Escape'
+xmodmap -e 'keycode 66 = Escape'
 
 export LANG=en_US.UTF-8
 # export LANG=en_HK.UTF-8
