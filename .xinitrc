@@ -1,9 +1,9 @@
 #http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
 # ~/.keymap
 #$ xmodmap -pk | grep -i caps
-# 66 0xffe5 (Caps_Lock)
-#$ xmodmap -e 'keycode 66 = Escape'
-xmodmap -e 'keycode 66 = Escape'
+# 58 0xffe5 (Caps_Lock)
+#$ xmodmap -e 'keycode 58 = Escape'
+xmodmap -e 'keycode 58 = Escape'
 
 export LANG=en_US.UTF-8
 # export LANG=en_HK.UTF-8
