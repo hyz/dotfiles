@@ -84,14 +84,8 @@ struct jsstruct
 
 jsinput& operator>>(jsinput& jin, jsstruct& a);
 
-struct NotSpace
-{
-    bool operator()(int c) const { return !isspace(c); }
-};
-struct IsSpace
-{
-    bool operator()(int c) const { return isspace(c); }
-};
+struct NotSpace { bool operator()(int c) const { return !isspace(c); } };
+struct IsSpace { bool operator()(int c) const { return isspace(c); } };
 
 ////////////////////
 //
@@ -198,7 +192,7 @@ inline jsinput& operator>>(jsinput& jin, unsigned char& i) { return jsex_xint(ji
 
 inline bool is_starts(const char* p, const char* end, const char* s)
 {
-    while (p < end && *s && *p == *s)
+    while (*s && p < end && *p == *s)
         { ++p; ++s; }
     return (*s==0);
 }
@@ -244,12 +238,18 @@ template <typename C>
 struct jsvector : jsarray_base
 {
     C *vec_;
-    jsvector(C* a) { vec_ = a; }
+    jsvector() { vec_ = 0; }
+    jsvector(C& a) { vec_ = &a; }
 
     virtual void element(jsinput& jin)
     {
-        vec_->resize(vec_->size() + 1);
-        jin >> vec_->back();
+        if (vec_) {
+            vec_->resize(vec_->size() + 1);
+            jin >> vec_->back();
+        } else {
+            jsany a;
+            jin >> a;
+        }
     }
 };
 
