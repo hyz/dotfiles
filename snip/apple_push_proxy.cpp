@@ -11,10 +11,19 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/system/error_code.hpp>
-// #include <boost/ptr_container/ptr_map.hpp>
-// #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/format.hpp>
 #include "util.h"
+#include "jss.h"
+#include "log.h"
+
+#define APPLE_HOST          "gateway.sandbox.push.apple.com"
+#define APPLE_PORT          "2195"
+#define APPLE_FEEDBACK_HOST "feedback.sandbox.push.apple.com"
+#define APPLE_FEEDBACK_PORT "2196"
+#define RSA_CLIENT_KEY      "PushChatKey.pem"
+#define RSA_CLIENT_CERT     "PushChatCert.pem"
 
 namespace sys = boost::system;
 namespace placeholders = boost::asio::placeholders;
@@ -27,7 +36,7 @@ void listen(tcp::acceptor & a, tcp::endpoint const & endpoint)
     a.bind(endpoint);
 
     a.listen();
-    // LOG_I << "Listen " << a.local_endpoint();
+    LOG_I << "listen " << a.local_endpoint();
     //a.async_accept(t_.socket(), bind(&handle_accept, this, placeholders::error));
 }
 
@@ -112,7 +121,7 @@ private:
 
     void handle_error(sys::error_code const & ec)
     {
-        std::cout << ec << std::endl;
+        LOG_I << ec;
     }
 
     void handle_accept(sys::error_code const & ec)
@@ -195,6 +204,7 @@ struct keyvalues : private std::list<std::pair<std::string, std::string> >
     typedef std::list<std::pair<std::string, std::string> > base_type;
 
     using base_type::iterator;
+    // using base_type::const_iterator;
 
     iterator find(const std::string& k) const
     {
@@ -226,7 +236,89 @@ struct keyvalues : private std::list<std::pair<std::string, std::string> >
     {
         return base_type::insert(end(), kv);
     }
+
+    iterator begin() const { return const_cast<keyvalues*>(this)->begin(); }
+    iterator begin() { return base_type::begin(); }
+    iterator end() const { return const_cast<keyvalues*>(this)->end(); }
+    iterator end() { return base_type::end(); }
 };
+
+struct response
+{
+    explicit response(int status = 200);
+
+    void status(int c) { status_code_ = c; }
+    int status() const { return status_code_; }
+
+    void header(const std::string& k, const std::string& val);
+
+    void content(const json::object& jso) { content_ = json::encode(jso); }
+    void content(const std::string& cont) { content_ = cont; }
+    void content(const boost::format& fmt) { content_ = boost::str(fmt); }
+
+    std::string encode() const;
+    std::string encode_header() const;
+
+private:
+    int status_code_;
+    keyvalues headers_;
+    std::string content_;
+
+    static const char* code_str(int code);
+};
+
+response::response(int status)
+{
+    status_code_ = status;
+    header("Content-Type", "text/plain;charset=UTF-8");
+}
+
+void response::header(const std::string& k, const std::string& val)
+{
+    for (keyvalues::iterator i = headers_.begin(); i != headers_.end(); ++i)
+    {
+        if (i->first == k)
+        {
+            i->second = val;
+            return;
+        }
+    }
+    headers_.insert(std::make_pair(k, val));
+}
+
+const char* response::code_str(int code)
+{
+    static struct { int code; const char* str; } ecl[] = {
+        { 200, "OK" }
+        , { 400, "Bad Request" }
+        , { 401, "Unauthorized" }
+        , { 403, "Forbidden" }
+        , { 404, "Not Found" }
+        , { 500, "Internal Server Error" }
+    };
+    for (unsigned int i = 0; i < sizeof(ecl)/sizeof(ecl[0]); ++i)
+        if (ecl[i].code == code)
+            return ecl[i].str;
+    return "Unknown";
+}
+
+std::string response::encode() const
+{
+    return encode_header() + "\r\n" + content_;
+}
+
+std::string response::encode_header() const
+{
+    std::string hdrs;
+
+    for (keyvalues::iterator it = headers_.begin(); it != headers_.end(); ++it)
+    {
+        hdrs += it->first + ": " + it->second + "\r\n";
+    }
+    hdrs += "Content-Length: " + boost::lexical_cast<std::string>(content_.size()) + "\r\n";
+
+    return str(boost::format("HTTP/1.1 %d %s\r\n") % status_code_ % code_str(status_code_)) + hdrs;
+}
 
 struct request
 {
@@ -301,11 +393,15 @@ struct request
         return ec;
     }
 
-    std::string & content() { return content_; }
+    std::string const & method() const { return method_; }
+    std::string const & path() const { return path_; }
+    keyvalues const & params() const { return params_; }
+    keyvalues const & headers() const { return headers_; }
+    std::string const & content() const { return content_; }
+
+    void content(std::streambuf & sbuf) { sbuf.sgetn(&content_[0], content_.size()); }
 
     sys::error_code const & error() const { return ec_; }
-
-    std::string encode() const { return std::string(); }
 
 private:
     // short ver_;
@@ -319,6 +415,27 @@ private:
 
     sys::error_code ec_;
 };
+
+const std::string& get(keyvalues const &l, const std::string& name)
+{
+    keyvalues::iterator it = l.find(name);
+    if (it == l.end())
+        THROW_EX(EN_HTTPParam_NotFound);
+    return it->second;
+}
+
+const std::string& get(keyvalues const &l, const std::string& name, const std::string& defa)
+{
+    keyvalues::iterator it = l.find(name);
+    if (it == l.end())
+        return defa;
+    return it->second;
+}
+
+bool exist(keyvalues const &l, const std::string& name)
+{
+    return (l.end() != l.find(name));
+}
 
 struct connection : tcp::socket
 {
@@ -364,10 +481,36 @@ struct connection : tcp::socket
     void
     send(const ConstBufferSequence& buffers, BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
     {
-        boost::asio::async_write(socket(), buffers, handler);
+        bool empty = write_ls_.empty();
+        write_ls_.push_back(std::make_pair(buffers, handler));
+        if (empty)
+        {
+            std::pair<boost::asio::const_buffers_1
+                , boost::function<void (sys::error_code const&)> >& p = write_ls_.front();
+            boost::asio::async_write(socket()
+                    , p.first
+                    , boost::bind(&connection::handle_write, this
+                        , p.second, placeholders::error/*, placeholders::bytes_transferred*/));
+        }
     }
 
 private:
+    void handle_write(boost::function<void (sys::error_code const&)> fn, sys::error_code const& ec/*, std::size_t bytes*/)
+    {
+        fn(ec);
+
+        write_ls_.pop_front();
+        if (!write_ls_.empty())
+        {
+            std::pair<boost::asio::const_buffers_1
+                , boost::function<void (sys::error_code const&)> >& p = write_ls_.front();
+            boost::asio::async_write(socket()
+                    , p.first
+                    , boost::bind(&connection::handle_write, this
+                        , p.second, placeholders::error/*, placeholders::bytes_transferred*/));
+        }
+    }
+
     friend struct relay_server<connection>;
 
     void ready(server & s, server::iterator iter)
@@ -438,8 +581,7 @@ private:
             return handle_error(ec);
         }
 
-        std::string & cont = message_.content();
-        rsbuf_.sgetn(&cont[0], cont.size());
+        message_.content(rsbuf_);
 
         _request(message_);
 
@@ -462,11 +604,13 @@ private:
     message_handler messager_;
     message message_;
 
+    std::list<std::pair<boost::asio::const_buffers_1, boost::function<void (sys::error_code const&)> > > write_ls_;
+
     void handle_error(sys::error_code const & ec)
     {
         _request(message(ec));
 
-        std::cout << ec << std::endl;
+        LOG_I << ec;
         iself_ = server_->destroy(iself_);
     }
 
@@ -484,23 +628,25 @@ private:
 
 };
 
+#define PERM_PASSWORD "abc123"
+std::string getpwd( std::size_t max_length, boost::asio::ssl::context::password_purpose purpose) { return PERM_PASSWORD; }
+
+std::ostream& operator<<(std::ostream& out, const keyvalues& kv)
+{
+    for (keyvalues::iterator i = kv.begin(); i != kv.end(); ++i)
+        out << i->first << ":" << i->second << "#";
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const request& req)
+{
+    return out << req.method() << " " << req.path() << "|" << req.params()
+        << "|" << req.headers();
+}
+
 struct apple_push
 {
     typedef apple_push this_type;
-
-    tcp::socket socket_;
-    tcp::endpoint endpoint_;
-
-    struct stage {
-        enum type {
-            zero = 0,
-            connecting = 1,
-            ready,
-            writing,
-            replying,
-        };
-    };
-    stage::type stage_;
 
     struct push_data
     {
@@ -509,32 +655,54 @@ struct apple_push
         bool connected() const { return c_; }
         void disconnect() { c_ = 0; }
 
-        connection& get_connection() { BOOST_ASSERT(c_); return *c_; }
+        void relay_back(sys::error_code const & ec)
+        {
+            replybuf_ = ec ? "FAIL" : "OK";
 
-        void append(const connection::message& m) { data_.push_back( m.encode() ); }
-        void pop_data() { data_.pop_front(); }
-        std::string const & data() const { return data_.front(); }
+            data_.pop_front();
+            c_->send(boost::asio::buffer(replybuf_)
+                    , boost::bind(&push_data::handle_reply, this, placeholders::error));
+        }
+
+        void handle_reply(sys::error_code const & ec)
+        {
+            LOG_I << ec <<" "<< ec.message();
+        }
+
         bool empty() const { return data_.empty(); }
+        std::string const & data() const { return data_.front(); }
+
+        void append(const std::string& m) { data_.push_back( m ); }
 
         connection* c_;
         std::list<std::string> data_;
+        std::string replybuf_;
+    };
+
+    struct stage {
+        enum type {
+            idle = 0,
+            halt = 1,
+            connecting,
+            handshaking,
+            writing,
+        };
     };
 
     typedef boost::shared_ptr<push_data> push_data_ptr;
 
     typedef std::list<push_data_ptr> bufs_type;
-    bufs_type bufs_;
-
-    std::string replybuf_;
-
-    boost::asio::streambuf rdbuf_;
 
     apple_push(boost::asio::io_service & io_service, tcp::endpoint const & ep)
-        : socket_(io_service)
+        : context_(boost::asio::ssl::context::sslv3)
+        , socket_(io_service, context_)
         , endpoint_(ep)
     {
-        stage_ = stage::zero;
-        connect();
+        context_.set_password_callback(getpwd);
+        context_.use_certificate_file(RSA_CLIENT_CERT, boost::asio::ssl::context::pem);
+        context_.use_private_key_file(RSA_CLIENT_KEY, boost::asio::ssl::context::pem);
+
+        // connect();
     }
 
     connection::message_handler message(connection::message const& m, connection& c)
@@ -555,51 +723,167 @@ private:
             return;
         }
 
-        ptr->append(m);
+        ptr->append( on_REQUEST(m) );
 
-        if (stage_ == stage::ready)
+        if (stage_ == stage::idle)
         {
             write_msg();
         }
         // else if (stage_ < stage::ready) { connect(); }
     }
 
+    template <typename I> static char * pint(char *p, I x)
+    {
+        I i;
+        switch (sizeof(I)) {
+        case sizeof(uint32_t): i = htonl(x); break;
+        case sizeof(uint16_t): i = htons(x); break;
+        default: i = x; break;
+        }
+        memcpy(p, (void*)&i, sizeof(I));
+        return p+sizeof(I);
+    }
+    static char * pdata(char *p, uint16_t len, const char *data)
+    {
+        uint16_t i = htons(len);
+        memcpy(p, (void*)&i, sizeof(i));
+        memcpy(p+2, data, len);
+        return p+2+len;
+    }
+
+    std::string apack(std::string const & tok, std::string const & aps)
+    {
+        BOOST_ASSERT(tok.length() == 32);
+
+        uint32_t len = sizeof(uint8_t) + 2*sizeof(uint32_t)+ 2*sizeof(uint16_t) + tok.length() + aps.length();
+        std::string buf(len, 0);
+        pdata(pdata(pint(pint(pint(const_cast<char*>(buf.data())
+                , uint8_t(1)) // command
+                , uint32_t(1234)) // /* provider preference ordered ID */
+                , uint32_t(time(NULL)+86400)) // /* expiry date network order */
+                , tok.length(), tok.data()) // binary 32bytes device token
+                , aps.length(), aps.data())
+                ;
+        return buf;
+
+        // char *binaryMessagePt = const_cast<char*>(buf.data());
+
+        // uint8_t command = 1;
+        // /* aps format is, |COMMAND|ID|EXPIRY|TOKENLEN|TOKEN|PAYLOADLEN|PAYLOAD| */
+        // uint32_t whicheverOrderIWantToGetBackInAErrorResponse_ID = 1234;
+        // // expire aps if not delivered in 1 day
+        // uint32_t networkOrderExpiryEpochUTC = htonl(time(NULL)+86400);
+        // uint16_t networkOrderTokenLength = htons(DEVTOK_LEN);
+        // uint16_t networkOrderPayloadLength = htons(aps.length());
+
+        // /* command */
+        // *binaryMessagePt++ = command;
+        // /* provider preference ordered ID */
+        // memcpy(binaryMessagePt, &whicheverOrderIWantToGetBackInAErrorResponse_ID, sizeof(uint32_t));
+        // binaryMessagePt += sizeof(uint32_t);
+        // /* expiry date network order */
+        // memcpy(binaryMessagePt, &networkOrderExpiryEpochUTC, sizeof(uint32_t));
+        // binaryMessagePt += sizeof(uint32_t);
+        // /* token length network order */
+        // memcpy(binaryMessagePt, &networkOrderTokenLength, sizeof(uint16_t));
+        // binaryMessagePt += sizeof(uint16_t);
+        // /* device token */
+        // memcpy(binaryMessagePt, deviceTokenBinary, DEVTOK_LEN);
+        // binaryMessagePt += DEVTOK_LEN;
+        // /* payload length network order */
+        // memcpy(binaryMessagePt, &networkOrderPayloadLength, sizeof(uint16_t));
+        // binaryMessagePt += sizeof(uint16_t);
+        // /* payload */
+        // memcpy(binaryMessagePt, aps.data(), aps.length());
+        // binaryMessagePt += aps.length();
+    }
+
+    static std::string unhex(const std::string & hs)
+    {
+        std::string buf;
+        const char* s = hs.data();
+        for (unsigned int x = 0; x+1 < hs.length(); x += 2)
+        {
+            char h = s[x];
+            char l = s[x+1];
+            h -= (h <= '9' ? '0': 'a');
+            l -= (l <= '9' ? '0': 'a');
+            buf.push_back( char((h << 4) | l) );
+        }
+        return buf;
+    }
+
+    std::string on_REQUEST(connection::message const & m)
+    {
+        LOG_I << m;
+        LOG_I << m.content();
+        std::string const & tok = get(m.params(), "devtok");
+        std::string const & msg = get(m.params(), "message");
+        std::string aps = json::encode(json::object()("aps", json::object()("alert",msg)));
+        LOG_I << aps;
+        return apack(unhex(tok), aps);
+    }
+
     void connect()
     {
         stage_ = stage::connecting;
+
         sys::error_code ec;
-        socket_.close(ec);
-        socket_.open(boost::asio::ip::tcp::v4());
-        socket_.async_connect(endpoint_, boost::bind(&this_type::handle_connect, this, placeholders::error));
+        socket_.lowest_layer().close(ec);
+        socket_.lowest_layer().open(boost::asio::ip::tcp::v4());
+        socket_.lowest_layer().async_connect(endpoint_, boost::bind(&this_type::handle_connect, this, placeholders::error));
+        LOG_I << "connecting ... " << ec;
     }
 
     void handle_connect(sys::error_code const & ec)
     {
-        stage_ = stage::zero;
         if (ec)
         {
             return handle_error(ec);
         }
 
-        stage_ = stage::ready;
+        stage_ = stage::handshaking;
+        socket_.async_handshake(boost::asio::ssl::stream_base::client,
+                boost::bind(&this_type::handle_handshake, this, boost::asio::placeholders::error));
+    }
+
+    void handle_handshake(const boost::system::error_code& ec)
+    {
+        if (ec)
+        {
+            std::cout << "Handshake failed: " << ec.message() << "\n";
+            return;
+        }
 
         boost::asio::async_read(socket_, rdbuf_
                 , boost::asio::transfer_at_least(32)
                 , boost::bind(&this_type::handle_read, this, placeholders::error));
 
         write_msg();
+
+        // request_ = "{ \"aps\" : { \"alert\" : \"This is the alert text\", \"badge\" : 1, \"sound\" : \"default\" } }";
+        // std::cout << request_;
+        // std::cout << "Enter message: ";
+        // std::cin.getline(request_, max_length);
+        // size_t request_length = request_.size();
+        //
+        // boost::asio::async_write(socket_,
+        //         boost::asio::buffer(request_.data(), request_length),
+        //         boost::bind(&client::handle_write, this,
+        //             boost::asio::placeholders::error,
+        //             boost::asio::placeholders::bytes_transferred));
     }
 
     void handle_read(sys::error_code const & ec)
     {
         if (ec)
         {
-            std::cout << ec << std::endl;
+            LOG_I << ec;
             connect();
             return;
         }
 
-        std::cout << &rdbuf_ << std::endl;
+        LOG_I << &rdbuf_;
         boost::asio::async_read(socket_, rdbuf_
                 , boost::asio::transfer_at_least(32)
                 , boost::bind(&this_type::handle_read, this, placeholders::error));
@@ -607,12 +891,16 @@ private:
 
     void write_msg()
     {
-        if (stage_ != stage::ready || bufs_.empty())
+        if (stage_ != stage::idle || bufs_.empty())
             return;
 
-        for (bufs_type::iterator i = bufs_.begin(); i != bufs_.end(); ++i)
-            if (!(*i)->connected())
-                bufs_.erase(i);
+        for (bufs_type::iterator i = bufs_.begin(); i != bufs_.end(); )
+        {
+            if ((*i)->connected())
+                ++i;
+            else
+                i = bufs_.erase(i);
+        }
 
         for (bufs_type::iterator i = bufs_.begin(); i != bufs_.end(); ++i)
             if (!(*i)->empty())
@@ -633,12 +921,22 @@ private:
 
     void handle_write(sys::error_code const & ec)
     {
+        LOG_I << ec <<" "<< ec.message();
         BOOST_ASSERT (!bufs_.empty());
 
-        stage_ = stage::ready;
+        stage_ = stage::idle;
 
         if (bufs_.empty())
         {
+            return;
+        }
+
+        push_data_ptr & ptr = bufs_.front();
+
+        if (!ptr->connected())
+        {
+            bufs_.pop_front();
+            write_msg();
             return;
         }
 
@@ -646,39 +944,30 @@ private:
         {
             if (ec == boost::asio::error::operation_aborted)
                 return;
-
-            // http::response rsp(400);
-            // replybuf_ = rsp.encode();
-            replybuf_ = "FAIL";
-        }
-        else
-        {
-            replybuf_ = "OK";
         }
 
-        if (bufs_.front()->connected())
-        {
-            stage_ = stage::replying;
-            bufs_.front()->get_connection().send(boost::asio::buffer(replybuf_)
-                    , boost::bind(&this_type::handle_reply, this, placeholders::error));
-        }
-        else
-        {
-            handle_reply(sys::error_code());
-        }
-    }
+        ptr->relay_back(ec);
 
-    void handle_reply(sys::error_code const & ec)
-    {
-        stage_ = stage::ready;
-        bufs_.front()->pop_data(); // bufs_.pop_front();
+        bufs_.splice(bufs_.end(), bufs_, bufs_.begin());
         write_msg();
     }
 
     void handle_error(sys::error_code const & ec)
     {
-        std::cout << ec << std::endl;
+        LOG_I << ec <<" "<< ec.message();
+        connect();
     }
+
+private:
+    stage::type stage_;
+
+    boost::asio::ssl::context context_;
+    boost::asio::ssl::stream<boost::asio::ip::tcp::socket> socket_;
+
+    tcp::endpoint endpoint_;
+    bufs_type bufs_;
+
+    boost::asio::streambuf rdbuf_;
 };
 
 int main(int argc, char* argv[])
@@ -686,14 +975,11 @@ int main(int argc, char* argv[])
     std::string addr = "127.0.0.1";
     std::string port = "9991";
 
-    std::string ap_addr = "127.0.0.1";
-    std::string ap_port = "9991";
-
     try
     {
         boost::asio::io_service io_service;
 
-        apple_push ap(io_service, resolve(io_service, ap_addr, ap_port));
+        apple_push ap(io_service, resolve(io_service, APPLE_HOST, APPLE_PORT));
         relay_server<connection> s(io_service);
 
         s.start(resolve(io_service, addr, port), boost::bind(&apple_push::message, &ap, _1, _2));
@@ -702,7 +988,7 @@ int main(int argc, char* argv[])
     }
     catch (std::exception& e)
     {
-        std::cerr << "Exception: " << e.what() << "\n";
+        LOG_E << "exception: " << e.what();
     }
 
     return 0;
