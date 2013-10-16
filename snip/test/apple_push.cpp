@@ -14,7 +14,61 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+// "a642ccd0a54a82f6c02738674e1becc47d69ba6aed3c06b9fb745bf47a72b0e3"
+
 enum { max_length = 1024 };
+
+    template <typename Int> std::string& pkint(std::string & pkg, Int x)
+    {
+        Int i;
+        switch (sizeof(Int)) {
+            case sizeof(uint32_t): i = htonl(x); break;
+            case sizeof(uint16_t): i = htons(x); break;
+            default: i = x; break;
+        }
+        char *pc = (char*)&i;
+        pkg.insert(pkg.end(), &pc[0], &pc[sizeof(Int)]);
+        return pkg;
+    }
+    std::string & pkstr(std::string & pkg, const std::string & s)
+    {
+        uint16_t len = s.length();
+        len = htons(len);
+        char *pc = (char*)&len;
+        pkg.insert(pkg.end(), &pc[0], &pc[sizeof(uint16_t)]);
+        return (pkg += s);
+    }
+
+    std::string unhex(const std::string & hs)
+    {
+        std::string buf;
+        const char* s = hs.data();
+        for (unsigned int x = 0; x+1 < hs.length(); x += 2)
+        {
+            char h = s[x];
+            char l = s[x+1];
+            h -= (h <= '9' ? '0': 'a'-10);
+            l -= (l <= '9' ? '0': 'a'-10);
+            buf.push_back( char((h << 4) | l) );
+        }
+        return buf;
+    }
+
+    std::string apack(std::string const & tok, int id, std::string const & aps)
+    {
+        BOOST_ASSERT(tok.length() == 32);
+
+        std::string buf; //(len, 0);
+        pkstr(pkstr(pkint(pkint(pkint( buf
+                , uint8_t(1)) // command
+                , uint32_t(id)) // /* provider preference ordered ID */
+                , uint32_t(time(NULL)+(60*60*6))) // /* expiry date network order */
+                , tok) // binary 32bytes device token
+                , aps)
+                ;
+        return buf;
+    }
+
 
 class client
 {
@@ -69,7 +123,11 @@ public:
   {
     if (!error)
     {
-      request_ = "{ \"aps\" : { \"alert\" : \"This is the alert text\", \"badge\" : 1, \"sound\" : \"default\" } }";
+      request_ = apack(unhex("a642ccd0a54a82f6c02738674e1becc47d69ba6aed3c06b9fb745bf47a72b0e3")
+              , 321
+              , "{\"aps\":{\"alert\":\"hello world\"}}");
+
+      // request_ = "{\"aps\":{\"alert\":\"This is the alert text\",\"badge\":1,\"sound\":\"default\"}}";
       std::cout << request_;
       // std::cout << "Enter message: ";
       // std::cin.getline(request_, max_length);
