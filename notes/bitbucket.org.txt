@@ -1,0 +1,8 @@
+$ mkdir coding
+$ cd coding
+$ git init
+$ vim README
+$ git add README
+$ git commit -m 'initial'
+$ git remote add origin ssh://git@bitbucket.org/wood/coding.git
+$ git push -u origin master
