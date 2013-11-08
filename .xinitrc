@@ -29,7 +29,7 @@ xset -b
 #xterm -geometry -0-28 &
 
 # exec ck-launch-session gnome-session
-exec xmonad
+which xmonad && exec xmonad
 
 #rox -p default
 # tint2 &
@@ -43,7 +43,7 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 # xterm -e screen -e^jj &
 
 #xmodmap $HOME/.Xmodmap
-xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 #xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
 #xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 
