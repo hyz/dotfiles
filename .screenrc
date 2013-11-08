@@ -1,6 +1,6 @@
 # screen
 
-defscrollback 1000
+defscrollback 10000
 
 # hardstatus alwayslastline '%{= G} %l %=%{= w}%-w%{+b r}%n*%t%{-b r}%{w}%+w%= %{c}%d %D %{B}%c '
 # hardstatus alwayslastline "%{=b}%{-b}%{R}[%{=b B}%-w%{=b BK}%>%n %t%{-}%+w%{-b}%< %=%{R}][%{-b}%{M}%m-%d %D %{G}%c%{R}]"

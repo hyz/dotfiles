@@ -1,0 +1,15 @@
+
+set ssl-verify=ignore
+set nss-config-dir=/home/wood/etc/certs
+set from="woody@kklink.com(woody)"
+set smtp=smtps://smtp.exmail.qq.com:465
+set smtp-auth=login
+set smtp-auth-user=woody@kklink.com
+set smtp-auth-password="*SECRET*"
+
+# mail -v -s "S-lydia 小组" jywww@qq.com < mail.htm
+# nss-config-dir
+#   find ~/.mozilla/firefox -name "*.db"
+
+#env MAILRC=/dev/null ssl-verify=ignore nss-config-dir=/home/wood/etc/certs from="woody@kklink.com(woody)" smtp=smtps://smtp.exmail.qq.com:465 smtp-auth=login smtp-auth-user=woody@kklink.com smtp-auth-password="*SECRET*" mail -v -n -s "hello, friend" jywww@qq.com < mail.htm
+

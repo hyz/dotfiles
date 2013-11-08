@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# iptables -I INPUT 3 -p tcp -m tcp --dport 12345 -j ACCEPT
+#
+# socat tcp-listen:12345,fork,bind=192.168.3.254 EXEC:"tee socat.log"
+#
+# socat udp-listen:12345,fork EXEC:cat
+# socat - udp:192.168.1.55:12345
+#
+# for x in `seq 2 253`; do sudo ifconfig eth0:$x 192.168.3.$x up; done
+# for x in `seq 2 253`; do sudo ifconfig eth0:$x down; done
+# ip addr show eth0
+#
+
+remote=192.168.1.55:12345
+bindpfx=192.168.3.
+
+endn=252
+if [ $# -gt 0 ]; then
+    endn=$1
+fi
+
+for x in `seq 3 $endn`
+do
+    if [ "$x" == "128" ]; then
+        continue
+    fi
+    t="TCP:$remote,bind=$bindpfx$x"
+    rep-fortune "$t" |socat - $t > ~/test/$bindpfx$x &
+    echo "$t $?"
+    [ "$?" == "0" ] || break
+done
+
+while true; do sleep 3; done
+

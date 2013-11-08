@@ -1,3 +1,10 @@
+#http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
+# ~/.keymap
+#$ xmodmap -pk | grep -i caps
+# 58 0xffe5 (Caps_Lock)
+#$ xmodmap -e 'keycode 58 = Escape'
+xmodmap -e 'keycode 58 = Escape'
+
 export LANG=en_US.UTF-8
 # export LANG=en_HK.UTF-8
 
@@ -47,6 +54,7 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 #xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
 #xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 
+# exec enlightenment_start
 #exec subtle
 #exec awesome
 exec fvwm
