@@ -1,2 +1,7 @@
 find _moon -name ".svn" -prune -o -print 
 
+tcpdump -n -X -i eth0 port 9001
+tcpdump -n -A -i eth0 port 9001
+tcpdump -n -w 9001.cap -i eth0 port 9001
+tcpdump -n -r 9001.cap -X
+
