@@ -1,0 +1,3 @@
+tcpdump -w a.pcap -i eth0
+tcpdump -nn -A -r a.pcap ether host 94:db:c9:5e:78:14 and host 58.67.160.246
+
