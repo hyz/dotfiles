@@ -17,6 +17,7 @@ colorscheme desert " desert desert256 inkpot gardener tango desert elflord womba
 
 " set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
 set fileencodings=UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
+set fileformats=unix,dos,mac
 
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
@@ -35,7 +36,7 @@ autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 "autocmd FileType python setlocal ts=4 | setlocal sw=4
 "autocmd FileType python compiler pyunit
 "autocmd FileType python setlocal nocindent ai
-autocmd FileType python setlocal makeprg=python
+autocmd FileType python setlocal makeprg=python\ %
 
 map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
 

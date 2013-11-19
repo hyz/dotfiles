@@ -58,6 +58,8 @@ alias er='explorer "`cygpath -w $(pwd)`" &'
 
 # limit coredumpsize 0
 
+export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools:/opt/bin
+
 #export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
 # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
 
@@ -81,4 +83,6 @@ export COCOS2DX_ROOT=$HOME/cocos2d
 
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
+### git clone git://github.com/zsh-users/zsh-completions.git
+#fpath=($HOME/zsh-completions/src $fpath)
 
