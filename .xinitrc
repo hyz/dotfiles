@@ -1,9 +1,11 @@
 #http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
 # ~/.keymap
-#$ xmodmap -pk | grep -i caps
-# 58 0xffe5 (Caps_Lock)
-#$ xmodmap -e 'keycode 58 = Escape'
-xmodmap -e 'keycode 58 = Escape'
+#$ xmodmap -pk | grep Lock
+# 9    	0xff1b (Escape)	0x0000 (NoSymbol)	0xff1b (Escape)	
+# 66    	0xffe5 (Caps_Lock)	0x0000 (NoSymbol)	0xffe5 (Caps_Lock)	
+# 77    	0xff7f (Num_Lock)	0x0000 (NoSymbol)	0xff7f (Num_Lock)	
+# 78    	0xff14 (Scroll_Lock)	0x0000 (NoSymbol)	0xff14 (Scroll_Lock)	
+# xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 
 export LANG=en_US.UTF-8
 # export LANG=en_HK.UTF-8
@@ -35,6 +37,8 @@ xset -b
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+
 # exec ck-launch-session gnome-session
 which xmonad && exec xmonad
 
@@ -48,11 +52,6 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
-
-#xmodmap $HOME/.Xmodmap
-#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
-#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "keysym Escaps = Caps_Lock" -e "add Lock = Caps_Lock"
-#xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
 
 # exec enlightenment_start
 #exec subtle
