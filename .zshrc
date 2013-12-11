@@ -54,8 +54,6 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 
 export EDITOR=vim
 
-alias er='explorer "`cygpath -w $(pwd)`" &'
-
 # limit coredumpsize 0
 
 export PATH=$HOME/bin:$PATH:/sbin:/usr/sbin:/opt/android-ndk:/opt/android-sdk/tools:/opt/android-sdk/platform-tools:/opt/bin
@@ -85,4 +83,9 @@ export COCOS2DX_ROOT=$HOME/cocos2d
 
 ### git clone git://github.com/zsh-users/zsh-completions.git
 #fpath=($HOME/zsh-completions/src $fpath)
+
+if [ "`uname -o`" = "Cygwin" ]; then
+    export GNUPGHOME="F:\cyghome\.gnupg"
+    alias er='explorer "`cygpath -w $(pwd)`" &'
+fi
 

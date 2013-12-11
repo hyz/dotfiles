@@ -13,8 +13,9 @@ namespace asio = boost::asio;
 
 typedef std::deque<std::string> message_queue;
 
-static std::string mac_ = "00:11:22";
-static std::string spot_; // = "KK1007A";
+// static std::string mac_ = "00:11:22";
+static std::string spot_in_; // = "KK1007A";
+static std::string spot_pk_; // = "KK1007A";
 static std::string host_ = "127.0.0.1";
 static std::string port_ = "9900";
 
@@ -60,9 +61,13 @@ private:
         head ("method","hello") ("token",token_) ;
 
         json::object body;
-        if (!spot_.empty())
+        if (!spot_in_.empty())
         {
-            body ("spotsid",spot_);
+            body ("spotsid",spot_in_);
+        }
+        if (!spot_pk_.empty())
+        {
+            body ("usingsid",spot_pk_);
         }
 
         std::string heads = json::encode(head);
@@ -139,11 +144,11 @@ private:
 
       if (meth == "chat/in-spot")
       {
-          spot_ = body.get<std::string>("content");
+          spot_in_ = body.get<std::string>("content");
       }
       else if (meth == "chat/out-spot")
       {
-          spot_ = std::string();
+          spot_in_ = std::string();
       }
   }
 
@@ -217,24 +222,27 @@ std::string args(int ac, char * const av[])
 {
     std::string token;
 
-    po::options_description desc("Options");
-    desc.add_options()
+    po::options_description opt_desc("Options");
+    opt_desc.add_options()
         ("help", "display this help and exit")
         ("host,h", po::value<std::string>(&host_)->default_value(host_), "host to connect")
-        ("port,p", po::value<std::string>(&port_)->default_value(port_), "port used when connect")
-        ("mac", po::value<std::string>(&mac_)->default_value(mac_), "the macaddress")
-        ("spot", po::value<std::string>(&spot_)->default_value(spot_), "spot group-id")
-        ("token", po::value<std::string>(&token)->required(), "client id")
+        ("port,p", po::value<std::string>(&port_)->default_value(port_), "port to connect")
+        // ("mac", po::value<std::string>(&mac_)->default_value(mac_), "the macaddress")
+        ("spot", po::value<std::string>(&spot_pk_)->default_value(spot_pk_), "spot group-id")
+        ("token", po::value<std::string>(&token)->required(), "client login-token")
         ;
     po::positional_options_description pos_desc;
     pos_desc.add("token", 1);
 
     po::variables_map vm;
-    po::store(po::command_line_parser(ac, av).options(desc).positional(pos_desc).run(), vm);
+    po::store(po::command_line_parser(ac, av)
+            .options(opt_desc)
+            .positional(pos_desc)
+            .run(), vm);
     if (vm.count("help"))
     {
-        std::cout << "Usage: options_description [options] <token>\n"
-            << desc;
+        std::cout << "Usage: a.out [options] <token>\n"
+            << opt_desc;
         exit(0);
     }
 
