@@ -5,7 +5,9 @@
 #include <chrono>
 #include <thread>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 #include "jss.h"
+#include "log.h"
 // #include "chat_message.hpp"
 
 using boost::asio::ip::tcp;
@@ -122,11 +124,13 @@ private:
             std::cout << ">>> "<< read_msg_ << "\n";
 
             json::object head = json::decode(&read_msg_[0], &read_msg_[read_size_.h[0]]);
-            json::object body = json::decode(&read_msg_[read_size_.h[0]], &read_msg_[read_msg_.size()]);
-
             ack( head );
 
-            process(head, body);
+            if (!boost::starts_with(head.get<std::string>("method"), "data/"))
+            {
+                json::object body = json::decode(&read_msg_[read_size_.h[0]], &read_msg_[read_msg_.size()]);
+                process(head, body);
+            }
 
             do_read_size();
           }
@@ -158,6 +162,9 @@ private:
     head.put("method", "ack");
 
     std::string heads = json::encode(head);
+    time_t t = time(0);
+    std::cout << "<<< "<< heads <<" "<< ctime(&t) << std::endl;
+
     decltype(read_size_) u;
     u.h[0] = htons(static_cast<short>(heads.size()));
     u.h[1] = htons(2);
@@ -188,7 +195,7 @@ private:
         {
           if (!ec)
           {
-            std::cout << "<<< "<< write_msgs_.front() << std::endl;
+            // std::cout << "<<< "<< write_msgs_.front() <<" "<< ctime(&t) << std::endl;
             write_msgs_.pop_front();
             if (!write_msgs_.empty())
             {
@@ -245,6 +252,8 @@ std::string args(int ac, char * const av[])
             << opt_desc;
         exit(0);
     }
+
+    logging::setup(0 , LOG_PID|LOG_CONS, 0);
 
     po::notify(vm);
 
