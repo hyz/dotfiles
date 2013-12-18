@@ -5,6 +5,9 @@ $ mysql -u root -p
 > create database lindu_test;
 > GRANT ALL PRIVILEGES ON lindu_test.* TO lindu@localhost identified by "lindu12345";
 
+> create database moon;
+> GRANT ALL PRIVILEGES ON moon.* TO lindu@192.168.%.% identified by "lindu12345";
+
 $ mysql -u lindu -p lindu_test
 
 $ mysqldump -d -u lindu -p lindu_test > lindu_test.sql
