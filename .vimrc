@@ -16,7 +16,7 @@ set completeopt=longest,menu
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 
 " set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
-set fileencodings=UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
+set fileencodings=UTF-8,latin1,UTF-16BE,UTF-16,latin1,gb2312,gb18030,big5,euc-jp,euc-kr,iso8859-1
 set fileformats=unix,dos,mac
 
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
@@ -38,13 +38,12 @@ autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 "autocmd FileType python setlocal nocindent ai
 autocmd FileType python setlocal makeprg=python\ %
 
-map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
+cnoremap <C-L> <Right>
+cnoremap <C-H> <Left>
+cnoremap <C-b> <S-Left>
+cnoremap <C-w> <S-Right>
 
-cnoremap <C-A> <Home>
-cnoremap <C-F> <Right>
-cnoremap <C-B> <Left>
-cnoremap <Esc>b <S-Left>
-cnoremap <Esc>f <S-Right>
+map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
 
 "map <F5> Go<Esc>cc// Date: <Esc>:r!date<CR>kJ
 "map <F5> :bn<CR>''
