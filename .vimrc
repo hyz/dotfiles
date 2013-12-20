@@ -1,29 +1,31 @@
 set t_Co=256
 set guifont=Monaco\ 14
 set guioptions=
-
-set dict=/usr/share/dict/words
 set ts=4 sw=4 expandtab ai nocp nowrap
+
 syntax on
 filetype plugin on
 filetype indent on
 
+colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
+
 set hlsearch
 set diffopt+=iwhite
 
-set completeopt=longest,menu
+set dictionary=/usr/share/dict/words
+"set complete-=u
+set complete-=i
+set complete+=k
 
-colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
-
+" set completeopt=longest,menu
 " set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
 set fileencodings=UTF-8,latin1,UTF-16BE,UTF-16,latin1,gb2312,gb18030,big5,euc-jp,euc-kr,iso8859-1
 set fileformats=unix,dos,mac
-
 set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
 " gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
 
-set tags+=../tags,~/.tags
+" set tags+=../tags,~/.tags
 " set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
 
 " set cscopeprg=mlcscope
