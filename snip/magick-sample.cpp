@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
         std::cout << "230x230 \n";
     }
 
-    img.write(std::string("out.") + img.magick());
+    img.write(img.magick() + std::string(":out.png"));
 
     return 0;
 }
