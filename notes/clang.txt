@@ -1,0 +1,4 @@
+
+# build boost
+b2 -j5 toolset=clang link=static cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" threading=multi release
+
