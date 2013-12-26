@@ -4,10 +4,13 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/regex.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
-#include "jss.h"
-#include "log.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/log/common.hpp>
 // #include "chat_message.hpp"
 
 using boost::asio::ip::tcp;
@@ -21,12 +24,39 @@ static std::string spot_pk_; // = "KK1007A";
 static std::string host_ = "127.0.0.1";
 static std::string port_ = "9900";
 
+namespace json {
+    using boost::property_tree::ptree;
+
+    struct Int
+    {
+        typedef std::string internal_type;
+        typedef int external_type;
+        // boost::optional<external_type> get_value(const internal_type &v) { return boost::lexical_cast<extrenal_type>(v); }
+        boost::optional<internal_type> put_value(const external_type &v) { return boost::lexical_cast<internal_type>(v); }
+    };
+
+    std::string encode(boost::property_tree::ptree const & pt)
+    {
+      std::ostringstream oss;
+      boost::property_tree::json_parser::write_json(oss, pt, false);
+      return oss.str();
+    }
+
+    ptree decode(const char * buf, const char * endbuf)
+    {
+      ptree pt;
+      std::istringstream iss(std::string(buf, endbuf));
+      boost::property_tree::json_parser::read_json(iss, pt);
+      return pt;
+    }
+}
+
 class chat_client
 {
 public:
   chat_client(asio::io_service& io_service
       , tcp::resolver::iterator endpoint_iterator
-      , std::string token
+      , std::string const & token
       )
     : io_service_(io_service)
       , socket_(io_service)
@@ -59,17 +89,17 @@ private:
         deadline_.expires_from_now(boost::posix_time::seconds(33));
         deadline_.async_wait(std::bind(&chat_client::keep_alive, this));
 
-        json::object head;
-        head ("method","hello") ("token",token_) ;
+        json::ptree head, body;
+        head.put("method", "hello");
+        head.put("token", token_);
 
-        json::object body;
         if (!spot_in_.empty())
         {
-            body ("spotsid",spot_in_);
+            body.put("spotsid",spot_in_);
         }
         if (!spot_pk_.empty())
         {
-            body ("usingsid",spot_pk_);
+            body.put("usingsid",spot_pk_);
         }
 
         std::string heads = json::encode(head);
@@ -123,13 +153,13 @@ private:
           {
             std::cout << ">>> "<< read_msg_ << "\n";
 
-            json::object head = json::decode(&read_msg_[0], &read_msg_[read_size_.h[0]]);
-            ack( head );
+            json::ptree head = json::decode(&read_msg_[0], &read_msg_[read_size_.h[0]]);
+            ack( head.get<int>("sequence") );
 
             if (!boost::starts_with(head.get<std::string>("method"), "data/"))
             {
-                json::object body = json::decode(&read_msg_[read_size_.h[0]], &read_msg_[read_msg_.size()]);
-                process(head, body);
+              json::ptree body = json::decode(&read_msg_[read_size_.h[0]], &read_msg_[read_msg_.size()]);
+              process(head, body);
             }
 
             do_read_size();
@@ -141,7 +171,7 @@ private:
         });
   }
 
-  void process(const json::object & head, const json::object & body)
+  void process(json::ptree const & head, const json::ptree & body)
   {
       const std::string & meth = head.get<std::string>("method");
       std::cout <<"=== "<< meth << "\n";
@@ -156,12 +186,16 @@ private:
       }
   }
 
-  void ack(json::object head)
+  void ack(int seqn)
   {
+    json::ptree head;
     head.put("token", token_);
     head.put("method", "ack");
+    head.put("sequence", seqn);
 
-    std::string heads = json::encode(head);
+    std::string heads = boost::replace_all_regex_copy(json::encode(head)
+        , boost::regex("\"sequence\":\"([0-9]+?)\""), std::string("\"sequence\":$1"));
+
     time_t t = time(0);
     std::cout << "<<< "<< heads <<" "<< ctime(&t) << std::endl;
 
@@ -252,8 +286,6 @@ std::string args(int ac, char * const av[])
             << opt_desc;
         exit(0);
     }
-
-    logging::setup(0 , LOG_PID|LOG_CONS, 0);
 
     po::notify(vm);
 
