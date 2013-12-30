@@ -32,3 +32,5 @@
 # # anything not deleted (sys and os) will remain in the interpreter session
 # del atexit, readline, rlcompleter, save_history, hisfile
 
+import os, sys, re
+

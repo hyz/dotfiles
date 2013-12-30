@@ -89,3 +89,5 @@ if [ "`uname -o`" = "Cygwin" ]; then
     alias er='explorer "`cygpath -w $(pwd)`" &'
 fi
 
+export PYTHONSTARTUP=$HOME/.pythonstartup
+
