@@ -1,5 +1,3 @@
-
-
 $ mysql -u root -p
 
 > create database lindu_test;
@@ -25,4 +23,8 @@ $
 
 //
 > status
+
+> ALTER TABLE clients MODIFY COLUMN act_time int(11) default 0;
+
+####
 
