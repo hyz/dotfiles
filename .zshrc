@@ -52,6 +52,8 @@ alias todo='todo --database-loaders binary'
 
 alias svndiff='svn diff --diff-cmd wsvndiff'
 
+alias b2='b2 -j5'
+
 export EDITOR=vim
 
 # limit coredumpsize 0
