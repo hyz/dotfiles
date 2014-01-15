@@ -1,16 +1,17 @@
+# rex
 user "wood";
-password "432";
-pass_auth;
+# password "432";
+# pass_auth;
 
-group myserver => "localhost", "192.168.1.55";
+group servers => "58.67.160.243", "58.67.160.244", "58.67.160.251" ;
 
 desc "Get the uptime of all server";
-task "uptime", group => "myserver", sub {
+task "uptime", group => "servers", sub {
     say run "uptime";
 };
 
 desc "...";
-task "x", group => "myserver", sub {
+task "x", group => "servers", sub {
     say run "free";
     # service "apache2" => "start";
 } 
