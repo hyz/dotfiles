@@ -1,4 +1,4 @@
-#!/usr/bin/php -q
+#!/usr/bin/env php -q
 
 <?php
 
@@ -7,6 +7,10 @@ if (count($argv) < 3) {
     exit(1);
 }
 array_shift($argv);
+foreach($argv as $a)
+{
+	echo $a , '\n';
+}
 
 require_once('nusoaplib/nusoap.php');
 
@@ -25,8 +29,8 @@ $soap->decode_utf8 = false;
 
 $namespace = 'http://sdkhttp.eucp.b2m.cn/';
 
-$serialNumber = '';
-$sessionKey = '';
+$serialNumber = '3SDK-EMY-0130-PEURL';
+$sessionKey = '3fc2719ce96ebdf42b6dc1a1d8303e1b';
 
 $sendTime = '';
 $addSerial = '';
@@ -55,7 +59,5 @@ $result = $soap->call("sendSMS",$params,$namespace);
 
 return $result;
 
-# sn = '3SDK-EMY-0130-PEURL';
-# sk = '3fc2719ce96ebdf42b6dc1a1d8303e1b';
 ?>
 
