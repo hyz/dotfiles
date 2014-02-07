@@ -1,4 +1,4 @@
-SSHAGENT=/usr/bin/ssh-agent
+SSHAGENT=/usr/sbin/ssh-agent
 SSHAGENTARGS="-s"
 if [ -z "$SSH_AUTH_SOCK" -a -x "$SSHAGENT" ]; then
   eval `$SSHAGENT $SSHAGENTARGS`

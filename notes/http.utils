@@ -1,0 +1,13 @@
+
+thttpd -D -p 8000 -c "**.cgi"
+cat > a.cgi <<EoCGI
+#!/bin/sh
+echo
+cat > /tmp/a.cgi.post
+echo 'hello world'
+<<EoCGI
+
+curl -#4 http://192.168.1.48:8000/a.cgi --data-binary @-
+
+python3 -m http.server
+
