@@ -1,0 +1,16 @@
+
+thttpd -D -p 8000 -c "**.cgi"
+
+snip/py/simple.cgi
+
+cat > a.cgi <<EoCGI
+#!/bin/sh
+echo "Content-Length: `env |wc -c`" ; echo ; env # ; cat > a.cgi.stdin
+<<EoCGI
+
+python3 -m http.server
+
+=== client ===
+
+curl -#4 -D- http://192.168.1.48:8000/a.cgi --data-binary @-
+

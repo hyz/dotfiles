@@ -1,0 +1,6 @@
+
+use gcc : armv6j : armv6j-hardfloat-linux-gnueabi-g++ ;
+b2 runtime-link=static link=static variant=release -j 10
+
+最后在stage目录中可以找到编译出来的静态库文件。
+
