@@ -122,7 +122,7 @@ def bar_activity_transfer(c, args):
         s_vals = fmt.format(**m)
         c.execute('INSERT INTO bar_activity({0}) VALUES({1})'.format(s_keys, s_vals) )
 
-def Insert(fmt, maps):
+def ExecSql(c, fmt, maps):
     def red(p, kv):
         if kv:
             k,v = kv
@@ -131,12 +131,14 @@ def Insert(fmt, maps):
             p[1].append(v)
             p[0].append(k)
         return p
-    keys,vals = reduce(red, maps.items())
-    print fmt.format(','.join(keys) , ','.join(vals))
-    #c.execute('INSERT INTO bar_activity({0}) VALUES({1})'.format(s_keys, s_vals) )
+    keys,vals = reduce(red, maps.items(), ([],[]))
+    sql = fmt.format(','.join(keys) , ','.join(vals))
+    print (sql)
+    c.execute( sql )
 
 def MapData(filename, keyfield=None):
     lm = []
+    f = open(filename)
     ks = f.readline().strip().split('\t')
     for l in f.readlines():
         vals = [ x.strip(' \r\n') for x in l.split('\t') ]
@@ -159,8 +161,8 @@ def bar_activity2_transfer(c, args):
             cols = acts[x].copy()
             del cols['id']
             cols['SessionId'] = bar['SessionId']
-            print cols
-            Insert('INSERT INTO bar_activity2({0}) VALUES({1})', cols)
+            #print cols
+            ExecSql(c, 'INSERT INTO bar_activity2({0}) VALUES({1})', cols)
 
 default_func = lambda x,y: sys.stdout.write( '{0} {1}'.format(x,y) )
 
