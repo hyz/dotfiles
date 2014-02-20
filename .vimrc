@@ -40,10 +40,10 @@ autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 "autocmd FileType python setlocal nocindent ai
 autocmd FileType python setlocal makeprg=python\ %
 
-cnoremap <C-L> <Right>
-cnoremap <C-H> <Left>
-cnoremap <C-b> <S-Left>
-cnoremap <C-w> <S-Right>
+set history=600
+cnoremap <Esc>b <S-Left>
+cnoremap <Esc>w <S-Right>
+cnoremap <C-L> <Up>
 
 map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
 
