@@ -10,6 +10,7 @@ filetype indent on
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 
 set hlsearch
+highlight Search ctermbg=Black ctermfg=Yellow
 set diffopt+=iwhite
 
 set dictionary=/usr/share/dict/words
@@ -41,11 +42,11 @@ autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 autocmd FileType python setlocal makeprg=python\ %
 
 set history=600
-cnoremap <Esc>b <S-Left>
-cnoremap <Esc>w <S-Right>
 cnoremap <C-L> <Up>
+"cnoremap <Esc>b <S-Left>
+"cnoremap <Esc>w <S-Right>
 
-map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
+"map <C-F12> :!ctags --c++-kinds=+p --fields=+aiS --extra=+q -R `pwd`<CR>
 
 "map <F5> Go<Esc>cc// Date: <Esc>:r!date<CR>kJ
 "map <F5> :bn<CR>''
