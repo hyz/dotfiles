@@ -12,7 +12,7 @@ def userid_diff(c):
     # for id in id_users - id_clients: print id
     for x in id_clients:
         if x not in id_users:
-            print x
+            print(x)
             # c.execute("delete from clients where user_id=%s" % id)
 
     # user_eq_dict[user] =n= user_eq_dict.setdefault(user, 0) + 1
@@ -41,7 +41,7 @@ def count_messages(c, args):
     # select M.id,M.UserId,U.nick,count(M.id) as Count from messages M inner join users U on M.UserId=U.UserId where M.msgtime>'2013-11-27 00:00:00' group by M.userid order by Count desc
     #"select UserId,count(id) as Count from messages where msgtime>'{0} 00:00:00' group by userid order by Count desc"
     date = args.get('date', time.strftime("%F", time.localtime(time.time() - 60*60)))
-    print ' |', date
+    print (' |' + date)
     c.execute("SELECT M.UserId,U.nick,count(M.id) AS Count"
             " FROM messages M INNER JOIN users U ON M.UserId=U.UserId"
             " WHERE U.UserName NOT LIKE '#%' AND DATE_FORMAT(M.msgtime,'%Y-%m-%d')='{0}'"
@@ -52,53 +52,53 @@ def count_messages(c, args):
     for l in c.fetchall():
         if l['Count'] < 10 or l['UserId'] == 1000:
             continue
-        print "{0}|{1}|{2}".format(l['UserId'], l['nick'].encode('utf-8'), l['Count'])
+        print ("{0}|{1}|{2}".format(l['UserId'], l['nick'].encode('utf-8'), l['Count']))
 
 def del_messages(c, args):
     gid = args.get('group')
     sql = "SELECT id" " FROM messages" " WHERE sessionid='{0}'" .format(gid)
-    print sql
+    print (sql)
     c.execute(sql)
     for l in c.fetchall():
         c.execute('delete from UnpushedMessages where MsgId={0}'.format(l['id']))
 
 def resetpwd_xDDDD(c, args):
     sql = "SELECT UserName,password FROM users WHERE username LIKE 'x%' AND password NOT LIKE '1234x%'"
-    print sql
+    print (sql)
     c.execute(sql)
     for l in c.fetchall():
         if re.match('x\d\d\d\d', l['UserName']):
             sql = "UPDATE users SET password='1234{UserName}' WHERE UserName='{UserName}'".format(**l)
-            print sql
+            print (sql)
             c.execute( sql )
 
 def guest_to_guser(c, args):
     args.setdefault('min-uid', 0)
     sql = "SELECT UserId,UserName,sex FROM users WHERE username LIKE '#%' AND sex='M' AND UserId>{min-uid}".format(**args)
-    print sql
+    print (sql)
     c.execute(sql)
     for l in c.fetchall():
         sql = "UPDATE users SET UserName='g{UserId}', password='1234g{UserId}' WHERE UserId='{UserId}'".format(**l)
-        print sql
+        print (sql)
         c.execute( sql )
 
 def dump_guser(c, args):
     args.setdefault('min-uid', 0)
     sql = "SELECT UserId,UserName,password,sex FROM users WHERE username LIKE 'g%' AND sex='M' AND UserId>{min-uid}".format(**args)
-    print sql
+    print (sql)
     c.execute(sql)
     for l in c.fetchall():
         if '1234'+l['UserName'] == l['password'] and re.match('g\d{5}', l['UserName']):
-            print '{UserName} {password}'.format(**l)
+            print ('{UserName} {password}'.format(**l))
 
 def del_users_except(c, args):
     args.setdefault('min-uid', 0)
     sql = "SELECT UserId,UserName,password,sex FROM users WHERE username LIKE 'g%' AND sex='M' AND UserId>{min-uid}".format(**args)
-    print sql
+    print (sql)
     c.execute(sql)
     for l in c.fetchall():
         if '1234'+l['UserName'] == l['password'] and re.match('g\d{5}', l['UserName']):
-            print '{UserName} {password}'.format(**l)
+            print ('{UserName} {password}'.format(**l))
 
 def bar_activity_transfer(c, args):
     f = open('bar_activities')
@@ -136,7 +136,7 @@ def ExecSql(c, fmt, maps):
     print (sql)
     c.execute( sql )
 
-def MapData(filename, keyfield=None):
+def ListData(filename, keyfield=None):
     lm = []
     f = open(filename)
     ks = f.readline().strip().split('\t')
@@ -149,9 +149,15 @@ def MapData(filename, keyfield=None):
     for x in lm:
         md[x[keyfield]] = x
     return md
+def MapData(filename, keyfield):
+    return ListData(filename, keyfield)
+def rename_k(c, fr, to):
+    val = c[fr]
+    del c[fr]
+    c[to] = val
 
 def bar_activity2_transfer(c, args):
-    bars = MapData('my/data.bars')
+    bars = ListData('my/data.bars')
     acts = MapData('my/data.bar_activity', 'id')
     for bar in bars:
         la = bar['activitie_id_list'].strip()
@@ -163,6 +169,14 @@ def bar_activity2_transfer(c, args):
             cols['SessionId'] = bar['SessionId']
             #print cols
             ExecSql(c, 'INSERT INTO bar_activity2({0}) VALUES({1})', cols)
+
+def transfertab_clients(c, args):
+    clients = ListData('my/data.clients')
+    #acts = ListData('my/data.bar_activity', 'id')
+    for c in clients:
+        rename_k(c, 'user_id', 'UserId')
+        rename_k(c, 'id', 'SessionId')
+        ExecSql(c, 'INSERT INTO client({0}) VALUES({1})', c)
 
 default_func = lambda x,y: sys.stdout.write( '{0} {1}'.format(x,y) )
 
