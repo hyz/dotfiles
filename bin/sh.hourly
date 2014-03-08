@@ -1,4 +1,5 @@
 #!/bin/sh
 
 date > $HOME/hourly
+env >> $HOME/hourly
 
