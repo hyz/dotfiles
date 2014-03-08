@@ -44,7 +44,32 @@ ALTER
 --------
 > ALTER TABLE clients MODIFY COLUMN act_time int(11) default 0;
 > ALTER TABLE clients DROP COLUMN act_time;
+> ALTER TABLE xyz CHANGE old_name new_name int(11) default 0;
 
+================== http://hoelz.ro/wiki/mysql-alter-table-alter-change-modify-column
+
+MySQL ALTER TABLE: ALTER vs CHANGE vs MODIFY COLUMN
+
+Whenever I have to change a column in MySQL (which isn't that often), I always forget the difference between ALTER COLUMN, CHANGE COLUMN, and MODIFY COLUMN. Here's a handy reference.
+
+ALTER COLUMN
+
+Used to set or remove the default value for a column. Example:
+
+ALTER TABLE MyTable ALTER COLUMN foo SET DEFAULT 'bar';
+ALTER TABLE MyTable ALTER COLUMN foo DROP DEFAULT;
+CHANGE COLUMN
+
+Used to rename a column, change its datatype, or move it within the schema. Example:
+
+ALTER TABLE MyTable CHANGE COLUMN foo bar VARCHAR(32) NOT NULL FIRST;
+ALTER TABLE MyTable CHANGE COLUMN foo bar VARCHAR(32) NOT NULL AFTER baz;
+MODIFY COLUMN
+
+Used to do everything CHANGE COLUMN can, but without renaming the column. Example:
+
+ALTER TABLE MyTable MODIFY COLUMN foo VARCHAR(32) NOT NULL AFTER baz;
+==================
 
 1.增加一个字段(一列)
 ALTER table table_name ADD COLUMN column_name type default value;   type指该字段的类型,value指该字段的默认值
