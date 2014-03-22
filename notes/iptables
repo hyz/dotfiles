@@ -1,2 +1,8 @@
 ### http://www.thegeekstuff.com/2011/06/iptables-rules-examples/
 ### http://www.thegeekstuff.com/2011/01/iptables-fundamentals/
+
+# delete by number
+iptables -nL --line-numbers
+iptables -D INPUT 11
+iptables -I INPUT 0  -p tcp -m state --state NEW -m tcp --dport 49900 -j ACCEPT
+
