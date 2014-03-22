@@ -13,68 +13,72 @@
 
 #include <iostream>
 
-struct mylogs // : std::string , io::stream<string_sink>
+struct syslogger // io::stream<string_sink>
 {
-    mylogs() // : io::stream<string_sink>(*this)
+    syslogger() // : io::stream<string_sink>(*this)
     {
-        ntotal_ = 0;
+        bytes_count_ = 0;
         lins_.resize(1);
     }
-    // ~mylogs() { commit(); }
 
-    template <typename T> mylogs & operator<<(T const & l)
+    template <typename T> syslogger & operator<<(T const & l)
     {
         lins_.push_back( boost::lexical_cast<std::string>(l) );
-        ntotal_ += lins_.back().size() + 1;
+        bytes_count_ += lins_.back().size() + 1;
         return *this;
     }
 
-    void commit(int linum, const char *fn, const char *fname)
+    void commit(bool sink_syslog, int linum, const char *fn, const char *fname)
     {
         std::string tmps;
-        tmps.reserve((lins_.front().size() + ntotal_ + 4) & 0x0ffffc);
-        std::cout << tmps.capacity() << " capacity\n";
+        tmps.reserve((lins_.front().size() + bytes_count_ + 4) & 0x0ffffc);
+        std::clog << tmps.capacity() << " capacity\n";
 
         for (auto i = lins_.begin(); i != lins_.end(); ++i)
         {
             tmps += *i;
             tmps += ' ';
         }
-        std::cout << tmps.size() << " size\n";
+        std::clog << tmps.size() << " size\n";
         BOOST_ASSERT(tmps.size() < tmps.capacity());
 
-        char tmpa[128];
-        snprintf(tmpa, sizeof(tmpa), "#%d:%s\n", linum, fn);
+        // ::syslog(0, "%.*s #%s:%d", (int)tmps.size(), tmps.c_str(), fn, linum);
+        std::clog << tmps << "#"<<linum<<":"<<fn;
 
-        // syslog(, "%s%s", tmps.c_str(), tmpa);
-        std::cout << tmps << tmpa;
-
-        ntotal_ = 0;
         lins_.resize(1);
+        bytes_count_ = 0;
     }
 
-    void tag_(std::string const & t)
+    template <typename T>
+    void tag_s(T const & t)
     {
         std::string & ts = lins_.front();
         if (!ts.empty())
             ts += ' ';
-        ts += t;
+        ts += boost::lexical_cast<std::string>(t);
     }
 
-    mutable bool xbool_, _;
-    unsigned short ntotal_;
+    unsigned int bytes_count_;
     std::vector<std::string> lins_;
+};
 
-    bool yes1() const
+template <typename T,int Y> struct flipbool_helper : T
+{
+    mutable int xbool_;
+
+    template <typename ...A> flipbool_helper(A... a) : T(a...) { xbool_=Y; }
+    flipbool_helper() { xbool_=Y; }
+
+    bool get_and_flip() const
     {
         bool b = xbool_;
-        xbool_ = 0;
+        xbool_ = !b;
         return b;
     }
 };
 
-#define LOG for(mylogs l; (l).yes1(); (l).commit(__LINE__,__FUNCTION__,__FILE__)) (l)
-#define LOGR(l) for(int y=1; y--; (l).commit(__LINE__,__FUNCTION__,__FILE__)) (l)
+#define LOG for(flipbool_helper<syslogger,1> l; (l).get_and_flip(); (l).commit(sink_syslog_, __LINE__,__FUNCTION__,__FILE__)) (l)
+#define LOG_L(l) for(int y=1; y--; (l).commit(sink_syslog_, __LINE__,__FUNCTION__,__FILE__)) (l)
 
 struct X {};
 
@@ -85,23 +89,23 @@ std::ostream & operator<<(std::ostream & out, X const &)
 
 int main()
 {
-    LOG << sizeof(mylogs);
+    LOG << sizeof(syslogger);
     LOG << sizeof(std::string);
     // LOG << sizeof(io::stream<string_sink>);
     LOG << "";
     // LOG << std::endl;
     LOG << "";
-    LOG << sizeof(std::cout) <<" "<< sizeof(std::ostream);
+    LOG << sizeof(std::clog) <<" "<< sizeof(std::ostream);
 
-    mylogs logs;
-    logs.tag_("hello");
-    logs.tag_("world");
+    syslogger slog;
+    slog.tag_s("hello");
+    slog.tag_s("world");
 
-    LOGR(logs) << "f";
-    LOGR(logs) << "fo";
-    LOGR(logs) << "foo";
-    LOGR(logs) << "foo bar";
+    LOG_L(slog) << "f";
+    LOG_L(slog) << "fo";
+    LOG_L(slog) << "foo";
+    LOG_L(slog) << "foo bar";
 
-    LOGR(logs) << X();
+    LOG_L(slog) << X();
 }
 
