@@ -178,6 +178,15 @@ def transfertab_clients(c, args):
         rename_k(c, 'id', 'SessionId')
         ExecSql(c, 'INSERT INTO client({0}) VALUES({1})', c)
 
+def x_dump_user(c, args):
+    c.execute("SELECT UserName,password,Token FROM user_client_view where UserName like 'x_y_z_%'")
+    for l in c.fetchall():
+        c.execute('delete from clis')
+        x="INSERT INTO clis(userid,token,mac,spot,cache,atime)" \
+                " VALUES(%(userid)s, '%(token)s', '%(mac)s', '%(spot)s', '%(cache)s', '%(atime)s')" % l
+        c.execute(x)
+    c.execute('rename table clients to oldclients')
+    c.execute('rename table clis to clients')
 default_func = lambda x,y: sys.stdout.write( '{0} {1}'.format(x,y) )
 
 ### ### ### ### ### ### ### ### ### ### ### ###
