@@ -13,7 +13,7 @@ export NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
 
 #PATH=$PATH:/sbin:/usr/sbin
 #if [ -d $HOME/bin ]; then PATH=$HOME/bin:$PATH fi
-for d in /opt/bin $NDK_ROOT $NDK_ROOT/tools $SDK_ROOT/platform-tools ; do
+for d in $HOME/bin /opt/bin $NDK_ROOT $NDK_ROOT/tools $SDK_ROOT/platform-tools ; do
     if [ -d "$d" ]; then
         PATH=$PATH:$d
     fi
