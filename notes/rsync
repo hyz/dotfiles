@@ -3,5 +3,5 @@
 # rsync --cvs-exclude -vrl -e ssh V1.1原型 wood@192.168.1.55:.
 # rsync --cvs-exclude -vrl -e ssh wood@192.168.1.55:./V1.1原型 .
 
-# rsync -va --no-o --no-g usr /
+# rsync -vaz --no-o --no-g --cvs-exclude usr /
 #
