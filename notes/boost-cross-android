@@ -1,0 +1,65 @@
+# http://www.cnblogs.com/hurricane2011/articles/2828925.html
+#
+
+### user-config.jam
+import os ;
+
+if [ os.name ] = CYGWIN || [ os.name ] = NT
+{
+    androidPlatform = windows ;
+}
+else if [ os.name ] = LINUX
+{
+    androidPlatform = linux-x86 ;
+}
+else if [ os.name ] = MACOSX
+{
+    androidPlatform = darwin-x86 ;
+}
+modules.poke : NO_BZIP2 : 1 ;
+ANDROID_NDK = ../.. ;
+using gcc : android4.4.3 :
+$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$(androidPlatform)/bin/arm-linux-androideabi-g++ :
+<compileflags>--sysroot=$(ANDROID_NDK)/platforms/android-9/arch-arm
+<compileflags>-mthumb
+<compileflags>-Os
+<compileflags>-fno-strict-aliasing
+<compileflags>-O2
+<compileflags>-DNDEBUG
+<compileflags>-g
+<compileflags>-lstdc++
+<compileflags>-I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/include
+<compileflags>-I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include
+<compileflags>-D__GLIBC__
+<compileflags>-DBOOST_NO_INTRINSIC_WCHAR_T
+<compileflags>-DBOOST_FILESYSTEM_VERSION=2
+<archiver>$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$(androidPlatform)/bin/arm-linux-androideabi-ar
+<ranlib>$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$(androidPlatform)/bin/arm-linux-androideabi-ranlib
+
+###
+# libs/filesystem/v2/src/v2_operations.cpp:62:30: error: sys/statvfs.h: No such file or directory
+# 找到v2_operations.cpp 第62行修改为：
+
+#ifndef ANDROID
+#  include <sys/statvfs.h>
+#else
+#  include <sys/vfs.h>
+#  define statvfs statfs
+#endif
+
+### Android.mk
+
+#LOCAL_PATH:= $(call my-dir)
+#include $(CLEAR_VARS)
+#LOCAL_MODULE:= boost_thread
+#LOCAL_SRC_FILES:= android/lib/libboost_thread.a
+#LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
+#include $(PREBUILT_STATIC_LIBRARY)
+#
+#include $(CLEAR_VARS)
+#LOCAL_MODULE:= boost_iostreams
+#LOCAL_SRC_FILES:= android/lib/libboost_iostreams.a
+#LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
+#include $(PREBUILT_STATIC_LIBRARY)
+#
+
