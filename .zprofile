@@ -37,7 +37,7 @@ export PYTHONSTARTUP=$HOME/.pythonstartup
 
 if which keychain ; then
     for x in office.id_rsa ; do
-        [ -r "$x" ] && eval `keychain --eval office.id_rsa`
+        [ -r ".ssh/$x" ] && eval `keychain --eval $x`
     done
 fi
 #if which ssh-agent ; then
