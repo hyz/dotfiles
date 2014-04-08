@@ -1,4 +1,5 @@
 
+# http://stackoverflow.com/questions/8486077/how-to-compile-link-boost-with-clang-libc
 $ cd /opt/boost
 $ b2 toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" link=static threading=multi variant=release program_options
 
@@ -6,4 +7,5 @@ $ b2 toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" link=sta
 # http://www.boost.org/boost-build2/doc/html/bbv2/overview/configuration.html
 # cflags, cxxflags, compileflags and linkflags
 using gcc : 3.4 : : <compileflags>-m64 <linkflags>-m64 ;
+
 

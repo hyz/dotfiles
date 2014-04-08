@@ -1,0 +1,15 @@
+#!/bin/sh
+
+cd $HOME
+d=$1
+[ -d "$d" ] || exit 1
+
+bakdir=bak/$(date +'%F')
+[ -d "$bakdir" ] || mkdir -p $bakdir
+
+bakfile="$bakdir/`echo -n "$d" |tr / _`.tgz.$(date +'%H')"
+tar czf $bakfile "$d" || exit 3
+# echo $bakfile
+
+sudo rsync --cvs-exclude -vaz --no-g --no-o "$d" /
+
