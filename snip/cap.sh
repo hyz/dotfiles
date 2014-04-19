@@ -1,25 +1,16 @@
 #!/bin/sh
+# Usage: sh cap.sh pcap/em1/9000 -i em1 port 9000
 
-#tcpdump -nnnn -e -s 1600 -w /tmp/wood.pcap -i br-lan port 9900 or port 9000 or port 19000 or port 19900 &
-#tcpdump -nnnn -e -s 1600 -w /tmp/$(date +%F_%H%M) -i br-lan port 9900 or port 9000 or port 19000 &
-#tcpdump -nnnn -e -s 1600 -w /tmp/$(date +%F_%H%M) -i br-lan port 9900 or port 9000 or port 19000 &
-#tcpdump -nnnn -e -s 1600 -w /tmp/$(date +%F_%H%M) -i br-lan ether host b4:07:f9:48:3a:7b &
-#tcpdump -nnnn -e -s 128 -w /tmp/9900.$(date +%F_%H%M) -i br-lan port 9900 &
+Dir=$1 ; shift
 
-ifa=$1 ; shift
+[ -z "$Dir" ] && exit 1
+[ -d "$Dir" ] || mkdir -p $Dir
 
-d=pcap.$ifa
-[ -d "$d" ] || mkdir $d
+if [ -r "$Dir/pid" ] ; then
+    pid=`cat $Dir/pid`
+    kill $pid && sleep 1 && kill -9 $pid
+fi
 
-while true; do
-    tg="$((`date +%k` % 5))"
-    tcpdump -nn -s 512 -w "$d/$tg" -i $ifa $* &
-    pid=$!
-    echo "$pid $d/$tg $*"
-    sleep 3600
-    while [ "$tg" = "$((`date +%k` % 5))" ]; do
-        sleep 5
-    done
-    kill $pid ; kill -9 $pid
-done
+echo $$ > $Dir/pid
+exec tcpdump -nn -s0 -w "$Dir/`date +%H`.cap" $*
 
