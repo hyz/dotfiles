@@ -1,0 +1,16 @@
+#!/bin/sh
+
+exec >/tmp/mlnet.cron
+exec 2>&1
+
+case "$1" in
+    stop)
+        pid=`cat .mldonkey/mlnet.pid`
+        kill $pid
+        sh -c "sleep 2; kill -9 $pid"
+        ;;
+    start)
+        mlnet &
+        ;;
+esac
+
