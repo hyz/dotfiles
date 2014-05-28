@@ -2,3 +2,7 @@
 
 date >> $HOME/reboot
 
+#autossh -M 10022 -fN loca1host
+cd $HOME
+autossh -M 0 -fN -R 127.0.0.1:10022:127.0.0.1:22 w243
+
