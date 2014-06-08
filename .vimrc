@@ -10,7 +10,8 @@ filetype indent on
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 
 set hlsearch
-highlight Search ctermbg=Black ctermfg=Yellow
+" highlight Search ctermbg=Black ctermfg=Yellow
+highlight Search ctermbg=DarkGray ctermfg=Black
 set diffopt+=iwhite
 
 set dictionary=/usr/share/dict/words

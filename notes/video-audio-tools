@@ -1,0 +1,41 @@
+### http://www.linuxandlife.com/2012/07/4-cool-tricks-to-do-with-mplayer.html
+#Take screenshots from video
+mplayer -vf screenshot video-file
+#Play videos in the terminal
+mplayer -vo caca video.avi
+
+### http://savvyadmin.com/extract-audio-from-video-files-to-wav-using-mplayer/
+#extract the audio from a video
+mplayer -ao pcm:fast:file=audio.wav -vo null -vc null video.avi
+#Convert WAV to MP3
+lame -V0 -q0 --vbr-new audio.wav audio.mp3
+
+### http://savvyadmin.com/dvd-to-xvid-encoding-with-mencoder/
+#copy a DVD to an XviD video file
+#1.Single-Pass Encoding
+#1.1Fixed Quantizer Value of 4 (Good quality, decent file size)
+mencoder dvd:// -oac mp3lame -lameopts q=0:aq=0 -ovc xvid -xvidencopts fixed_quant=4:autoaspect -o video.avi
+#1.2Fixed Quantizer Value of 2 (High quality, larger file size)
+mencoder dvd:// -oac mp3lame -lameopts q=0:aq=0 -ovc xvid -xvidencopts fixed_quant=2:autoaspect -o video.avi
+#2.Two Pass Encoding
+#...
+
+### http://savvyadmin.com/adding-chapters-to-videos-using-mkv-containers/
+#mkv
+sudo apt-get install mkvtoolnix
+sudo apt-get install ogmtools
+
+### http://savvyadmin.com/convert-3gp-videos-to-xvid-avi/
+ffmpeg -i video.3gp -acodec libmp3lame -vcodec libxvid -qscale 2 -f avi video.avi
+
+## http://www.fclose.com/1671/useful-mplayermencoder-commands/
+# mplayer/mencoder
+mplayer "mf://*.jpg" -mf fps=15
+mencoder "mf://*.jpg" -mf fps=15 -ovc lavc -o ./output.avi
+mencoder big-file.avi -ss 6 -endpos 200 -ovc copy -oac copy -o output.avi
+mplayer -frames 0 -identify ./video.avi
+ssh user@example.com "cat audio.mp3" | mplayer -cache 8192 -
+
+mplayer -dumpstream -dumpfile output.rm -cache 4096 rtsp://example.com/file.rm
+
+

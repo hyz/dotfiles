@@ -1,3 +1,4 @@
+# rsync --daemon --no-detach -v --config .rsyncd.conf
 
 # rsync -avz -e "ssh -p 44331" Files wood@x.x.x.x:.
 # rsync --cvs-exclude -vrl -e ssh V1.1原型 wood@192.168.1.55:.
@@ -5,3 +6,4 @@
 
 # rsync -vaz --no-o --no-g --cvs-exclude usr /
 #
+

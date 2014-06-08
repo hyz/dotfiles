@@ -6,3 +6,6 @@ iptables -nL --line-numbers
 iptables -D INPUT 11
 iptables -I INPUT 0  -p tcp -m state --state NEW -m tcp --dport 49900 -j ACCEPT
 
+# http://www.fclose.com/1372/setting-up-gateway-using-iptables-and-route-on-linux/
+#Setting Up Gateway Using iptables and route on Linux
+#
