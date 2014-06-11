@@ -1,0 +1,15 @@
+
+###https://community.igniterealtime.org/docs/DOC-1200
+###Openfire Plugins Setup Guide For Eclipse
+###build.xml
+#   <target name="plugin" description="build one plugin">
+#       <mkdir dir="${plugin.dest.dir}"/>
+#       <delete dir="${plugin.dev.dest.dir}/${plugin}"/>
+#       <delete file="${plugin.dev.dest.dir}/${plugin}.jar"/>
+#       <delete file="${plugin.dest.dir}/${plugin}.jar"/>
+#       <buildplugin plugin="${plugin}" pluginsrc="${plugin.src.dir}"/>
+#       <antcall target="openfireHome"/>
+#   </target>
+
+ant plugin -Dplugin=broadcast
+
