@@ -1,0 +1,46 @@
+import os ;
+
+local HOME = [ os.environ HOME ] ;
+local BOOST_ROOT = /opt/boost ;
+
+path-constant TOP_DIR : . ;
+use-project /boost : $(BOOST_ROOT) ;
+
+project
+    : requirements <threading>multi <include>.
+        <cflags>-std=c++11 # <cflags>-pg <linkflags>-pg
+    ;
+
+exe sequenced
+    : sequenced.cpp
+    ;
+
+exe a.out
+    : print_hours.cpp /boost//date_time /boost//system /boost//thread
+    ;
+
+# exe echo_tester
+#     : echo_tester.cpp ../sms.cpp ../log.cpp
+#         ../libjson//libjson.a
+#         ../sms//libEUCPCommC.a
+#         ../boost//boost
+#     ;
+
+# g++\ -Wall\ -DNDEBUG\ -I.\ -I~/boost\ %\ -Llibjson\ -ljson
+
+# exe boost
+#     : boost.cpp $(BOOST_ROOT)//filesystem $(BOOST_ROOT)//system
+#     ;
+
+#actions link_s 
+#{ 
+#    touch $(<)
+#    rm -f $(CUR_DIR)/jv
+#    # ln -v -s $(>) $(CUR_DIR)/jv
+#} 
+#
+# make jv : jvalue : @link_s ; 
+
+# install bin : jss sms dbc jvalue echo_tester ;
+
+install bin : a.out ;

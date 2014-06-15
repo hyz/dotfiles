@@ -1,7 +1,7 @@
 #!/bin/sh
 
-for d in moon im-trunk ; do
-    cd $HOME/backup/$d
+for repo in moon im-trunk ; do
+    cd $HOME/backup/$repo
     rev=`svn info |awk '/^Revision/{print $2}'`
     svn up
     revup=`svn info |awk '/^Revision/{print $2}'`
@@ -10,6 +10,6 @@ for d in moon im-trunk ; do
     fi
 
     cd $HOME
-    find backup/$d -name '.svn' -prune -o -print |cpio -o |gzip > Dropbox/backup/$(date +%W)-$d.cpio.gz
+    find backup/$repo -name '.svn' -prune -o -print |cpio -o |gzip > Dropbox/backup/$(date +%W)-$repo.cpio.gz
 done
 

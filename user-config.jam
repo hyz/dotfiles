@@ -1,0 +1,8 @@
+
+using gcc ;
+#using clang : : :
+#    <compileflags>"-stdlib=libc++"
+#    <compileflags>"-stdlib=libc++"
+#    <compileflags>"-std=c++11"
+#    ;
+#
