@@ -1,8 +1,10 @@
 
 using gcc ;
+#using gcc : 4.8 : /opt/bin/g++ : <cxxflags>-std=c++11 ;
+
 #using clang : : :
 #    <compileflags>"-stdlib=libc++"
 #    <compileflags>"-stdlib=libc++"
 #    <compileflags>"-std=c++11"
 #    ;
-#
+

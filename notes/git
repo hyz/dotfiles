@@ -1,0 +1,10 @@
+
+git config --global core.autocrlf input
+git config --global core.autocrlf true # Windows
+
+git submodule update --init
+
+git pull --recurse-submodules
+git submodule foreach git merge --ff-only
+
+
