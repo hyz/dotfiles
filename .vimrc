@@ -108,5 +108,5 @@ let loaded_matchparen = 1
 let g:vimim_tab_for_one_key=1
 "let g:vimim_one_key=0
 
-
+let g:EclimDisabled=1
 
