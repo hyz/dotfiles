@@ -3,17 +3,36 @@
 
 int main()
 {
-    using namespace boost::asio::ip;
+    namespace ip = boost::asio::ip;
 
     try {
         boost::asio::io_service io_s;
-        udp::resolver   resolver(io_s);
-        udp::resolver::query query(udp::v4(), "baidu.com", "");
-        udp::resolver::iterator iter = resolver.resolve(query);
-        udp::endpoint ep = *iter;
-        udp::socket socket(io_s);
+        ip::udp::resolver   resolver(io_s);
+        ip::udp::resolver::query query(ip::udp::v4(), "baidu.com", "");
+        ip::udp::resolver::iterator iter = resolver.resolve(query);
+        ip::udp::endpoint ep = *iter;
+        ip::udp::socket socket(io_s);
         socket.connect(ep);
-        boost::asio::ip::address addr = socket.local_endpoint().address();
+        ip::address addr = socket.local_endpoint().address();
+        std::cout << "My IP according to baidu is: " << addr.to_string() << std::endl;
+    } catch (std::exception& e){
+        std::cerr << "Could not deal with socket. Exception: " << e.what() << std::endl;
+    }
+}
+
+int use_tcp()
+{
+    namespace ip = boost::asio::ip;
+
+    try {
+        boost::asio::io_service io_s;
+        ip::tcp::resolver resolver(io_s);
+        ip::tcp::resolver::query query(ip::tcp::v4(), "baidu.com", "80");
+        ip::tcp::resolver::iterator iter = resolver.resolve(query);
+        ip::tcp::endpoint ep = *iter;
+        ip::tcp::socket socket(io_s);
+        socket.connect(ep);
+        ip::address addr = socket.local_endpoint().address();
         std::cout << "My IP according to baidu is: " << addr.to_string() << std::endl;
     } catch (std::exception& e){
         std::cerr << "Could not deal with socket. Exception: " << e.what() << std::endl;

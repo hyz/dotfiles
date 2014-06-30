@@ -1,0 +1,5 @@
+
+find . -name .svn -prune -o -print
+
+rsync -vaz --cvs-exclude --no-g --no-o "usr" /
+
