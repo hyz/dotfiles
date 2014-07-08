@@ -1,0 +1,29 @@
+1. http://kevinboone.net/kbox2.html
+2. http://kevinboone.net/kbox2_install.html
+3. http://kevinboone.net/kbox2_downloads.html
+
+tips:
+ - 安装 Android terminal emulator
+ - http://kevinboone.net/kbox2-base-installer
+     用浏览器下载。安装后就有了wget
+         wget http://kevinboone.net/dropbear_0.52_kbox.deb
+         wget http://kevinboone.net/kbox-login_0.0.1_kbox.deb
+         wget http://kevinboone.net/rsync_3.0.8_kbox.deb
+     dpkg -i 安装上面三个之后，可以rsync和pc通信。
+ - rsyncd.conf
+    ========
+        use chroot = false
+        strict modes = false
+        [kbox]
+                path = /home/wood/kbox2
+                comment = kbox2
+                read only = false
+    ========
+    rsync --daemon --port=1111 --no-detach -v --config=rsyncd.conf
+
+    rsync -va --no-o --no-g / rsync://x.x.x.x:1111/kbox
+    rsync -va --no-o --no-g rsync://x.x.x.x:1111/kbox/home /
+
+ - .zshrc 配置中忽略警告
+    compinit -u
+
