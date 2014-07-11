@@ -10,6 +10,7 @@ for repo in moon im-trunk ; do
     fi
 
     cd $HOME
-    find backup/$repo -name '.svn' -prune -o -print |cpio -o |gzip > Dropbox/backup/$(date +%W)-$repo.cpio.gz
+    find backup/$repo \( -name '.svn' -o -name 'mongo' \) -prune -o -print \
+        | cpio -o | gzip > Dropbox/backup/$(date +%W)-$repo.cpio.gz
 done
 
