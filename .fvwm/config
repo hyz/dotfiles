@@ -209,7 +209,7 @@ Style XDiary      EWMHMiniIconOverride, MiniIcon utils-calendar.png
 Style XClipboard  EWMHMiniIconOverride, MiniIcon klipper.png, NoTitle, CirculateSkip, WindowListSkip
 Style stalonetray NoTitle
 Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
-Style *lock       NoTitle, Sticky, Layer 5, WindowListSkip, CirculateSkip, PositionPlacement -0 -64
+Style *lock       NoTitle, Sticky, Layer 5, WindowListSkip, CirculateSkip, PositionPlacement -0 6
 # Style *lock       NoTitle, !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -64
 #% Style xclock      NoTitle, Sticky, WindowListSkip
 # Term
