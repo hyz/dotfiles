@@ -1,3 +1,8 @@
+appid = shanwei8j|ferry-hrd|ago-hrd
+
+### Google 全球 IP 地址库
+# http://www.legendsec.org/google.html
+
 # http://cb.e-fly.org:81/archives/goagent-iplist.html
 
 
@@ -17,4 +22,14 @@ remote = 114.114.114.114|114.114.115.115|223.5.5.5|223.6.6.6
             $ cd server && python uploader.zip
 
 ###
+# http://www.freebuf.com/tools/36637.html
+
+###
+# http://www.kookle.co.nr/
+
+    Google IP list - http://tinyurl.com/Google-IPs
+    Google Address - https://github.com/Playkid/Google-IPs（访问很慢）
+    https://www.startpage.com（调用Google搜索引擎源）
+    https://ixquick.com（调用Google搜索引擎源）
+    http://www.ask.com
 
