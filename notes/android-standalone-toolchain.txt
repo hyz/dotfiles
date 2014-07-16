@@ -2,3 +2,31 @@
 cd /opt/android-ndk
 build/tools/make-standalone-toolchain.sh --platform=android-9 --install-dir=$HOME/android/standalone/toolchain
 
+USING THE ANDROID TOOLCHAIN AS A STANDALONE COMPILER
+### http://www.cnblogs.com/qq78292959/archive/2011/11/02/2232965.html
+
+Port glib to android
+### http://mathslinux.org/?p=268
+libiconv
+gettext
+libffi
+glib
+$ gl_cv_header_working_stdint_h=yes ./configure --prefix="${SYSROOT}/usr" --host=arm-linux-androideabi CFLAGS="--sysroot $SYSROOT" --enable-static
+$ make -j5
+$ make install
+#
+# glib
+#### file android.cache
+ac_cv_type_long_long=yes
+glib_cv_stack_grows=no
+glib_cv_uscore=no
+ac_cv_func_posix_getpwuid_r=no
+ac_cv_func_posix_getgrgid_r=no
+##############################
+$ ./configure --prefix="${SYSROOT}/usr" --host=arm-linux-androideabi CFLAGS="--sysroot $SYSROOT" --enable-static --cache-file=android.cache --disable-modular-tests
+
+
+#
+# C++ wchar_t/RTTI/exception
+### http://blog.csdn.net/smfwuxiao/article/details/6587709
+
