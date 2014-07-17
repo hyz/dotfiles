@@ -1,0 +1,44 @@
+### http://stackoverflow.com/questions/16810110/how-to-build-openssl-to-generate-libcrypto-a-with-android-ndk-and-windows
+
+CROSS_COMPILE="" \
+CC="arm-linux-androideabi-gcc -march=armv7-a -mfloat-abi=softfp --sysroot=$SYSROOT" \
+    ./Configure android-armv7 no-asm
+
+# --prefix=???
+#
+# $ env |grep android
+#
+#  CROSS_COMPILE=arm-linux-androideabi
+#  CC=arm-linux-androideabi-gcc
+#  CXX=arm-linux-androideabi-g++
+#  TOOLC=/home/wood/android/standalone/toolchain
+#  SYSROOT=/home/wood/android/standalone/toolchain/sysroot
+#  PATH=/usr/local/bin:/usr/bin:/home/wood/android/standalone/toolchain/bin
+
+### http://blog.csdn.net/someonea/article/details/6312213
+
+###http://stackoverflow.com/questions/11929773/compiling-the-latest-openssl-for-android
+$ tar xzvf ~/Downloads/openssl-1.0.1g.tar.gz
+$ cd openssl-1.0.1g
+$ export NDK=~/android-ndk-r9d
+$ $NDK/build/tools/make-standalone-toolchain.sh --platform=android-9 --toolchain=arm-linux-androideabi-4.6 --install-dir=`pwd`/android-toolchain-arm
+$ export TOOLCHAIN_PATH=`pwd`/android-toolchain-arm/bin
+$ export TOOL=arm-linux-androideabi
+$ export NDK_TOOLCHAIN_BASENAME=${TOOLCHAIN_PATH}/${TOOL}
+$ export CC=$NDK_TOOLCHAIN_BASENAME-gcc
+$ export CXX=$NDK_TOOLCHAIN_BASENAME-g++
+$ export LINK=${CXX}
+$ export LD=$NDK_TOOLCHAIN_BASENAME-ld
+$ export AR=$NDK_TOOLCHAIN_BASENAME-ar
+$ export RANLIB=$NDK_TOOLCHAIN_BASENAME-ranlib
+$ export STRIP=$NDK_TOOLCHAIN_BASENAME-strip
+$ export ARCH_FLAGS="-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+$ export ARCH_LINK="-march=armv7-a -Wl,--fix-cortex-a8"
+$ export CPPFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64 "
+$ export CXXFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64 -frtti -fexceptions "
+$ export CFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64 "
+$ export LDFLAGS=" ${ARCH_LINK} "
+
+$ ./Configure android-armv7
+$ PATH=$TOOLCHAIN_PATH:$PATH make
+
