@@ -42,3 +42,9 @@ $ export LDFLAGS=" ${ARCH_LINK} "
 $ ./Configure android-armv7
 $ PATH=$TOOLCHAIN_PATH:$PATH make
 
+
+#
+### https://github.com/guardianproject/openssl-android
+$ cd openssl-android
+$ $NDK_ROOT/ndk-build
+
