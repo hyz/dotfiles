@@ -1,5 +1,11 @@
+export EDITOR=vim
 
-ANDROID_ROOT_PREFIX=/opt/android-
+# limit coredumpsize 0
+
+#export PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
+# /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
+
+# /opt/adt-bundle-linux-x86-20130219/sdk
 
 NDK_ROOT=/opt/android-ndk
 SDK_ROOT=/opt/android-sdk
@@ -11,9 +17,7 @@ ANDROID_HOME=$SDK_ROOT
 
 export NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
 
-#PATH=$PATH:/sbin:/usr/sbin
-#if [ -d $HOME/bin ]; then PATH=$HOME/bin:$PATH fi
-for d in $HOME/bin /opt/bin $NDK_ROOT $NDK_ROOT/tools $SDK_ROOT/platform-tools ; do
+for d in /opt/bin $SDK_ROOT/tools $SDK_ROOT/platform-tools $NDK_ROOT $NDK_ROOT/tools ; do
     if [ -d "$d" ]; then
         PATH=$PATH:$d
     fi

@@ -1,3 +1,33 @@
 
-using gcc : 4.6 : /home/wood/android/standalone/toolchain/bin/arm-linux-androideabi-g++ ;
+path-constant TOOLCHAIN : /home/wood/android/standalone/toolchain ;
+path-constant BIN : /home/wood/android/standalone/toolchain/bin ;
+path-constant SYSROOT : $(TOOLCHAIN)/sysroot ;
+
+using gcc : arm : $(BIN)/arm-linux-androideabi-g++
+    :
+        <compileflags>--sysroot=$(SYSROOT)
+        <compileflags>-mthumb
+        # <compileflags>-Os
+        <compileflags>-O2
+        <compileflags>-g
+        <threadapi>pthread
+        #
+        <compileflags>-DNDEBUG
+        <compileflags>-D__GLIBC__
+        <compileflags>-DBOOST_NO_INTRINSIC_WCHAR_T
+        <compileflags>-DBOOST_FILESYSTEM_VERSION=2
+        <compileflags>-fno-strict-aliasing
+        <compileflags>-lstdc++
+        # <compileflags>-I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/include
+        # <compileflags>-I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include
+        #
+        <archiver>$(BIN)/arm-linux-androideabi-ar
+        <ranlib>$(BIN)/arm-linux-androideabi-ranlib
+    ;
+
+# ./bjam --build-type=complete --layout=tagged
+#  variant=debug|release            Select the build variant
+#  link=static|shared                    Whether to build static or shared libraries
+#  threading=single|multi            Whether to build single or multithreaded binaries
+#  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
 
