@@ -1,3 +1,7 @@
 
 http://mathslinux.org/?cat=48
 
+
+
+http://stackoverflow.com/questions/5198105/calling-a-java-method-from-c-in-android
+https://developer.android.com/tools/sdk/ndk/index.html#Contents

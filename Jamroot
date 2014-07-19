@@ -7,17 +7,16 @@ path-constant TOP_DIR : . ;
 use-project /boost : $(BOOST_ROOT) ;
 
 project
-    : requirements <threading>multi <include>.
+    : requirements <threading>multi
+        <include>$(BOOST_ROOT)
         <cflags>-std=c++11 # <cflags>-pg <linkflags>-pg
     ;
 
-exe sequenced
-    : sequenced.cpp
+exe trim_example
+    : trim_example.cpp
     ;
 
-exe a.out
-    : print_hours.cpp /boost//date_time /boost//system /boost//thread
-    ;
+#exe a.out : print_hours.cpp /boost//date_time /boost//system /boost//thread ;
 
 # exe echo_tester
 #     : echo_tester.cpp ../sms.cpp ../log.cpp

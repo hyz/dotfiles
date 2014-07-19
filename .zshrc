@@ -48,9 +48,50 @@ alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
 
+#
+#
+###########################################################
+### git clone git://github.com/zsh-users/zsh-completions.git
+#fpath=($HOME/zsh-completions/src $fpath)
+
 alias todo='todo --database-loaders binary'
 
 alias svndiff='svn diff --diff-cmd wsvndiff'
 
 alias b2='b2 -j5'
+# export BOOST_BUILD_PATH=/usr/share/boost/build/v2
+
+PYTHONSTARTUP=$HOME/.pythonstartup
+if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
+
+# /opt/adt-bundle-linux-x86-20130219/sdk
+
+SDK_ROOT=/opt/android-sdk
+if [ -d "$SDK_ROOT" ]; then
+    ANDROID_SDK_ROOT=$SDK_ROOT
+    ANDROID_HOME=$SDK_ROOT
+    export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
+
+    PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
+fi
+#SDK_ROOT=/opt/adt-bundle-linux-x86-20130219/sdk
+
+NDK_ROOT=/opt/android-ndk
+if [ -d "$NDK_ROOT" ]; then
+    ANDROID_NDK_ROOT=$NDK_ROOT
+    export NDK_ROOT ANDROID_NDK_ROOT
+
+    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/tools
+fi
+
+export PATH
+
+COCOS2DX_ROOT=$HOME/cocos2d
+if [ -d "$COCOS2DX_ROOT" ] ; then export COCOS2DX_ROOT ; fi
+
+if [ "`uname -o`" = "Cygwin" ]; then
+    alias er='explorer "`cygpath -w $(pwd)`" &'
+    #PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
+    # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
+fi
 
