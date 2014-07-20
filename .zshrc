@@ -67,7 +67,7 @@ if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 # /opt/adt-bundle-linux-x86-20130219/sdk
 
 SDK_ROOT=/opt/android-sdk
-if [ -d "$SDK_ROOT" ]; then
+if [[ -d "$SDK_ROOT" && -z $(echo $PATH | grep -o "$SDK_ROOT") ]] ; then
     ANDROID_SDK_ROOT=$SDK_ROOT
     ANDROID_HOME=$SDK_ROOT
     export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME

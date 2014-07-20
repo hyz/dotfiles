@@ -1,14 +1,12 @@
 export EDITOR=vim
 
-if [ "`uname -o`" = "Cygwin" ]; then
-    export GNUPGHOME="F:\cyghome\.gnupg"
+if [ $UID -ge 1000 ] ; then
+    for x in $HOME/bin /opt/bin /usr/local/bin ; do
+        if [[ -d "$x" && -z $(echo $PATH | grep -o "$x") ]] ; then
+            PATH=$PATH:$x
+        fi
+    done
 fi
-
-for x in $HOME/bin /opt/bin /usr/local/bin ; do
-    if [ -d "$x" ]; then
-        PATH=$PATH:$x
-    fi
-done
 export PATH
 
 if which keychain ; then
@@ -38,4 +36,8 @@ fi
 # fi
 
 # limit coredumpsize 0
+
+if [ "`uname -o`" = "Cygwin" ] ; then
+    export GNUPGHOME="F:\cyghome\.gnupg"
+fi
 
