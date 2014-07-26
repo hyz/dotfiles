@@ -5,12 +5,10 @@ for repo in moon im-trunk ; do
     rev=`svn info |awk '/^Revision/{print $2}'`
     svn up
     revup=`svn info |awk '/^Revision/{print $2}'`
-    if [ "$rev" = "$revup" ]; then
-        exit 0
+    if [ "$rev" != "$revup" ]; then
+        cd $HOME
+        find backup/$repo \( -name '.svn' -o -name 'mongo' \) -prune -o -print \
+            | cpio -o | gzip > Dropbox/backup/$(date +%W)-$repo.cpio.gz
     fi
-
-    cd $HOME
-    find backup/$repo \( -name '.svn' -o -name 'mongo' \) -prune -o -print \
-        | cpio -o | gzip > Dropbox/backup/$(date +%W)-$repo.cpio.gz
 done
 
