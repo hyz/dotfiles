@@ -32,7 +32,7 @@ set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
 
 " set cscopeprg=mlcscope
 
-set makeprg=b2
+set makeprg=b2\ -j5
 
 "autocmd BufEnter * lcd %:p:h
 autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
