@@ -1,39 +1,13 @@
+export EDITOR=vim
 
-ANDROID_ROOT_PREFIX=/opt/android-
-
-NDK_ROOT=/opt/android-ndk
-SDK_ROOT=/opt/android-sdk
-#SDK_ROOT=/opt/adt-bundle-linux-x86-20130219/sdk
-
-ANDROID_NDK_ROOT=$NDK_ROOT
-ANDROID_SDK_ROOT=$SDK_ROOT
-ANDROID_HOME=$SDK_ROOT
-
-export NDK_ROOT SDK_ROOT ANDROID_NDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
-
-#PATH=$PATH:/sbin:/usr/sbin
-#if [ -d $HOME/bin ]; then PATH=$HOME/bin:$PATH fi
-for d in $HOME/bin /opt/bin $NDK_ROOT $NDK_ROOT/tools $SDK_ROOT/platform-tools ; do
-    if [ -d "$d" ]; then
-        PATH=$PATH:$d
-    fi
-done
-export PATH
-
-export COCOS2DX_ROOT=$HOME/cocos2d
-# /opt/adt-bundle-linux-x86-20130219/sdk
-
-# export BOOST_BUILD_PATH=/usr/share/boost/build/v2
-
-### git clone git://github.com/zsh-users/zsh-completions.git
-#fpath=($HOME/zsh-completions/src $fpath)
-
-if [ "`uname -o`" = "Cygwin" ]; then
-    export GNUPGHOME="F:\cyghome\.gnupg"
-    alias er='explorer "`cygpath -w $(pwd)`" &'
+if [ $UID -ge 1000 ] ; then
+    for x in $HOME/bin /opt/bin /usr/local/bin ; do
+        if [[ -d "$x" && -z $(echo $PATH | grep -o "$x") ]] ; then
+            PATH=$PATH:$x
+        fi
+    done
 fi
-
-export PYTHONSTARTUP=$HOME/.pythonstartup
+export PATH
 
 if which keychain ; then
     for x in office.id_rsa ; do
@@ -60,4 +34,10 @@ fi
 #         eval `gpg-agent -s --enable-ssh-support --daemon --write-env-file "$gnupginf"`
 #     fi
 # fi
+
+# limit coredumpsize 0
+
+if [ "`uname -o`" = "Cygwin" ] ; then
+    export GNUPGHOME="F:\cyghome\.gnupg"
+fi
 

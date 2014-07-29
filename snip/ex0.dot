@@ -1,0 +1,43 @@
+
+digraph helper {
+    node [shape=box];
+
+    //edge [color=blue];
+    a [label="开始", shape=oval];
+    b [label="取配置列表成功?", shape=diamond];
+    l_empty [label="列表非空?", shape=diamond];
+    end [label="结束"] ;
+    r [label="取文件"] ;
+    r_fin [label="文件完成?", shape=diamond];
+
+    a -> b;
+    //b -> b [label="否,重新取列表"];
+    b -> l_empty [label="是"];
+    l_empty -> end [label="否"];
+    l_empty -> r [label="是"];
+    r -> r_fin;
+    // r_fin -> r [label="否"];
+    r_fin -> l_empty [label="是"];
+
+    { rank=same; r r_fin }
+
+    notea[label="当且仅当在IDLE界面中停留超过2分钟之后,程序逻辑才触发.", shape=note];
+    noteb[label="一旦离开IDLE界面,程序逻辑即行结束.", shape=note];
+    notec[label="任何文件一经成功下载之后,不复下载,即便是T卡上不存在.", shape=note];
+    notec[label="开机后停留在IDLE下,不会触发下载.", shape=note];
+}
+
+
+// digraph test123 {
+//     a -> b -> c;
+//     a -> {x y};
+//     b [shape=box];
+//     c [label="hello\nworld",color=blue,fontsize=24,
+//       fontname="Palatino-Italic",fontcolor=red,style=filled];
+//     a -> z [label="hi", weight=100];
+//     x -> z [label="multi-line\nlabel"];
+//     edge [style=dashed,color=red];
+//     b -> x;
+//     {rank=same; b x}
+// }
+

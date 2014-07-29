@@ -1,0 +1,12 @@
+
+# MySQL with utf8mb4
+# http://www.tuicool.com/articles/EVRjY3
+
+mysqldump -u root -p --no-data --databases logdown_production > logdown_production_schema.sql
+mysqldump -u root -p --no-create-info logdown_production > logdown_production_data.sql
+
+
+
+show variables like 'log_%';
+
+ 

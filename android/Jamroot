@@ -1,0 +1,14 @@
+
+path-constant BOOST_ROOT : /opt/boost ;
+
+use-project /boost : $(BOOST_ROOT) ;
+
+project
+    : requirements
+        <include>$(BOOST_ROOT)
+        <threading>multi
+    : default-build release
+    ;
+
+exe a : ../multi_index-employee.cpp  ;
+
