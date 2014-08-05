@@ -31,3 +31,6 @@ using gcc : arm : $(BIN)/arm-linux-androideabi-g++
 #  threading=single|multi            Whether to build single or multithreaded binaries
 #  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
 
+# http://www.cnblogs.com/ezhong/p/3326258.html
+# http://www.cppblog.com/sunicdavy/archive/2013/07/20/201993.html
+

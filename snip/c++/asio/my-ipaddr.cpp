@@ -8,13 +8,13 @@ int main()
     try {
         boost::asio::io_service io_s;
         ip::udp::resolver   resolver(io_s);
-        ip::udp::resolver::query query(ip::udp::v4(), "baidu.com", "");
+        ip::udp::resolver::query query(ip::udp::v4(), "8.8.8.8", "");
         ip::udp::resolver::iterator iter = resolver.resolve(query);
         ip::udp::endpoint ep = *iter;
         ip::udp::socket socket(io_s);
         socket.connect(ep);
         ip::address addr = socket.local_endpoint().address();
-        std::cout << "My IP according to baidu is: " << addr.to_string() << std::endl;
+        std::cout << "My IP according to 8.8.8.8 is: " << addr.to_string() << std::endl;
     } catch (std::exception& e){
         std::cerr << "Could not deal with socket. Exception: " << e.what() << std::endl;
     }
@@ -37,5 +37,6 @@ int use_tcp()
     } catch (std::exception& e){
         std::cerr << "Could not deal with socket. Exception: " << e.what() << std::endl;
     }
+    return 0;
 }
 

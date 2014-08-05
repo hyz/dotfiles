@@ -1,9 +1,0 @@
-find trunk -name ".svn" -prune -o -print 
-
-tcpdump -nn -w pcap -i eth0 \(port 9001 or port 9000\) and host 127.0.0.1
-tcpdump -nn -X -r pcap
-tcpdump -nn -A -r pcap
-
-
-ssh-keygen -y -f .ssh/id_rsa > id_rsa.pub
-

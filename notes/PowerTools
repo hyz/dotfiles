@@ -1,3 +1,4 @@
+--- shell.txt
 
 find . \(-name .svn -o -name .git\) -prune -o -print
 

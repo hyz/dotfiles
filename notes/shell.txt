@@ -1,0 +1,12 @@
+--- PowerTools
+
+ps -Hu wood
+ps -FC yxim-server
+ps -mC yxim-server
+ps -mp $(pidof yxim-server)
+
+pgrep -lf yxim
+
+top -p $(echo `pgrep -f yxim` |tr ' ' ',')
+top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
+
