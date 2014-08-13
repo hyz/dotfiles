@@ -1,0 +1,5 @@
+## http://ruslanspivak.com/2010/10/12/pretty-print-json-from-the-command-line/
+## http://stackoverflow.com/questions/352098/how-can-i-pretty-print-json
+
+echo "[1,2,3,4]" |python -mjson.tool
+
