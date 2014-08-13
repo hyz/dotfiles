@@ -5,3 +5,8 @@ http://packages.python.org/distribute
         This package is a simple compatibility layer that installs Setuptools 0.7+.
 
 
+[pythonexcels]: http://www.pythonexcels.com
+[python-excel]: http://www.python-excel.org
+
+
+
