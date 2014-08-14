@@ -4,6 +4,8 @@ cd $HOME
 d=$1
 [ -d "$d" ] || exit 1
 
+sudo echo -n
+
 bakdir=bak/$(date +'%F')
 [ -d "$bakdir" ] || mkdir -p $bakdir
 

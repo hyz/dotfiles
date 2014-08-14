@@ -29,4 +29,5 @@ top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
 echo '{"cmd":71}' |yxim-pack |nc 127.0.0.1 10010 |dd bs=4 skip=1 2>/dev/null |python -mjson.tool
 
 ###
+sort -k1,1 -s t.txt
 
