@@ -5,6 +5,12 @@ import http.client, urllib.parse
 from pprint import pprint
 import json
 
+def getm(dct, *ks):
+    ret = []
+    for k in ks:
+        ret.append( dct.get(k, None) )
+    return ret
+
 def getfirst(k, a, defa):
     for d in a:
         v = d.get(k, None)
@@ -47,12 +53,6 @@ def getcookie(hdr):
     ck, _ = ck.split(';', 1)
     k, ck = ck.split('=')
     return (k,ck)
-
-def getm(dct, *ks):
-    ret = []
-    for k in ks:
-        ret.append( dct.get(k, None) )
-    return ret
 
 def main():
     fmt_ids = '{0}\t1\t{{0:0}}'
