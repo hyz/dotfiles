@@ -11,3 +11,6 @@ ant -Dsdk.dir=/opt/android-sdk debug
 
 android create project --target "android-15" --name World --path /tmp/World --activity MainActivity --package com.example.world
 
+# http://stackoverflow.com/questions/2453949/android-emulator-how-to-monitor-network-traffic
+Run emulator -tcpdump emulator.cap -avd my_avd to write all the emulator's traffic to a local file on your PC
+

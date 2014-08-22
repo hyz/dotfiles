@@ -15,11 +15,11 @@ pgrep -lf yxim
 
 ### ### ###
 ps -lF
-ps -eF
-ps -Hu wood
-ps -FC yxim-server
-ps -mC yxim-server
-ps -mp $(pidof yxim-server)
+ps -F -e
+ps -H -u wood
+ps -F -C yxim-server
+ps -mL -C yxim-server
+ps -mL -p $(pidof yxim-server)
 
 # 10 basic examples of Linux ps command
 http://www.binarytides.com/linux-ps-command/
