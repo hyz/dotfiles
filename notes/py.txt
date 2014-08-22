@@ -1,0 +1,11 @@
+
+python3 setuptools
+    http://www.coder4.com/archives/2926
+    https://pythonhosted.org/distribute/
+
+    mysql
+        [V] https://github.com/PyMySQL/PyMySQL.git
+
+        [X] mysql-connector
+        [X] mysql-python
+

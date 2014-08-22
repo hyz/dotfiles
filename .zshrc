@@ -95,3 +95,11 @@ if [ "`uname -o`" = "Cygwin" ]; then
     # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
 fi
 
+
+# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
+export COCOS_CONSOLE_ROOT=/home/wood/cocos2d-x/tools/cocos2d-console/bin
+export PATH=$COCOS_CONSOLE_ROOT:$PATH
+
+# Add environment variable ANT_ROOT for cocos2d-x
+export ANT_ROOT=/usr/bin
+export PATH=$ANT_ROOT:$PATH

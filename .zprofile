@@ -1,12 +1,13 @@
 export EDITOR=vim
 
 if [ $UID -ge 1000 ] ; then
-    for x in $HOME/bin /opt/bin /usr/local/bin ; do
+    for x in /opt/bin /usr/local/bin ; do
         if [[ -d "$x" && -z $(echo $PATH | grep -o "$x") ]] ; then
             PATH=$PATH:$x
         fi
     done
 fi
+PATH=$HOME/bin:$PATH
 export PATH
 
 if which keychain ; then

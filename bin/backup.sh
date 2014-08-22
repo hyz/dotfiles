@@ -1,9 +1,11 @@
 #!/bin/sh
 
+exec >/tmp/backup.sh.log 2>&1
+
 for repo in moon im-trunk ; do
     cd $HOME/backup/$repo
     rev=`svn info |awk '/^Revision/{print $2}'`
-    svn up
+    /usr/bin/svn up
     revup=`svn info |awk '/^Revision/{print $2}'`
     if [ "$rev" != "$revup" ]; then
         cd $HOME

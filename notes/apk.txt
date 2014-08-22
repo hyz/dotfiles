@@ -1,0 +1,7 @@
+http://droiddudes.com/howto-extract-apk-into-readable-java-source-code-and-xml-files/
+
+Now, that you have everything you will need to do the following:
+1) Extract the APK using APKTool. Run: apktool d <apk>
+2) Extract the classes.dex file found in the APK file. Run: jar xvf <apk> classes.dex
+3) Extract the classes from classes.dex file. Run: dex2jar classes.dex
+4) Extract the classes.dex.dex2jar.jar. Run: jar xvf classes.dex.dex2jar.jar
