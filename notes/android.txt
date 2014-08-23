@@ -16,7 +16,7 @@ http://forum.xda-developers.com/showthread.php?t=1766475
 http://www.wugfresh.com/nrt/
 http://lifehacker.com/5789397/the-always-up-to-date-guide-to-rooting-any-android-phone
 
-# IMEI
+# emulator IMEI
 android-sdk-path/tools/emulator
 1. 用二进制编辑器打开它
 2. 搜索 +CGSN字符串， 后面跟着15个数字的IMEI
@@ -28,4 +28,21 @@ android-sdk-path/tools/emulator
 ### SMSC +8613800762500
 ### IMEI 358407020209040
 ### IMSI 460004702975466
+
+# emulator root
+http://forum.xda-developers.com/showthread.php?t=1731095
+#
+emulator -avd MyAndroid -partition-size 2047 -no-snapshot-load -verbose
+...
+adb shell mount -o rw,remount -t yaffs2 /dev/block/mtdblock0 /system
+adb push su /system/xbin/
+adb push busybox /system/xbin/
+adb shell chmod 06755 /system/xbin/su
+adb shell chmod 06755 /system/xbin/busybox
+adb shell busybox rm -R /data/*
+adb shell busybox ls /data
+adb shell busybox ls /data
+adb push gapps-ics-20120317-signed/system /system
+adb shell busybox cp -a /system/* /data/
+
 
