@@ -1,0 +1,96 @@
+diff -ru boost_1_56_0/boost/asio/detail/socket_types.hpp boost_1_56_0-android/boost/asio/detail/socket_types.hpp
+--- boost_1_56_0/boost/asio/detail/socket_types.hpp	2014-07-28 05:32:26.000000000 +0800
++++ boost_1_56_0-android/boost/asio/detail/socket_types.hpp	2014-08-22 18:57:55.171011315 +0800
+@@ -278,7 +278,12 @@
+ typedef int socket_type;
+ const int invalid_socket = -1;
+ const int socket_error_retval = -1;
++// @Moss - Some platforms do not define it (Android)
++#if defined(INET_ADDRSTRLEN)
+ const int max_addr_v4_str_len = INET_ADDRSTRLEN;
++#else // defined(INET_ADDRSTRLEN)
++const int max_addr_v4_str_len = 16;
++#endif // defined(INET_ADDRSTRLEN)
+ #if defined(INET6_ADDRSTRLEN)
+ const int max_addr_v6_str_len = INET6_ADDRSTRLEN + 1 + IF_NAMESIZE;
+ #else // defined(INET6_ADDRSTRLEN)
+diff -ru boost_1_56_0/boost/asio/ip/impl/address_v6.ipp boost_1_56_0-android/boost/asio/ip/impl/address_v6.ipp
+--- boost_1_56_0/boost/asio/ip/impl/address_v6.ipp	2014-07-28 05:32:26.000000000 +0800
++++ boost_1_56_0-android/boost/asio/ip/impl/address_v6.ipp	2014-08-22 18:59:19.868011218 +0800
+@@ -11,6 +11,23 @@
+ #ifndef BOOST_ASIO_IP_IMPL_ADDRESS_V6_IPP
+ #define BOOST_ASIO_IP_IMPL_ADDRESS_V6_IPP
+ 
++// @Moss - Define IPv6 macros
++#if !defined(IN6_IS_ADDR_MULTICAST) 
++#define IN6_IS_ADDR_MULTICAST(a) (((__const uint8_t *) (a))[0] == 0xff)
++#endif
++
++#if !defined(IN6_IS_ADDR_MC_NODELOCAL)
++#define IN6_IS_ADDR_MC_NODELOCAL(a) \
++        (IN6_IS_ADDR_MULTICAST(a) \
++         && ((((__const uint8_t *) (a))[1] & 0xf) == 0x1))
++#endif
++
++#if !defined(IN6_IS_ADDR_MC_GLOBAL)
++#define IN6_IS_ADDR_MC_GLOBAL(a) \
++        (IN6_IS_ADDR_MULTICAST(a) \
++         && ((((__const uint8_t *) (a))[1] & 0xf) == 0xe))
++#endif
++
+ #if defined(_MSC_VER) && (_MSC_VER >= 1200)
+ # pragma once
+ #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+diff -ru boost_1_56_0/boost/config/user.hpp boost_1_56_0-android/boost/config/user.hpp
+--- boost_1_56_0/boost/config/user.hpp	2014-06-02 23:06:28.000000000 +0800
++++ boost_1_56_0-android/boost/config/user.hpp	2014-08-22 18:59:44.529011191 +0800
+@@ -13,6 +13,14 @@
+ //  configuration policy:
+ //
+ 
++// Android defines
++#define _REENTRANT 1
++#define _GLIBCXX__PTHREADS 1
++// There is problem with std::atomic on android (and some other platforms).
++// See this link for more info:
++// https://code.google.com/p/android/issues/detail?id=42735#makechanges
++#define BOOST_ASIO_DISABLE_STD_ATOMIC 1
++
+ // define this to locate a compiler config file:
+ // #define BOOST_COMPILER_CONFIG <myheader>
+ 
+diff -ru boost_1_56_0/boost/predef/other/endian.h boost_1_56_0-android/boost/predef/other/endian.h
+--- boost_1_56_0/boost/predef/other/endian.h	2014-07-10 21:53:53.000000000 +0800
++++ boost_1_56_0-android/boost/predef/other/endian.h	2014-08-22 19:02:23.377359617 +0800
+@@ -53,7 +53,7 @@
+  */
+ #if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_BIG_WORD && \
+     !BOOST_ENDIAN_LITTLE_BYTE && !BOOST_ENDIAN_LITTLE_WORD
+-#   if BOOST_LIB_C_GNU
++#   if BOOST_LIB_C_GNU || defined(ANDROID) || defined(__ANDROID__)
+ #       include <endian.h>
+ #   else
+ #       if BOOST_OS_MACOS
+diff -ru boost_1_56_0/libs/filesystem/src/operations.cpp boost_1_56_0-android/libs/filesystem/src/operations.cpp
+--- boost_1_56_0/libs/filesystem/src/operations.cpp	2014-07-23 22:11:34.000000000 +0800
++++ boost_1_56_0-android/libs/filesystem/src/operations.cpp	2014-08-22 19:04:24.800359481 +0800
+@@ -208,7 +208,19 @@
+          || ::mkdir(to.c_str(),from_stat.st_mode)!= 0))
+ #   define BOOST_COPY_FILE(F,T,FailIfExistsBool)copy_file_api(F, T, FailIfExistsBool)
+ #   define BOOST_MOVE_FILE(OLD,NEW)(::rename(OLD, NEW)== 0)
++#if defined(__ANDROID__) || defined(ANDROID)
++    int BOOST_RESIZE_FILE(const char *path, off_t size)
++    {
++      int result = -1;
++      int fd = open(path, O_WRONLY);
++      if (fd != -1)
++        result = ftruncate(fd, size);
++      close(fd);
++      return result;
++    }
++#else
+ #   define BOOST_RESIZE_FILE(P,SZ)(::truncate(P, SZ)== 0)
++#endif
+ 
+ #   define BOOST_ERROR_NOT_SUPPORTED ENOSYS
+ #   define BOOST_ERROR_ALREADY_EXISTS EEXIST

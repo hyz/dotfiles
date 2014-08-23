@@ -1,6 +1,18 @@
+=== https://github.com/MysticTreeGames/Boost-for-Android.git
 
-cd /opt/android-ndk
-build/tools/make-standalone-toolchain.sh --platform=android-9 --install-dir=$HOME/android/standalone/toolchain
+/opt/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-9 --install-dir=$HOME/android/standalone/toolchain
+
+$NDK/build/tools/make-standalone-toolchain.sh \
+    --platform=android-9 --toolchain=arm-linux-androideabi-4.6 \
+    --install-dir=`pwd`/android-toolchain-arm
+
+$ /opt/ndk/r10/build/tools/make-standalone-toolchain.sh \
+  --arch=arm \
+  --platform=android-12 \
+  --toolchain=arm-linux-androideabi-4.8 \
+  --install-dir=/opt/ndk/standalone/toolchain/android-12
+
+### ### ###
 
 USING THE ANDROID TOOLCHAIN AS A STANDALONE COMPILER
 ### http://www.cnblogs.com/qq78292959/archive/2011/11/02/2232965.html
@@ -25,8 +37,25 @@ ac_cv_func_posix_getgrgid_r=no
 ##############################
 $ ./configure --prefix="${SYSROOT}/usr" --host=arm-linux-androideabi CFLAGS="--sysroot $SYSROOT" --enable-static --cache-file=android.cache --disable-modular-tests
 
-
 #
 # C++ wchar_t/RTTI/exception
 ### http://blog.csdn.net/smfwuxiao/article/details/6587709
+
+http://wiki.libsdl.org/Android
+https://vec.io/posts/how-to-build-ffmpeg-with-android-ndk
+http://www.kandroid.org/ndk/docs/STANDALONE-TOOLCHAIN.html
+
+https://github.com/MysticTreeGames/Boost-for-Android
+https://www.crystax.net/android/ndk.php
+http://stackoverflow.com/questions/14036311/official-boost-library-support-for-android-and-ios
+
+=== ...arm-linux-androideabi/bin/ld: error: cannot find -lrt
+###
+
+#Jamroot
+lib rt : empty.c : <link>static ;
+
+cp -t /opt/ndk/standalone/toolchain/android-12/sysroot/usr/lib ...
+
+===
 

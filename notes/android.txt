@@ -11,6 +11,10 @@ ant -Dsdk.dir=/opt/android-sdk debug
 
 android create project --target "android-15" --name World --path /tmp/World --activity MainActivity --package com.example.world
 
+
+# http://stackoverflow.com/questions/2453949/android-emulator-how-to-monitor-network-traffic
+Run emulator -tcpdump emulator.cap -avd my_avd to write all the emulator's traffic to a local file on your PC
+
 # unlock/root
 http://forum.xda-developers.com/showthread.php?t=1766475
 http://www.wugfresh.com/nrt/
@@ -28,6 +32,7 @@ android-sdk-path/tools/emulator
 ### SMSC +8613800762500
 ### IMEI 358407020209040
 ### IMSI 460004702975466
+
 
 # emulator root
 http://forum.xda-developers.com/showthread.php?t=1731095
