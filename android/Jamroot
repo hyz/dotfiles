@@ -1,5 +1,5 @@
 
-path-constant BOOST_ROOT : /opt/boost ;
+path-constant BOOST_ROOT : /opt/boost_1_56_0-android ;
 
 use-project /boost : $(BOOST_ROOT) ;
 
@@ -9,6 +9,10 @@ project
         <threading>multi
     : default-build release
     ;
+#lib rt : librt-empty.c : <link>static ;
 
-exe a : ../multi_index-employee.cpp  ;
+exe test : multi_index-employee.cpp  ;
+
+install bin/a : test ;
+
 
