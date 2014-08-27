@@ -1,0 +1,43 @@
+
+-release -opensource -static
+-no-qml-debug 
+-platform README
+    -no-sse2 ........... Do not compile with use of SSE2 instructions.
+    -no-sse3 ........... Do not compile with use of SSE3 instructions.
+    -no-ssse3 .......... Do not compile with use of SSSE3 instructions.
+    -no-sse4.1 ......... Do not compile with use of SSE4.1 instructions.
+    -no-sse4.2 ......... Do not compile with use of SSE4.2 instructions.
+    -no-avx ............ Do not compile with use of AVX instructions.
+    -no-avx2 ........... Do not compile with use of AVX2 instructions.
+    -no-mips_dsp ....... Do not compile with use of MIPS DSP instructions.
+    -no-mips_dspr2 ..... Do not compile with use of MIPS DSP rev2 instructions.
+-D
+-I
+-L
+
+-no-openssl
+
+
+
+
+### http://www.pcduino.com/quick-start-guide-on-setup-qt5-for-android-on-pcduino/
+$ ./configure
+-developer-build
+-xplatform android-g++
+-nomake tests
+-nomake examples
+-android-ndk /home/pcduino/android-ndk-r8e
+-android-sdk /home/pcduino/adt-bundle-linux-x86_64-20130729/sdk
+-android-ndk-host linux-x86_64 
+-android-toolchain-version 4.7
+-skip qttranslations
+-skip qtwebkit -skip qtserialport
+-skip qtwebkit-examples
+
+$ git clone git://gitorious.org/qt/qt5.git qt5
+$ cd qt5
+$ perl init-repository
+
+$ export ANDROID_API_VERSION=android-18
+$ export ANDROID_BUILD_TOOLS_REVISION=android-4.3
+
