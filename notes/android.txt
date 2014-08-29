@@ -51,8 +51,35 @@ adb push gapps-ics-20120317-signed/system /system
 adb shell busybox cp -a /system/* /data/
 
 
-./android list sdk --all
+./android list sdk --all --extended # ./android list sdk --all
 ./android update sdk -u -a -t <package no.>
 # Where -u stands for --no-ui, -a stands for --all and -t stands for --filter.
 # http://stackoverflow.com/questions/17963508/how-to-install-android-sdk-build-tools-on-the-command-line
+#
+./android update sdk -u -a -t platforms-tools,android-12  
+### Downloading SDK Platform Android 3.1, API 12, revision 3
+# http://stackoverflow.com/questions/4681697/is-there-a-way-to-automate-the-android-sdk-installation
+$ android --help list sdk
+
+       Usage:
+       android [global options] list sdk [action options]
+       Global options:
+  -h --help       : Help on a specific command.
+  -v --verbose    : Verbose mode, shows errors, warnings and all messages.
+     --clear-cache: Clear the SDK Manager repository manifest cache.
+  -s --silent     : Silent mode, shows errors only.
+
+                   Action "list sdk":
+  Lists remote SDK repository.
+Options:
+  -o --obsolete  : Deprecated. Please use --all instead.
+  -a --all       : Lists all available packages (including obsolete and
+                   installed ones)
+     --proxy-host: HTTP/HTTPS proxy host (overrides settings if defined)
+     --proxy-port: HTTP/HTTPS proxy port (overrides settings if defined)
+  -s --no-https  : Uses HTTP instead of HTTPS (the default) for downloads.
+  -e --extended  : Displays extended details on each package
+  -u --no-ui     : Displays list result on console (no GUI) [Default: true]
+
+$ android update sdk -u --filter platform-tools,android-16,extra-android-support
 

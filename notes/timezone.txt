@@ -1,0 +1,12 @@
+
+### PHP
+date_default_timezone_get
+date_default_timezone_set
+init_get('date.timezone')
+Asia/Hong_Kong
+
+### MySQL
+SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP)
+
+###
+
