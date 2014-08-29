@@ -40,5 +40,9 @@ fi
 
 if [ "`uname -o`" = "Cygwin" ] ; then
     export GNUPGHOME="F:\cyghome\.gnupg"
+    #alias er='explorer "`cygpath -w $(pwd)`" &'
+    er() {
+        explorer "`cygpath -w $(pwd)/$1`" &
+    }
 fi
 
