@@ -1,0 +1,54 @@
+Model: ATA M4-CT128M4SSD1 (scsi)
+Disk /dev/sda: 128GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name                          Flags
+ 1      1049kB  269MB   268MB   fat32        EFI system partition          boot
+ 2      269MB   404MB   134MB                Microsoft reserved partition  msftres
+ 3      404MB   69.1GB  68.7GB  ntfs         Basic data partition
+ 4      69.1GB  103GB   34.4GB  ntfs         Basic data partition
+ 5      103GB   119GB   15.0GB               Basic data partition
+
+
+Model: ATA ST2000DM001-9YN1 (scsi)
+Disk /dev/sdb: 2000GB
+Sector size (logical/physical): 512B/4096B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system     Name                          Flags
+ 1      17.4kB  134MB   134MB                   Microsoft reserved partition  msftres
+ 2      134MB   8724MB  8590MB                  Linux reserved
+ 3      8724MB  25.9GB  17.2GB  linux-swap(v1)  Linux swap
+ 4      25.9GB  60.3GB  34.4GB  ext4            Gentoo
+ 5      60.3GB  94.6GB  34.4GB  ext4            Arch-64
+ 6      94.6GB  129GB   34.4GB  ext4            Linux filesystem
+ 7      129GB   163GB   34.4GB  ext4            Ubuntu
+ 8      163GB   198GB   34.4GB  ext4            Ubuntu-VM
+ 9      198GB   473GB   275GB   ext4            Home
+10      473GB   1572GB  1100GB                  Linux filesystem
+11      1572GB  1975GB  403GB   ntfs            Linux filesystem
+12      1975GB  1992GB  17.2GB                  Microsoft basic data
+13      1992GB  2000GB  8589MB  ext4            VMROOT-DISK
+
+
+Model: ATA ST31000528AS (scsi)
+Disk /dev/sdc: 1000GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system     Name                  Flags
+ 1      1049kB  106MB   105MB   ntfs            Microsoft basic data
+ 2      106MB   241GB   241GB   ntfs            Microsoft basic data
+ 3      241GB   258GB   17.2GB  ext4            Linux filesystem
+ 4      258GB   945GB   687GB   ntfs            Basic data partition
+ 5      945GB   949GB   4298MB  ext3            Linux filesystem
+ 6      949GB   958GB   8593MB  linux-swap(v1)  Linux swap
+ 7      958GB   975GB   17.2GB  ext4            Linux filesystem
+ 8      975GB   984GB   8593MB  ext4            Linux filesystem
+ 9      984GB   1000GB  16.5GB                  Linux filesystem
+
+
