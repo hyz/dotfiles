@@ -1,0 +1,8 @@
+
+http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/
+
+lsblk
+lsscsi
+parted -l
+fdisk -l
+
