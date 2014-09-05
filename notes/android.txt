@@ -51,12 +51,9 @@ adb push gapps-ics-20120317-signed/system /system
 adb shell busybox cp -a /system/* /data/
 
 
-./android list sdk --all --extended # ./android list sdk --all
-./android update sdk -u -a -t <package no.>
 # Where -u stands for --no-ui, -a stands for --all and -t stands for --filter.
 # http://stackoverflow.com/questions/17963508/how-to-install-android-sdk-build-tools-on-the-command-line
 #
-./android update sdk -u -a -t platforms-tools,android-12  
 ### Downloading SDK Platform Android 3.1, API 12, revision 3
 # http://stackoverflow.com/questions/4681697/is-there-a-way-to-automate-the-android-sdk-installation
 $ android --help list sdk
@@ -81,5 +78,6 @@ Options:
   -e --extended  : Displays extended details on each package
   -u --no-ui     : Displays list result on console (no GUI) [Default: true]
 
-$ android update sdk -u --filter platform-tools,android-16,extra-android-support
-
+$ tools/android list sdk --all --extended > /tmp/list-sdk
+$ tools/android update sdk --no-ui --filter platform-tools,android-19,extra-android-support
+$ tools/android update sdk --no-https --no-ui -a --filter tools,platform-tools,build-tools-19.1.0,android-10

@@ -41,11 +41,15 @@ yum list all
 yum list installed
 
 ### awk ### ###
+# http://www.pement.org/awk/awk1line.txt
+# http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
 cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
-http://www.pement.org/awk/awk1line.txt
-http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
+cat {6,0} |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 | /home/yxim/bin/statis.py -xtimef "[0,0,0,(datetime,0),0]"
 
-### ### ###
+### date ### ###
+# http://www.cyberciti.biz/tips/linux-unix-get-yesterdays-tomorrows-date.html
+date --date="yesterday" +%F
+date --date="-1 day" +%F
 
 ### ### ###
 

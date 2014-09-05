@@ -1,5 +1,5 @@
 
-# using gcc : 4.8 : /opt/bin/g++ : <cxxflags>-std=c++11 ;
+#using gcc : 4.8 : /opt/bin/g++ : <cxxflags>-std=c++11 ;
 #    <compileflags>"-std=c++11"
 # using gcc ;
 
