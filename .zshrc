@@ -1,11 +1,10 @@
-# export HOSTNAME=devel
+
+echo "zshrc" >> /tmp/zsh.txt
 
 #PROMPT='%{[36m%}%~%{[m%} %% '
 #RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
 #RPROMPT=$'%(0?..%?%)) %{\e[36m%}%n%{\e[35m%}@%{\e[34m%}%M %{\e[33m%}%T%{\e[0m%}'
-
-export LANG=en_US.UTF-8
 
 autoload -U compinit promptinit
 compinit
@@ -64,19 +63,19 @@ alias b2='b2 -j5'
 PYTHONSTARTUP=$HOME/.pythonstartup
 if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 
-# /opt/adt-bundle-linux-x86-20130219/sdk
+# Add environment variable ANT_ROOT for cocos2d-x
+#export ANT_ROOT=/usr/bin
 
-SDK_ROOT=/opt/android-sdk
-if [[ -d "$SDK_ROOT" && -z $(echo $PATH | grep -o "$SDK_ROOT") ]] ; then
+SDK_ROOT=/opt/sdk
+if [[ -d "$SDK_ROOT" ]] ; then
     ANDROID_SDK_ROOT=$SDK_ROOT
     ANDROID_HOME=$SDK_ROOT
     export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
 
     PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
 fi
-#SDK_ROOT=/opt/adt-bundle-linux-x86-20130219/sdk
 
-NDK_ROOT=/opt/android-ndk
+NDK_ROOT=/opt/ndk
 if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
@@ -84,22 +83,23 @@ if [ -d "$NDK_ROOT" ]; then
     PATH=$PATH:$NDK_ROOT:$NDK_ROOT/tools
 fi
 
-export PATH
-
+# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
 COCOS2DX_ROOT=$HOME/cocos2d
-if [ -d "$COCOS2DX_ROOT" ] ; then export COCOS2DX_ROOT ; fi
-
-if [ "`uname -o`" = "Cygwin" ]; then
-    alias er='explorer "`cygpath -w $(pwd)`" &'
-    #PATH=$PATH:"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/tools":"/cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk/platform-tools"
-    # /cygdrive/c/Documents and Settings/wood/Local Settings/Application Data/Android/android-sdk
+if [ -d "$COCOS2DX_ROOT" ] ; then
+    export COCOS2DX_ROOT
+fi
+export COCOS_CONSOLE_ROOT=/home/wood/cocos2d-x/tools/cocos2d-console/bin
+if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
+    PATH=$PATH:$COCOS_CONSOLE_ROOT
 fi
 
+export PATH
 
-# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
-export COCOS_CONSOLE_ROOT=/home/wood/cocos2d-x/tools/cocos2d-console/bin
-export PATH=$COCOS_CONSOLE_ROOT:$PATH
+if [ "`uname -o`" = "Cygwin" ] ; then
+    export GNUPGHOME="F:\cyghome\.gnupg"
+    #alias er='explorer "`cygpath -w $(pwd)`" &'
+    er() {
+        explorer "`cygpath -w $(pwd)/$1`" &
+    }
+fi
 
-# Add environment variable ANT_ROOT for cocos2d-x
-export ANT_ROOT=/usr/bin
-export PATH=$ANT_ROOT:$PATH
