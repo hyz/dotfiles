@@ -1,0 +1,23 @@
+Tue Sep  9 09:58:48 HKT 2014
+
+$ zsh -c fortune
+zshenv /home/wood
+
+$ zsh -i
+zshenv /home/wood
+zshrc
+
+$ zsh -l
+zshenv /home/wood
+/etc/profile
+zprofile
+zshrc
+zlogin
+
+$ zsh -li
+zshenv /home/wood
+/etc/profile
+zprofile
+zshrc
+zlogin
+

@@ -60,6 +60,16 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
+if [ "`uname -o`" = "Cygwin" ] ; then
+    export GNUPGHOME="F:\cyghome\.gnupg"
+    #alias er='explorer "`cygpath -w $(pwd)`" &'
+    er() {
+        explorer "`cygpath -w $(pwd)/$1`" &
+    }
+fi
+
+###########################################################
+
 PYTHONSTARTUP=$HOME/.pythonstartup
 if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 
@@ -80,26 +90,26 @@ if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
 
-    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/tools
+    PATH=$PATH:$NDK_ROOT
 fi
 
 # Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
-COCOS2DX_ROOT=$HOME/cocos2d
-if [ -d "$COCOS2DX_ROOT" ] ; then
-    export COCOS2DX_ROOT
-fi
-export COCOS_CONSOLE_ROOT=/home/wood/cocos2d-x/tools/cocos2d-console/bin
+#COCOS2DX_ROOT=$HOME/cocos2d
+#if [ -d "$COCOS2DX_ROOT" ] ; then
+#    export COCOS2DX_ROOT
+#fi
+
+COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
 if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
     PATH=$PATH:$COCOS_CONSOLE_ROOT
+    export COCOS_CONSOLE_ROOT
 fi
+
+# Add environment variable ANT_ROOT for cocos2d-x
+export ANT_HOME=/usr/share/apache-ant
+export ANT_ROOT=/bin
 
 export PATH
 
-if [ "`uname -o`" = "Cygwin" ] ; then
-    export GNUPGHOME="F:\cyghome\.gnupg"
-    #alias er='explorer "`cygpath -w $(pwd)`" &'
-    er() {
-        explorer "`cygpath -w $(pwd)/$1`" &
-    }
-fi
+# limit coredumpsize 0
 
