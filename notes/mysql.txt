@@ -1,12 +1,36 @@
-
-# MySQL with utf8mb4
+### MySQL with utf8mb4
 # http://www.tuicool.com/articles/EVRjY3
 
 mysqldump -u root -p --no-data --databases logdown_production > logdown_production_schema.sql
 mysqldump -u root -p --no-create-info logdown_production > logdown_production_data.sql
 
-
-
 show variables like 'log_%';
-
  
+SELECT (DATE(NOW()) - INTERVAL 1 DAY + INTERVAL 12 HOUR)
+    , (DATE(NOW()) + INTERVAL 12 HOUR)
+    ;
+SELECT FROM_UNIXTIME(1410344722), UNIX_TIMESTAMP(), UNIX_TIMESTAMP('2014-09-10');
+
+### ###
+SELECT m.id msgid, m.ctime create_time, m.uid from_uid, t.uid to_uid, x.xpush, x.stat, x.time send_time, t.sid, t.from_name, m.content, m.notification
+FROM message_stat x, message m, message_2 t
+WHERE (x.time>='2014-09-10' AND x.time<'2014-09-12') AND (x.uid=t.uid AND x.msgid=t.msgid) AND (x.msgid=m.id)
+
+SELECT m.id msgid
+    , m.ctime create_time
+    , m.uid from_uid
+    , t.uid to_uid
+    , x.xpush
+    , x.stat
+    , x.time send_time
+    , t.sid
+    , t.from_name
+    , m.content
+    , m.notification
+FROM message_stat x
+JOIN message_2 t ON (x.uid=t.uid AND x.msgid=t.msgid)
+JOIN message m ON (x.msgid=m.id)
+WHERE (x.time>=(now() - INTERVAL 1 DAY))
+--- WHERE (x.time BETWEEN '2014-09-07' AND '2014-09-10')
+;
+
