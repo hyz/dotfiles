@@ -46,10 +46,10 @@ echo "foo=123 bar=432" |/bin/grep -Po '\d+'
 echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
 
 ### awk ###
+$ cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
+
 # http://www.pement.org/awk/awk1line.txt
 # http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
-cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
-cat {6,0} |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 | /home/yxim/bin/statis.py -xtimef "[0,0,0,(datetime,0),0]"
 
 ### sed ###
 # http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=1
@@ -60,7 +60,9 @@ sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'
 date --date="yesterday" +%F
 date --date="-1 day" +%F
 
-### ###
+### dd ###
+# http://www.kwx.gd/CentOSApp/CentOS-dd.html
+$ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 
 ### ###
 
