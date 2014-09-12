@@ -1,20 +1,20 @@
 
-### ### ###
+### find ###
 find trunk -name ".svn" -prune -o -print 
 find trunk \( -name ".svn" -o -name ".git" \) -prune -o -print 
 
-### ### ###
+### tcpdump ###
 tcpdump -nn -w pcap -i eth0 \(port 9001 or port 9000\) and host 127.0.0.1
 tcpdump -nn -X -r pcap
 tcpdump -nn -A -r pcap
 
-### ### ###
+### ssh-keygen ###
 ssh-keygen -y -f .ssh/id_rsa > id_rsa.pub
 
-### ### ###
+### pgrep ###
 pgrep -lf yxim
 
-### ### ###
+### ps ###
 ps -lF
 ps -F -e
 ps -H -u wood
@@ -30,28 +30,37 @@ top -p $(echo `pgrep -f yxim` |tr ' ' ',')
 top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
 # top, hit 'H' to toggle thread listing
 
-### ### ###
-echo '{"cmd":71}' |yxim-pack |nc 127.0.0.1 10010 |dd bs=4 skip=1 2>/dev/null |python -mjson.tool
+### python dd ###
+echo '{"cmd":71}' |yxim-pack |nc 127.0.0.1 8443 |dd bs=4 skip=1 2>/dev/null |python -mjson.tool
+echo '{"cmd":71}' |yxim-nc 127.0.0.1 8443 |python -mjson.tool
 
-### ### ###
+### sort ###
 sort -k1,1 -s t.txt
 
-### ### ###
+### yum ###
 yum list all
 yum list installed
 
-### awk ### ###
+### grep ###
+echo "foo=123 bar=432" |/bin/grep -Po '\d+'
+echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
+
+### awk ###
 # http://www.pement.org/awk/awk1line.txt
 # http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
 cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
 cat {6,0} |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 | /home/yxim/bin/statis.py -xtimef "[0,0,0,(datetime,0),0]"
 
-### date ### ###
+### sed ###
+# http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=1
+sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' 
+
+### date ###
 # http://www.cyberciti.biz/tips/linux-unix-get-yesterdays-tomorrows-date.html
 date --date="yesterday" +%F
 date --date="-1 day" +%F
 
-### ### ###
+### ###
 
-### ### ###
+### ###
 
