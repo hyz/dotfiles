@@ -64,5 +64,9 @@ date --date="-1 day" +%F
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
 $ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 
+### du | awk ###
+du -sm * | awk '$1 > 1000'
+
+### ###
 ### ###
 
