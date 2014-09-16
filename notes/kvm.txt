@@ -1,0 +1,6 @@
+http://sysadminman.net/blog/2011/kvm-virtualization-text-centos-guest-install-2098
+
+https://wiki.archlinux.org/index.php/KVM
+https://wiki.archlinux.org/index.php/libvirt
+
+
