@@ -41,3 +41,5 @@ WHERE   create_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW();
 
 SELECT @@autocommit;
 
+SELECT msgid,COUNT(msgid) cnt FROM message_rx GROUP BY msgid ORDER BY cnt
+
