@@ -1,0 +1,11 @@
+
+$ sudo dmidecode -t processor
+
+$ sudo yum install lm_sensors
+$ sudo sensors-detect
+$ sensors
+
+$ lsblk
+$ lspci
+$ lsusb
+
