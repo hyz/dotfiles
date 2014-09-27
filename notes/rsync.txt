@@ -7,3 +7,6 @@
 # rsync -vaz --no-o --no-g --cvs-exclude usr /
 #
 
+# cygwin
+rsync -vurt --no-o --no-g pc:Dropbox .
+

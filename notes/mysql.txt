@@ -34,3 +34,12 @@ WHERE (x.time>=(now() - INTERVAL 1 DAY))
 --- WHERE (x.time BETWEEN '2014-09-07' AND '2014-09-10')
 ;
 
+SELECT  DATE_FORMAT(create_date, '%m/%d/%Y')
+FROM    mytable
+WHERE   create_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW();
+
+
+SELECT @@autocommit;
+
+SELECT msgid,COUNT(msgid) cnt FROM message_rx GROUP BY msgid ORDER BY cnt
+

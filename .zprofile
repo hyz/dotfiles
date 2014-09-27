@@ -3,6 +3,9 @@
 #env >> /tmp/zsh.txt
 echo "zprofile" >> /tmp/zsh.txt
 
+export LANG=en_US.UTF-8
+export EDITOR=vim
+
 if [[ -d "$HOME/bin" ]] ; then
     PATH=$HOME/bin:/bin:/usr/bin
 else
