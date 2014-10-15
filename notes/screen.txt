@@ -1,0 +1,7 @@
+
+$ screen -e^jj -Rd
+$
+
+: register x hello-world
+: paste x
+
