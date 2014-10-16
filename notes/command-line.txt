@@ -1,4 +1,7 @@
-
+###
+   Parameter Expansion
+          The ‘$’ character introduces parameter expansion, command substitution, or arithmetic expansion.
+          
 ### find ###
 find trunk -name ".svn" -prune -o -print 
 find trunk \( -name ".svn" -o -name ".git" \) -prune -o -print 
@@ -68,5 +71,15 @@ $ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 du -sm * | awk '$1 > 1000'
 
 ### ###
-### ###
+> echo "echo \$X"| X=hello sh                                                                             ~
+hello
+> X=hello echo "$X"                                                                                       ~
 
+> export X=hello ; echo "$X"                                                                              ~
+hello
+>
+> exec 3>out ; date |cat >&3
+> cat out
+
+### ###
+### ###
