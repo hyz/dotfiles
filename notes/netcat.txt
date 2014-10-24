@@ -1,5 +1,5 @@
 
-############## loop pipe commands with fifo
+############## pipe loop with fifo
 
 $ mkfifo fifo
 
@@ -7,8 +7,8 @@ $ mkfifo fifo
 $ nc -l 9999
 $ cat fifo |ncat 127.0.0.1 9999 |while true; do date; sleep 3; done |tee fifo
 
-### real world usage, shk-racing
-$ cat fifo |ncat 58.67.160.243 20013 |shk-racing-protocol -d |sh test/shk.uid.102784 |shk-racing-protocol >fifo
+### real world usage, shk-racing testing
+$ ncat 58.67.160.243 20013 <fifo |shk-racing-protocol -d |sh test/shk.uid.102784 |shk-racing-protocol >fifo
 
-############## loop pipe commands with fifo
+##############
 
