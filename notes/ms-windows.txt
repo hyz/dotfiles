@@ -1,0 +1,7 @@
+
+### http://superuser.com/questions/259791/how-can-i-use-the-shutdown-command-to-hibernate-the-computer-in-x-hours
+shutdown -s -t 36000
+
+### mintty.bat
+@start mintty E:\cygwin64\bin\zsh.exe --login -i -
+

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+cd "${@: -1}" ; find * -type f
+# find "${@: -1}" -type f | awk -F/ '{print $NF}'
+# find "${@: -1}" -type f -printf "%f\n"
+
