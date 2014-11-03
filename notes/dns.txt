@@ -1,0 +1,4 @@
+### https://github.com/opendns/dnscrypt-proxy
+
+sudo ~wood/bin/dnscrypt-proxy -a 0.0.0.0 --daemonize
+
