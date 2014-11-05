@@ -72,7 +72,7 @@ static size_t payload_source(void *ptr, size_t size, size_t nmemb, void *userp)
 }
 
 
-int main(void)
+int main(int argc, char* const argv[])
 {
   CURL *curl;
   CURLcode res;
@@ -116,8 +116,8 @@ int main(void)
     /* A common reason for requiring transport security is to protect
      * authentication details (user names and passwords) from being "snooped"
      * on the network. Here is how the user name and password are provided: */
-    curl_easy_setopt(curl, CURLOPT_USERNAME, "woody@kklink.com");
-    curl_easy_setopt(curl, CURLOPT_PASSWORD, "wood432");
+    curl_easy_setopt(curl, CURLOPT_USERNAME, argv[1]);
+    curl_easy_setopt(curl, CURLOPT_PASSWORD, argv[2]);
 
     /* value for envelope reverse-path */
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, FROM);
