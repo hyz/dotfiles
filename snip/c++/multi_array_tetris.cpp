@@ -355,13 +355,13 @@ private:
 int main(int argc, char* const argv[])
 {
     Main M;
-    M.start();
-    std::cerr << M << "\n";
-    M.rotate();
-    std::cerr << M << "\n";
-    while (M.Move(-1)) ; std::cerr << M << "\n";
-    while (M.Move( 1)) ; std::cerr << M << "\n";
-    while (M.Move( 0)) ; std::cerr << M << "\n";
+    M.start();  //std::cerr << M << "\n";
+    M.rotate(); // std::cerr << M << "\n";
+    do {
+        //while (M.Move(-1)) ; std::cerr << M << "\n";
+        //while (M.Move( 1)) ; std::cerr << M << "\n";
+        while (M.Move( 0)) ; std::cerr << M << "\n";
+    } while (M.next_round());
     //std::cerr << M << "\n";
     return 0;
 }
