@@ -135,13 +135,61 @@ inline Point operator-(Point const& rhs, Point const& lhs)
 }
 void break_p() {}
 
+struct Array2dx : Array2d
+{
+    char dummy_;
+    char& at(Point const& a)
+    {
+        if (a[1] < 0 || a[1] >= int(shape()[1]) || a[0] >= int(shape()[0])) {
+            // std::cerr << V2d(a) <<" 1\n"; break_p();
+            return (dummy_=1);
+        }
+        if (a[0] < 0) {
+            // std::cerr << V2d(a) <<" 0\n";
+            return (dummy_=0);
+        }
+        return (*this)(a);
+    }
+    char  at(Point const& a) const { return const_cast<Array2dx&>(*this).at(a); }
+};
+
+template <typename N>
+bool is_collision(Array2dx& va, Point bp, N const& n)
+{
+    auto s = get_shape(n);
+    Point ep = {{ bp[0]+s[0], bp[1]+s[1] }};
+
+    for (auto p=bp; p[0] != ep[0]; ++p[0]) {
+        for (p[1] = bp[1]; p[1] != ep[1]; ++p[1]) {
+            if (n(p - bp) && va.at(p)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+template <typename N>
+Array2dx& or_assign(Array2dx& va, Point bp, N const& n)
+{
+    auto s = get_shape(n);
+    Point ep = {{ bp[0]+s[0], bp[1]+s[1] }};
+
+    for (auto p = bp; p[0] != ep[0]; ++p[0]) {
+        for (p[1] = bp[1]; p[1] != ep[1]; ++p[1]) {
+            va.at(p) |= n(p - bp);
+        }
+    }
+    return va;
+}
+
 struct Main // : Array2d
 {
     std::vector<std::pair<char*,size_t>> const const_mats_;
-    Array2d mat_, smat_, pv_;
+    Array2dx vmat_;
     Point p_;
+    Array2d smat_, pv_;
     time_t tb_, td_;
-    char dummy_;
 
     Main() // (char v[], size_t N, size_t n)
         //: Array2d(boost::extents[N/n][n])
@@ -154,10 +202,10 @@ struct Main // : Array2d
     void start()
     {
         BOOST_ASSERT(cmat_h_ * cmat_w_ == sizeof(cmat_));
-        mat_.resize(boost::extents[cmat_h_][cmat_w_]);
-        mat_.assign(cmat_, cmat_ + sizeof(cmat_));
+        vmat_.resize(boost::extents[cmat_h_][cmat_w_]);
+        vmat_.assign(cmat_, cmat_ + sizeof(cmat_));
         tb_ = time(0);
-        //print2d(std::cerr, mat_); // std::cerr<<p_[0]<<p_[1]<<"\n" <<z[0]<<z[1]<<"\n";
+        //print2d(std::cerr, vmat_); // std::cerr<<p_[0]<<p_[1]<<"\n" <<z[0]<<z[1]<<"\n";
 
         take_pv(0);
         next_round();
@@ -175,10 +223,12 @@ struct Main // : Array2d
             tmp[1]++;
         }
 
-        if (is_collision(tmp, smat_)) {
+        if (is_collision(vmat_, tmp, smat_)) {
             if (di == 0) {
-                or_assign(p_, smat_);
-                collapse(std::min(p_[0]+smat_.shape()[0], mat_.size())-1, std::max(0, p_[0]));
+                or_assign(vmat_, p_, smat_);
+                auto sv = get_shape(vmat_);
+                auto sa = get_shape(smat_);
+                collapse(std::min(p_[0]+sa[0], sv[0]-1), std::max(0, p_[0]));
             }
             return false;
         }
@@ -195,10 +245,10 @@ struct Main // : Array2d
     {
         take_pv(&smat_);
 
-        p_[1] = int(mat_[0].size() - smat_[0].size()) / 2;
+        p_[1] = int(vmat_[0].size() - smat_[0].size()) / 2;
         p_[0] = -int(smat_.size()-1);
         while (p_[0] <= 0) {
-            if (is_collision(p_, smat_)) {
+            if (is_collision(vmat_, p_, smat_)) {
                 over();
                 return 0;
             }
@@ -214,7 +264,7 @@ struct Main // : Array2d
     {
         auto tmp = smat_;
         rotate90_right(tmp);
-        if (is_collision(p_, tmp)) {
+        if (is_collision(vmat_, p_, tmp)) {
             return false;
         }
         std::swap(smat_,tmp);
@@ -228,24 +278,24 @@ private:
     }
 
     void clear(Array2d::index row) {
-        for (auto& x : mat_[row])
+        for (auto& x : vmat_[row])
             x = 0;
     }
     template <typename R> void move_(Array2d::index src, Array2d::index dst) {
-        mat_[dst] = mat_[src];
+        vmat_[dst] = vmat_[src];
         clear(src);
     }
 
     void collapse(Array2d::index rb, Array2d::index r0, int nc=0)
     {
-        auto const & row = this->mat_[rb];
+        auto const & row = this->vmat_[rb];
 
         if (rb <= r0) {
             if (std::find(row.begin(), row.end(), 0) == row.end()) {
                 clear(rb);
                 ++nc;
             } else if (nc > 0) {
-                mat_[rb+nc] = row; clear(rb);
+                vmat_[rb+nc] = row; clear(rb);
             } else if (rb == r0 && nc == 0) {
                 return;
             }
@@ -253,7 +303,7 @@ private:
             // auto pred = [](int x) -> bool { return x!=0; };
             // if (std::find(row.begin(), row.end(), pred) == row.end())
                 ;
-            mat_[rb+nc] = row; clear(rb);
+            vmat_[rb+nc] = row; clear(rb);
         }
 
         if (rb > 0) {
@@ -290,7 +340,7 @@ private:
 
     friend std::ostream& operator<<(std::ostream& out, Main const& M)
     {
-        auto& m = M.mat_;
+        auto& m = M.vmat_;
         for (Array2d::index i = 0; i != m.size(); ++i)
         {
             for (Array2d::index j = 0; j != m[0].size()-1; ++j)
@@ -306,50 +356,6 @@ private:
         }
         return out;
     }
-
-private:
-    template <typename N>
-    bool is_collision(Point bp, N const& n) const
-    {
-        auto s = get_shape(n);
-        Point ep = {{ bp[0]+s[0], bp[1]+s[1] }};
-
-        for (auto p=bp; p[0] != ep[0]; ++p[0]) {
-            for (p[1] = bp[1]; p[1] != ep[1]; ++p[1]) {
-                if (n(p - bp) && at(p)) {
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }
-
-    template <typename N>
-    Main& or_assign(Point bp, N const& n)
-    {
-        auto s = get_shape(n);
-        Point ep = {{ bp[0]+s[0], bp[1]+s[1] }};
-
-        for (auto p = bp; p[0] != ep[0]; ++p[0]) {
-            for (p[1] = bp[1]; p[1] != ep[1]; ++p[1]) {
-                at(p) |= n(p - bp);
-            }
-        }
-        return *this;
-    }
-
-    char& at(Point const& a) {
-        if (a[1] < 0 || a[1] >= int(mat_.shape()[1]) || a[0] >= int(mat_.shape()[0])) {
-            // std::cerr << V2d(a) <<" 1\n"; break_p();
-            return (dummy_=1);
-        }
-        if (a[0] < 0) {
-            // std::cerr << V2d(a) <<" 0\n";
-            return (dummy_=0);
-        }
-        return mat_(a);
-    }
-    char  at(Point const& a) const { return const_cast<Main&>(*this).at(a); }
 };
 
 int main(int argc, char* const argv[])
