@@ -114,16 +114,72 @@ void rotate90_right(M& m)
     return rotate90_right(n);
 }
 
-template <typename M, typename N>
-bool is_collision(M const& m, N const& n)
+// template <typename M, typename N>
+// bool is_collision(M const& m, N const& n)
+// {
+//     BOOST_ASSERT(m.size() == n.size() && m[0].size() == n[0].size());
+//     for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
+//         for (a[1] = 0; a[1] != m[0].size(); ++a[1])
+//             if (n(a) && m(a)) {
+//                 //std::cout <<"#collision\n";
+//                 print2d(std::cout, m);
+//                 print2d(std::cout, n);
+//                 //std::cout <<"/collision\n";
+//                 return 1;
+//             }
+//     }
+//     return 0;
+// }
+//
+//template <typename M, typename N>
+//M& or_assign(M& m, N const& n)
+//{
+//    BOOST_ASSERT(m.size() == n.size() && m[0].size() == n[0].size());
+//    for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
+//        for (a[1] = 0; a[1] != m[0].size(); ++a[1])
+//            m(a) |= n(a);
+//    }
+//    return m;
+//}
+
+inline std::array<array2d::index,2> operator-(
+        std::array<array2d::index,2> const& rhs, std::array<array2d::index,2> const& lhs)
 {
-    BOOST_ASSERT(m.size() == n.size() && m[0].size() == n[0].size());
-    for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
-        for (a[1] = 0; a[1] != m[0].size(); ++a[1])
-            if (n(a) && m(a)) {
+    return std::array<array2d::index,2>{{rhs[0]-lhs[0], rhs[1]-lhs[1]}};
+}
+
+struct Shape2d
+{
+    size_t v2[2];
+    Shape2d(array2d const& a) { v2[0]=a.shape()[0]; v2[1]=a.shape()[1]; }
+    template <typename Array> Shape2d(Array const& a) { v2[0]=a[0]; v2[1]=a[1]; }
+    friend std::ostream& operator<<(std::ostream& out, Shape2d const& d) {
+        return out <<"<"<< d.v2[0]<<","<<d.v2[1] <<">";
+    }
+};
+
+template <typename M, typename N>
+inline std::array<array2d::index,2> common_ep(M const& m, std::array<array2d::index,2> const& bp, N const& n)
+{
+    return std::array<array2d::index,2>{{
+        int(std::min(bp[0]+n.size(),m.size())), int(std::min(bp[1]+n[0].size(),m[0].size()))
+    }};
+}
+
+template <typename M, typename N>
+bool is_collision(M const& m, std::array<array2d::index,2> bp, N const& n)
+{
+    BOOST_ASSERT(bp[0]>=0 && bp[1]>=0);
+    std::array<array2d::index,2> ep = common_ep(m,bp,n);//{{bp[0]+int(n.size()), bp[1]+int(n[0].size())}};
+    // if (!(ep[0] <= m.size() && ep[1] <= m[0].size())) std::cerr << Shape2d(ep) << Shape2d(m) <<"\n";
+    // BOOST_ASSERT(ep[0] <= m.size() && ep[1] <= m[0].size());
+
+    for (auto p=bp; p[0] != ep[0]; ++p[0]) {
+        for (p[1] = bp[1]; p[1] != ep[1]; ++p[1])
+            if (n(p - bp) && m(p)) {
                 //std::cout <<"#collision\n";
-                print2d(std::cout, m);
-                print2d(std::cout, n);
+                //print2d(std::cout, m);
+                //print2d(std::cout, n);
                 //std::cout <<"/collision\n";
                 return 1;
             }
@@ -132,12 +188,16 @@ bool is_collision(M const& m, N const& n)
 }
 
 template <typename M, typename N>
-M& or_assign(M& m, N const& n)
+M& or_assign(M& m, std::array<array2d::index,2> bp, N const& n)
 {
-    BOOST_ASSERT(m.size() == n.size() && m[0].size() == n[0].size());
-    for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
-        for (a[1] = 0; a[1] != m[0].size(); ++a[1])
-            m(a) |= n(a);
+    BOOST_ASSERT(bp[0]>=0 && bp[1]>=0);
+    std::array<array2d::index,2> ep = common_ep(m,bp,n);//{{bp[0]+int(n.size()), int(bp[1]+n[0].size())}};
+    BOOST_ASSERT(ep[0] <= int(m.size()) && ep[1] <= int(m[0].size()));
+    for (auto p = bp; p[0] != ep[0]; ++p[0]) {
+        for (p[1] = bp[1]; p[1] != ep[1]; ++p[1])
+        {
+            m(p) |= n(p - bp);
+        }
     }
     return m;
 }
@@ -181,16 +241,16 @@ struct Main // : array2d
             p[1]++;
         }
 
-        typedef array2d::index_range range;
-        array2d::array_view<2>::type av = mat_[boost::indices
-                [range(p[0],    smat_.size()+p[0])]
-                [range(p[1], smat_[0].size()+p[1])]
-            ];
+        //typedef array2d::index_range range;
+        //array2d::array_view<2>::type av = mat_[boost::indices
+        //        [range(p[0],    smat_.size()+p[0])]
+        //        [range(p[1], smat_[0].size()+p[1])]
+        //    ];
         
-        if (is_collision(av, smat_)) {
+        if (is_collision(mat_, p, smat_)) {
             if (di == 0) {
-                or_assign(av, smat_);
-                falling(p_[0]+(smat_.size()-1), p[0]);
+                or_assign(mat_, p_, smat_);
+                collapse(p_[0]+(smat_.size()-1), p_[0]);
             }
             return false;
         }
@@ -210,19 +270,19 @@ struct Main // : array2d
         p_[0] = -int(smat_.size()-1);
         while (p_[0] <= 0) {
             typedef array2d::index_range range;
-            size_t const* z = smat_.shape();
-            array2d::array_view<2>::type av = mat_[boost::indices
-                    [range(0,    smat_.size()+p_[0])]
-                    [range(p_[1], smat_[0].size()+p_[1])]
-                ];
-            print2d(std::cout, av);
-            array2d::array_view<2>::type aw = smat_[boost::indices
+            //size_t const* z = smat_.shape();
+            //array2d::array_view<2>::type aw = mat_[boost::indices
+            //        [range(0,    smat_.size()+p_[0])]
+            //        [range(p_[1], smat_[0].size()+p_[1])]
+            //    ];
+            //print2d(std::cout, aw);
+            array2d::array_view<2>::type av = smat_[boost::indices
                     [range(-p_[0],    smat_.size())]
                     [range(0, smat_[0].size())]
                 ];
-            print2d(std::cout, aw);
-            if (is_collision(av, aw)) {
-                End();
+            print2d(std::cout, av);
+            if (is_collision(mat_, {{0,p_[1]}}, av)) {
+                over();
                 return 0;
             }
 
@@ -236,13 +296,19 @@ struct Main // : array2d
 
     bool rotate()
     {
-        rotate90_right(smat_);
+        auto tmp = smat_;
+        rotate90_right(tmp);
+        if (is_collision(mat_, p_, tmp)) {
+            return false;
+        }
+        std::swap(smat_,tmp);
+        return true;
     }
 
 private:
-    void End()
+    void over()
     {
-        std::cout << "End\n";
+        std::cout << "over\n";
     }
 
     void clear(array2d::index row) {
@@ -254,7 +320,7 @@ private:
         clear(src);
     }
 
-    void falling(array2d::index rb, array2d::index r0, int nc=0)
+    void collapse(array2d::index rb, array2d::index r0, int nc=0)
     {
         auto const & row = this->mat_[rb];
 
@@ -275,7 +341,7 @@ private:
         }
 
         if (rb > 0) {
-            falling(rb-1, r0, nc);
+            collapse(rb-1, r0, nc);
         }
     }
 
@@ -313,15 +379,16 @@ private:
         {
             for (array2d::index j = 0; j != m[0].size()-1; ++j)
             {
-                if (i >= p_[0] && i < p_[0]+smat_.size()
-                        && (j >= p_[1] && j < p_[1]+smat_[0].size())) {
-                    std::cout << int(m[i][j] || smat_[i-p_[0]][j-p_[1]]) <<" ";
+                if (i >= M.p_[0] && i < M.p_[0]+M.smat_.size()
+                        && (j >= M.p_[1] && j < M.p_[1]+M.smat_[0].size())) {
+                    std::cout << int(m[i][j] || M.smat_[i-M.p_[0]][j-M.p_[1]]) <<" ";
                     continue;
                 }
                 std::cout << int(m[i][j]) <<" ";
             }
-            std::cout << int(m[i].back())<<"\n";
+            std::cout << int(m[i][m[0].size()-1])<<"\n";
         }
+        return out;
     }
 };
 
@@ -333,11 +400,11 @@ int main(int argc, char* const argv[])
     M.rotate();
     std::cout << M << "\n";
     while (M.Move(-1))
-        std::cout << M << "\n";
+        ; std::cout << M << "\n";
     while (M.Move(1))
-        std::cout << M << "\n";
+        ; std::cout << M << "\n";
     while (M.Move(0))
-        std::cout << M << "\n";
+        ; std::cout << M << "\n";
     //std::cout << M << "\n";
     return 0;
 }
