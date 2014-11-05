@@ -73,6 +73,7 @@ typedef boost::multi_array<char,2> array2d;
 template <typename T>
 std::ostream& print2d(std::ostream& out, T const& m)
 {
+    return out;
     for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
         for (a[1] = 0; a[1] != m[0].size()-1; ++a[1])
             out << int( m(a) ) <<" ";
@@ -82,7 +83,7 @@ std::ostream& print2d(std::ostream& out, T const& m)
 }
 
 template <typename M>
-void rotate90_left(M& m)
+void rotate90_right(M& m)
 {
     BOOST_ASSERT(m.size() == m[0].size());
     if (m.size() <= 1)
@@ -110,7 +111,7 @@ void rotate90_left(M& m)
             [range(1,    m.size()-1)]
             [range(1, m[0].size()-1)]
         ];
-    return rotate90_left(n);
+    return rotate90_right(n);
 }
 
 template <typename M, typename N>
@@ -120,10 +121,10 @@ bool is_collision(M const& m, N const& n)
     for (std::array<array2d::index,2> a = {{0,0}}; a[0] != m.size(); ++a[0]) {
         for (a[1] = 0; a[1] != m[0].size(); ++a[1])
             if (n(a) && m(a)) {
-                std::cout <<"#collision\n";
+                //std::cout <<"#collision\n";
                 print2d(std::cout, m);
                 print2d(std::cout, n);
-                std::cout <<"/collision\n";
+                //std::cout <<"/collision\n";
                 return 1;
             }
     }
@@ -170,7 +171,7 @@ struct Main // : array2d
 
     bool Move(int di)
     {
-        std::cout <<p_[0]<<p_[1]<< "\n";
+        //std::cout <<p_[0]<<p_[1]<< "\n";
         auto p = p_;
         if (di == 0) {
             p[0]++;
@@ -195,7 +196,7 @@ struct Main // : array2d
         }
 
         p_ = p;
-        std::cout <<p_[0]<<p_[1]<< "\n";
+        //std::cout <<p_[0]<<p_[1]<< "\n";
         if (di == 0) {
             td_ = time(0);
         }
@@ -233,9 +234,9 @@ struct Main // : array2d
         return 1;
     }
 
-    bool flip()
+    bool rotate()
     {
-        rotate90_left(smat_);
+        rotate90_right(smat_);
     }
 
 private:
@@ -310,11 +311,16 @@ private:
         auto& m = M.mat_;
         for (array2d::index i = 0; i != m.size(); ++i)
         {
-            std::cout <<"\n"<< int(m[i][0]);
-            for (array2d::index j = 1; j != m[0].size(); ++j)
+            for (array2d::index j = 0; j != m[0].size()-1; ++j)
             {
-                std::cout <<" "<< int(m[i][j]);
+                if (i >= p_[0] && i < p_[0]+smat_.size()
+                        && (j >= p_[1] && j < p_[1]+smat_[0].size())) {
+                    std::cout << int(m[i][j] || smat_[i-p_[0]][j-p_[1]]) <<" ";
+                    continue;
+                }
+                std::cout << int(m[i][j]) <<" ";
             }
+            std::cout << int(m[i].back())<<"\n";
         }
     }
 };
@@ -323,13 +329,15 @@ int main(int argc, char* const argv[])
 {
     Main M;
     M.start();
-    M.flip();
+    std::cout << M << "\n";
+    M.rotate();
+    std::cout << M << "\n";
     while (M.Move(-1))
-        ;
+        std::cout << M << "\n";
     while (M.Move(1))
-        ;
+        std::cout << M << "\n";
     while (M.Move(0))
-        ;
+        std::cout << M << "\n";
     //std::cout << M << "\n";
     return 0;
 }
