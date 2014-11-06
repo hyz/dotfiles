@@ -4,32 +4,6 @@
 #include <array>
 #include <iostream>
 
-char cmat_[] = {
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-                        
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-};
-static const int cmat_h_ = 20;
-static const int cmat_w_ = 10;
-
 char cmat_O[] = {
     1,1,
     1,1
@@ -199,16 +173,37 @@ struct Main // : Array2d
         ::srand(time(0));
     }
 
-    void start()
+    void new_game(size_t h, size_t w)
     {
-        BOOST_ASSERT(cmat_h_ * cmat_w_ == sizeof(cmat_));
-        vmat_.resize(boost::extents[cmat_h_][cmat_w_]);
-        vmat_.assign(cmat_, cmat_ + sizeof(cmat_));
-        tb_ = time(0);
-        //print2d(std::cerr, vmat_); // std::cerr<<p_[0]<<p_[1]<<"\n" <<z[0]<<z[1]<<"\n";
+        //BOOST_ASSERT(h * w == sizeof(cmat_));
+        vmat_.resize(boost::extents[h][w]);
+        for (int y=0; y < h; ++y)
+            for (int x=0; x < w; ++x)
+                vmat_[y][x] = 0;
+        //vmat_.assign(cmat_, cmat_ + sizeof(cmat_));
 
-        take_pv(0);
-        next_round();
+        pop_preview(0);
+
+        tb_ = time(0);
+    }
+
+    bool next_round()
+    {
+        pop_preview(&smat_);
+
+        p_[1] = int(vmat_[0].size() - smat_[0].size()) / 2;
+        p_[0] = -int(smat_.size()-1);
+        while (p_[0] <= 0) {
+            if (is_collision(vmat_, p_, smat_)) {
+                over();
+                return 0;
+            }
+            if (p_[0] == 0)
+                break;
+            ++p_[0];
+        }
+        td_ = time(0);
+        return 1;
     }
 
     bool Move(int di)
@@ -239,25 +234,6 @@ struct Main // : Array2d
             td_ = time(0);
         }
         return true;
-    }
-
-    bool next_round()
-    {
-        take_pv(&smat_);
-
-        p_[1] = int(vmat_[0].size() - smat_[0].size()) / 2;
-        p_[0] = -int(smat_.size()-1);
-        while (p_[0] <= 0) {
-            if (is_collision(vmat_, p_, smat_)) {
-                over();
-                return 0;
-            }
-            if (p_[0] == 0)
-                break;
-            ++p_[0];
-        }
-        td_ = time(0);
-        return 1;
     }
 
     bool rotate()
@@ -311,7 +287,7 @@ private:
         }
     }
 
-    void take_pv(Array2d* a)
+    void pop_preview(Array2d* a)
     {
         if (a) {
             a->resize(boost::extents[pv_.size()][pv_[0].size()]);
@@ -361,50 +337,15 @@ private:
 int main(int argc, char* const argv[])
 {
     Main M;
-    M.start();  //std::cerr << M << "\n";
-    M.rotate(); // std::cerr << M << "\n";
-    do {
+    M.new_game(20, 10);  //std::cerr << M << "\n";
+    while (M.next_round()) {
+        M.rotate(); // std::cerr << M << "\n";
         //while (M.Move(-1)) ; std::cerr << M << "\n";
         //while (M.Move( 1)) ; std::cerr << M << "\n";
-        while (M.Move( 0)) ; std::cerr << M << "\n";
-    } while (M.next_round());
+        while (M.Move(0)) ; std::cerr << M << "\n";
+    }
     //std::cerr << M << "\n";
     return 0;
 }
 
-
-int main_x()
-{
-    Array2d mat(boost::extents[21][12]);
-    mat.assign(cmat_,cmat_+sizeof(cmat_));
-
-    Array2d sa(boost::extents[3][3]);
-    sa.assign(cmat_L,cmat_L+sizeof(cmat_L));
-
-    typedef Array2d::index_range range;
-
-    int x = 0, y = 3;
-    Array2d::array_view<2>::type vm = mat[boost::indices
-            [range(y,    sa.size()+y)]
-            [range(x, sa[0].size()+x)]
-        ];
-
-    std::cerr << sa.size() <<" "<< sa[0].size() << "\n";
-    std::cerr << vm.size() <<" "<< vm[0].size() << "\n";
-
-    for (Array2d::index i = 0; i != sa.size(); ++i)
-    {
-        for (Array2d::index j = 0; j != sa[0].size(); ++j)
-            if (vm[i][j] && sa[i][j])
-                ;
-        std::cerr <<"\n"<< int(vm[i][0] && sa[i][0]);
-        for (Array2d::index j = 1; j != sa[0].size(); ++j)
-        {
-            std::cerr <<" "<< int(vm[i][j] && sa[i][j]);
-        }
-    }
-    std::cerr <<"\n";
-
-    return boost::exit_success;
-}
 
