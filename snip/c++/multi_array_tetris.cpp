@@ -4,42 +4,6 @@
 #include <array>
 #include <iostream>
 
-char cmat_O[] = {
-    1,1,
-    1,1
-};
-char cmat_T[] = {
-    0, 1, 0,
-    1, 1, 1,
-    0, 0, 0
-};
-char cmat_Z[] = {
-    1, 1, 0,
-    0, 1, 1,
-    0, 0, 0
-};
-char cmat_N[] = {
-    0, 1, 1,
-    1, 1, 0,
-    0, 0, 0
-};
-char cmat_F[] = {
-    1, 1, 0,
-    0, 1, 0,
-    0, 1, 0
-};
-char cmat_E[] = {
-    0, 1, 1,
-    0, 1, 0,
-    0, 1, 0
-};
-char cmat_L[] = {
-    0, 1, 0, 0,
-    0, 1, 0, 0,
-    0, 1, 0, 0,
-    0, 1, 0, 0
-};
-
 typedef boost::multi_array<char,2> Array2d;
 typedef Array2d::array_view<2>::type Array2d_view_t;
 typedef std::array<int,2> Point;
@@ -266,7 +230,7 @@ private:
     {
         auto const & row = this->vmat_[rb];
 
-        if (rb <= r0) {
+        if (rb >= r0) {
             if (std::find(row.begin(), row.end(), 0) == row.end()) {
                 clear(rb);
                 ++nc;
@@ -303,6 +267,42 @@ private:
 
     static std::vector<std::pair<char*,size_t>> mats_init()
     {
+        static char cmat_O[] = {
+            1,1,
+            1,1
+        };
+        static char cmat_T[] = {
+            0, 1, 0,
+            1, 1, 1,
+            0, 0, 0
+        };
+        static char cmat_Z[] = {
+            1, 1, 0,
+            0, 1, 1,
+            0, 0, 0
+        };
+        static char cmat_N[] = {
+            0, 1, 1,
+            1, 1, 0,
+            0, 0, 0
+        };
+        static char cmat_F[] = {
+            1, 1, 0,
+            0, 1, 0,
+            0, 1, 0
+        };
+        static char cmat_E[] = {
+            0, 1, 1,
+            0, 1, 0,
+            0, 1, 0
+        };
+        static char cmat_L[] = {
+            0, 1, 0, 0,
+            0, 1, 0, 0,
+            0, 1, 0, 0,
+            0, 1, 0, 0
+        };
+
         std::vector<std::pair<char*,size_t>> mats;
         mats.emplace_back(cmat_O, sizeof(cmat_O));
         mats.emplace_back(cmat_T, sizeof(cmat_T));
