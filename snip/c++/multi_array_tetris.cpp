@@ -194,7 +194,9 @@ struct Main // : Array2d
         p_[1] = int(vmat_[0].size() - smat_[0].size()) / 2;
         p_[0] = -int(smat_.size()-1);
         while (p_[0] <= 0) {
+            Point tmp = p_;
             if (is_collision(vmat_, p_, smat_)) {
+                or_assign(vmat_, p_, smat_);
                 over();
                 return 0;
             }

@@ -1,7 +1,13 @@
 ###
    Parameter Expansion
           The ‘$’ character introduces parameter expansion, command substitution, or arithmetic expansion.
-          
+
+### http://tldp.org/LDP/abs/html/process-sub.html
+### http://en.wikipedia.org/wiki/Process_substitution
+$ echo >(true) <(true)
+$ date |tee >(cat) 
+$
+
 ### find ###
 find trunk -name ".svn" -prune -o -print 
 find trunk \( -name ".svn" -o -name ".git" \) -prune -o -print 
