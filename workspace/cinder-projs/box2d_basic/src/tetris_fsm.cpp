@@ -21,6 +21,9 @@ struct Ev_Input {
     Ev_Input(int x) { how=x; }
 };
 
+        struct Ev_Blink {};
+        struct Ev_EndBlink {};
+
 struct Tetris_ : public msm::front::state_machine_def<Tetris_>
 {
     struct Quit : public msm::front::state<>
@@ -48,25 +51,48 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
     }; // Prepare
 
-    struct Playing : public msm::front::state<>
+    struct Playing_ : public msm::front::state_machine_def<Playing_>
     {
         struct Act
         {
             template <class Ev, class SM, class SourceState, class TargetState>
             void operator()(Ev const& ev, SM& sm, SourceState&, TargetState&)
             {
-                std::cout << "&Playing:Act "<< typeid(Ev).name()
+                std::cout << "&P:Act "<< typeid(Ev).name()
                     <<" "<< ev.how
                     <<"\n";
             }
         };
-        struct internal_transition_table : mpl::vector<
-            Internal< Ev_Input, Act, none >
-        > {};
+        struct P : public msm::front::state<>
+        {
+            template <class Ev, class SM> void on_entry(Ev const&, SM& ) {cout<<"P:entry\n";}
+            template <class Ev, class SM> void on_exit(Ev const&, SM& ) {cout<<"P:exit\n";}
+        };
+        struct Blink : public msm::front::state<>
+        {
+            template <class Ev, class SM> void on_entry(Ev const&, SM& ) {cout<<"Blink:entry\n";}
+            template <class Ev, class SM> void on_exit(Ev const&, SM& ) {cout<<"Blink:exit\n";}
+        };
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
-        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
-    }; // Playing
+        typedef P initial_state;
+        struct transition_table : mpl::vector<
+            Row< P        ,  Ev_Input    ,  none     ,  Act       ,  none >,
+            Row< P        ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
+            Row< Blink    ,  Ev_EndBlink ,  P        ,  none      ,  none >
+        > {};
+        //struct internal_transition_table : mpl::vector<
+        //    Internal< Ev_Input, Act, none >
+        //> {};
+
+        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {cout<<"Playing:entry\n";}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {cout<<"Playing:exit\n";}
+        template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
+        {
+            std::cout << "Playing no transition from state " << state
+                << " on event " << typeid(Ev).name() << std::endl;
+        }
+    }; // Playing_
+    typedef msm::back::state_machine<Playing_> Playing;
 
     struct Paused : public msm::front::state<>
     {
@@ -117,6 +143,11 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
         deadline_.cancel(ec);
         std::cout << "Top exit\n";
     }
+    template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
+    {
+        std::cout << "Tetris_ no transition from state " << state
+            << " on event " << typeid(Ev).name() << std::endl;
+    }
 
     Tetris_(boost::asio::io_service& io_s, boost::function<void()> quit)
         : io_s_(io_s)
@@ -143,12 +174,12 @@ void do_event(Tetris& t, Ev const& ev)
     std::cout << "=E " << state_names[t.current_state()[0]] << "\n";
 }
 
-void endx() {}
+void ending() {}
 
 int main()
 {
     boost::asio::io_service io_s;
-    Tetris te(boost::ref(io_s), endx);
+    Tetris te(boost::ref(io_s), ending);
 
     do_event(te, Ev_Input(1));
     do_event(te, Ev_Play());
@@ -156,6 +187,10 @@ int main()
     do_event(te, Ev_Pause());
     do_event(te, Ev_Resume());
     do_event(te, Ev_Input(1));
+    do_event(te, Ev_Input(0));
+    do_event(te, Ev_Blink());
+    do_event(te, Ev_Input(1));
+    do_event(te, Ev_EndBlink());
     do_event(te, Ev_Input(0));
     do_event(te, Ev_Quit());
     do_event(te, Ev_Quit());
