@@ -92,7 +92,14 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
                 << " on event " << typeid(Ev).name() << std::endl;
         }
     }; // Playing_
-    typedef msm::back::state_machine<Playing_> Playing;
+    // back-end
+    // demonstrates Shallow History: if the state gets activated with end_pause
+    // then it will remember the last active state and reactivate it
+    // also possible: AlwaysHistory, the last active state will always be reactivated
+    // or NoHistory, always restart from the initial state
+    //typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<end_pause> > > Playing;
+    //typedef msm::back::state_machine<Playing_> Playing;
+    typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
 
     struct Paused : public msm::front::state<>
     {
@@ -184,9 +191,11 @@ int main()
     do_event(te, Ev_Input(1));
     do_event(te, Ev_Play());
     do_event(te, Ev_Input(0));
+    do_event(te, Ev_Blink());
     do_event(te, Ev_Pause());
     do_event(te, Ev_Resume());
     do_event(te, Ev_Input(1));
+    do_event(te, Ev_EndBlink());
     do_event(te, Ev_Input(0));
     do_event(te, Ev_Blink());
     do_event(te, Ev_Input(1));
