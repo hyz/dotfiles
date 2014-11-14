@@ -32,7 +32,6 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
         {
             std::cout << "stopping ...\n";
             sm.stop();
-            sm.quit_(); //(ev, sm);
             std::cout << "stopped\n";
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM&) { std::cout << "Quit exit\n"; }
@@ -148,6 +147,7 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
     template <class Ev, class SM> void on_exit(Ev const&, SM&) {
         boost::system::error_code ec;
         deadline_.cancel(ec);
+        quit_(); //(ev, sm);
         std::cout << "Top exit\n";
     }
     template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
@@ -181,7 +181,7 @@ void do_event(Tetris& t, Ev const& ev)
     std::cout << "=E " << state_names[t.current_state()[0]] << "\n";
 }
 
-void ending() {}
+void ending() {cout<<"ending\n";}
 
 int main()
 {
