@@ -1,0 +1,34 @@
+/home/wood/mnt
+23606	Windows
+9887	ProgramData
+8141	pagefile.sys
+6106	hiberfil.sys
+4757	Program Files (x86)
+4215	System Volume Information
+3330	Program Files
+226	NVIDIA
+165	Recovery
+/home/wood/mnt/ProgramData
+4247	Microsoft
+3633	Bitdefender
+1333	Package Cache
+443		Adobe
+/home/wood/mnt/ProgramData/Microsoft
+2172	Search
+1802	HelpLibrary2
+117		Windows Defender
+/home/wood/mnt/Windows
+9259	winsxs
+4482	System32
+2249	assembly
+1910	Installer
+1410	SysWOW64
+1012	Microsoft.NET
+870		SoftwareDistribution
+803		Temp
+708		Fonts
+233		symbols
+183		ServiceProfiles
+173		Speech
+148		inf
+138		IME

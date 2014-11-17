@@ -61,7 +61,8 @@ alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
 if [ "`uname -o`" = "Cygwin" ] ; then
-    export GNUPGHOME="F:\cyghome\.gnupg"
+    PATH=$PATH:$HOME/bin/cygwin
+    export GNUPGHOME="C:\\gnupg"
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
         explorer "`cygpath -w $(pwd)/$1`" &

@@ -1,3 +1,12 @@
+###
+   Parameter Expansion
+          The ‘$’ character introduces parameter expansion, command substitution, or arithmetic expansion.
+
+### http://tldp.org/LDP/abs/html/process-sub.html
+### http://en.wikipedia.org/wiki/Process_substitution
+$ echo >(true) <(true)
+$ date |tee >(cat) 
+$
 
 ### find ###
 find trunk -name ".svn" -prune -o -print 
@@ -68,5 +77,15 @@ $ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 du -sm * | awk '$1 > 1000'
 
 ### ###
-### ###
+> echo "echo \$X"| X=hello sh                                                                             ~
+hello
+> X=hello echo "$X"                                                                                       ~
 
+> export X=hello ; echo "$X"                                                                              ~
+hello
+>
+> exec 3>out ; date |cat >&3
+> cat out
+
+### ###
+### ###

@@ -5,7 +5,7 @@ import http.client, urllib.parse
 from pprint import pprint
 import json
 
-def getm(dct, *ks):
+def getv(dct, *ks):
     ret = []
     for k in ks:
         ret.append( dct.get(k, None) )
@@ -61,12 +61,12 @@ def main():
         st, hdr, cont = request('/login', headers={'X-MOBILE':numb}, method='POST', env=globals())
         if st != 200:
             continue
-        code, js = getm(json.loads(cont.decode('UTF-8')), 'code', 'data')
+        code, js = getv(json.loads(cont.decode('UTF-8')), 'code', 'data')
         if code != 0:
             print(code, js, file=sys.stderr)
             continue
         # pprint(js) # _,ck = getcookie(hdr)
-        uid, tok, nick = getm(js, 'userid', 'token', 'nick')
+        uid, tok, nick = getv(js, 'userid', 'token', 'nick')
         # print(uid, tok, nick)
         print(fmt_sig.format(uid, tok))
         print(fmt_ids.format(uid))
