@@ -1,5 +1,5 @@
 
-path-constant TOOLCHAIN : /opt/ndk/standalone/toolchain/android-12 ; # /home/wood/android/standalone/toolchain ;
+path-constant TOOLCHAIN : /opt/android-ndk/standalone/toolchain/android-12 ; # /home/wood/android/standalone/toolchain ;
 path-constant BIN : $(TOOLCHAIN)/bin ;
 path-constant SYSROOT : $(TOOLCHAIN)/sysroot ;
 

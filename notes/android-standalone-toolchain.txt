@@ -1,3 +1,9 @@
+/opt/android-ndk/build/tools/make-standalone-toolchain.sh \
+  --arch=arm \
+  --platform=android-12 \
+  --toolchain=arm-linux-androideabi-4.8 \
+  --install-dir=/opt/android-ndk/standalone/toolchain/android-12
+
 === https://github.com/MysticTreeGames/Boost-for-Android.git
 
 /opt/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-9 --install-dir=$HOME/android/standalone/toolchain
@@ -50,9 +56,8 @@ https://www.crystax.net/android/ndk.php
 http://stackoverflow.com/questions/14036311/official-boost-library-support-for-android-and-ios
 
 === ...arm-linux-androideabi/bin/ld: error: cannot find -lrt
-###
-
-#Jamroot
+### Jamroot
+# librt.a
 lib rt : empty.c : <link>static ;
 
 cp -t /opt/ndk/standalone/toolchain/android-12/sysroot/usr/lib ...

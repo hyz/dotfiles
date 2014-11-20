@@ -1,0 +1,35 @@
+
+#. setup android sdk/ndk
+$ git clone https://github.com/safetydank/Cinder cinder
+$ cd cinder
+#. boost, patched boost_1.56.0
+
+$ cd android
+
+$ vim jni/Application.mk
+APP_PLATFORM := android-12
+NDK_TOOLCHAIN_VERSION=4.8
+
+$ vim default.properties
+target=android-12
+
+$ sh setup-android
+$ export CINDER_PATH=...
+$ export NDK_MODULE_PATH=...
+
+$ ndk-build
+
+### samples
+$ cd ../samples/AndroidCinder
+
+$ vim jni/Application.mk
+APP_PLATFORM := android-12
+NDK_TOOLCHAIN_VERSION=4.8
+
+$ ndk-build
+$ ant debug
+
+### install
+$ adb devices
+$ adb install -r bin/AndroidCinder-debug.apk
+
