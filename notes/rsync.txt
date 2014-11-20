@@ -10,3 +10,5 @@
 # cygwin
 rsync -vurt --no-o --no-g pc:Dropbox .
 
+rsync -vrR --no-o --no-g pc:Dropbox .
+

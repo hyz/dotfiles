@@ -1,0 +1,16 @@
+### arch
+### https://wiki.archlinux.org/index.php/PPTP_VPN_client_setup_with_pptpclient
+### http://pptpclient.sourceforge.net/routing.phtml
+### https://wiki.archlinux.org/index.php/Network_configuration
+
+# pacman -S pptpclient
+# pptpsetup --create my_tunnel --server vpn.example.com --username alice --password foo --encrypt
+# pptpsetup --delete my_tunnel
+
+# pon <TUNNEL> debug dump logfd 2 nodetach
+# pon <TUNNEL>
+
+# ip route del default
+# ip route add default dev ppp0
+# #ip route add 192.168.10.0/24 dev ppp0
+
