@@ -31,6 +31,7 @@ bindkey -v
 autoload -U        edit-command-line
 zle -N             edit-command-line
 bindkey -M vicmd v edit-command-line
+export KEYTIMEOUT=20 # Fri, Nov 21, 2014  8:36:52 AM
 
 setopt interactive_comments
 bindkey "\e#" vi-pound-insert

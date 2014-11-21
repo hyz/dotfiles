@@ -4,9 +4,9 @@
 #include <boost/msm/front/functor_row.hpp>
 
 using namespace std;
+namespace mpl = boost::mpl;
 namespace msm = boost::msm;
 using namespace msm::front;
-namespace mpl = boost::mpl;
 // for And_ operator
 //using namespace msm::front::euml;
 
@@ -38,11 +38,11 @@ struct MyFSM_ : public msm::front::state_machine_def< MyFSM_ >
             }
         };
 
-        //struct internal_transition_table : mpl::vector<
-        //    //        Event   Action        Guard
-        //    //       +-------+-------------+------------+
-        //    Internal< class1, Aclass1, none >
-        //> {};
+        struct internal_transition_table : mpl::vector<
+            //        Event   Action        Guard
+            //       +-------+-------------+------------+
+            Internal< class1, Aclass1, none >
+        > {};
     }; // S1
 
     /// State 2. Allows any class1 or class2 events
@@ -101,11 +101,11 @@ struct MyFSM_ : public msm::front::state_machine_def< MyFSM_ >
     struct transition_table : mpl::vector<
         //  Start  Event         Next   Action           Guard
         // +------+-------------+------+----------------+------------------+
-        Row< S1,   class1,       none,  S1::Aclass1,     none >,
         Row< S1,   class2,       S1,    ASendError,      none >,
         Row< S1,   upgrade_req,  S2,    ASendUpgradeRsp, VerifyUpgradeReq >,
         Row< S2,   class1,       none,  none,            none >,
         Row< S2,   class2,       none,  none,            none >
+        //Row< S1,   class1,       none,  S1::Aclass1,     none >,
     > {};
 }; // MyFSM_
 typedef msm::back::state_machine<MyFSM_> MyFSM;
