@@ -6,6 +6,10 @@ $ cd cinder
 
 $ cd android
 
+$ sh setup-android
+$ export CINDER_PATH=...
+$ export NDK_MODULE_PATH=...
+
 $ vim jni/Application.mk
 APP_PLATFORM := android-12
 NDK_TOOLCHAIN_VERSION=4.8
@@ -13,15 +17,12 @@ NDK_TOOLCHAIN_VERSION=4.8
 $ vim default.properties
 target=android-12
 
-$ sh setup-android
-$ export CINDER_PATH=...
-$ export NDK_MODULE_PATH=...
-
 $ ndk-build
 
 ### samples
 $ cd ../samples/AndroidCinder
 
+$ sh setup-android
 $ vim jni/Application.mk
 APP_PLATFORM := android-12
 NDK_TOOLCHAIN_VERSION=4.8

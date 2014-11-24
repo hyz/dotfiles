@@ -1,0 +1,10 @@
+### https://wiki.archlinux.org/index.php/samba
+
+$ smbclient -L 192.168.1.155 -U%
+$ smbclient -c 'ls' //localhost/public -U wood
+
+### mount
+$ sudo mount -t cifs //192.168.1.11/sales /mnt/cifs -o username=shareuser,password=sharepassword,domain=nixcraft
+$ ##,uid=username,gid=usergroup
+$ sudo mount.cifs //192.168.1.155/smb cifs -o username=administrator,uid=1000
+
