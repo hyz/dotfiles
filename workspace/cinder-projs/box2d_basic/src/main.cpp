@@ -48,9 +48,25 @@ struct Ev_Blink {};
 struct Ev_EndBlink {};
 template <class M, class Ev> void do_event(M& m, Ev const& ev);
 
+struct Model : Tetris
+{
+    std::vector<uint8_t> rows_;
+    enum class stat {
+        normal=0, over=1, pause
+    };
+	stat stat_;
+	// unsigned char box_size_;
+	
+    void reset(x,y)
+    {
+        rows_.clear();;
+        stat_ = stat::normal;
+    }
+};
+
 struct View
 {
-    void operator()(Tetris const& M);
+    void operator()(Model const& M);
 
     void play_sound( const char* asset );
 
@@ -125,7 +141,7 @@ Vec2i View::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
 	return endp;
 }
 
-void View::operator()(Tetris const& M)
+void View::operator()(Model const& M)
 {
 	gl::clear( Color( 0, 0, 0 ) );
 	glPushMatrix();
@@ -175,18 +191,20 @@ void View::play_sound( const char* asset )
 	}
 }
 
+struct PrintS
+{
+    template <class Ev, class SM, class SS, class TS>
+    void operator()(Ev const& ev, SM& sm, SS& ss, TS&)
+    {
+        std::cout << "from state " << typeid(ss).name() << std::endl;
+    }
+};
+
 struct Main_ : msm::front::state_machine_def<Main_>
 {
-    Tetris model;
+    Model model;
     View view;
 
-    std::vector<uint8_t> rows_;
-    enum class stat {
-        normal=0, over=1, pause
-    };
-	stat stat_;
-	// unsigned char box_size_;
-	
     boost::asio::deadline_timer deadline_;
 
 public:
@@ -197,13 +215,6 @@ public:
     void update();
 
 	void new_game();
-    void pause()
-    {
-        if (stat_ == stat::normal)
-            stat_ = stat::pause;
-        else if (stat_ == stat::pause)
-            stat_ = stat::normal;
-    }
     void move_down(bool keydown)
     {
         if (!model.Move(0)) {
@@ -240,55 +251,26 @@ public:
 
 //  }; struct Main_ : public msm::front::state_machine_def<Main_> {
 
-    struct Quit : msm::front::state<> 
-        // : msm::front::terminate_state<>
-        // : msm::front::interrupt_state<> // <boost::any>
-    {
-        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm)
-        {
-            sm.stop();
-        }
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
-    }; // Quit
     struct Preview : public msm::front::state<>
     {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {
-            ;
-        }
+        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
     }; // Preview
 
     struct Prepare : public msm::front::state<>
     {
         template <class Ev,class SM> void on_entry(Ev const&, SM& ) {
-            sm.process_event(Ev_Play()); // ;
+            sm.process_event(Ev_Play());
         }
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
     }; // Prepare
-
-    struct Running : public msm::front::state<> {};
-
-    struct Paused : msm::front::state<>
-    {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
-    }; // Paused
-
-    struct PrintS
-    {
-        template <class Ev, class SM, class SourceState, class TargetState>
-        void operator()(Ev const& ev, SM& sm, SourceState& ss, TargetState&)
-        {
-            std::cout << "from state " << typeid(ss).name() << std::endl;
-        }
-    };
 
     struct Playing_ : public msm::front::state_machine_def<Playing_>
     {
         struct Action
         {
-            template <class Ev, class SM, class SourceState, class TargetState>
-            void operator()(Ev const& ev, SM& sm, SourceState&, TargetState&)
+            template <class Ev, class SM, class SS, class TS>
+            void operator()(Ev const& ev, SM& sm, SS&, TS&)
             {
                 if (!sm.model.Move(ev.how)) {
                     if (ev.how == 0) {
@@ -300,10 +282,12 @@ public:
                         }
                     }
                 }
-                //sm.view.play_sound( "rotate.wav" );
+                if (ev.how > 1) {
+                    sm.view.play_sound( "rotate.wav" );
+                }
             }
         };
-        struct Normal : public msm::front::state<>
+        struct Busy : public msm::front::state<>
         {
             template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
@@ -316,21 +300,18 @@ public:
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         };
 
-        typedef Running initial_state;
+        typedef Busy initial_state;
         struct transition_table : mpl::vector<
-            Row< Running  ,  Ev_Input    ,  none     ,  Action    ,  none >,
-            Row< Running  ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
-            Row< Running  ,  Ev_Pause    ,  Paused   ,  none      ,  none >,
-            Row< Running  ,  Ev_Quit     ,  Paused   ,  none      ,  none >,
-            Row< Blink    ,  Ev_EndBlink ,  Running  ,  none      ,  none >,
-            Row< Paused   ,  Ev_Quit     ,  Quit     ,  PrintS    ,  none >,
-            Row< Paused   ,  boost::any  ,  Running  ,  none      ,  none >
+            Row< Busy     ,  Ev_Input    ,  none     ,  Action    ,  none >,
+            Row< Busy     ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
+            Row< Blink    ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
         > {};
-        //struct internal_transition_table : mpl::vector<
-        //    Internal< Ev_Input, Move, none >
-        //> {};
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
+        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {
+            model.reset(20, 10);  //std::cerr << model << "\n";
+            model.next_round();
+            // play_sound( "newgame.wav" );
+        }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
         {
@@ -339,43 +320,59 @@ public:
         }
     }; // Playing_
 
+    struct NonPlaying : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    }; // NonPlaying
+    struct YesPlaying : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    }; // YesPlaying
+    struct Paused : msm::front::interrupt_state<Ev_Leave>
+    {
+        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    }; // Paused
+    struct Quit : msm::front::state<> 
+    {
+        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) { sm.stop(); }
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    }; // Quit
+
+    struct isExit
+    {
+        bool selx(Ev_Leave lv) const { return lv.exit; }
+        template <class Ev> bool selx(Ev) const { return false; }
+        template <class Ev, class SM, class SS, class TS>
+        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return this->selx(ev); }
+    };
+    struct isNotExit
+    {
+        template <class Ev, class SM, class SS, class TS>
+        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return !isExit()(ev); }
+    };
+
     // back-end
-    typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
-
-    template <int Ns, class Ev_Idle>
-    struct delay_evt
-    {
-        template <class Ev, class SM, class SourceState, class TargetState>
-        void operator()(Ev const& ev ,SM&,SourceState& ,TargetState& )
-        {
-            std::cout << "&delay_evt "<< typeid(Ev).name() <<"\n";
-        }
-    };
-
-    struct ExclQ
-    {
-        bool select(Ev_Quit) const { return false; }
-        bool select(...) const { return true; }
-        template <class EVT, class FSM, class SourceState, class TargetState>
-        bool operator()(EVT const& evt, FSM&, SourceState&, TargetState& )
-            { return this->select(evt); }
-    };
-
-    /// everybody starts in state 1
+    //typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
+    typedef msm::back::state_machine<Playing_> Playing;
     // typedef Preview initial_state;
-    typedef mpl::vector<Preview,Running> initial_state;
+    typedef mpl::vector<Preview,NonPlaying> initial_state;
 
     struct transition_table : mpl::vector<
-      //Row< Preview  ,  Ev_Quit     ,  Quit     ,  none                  ,  none     >,
-        Row< Preview  ,  boost::any  ,  Prepare  ,  delay_evt<3,Ev_Idle>  ,  ExclQ    >,
-        Row< Prepare  ,  Ev_Play     ,  Playing  ,  none                  ,  none     >,
-      //Row< Prepare  ,  Ev_Idle     ,  Preview  ,  none                  ,  none     >,
-      //Row< Prepare  ,  Ev_Quit     ,  Quit     ,  none                  ,  none     >,
-      //Row< Playing  ,  Ev_Pause    ,  Paused   ,  none                  ,  none     >,
-      //Row< Playing  ,  Ev_Quit     ,  Paused   ,  none                  ,  none     >,
-        Row< Playing  ,  Ev_Over     ,  GameOver ,  none                  ,  none     >,
-        Row< Playing  ,  Ev_Restart  ,  Playing  ,  none                  ,  none     >,
-        Row< Running  ,  Ev_Quit     ,  Quit     ,  PrintS                ,  none     >
+        Row< Preview  ,  none        ,  Prepare  ,  none  ,  isNotExit  >,
+        Row< Prepare  ,  Ev_Play     ,  Playing  ,  none  ,  isNotExit  >,
+        Row< Playing  ,  Ev_Over     ,  GameOver ,  none  ,  none       >,
+        Row< Playing  ,  Ev_Restart  ,  Playing  ,  none  ,  none       >,
+        Row< GameOver ,  boost::any  ,  Preview  ,  none  ,  isNotExit  >,
+
+        Row< NonPlaying ,  Ev_Play     ,  YesPlaying ,  none     ,  none       >,
+        Row< NonPlaying ,  Ev_Leave    ,  Quit       ,  none     ,  none       >,
+        Row< YesPlaying ,  Ev_Over     ,  NonPlaying ,  none     ,  none       >,
+        Row< YesPlaying ,  Ev_Leave    ,  Paused     ,  none     ,  none       >,
+        Row< Paused     ,  Ev_Leave    ,  Quit       ,  none     ,  isExit     >,
+        Row< Paused     ,  Ev_Leave    ,  YesPlaying ,  none     ,  none       >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
