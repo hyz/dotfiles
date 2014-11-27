@@ -36,6 +36,7 @@ const float BOX_SIZEp1 = 41;
 struct Ev_Quit {};
 struct Ev_Pause {};
 struct Ev_Resume {};
+struct Ev_Restart {};
 struct Ev_Over {};
 struct Ev_Play {};
 struct Ev_Idle {};
@@ -239,7 +240,9 @@ public:
 
 //  }; struct Main_ : public msm::front::state_machine_def<Main_> {
 
-    struct Quit : public msm::front::state<>
+    struct Quit : msm::front::state<> 
+        // : msm::front::terminate_state<>
+        // : msm::front::interrupt_state<> // <boost::any>
     {
         template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm)
         {
@@ -262,6 +265,23 @@ public:
         }
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
     }; // Prepare
+
+    struct Running : public msm::front::state<> {};
+
+    struct Paused : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    }; // Paused
+
+    struct PrintS
+    {
+        template <class Ev, class SM, class SourceState, class TargetState>
+        void operator()(Ev const& ev, SM& sm, SourceState& ss, TargetState&)
+        {
+            std::cout << "from state " << typeid(ss).name() << std::endl;
+        }
+    };
 
     struct Playing_ : public msm::front::state_machine_def<Playing_>
     {
@@ -296,11 +316,15 @@ public:
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         };
 
-        typedef Normal initial_state;
+        typedef Running initial_state;
         struct transition_table : mpl::vector<
-            Row< Normal   ,  Ev_Input    ,  none     ,  Action    ,  none >,
-            Row< Normal   ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
-            Row< Blink    ,  Ev_EndBlink ,  Normal   ,  none      ,  none >
+            Row< Running  ,  Ev_Input    ,  none     ,  Action    ,  none >,
+            Row< Running  ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
+            Row< Running  ,  Ev_Pause    ,  Paused   ,  none      ,  none >,
+            Row< Running  ,  Ev_Quit     ,  Paused   ,  none      ,  none >,
+            Row< Blink    ,  Ev_EndBlink ,  Running  ,  none      ,  none >,
+            Row< Paused   ,  Ev_Quit     ,  Quit     ,  PrintS    ,  none >,
+            Row< Paused   ,  boost::any  ,  Running  ,  none      ,  none >
         > {};
         //struct internal_transition_table : mpl::vector<
         //    Internal< Ev_Input, Move, none >
@@ -314,14 +338,9 @@ public:
                 << " on event " << typeid(Ev).name() << std::endl;
         }
     }; // Playing_
+
     // back-end
     typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
-
-    struct Paused : public msm::front::state<>
-    {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
-    }; // Paused
 
     template <int Ns, class Ev_Idle>
     struct delay_evt
@@ -333,20 +352,30 @@ public:
         }
     };
 
+    struct ExclQ
+    {
+        bool select(Ev_Quit) const { return false; }
+        bool select(...) const { return true; }
+        template <class EVT, class FSM, class SourceState, class TargetState>
+        bool operator()(EVT const& evt, FSM&, SourceState&, TargetState& )
+            { return this->select(evt); }
+    };
+
     /// everybody starts in state 1
-    typedef Preview initial_state;
+    // typedef Preview initial_state;
+    typedef mpl::vector<Preview,Running> initial_state;
 
     struct transition_table : mpl::vector<
-        Row< Preview  ,  Ev_Quit     ,  Quit     ,  none                  ,  none >,
-        Row< Preview  ,  boost::any  ,  Prepare  ,  delay_evt<3,Ev_Idle>  ,  none >,
-        Row< Prepare  ,  Ev_Play     ,  Playing  ,  none                  ,  none >,
-     // Row< Prepare  ,  Ev_Idle     ,  Preview  ,  none                  ,  none >,
-        Row< Prepare  ,  Ev_Quit     ,  Quit     ,  none                  ,  none >,
-        Row< Playing  ,  Ev_Pause    ,  Paused   ,  none                  ,  none >,
-        Row< Playing  ,  Ev_Quit     ,  Paused   ,  none                  ,  none >,
-        Row< Playing  ,  Ev_Over     ,  GameOver ,  none                  ,  none >,
-        Row< Paused   ,  Ev_Resume   ,  Playing  ,  none                  ,  none >,
-        Row< Paused   ,  Ev_Quit     ,  Quit     ,  none                  ,  none >
+      //Row< Preview  ,  Ev_Quit     ,  Quit     ,  none                  ,  none     >,
+        Row< Preview  ,  boost::any  ,  Prepare  ,  delay_evt<3,Ev_Idle>  ,  ExclQ    >,
+        Row< Prepare  ,  Ev_Play     ,  Playing  ,  none                  ,  none     >,
+      //Row< Prepare  ,  Ev_Idle     ,  Preview  ,  none                  ,  none     >,
+      //Row< Prepare  ,  Ev_Quit     ,  Quit     ,  none                  ,  none     >,
+      //Row< Playing  ,  Ev_Pause    ,  Paused   ,  none                  ,  none     >,
+      //Row< Playing  ,  Ev_Quit     ,  Paused   ,  none                  ,  none     >,
+        Row< Playing  ,  Ev_Over     ,  GameOver ,  none                  ,  none     >,
+        Row< Playing  ,  Ev_Restart  ,  Playing  ,  none                  ,  none     >,
+        Row< Running  ,  Ev_Quit     ,  Quit     ,  PrintS                ,  none     >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
@@ -411,29 +440,29 @@ void App_::keyDown( KeyEvent event )
 #endif
     if (isModDown) {
 		if( event.getChar() == 'n' ) {
-			main_.new_game();
+            main_.process_event(Ev_Restart()); // main_.new_game();
         }
 		return;
 	}
     if (event.getCode() == KeyEvent::KEY_ESCAPE || event.getChar() == 'q') {
-        // ask confirm
-		main_.quit();
+        main_.process_event(Ev_Quit()); // main_.quit(); // confirm?
 		return;
 	}
+
 	if (stat_ != stat::normal) {
         if (stat_ == stat::over) {
             if (microsec_clock::local_time() - model.td_ > seconds(3)) {
-                main_.new_game();
+                main_.process_event(Ev_Restart());
             }
 		} else if (stat_ == stat::pause) {
 			if (event.getCode() == KeyEvent::KEY_SPACE) {
-				main_.pause();
+                main_.process_event(Ev_Pause()); // main_.pause();
 			}
 		}
 		return;
     }
 	if (event.getCode() == KeyEvent::KEY_SPACE) {
-		main_.pause();
+        main_.process_event(Ev_Pause()); // main_.pause();
 		return;
 	}
 
