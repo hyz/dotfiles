@@ -31,6 +31,7 @@ using namespace msm::front;
 //using namespace msm::front::euml; // for And_ operator
 
 const float BOX_SIZE = 40;
+const float BOX_SIZEp1 = 41;
 
 struct Ev_Quit {};
 struct Ev_Pause {};
@@ -46,38 +47,153 @@ struct Ev_Blink {};
 struct Ev_EndBlink {};
 template <class M, class Ev> void do_event(M& m, Ev const& ev);
 
-template <typename FSM>
-class App_ : public AppNative
+struct View
 {
-	Tetris M;
+    void operator()(Tetris const& M);
+
+    void play_sound( const char* asset );
+
+    gl::TextureRef make_tex(std::string const& line)
+    {
+        TextLayout layout;
+        layout.setFont( Font( "Arial", 32 ) );
+        layout.setColor( Color( 1, 1, 0 ) );
+
+        layout.addLine( line );
+        return gl::Texture::create( layout.render( true ) );
+    }
+    inline Vec2i size(Vec2i bp, Vec2i ep) { return Vec2i(abs(ep.x - bp.x), abs(ep.y - bp.y)); }
+
+    Vec2i drawString(int x, int y, std::string const& v);
+    Vec2i drawString(Vec2i bp, Vec2i ep, std::string const& v);
+    Vec2i drawMultiArray(Vec2i p, Array2d const& m, bool bg);
+
+    void prepareSettings(Settings *settings) {
+        settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
+    }
+
+	audio::VoiceRef mVoice;
+};
+
+Vec2i View::drawString(int x, int y, std::string const& v)
+{
+    gl::TextureRef tex = make_tex(v); //("score: " + std::to_string(v));
+    gl::draw( tex, Vec2i(x,y) );
+	return p + tex->getSize(); //Area(Vec2i(0,0), tex->getSize());
+}
+
+Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
+{
+    gl::TextureRef tex = make_tex(v); //("score: " + std::to_string(v));
+
+    Vec2i s0 = size(bp, ep);
+    Vec2i s1 = tex.getSize();
+
+    int w = s0.x;
+    if (s0.x > s1.x) {
+        w = (s0.x - s1.x) / 2;
+    }
+    int h = s0.y;
+    if (s0.y > s1.y) {
+        h = (s0.y - s1.y) / 2;
+    }
+    bp += Vec2i(w,h);
+    gl::draw( tex, bp );
+    return bp + Vec2i(w,h);
+}
+
+Vec2i View::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
+{
+	Vec2i endp;
+	int bsiz = BOX_SIZE;
+	auto const s = get_shape(m);
+	for (int y=0; y != s[0]; ++y) {
+		for (int x=0; x != s[1]; ++x) {
+			Vec2i p( (bsiz+1)*x + p.x , (bsiz+1)*y + p.y );
+			endp = p + Vec2i(bsiz, bsiz);
+			Rectf rect(p, endp);
+			if (m[y][x]) {
+				gl::color( Color( 0.6f, 0.3f, 0.15f ) );
+			} else if (bg) {
+				gl::color( Color( 0.1f, 0.1f, 0.1f ) );
+			} else
+				continue;
+			gl::drawSolidRect( rect );
+		}
+	}
+	return endp;
+}
+
+void View::operator()(Tetris const& M)
+{
+	gl::clear( Color( 0, 0, 0 ) );
+	glPushMatrix();
+        // gl::translate(5, 5);
+        gl::color( Color( 1, 0.5f, 0.25f ) );
+
+        Vec2i bp(BOX_SIZE,BOX_SIZE); // Area aMx, aPx;
+        Vec2i ep = drawMultiArray(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
+
+        drawMultiArray(Vec2i( bp.x + BOX_SIZEp1*M.p_[1], bp.y + BOX_SIZEp1*M.p_[0] ), M.smat_);
+
+        Array2d pv; {
+            auto s = get_shape(M.pv_);
+            pv.resize(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
+            or_assign(pv, Point(0,0), M.pv_);
+        }
+        Vec2i bp2( ep.x + BOX_SIZE, bp.y );
+        Vec2i ep2 = drawMultiArray(bp2, pv, 1);
+
+		gl::enableAlphaBlending();
+        gl::color( Color::white() );
+        drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(get_score()));
+        drawString(bp, ep, state); //("Game over"); ("Pause");
+		gl::disableAlphaBlending();
+	glPopMatrix();
+}
+
+void View::play_sound( const char* asset )
+{
+	fs::path p = "sound";
+	try {
+		if (mVoice)
+			mVoice->stop();
+		mVoice = audio::Voice::create( audio::load(loadAsset(p/asset)) );
+
+		float volume = 1.0f;
+		float pan = 0.5f;
+
+		mVoice->setVolume( volume );
+		mVoice->setPan( pan );
+
+		if( mVoice->isPlaying() )
+			mVoice->stop();
+
+		mVoice->start();
+	} catch (...) {
+	}
+}
+
+struct Main_ : msm::front::state_machine_def<Main_>
+{
+    Tetris model;
+    View view;
+
     std::vector<uint8_t> rows_;
     enum class stat {
         normal=0, over=1, pause
     };
 	stat stat_;
-	unsigned char box_size_;
+	// unsigned char box_size_;
 	
-	audio::VoiceRef mVoice;
-    //audio::GainNodeRef              mGain;
-    //audio::BufferPlayerNodeRef      mBufferPlayerNode;
-    FSM fsm_;
+    boost::asio::deadline_timer deadline_;
 
 public:
-    App_() : fsm_(io_service(), M, *this) {}
+    Main_(boost::asio::io_service& io_s) : io_s_(io_s) , deadline_(io_s_)
+    {}
 
-	void prepareSettings( Settings *settings );
-	void setup();
-
-	void mouseDown( MouseEvent event );	
-	void keyDown( KeyEvent event );
-	void update();
-
-	void draw();
-	Vec2i drawMultiArray(Vec2i p, Array2d const& m, bool bg=0);
-	Area drawStatus();
-    Area drawScore();
-    Area drawPreview(Array2d const& pv);
-	void play_sound( const char* asset );
+    void draw() { view(model); }
+    void update();
 
 	void new_game();
     void pause()
@@ -89,12 +205,12 @@ public:
     }
     void move_down(bool keydown)
     {
-        if (!M.Move(0)) {
-            rows_.push_back(M.last_nclr_);
-            if (!M.next_round()) {
+        if (!model.Move(0)) {
+            rows_.push_back(model.last_nclr_);
+            if (!model.next_round()) {
                 game_over();
             } else if (keydown) {
-                play_sound( "speedown.wav" );
+                view.play_sound( "speedown.wav" );
             }
         }
     }
@@ -121,287 +237,8 @@ public:
         return rows_.size()/10; //(get_score()+90) / 100;
     }
 
-	void addBox( const Vec2f &pos );
-	b2World				*mWorld;
-	vector<b2Body*>		mBoxes;
+//  }; struct Main_ : public msm::front::state_machine_def<Main_> {
 
-};
-
-void App_::prepareSettings( Settings *settings )
-{
-    settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
-
-	//box_size_ = ;
-	//extern void msm_test(); 	msm_test();
-}
-
-void App_::setup()
-{
-	b2Vec2 gravity( 0.0f, 5.0f );
-	mWorld = new b2World( gravity );
-
-	b2BodyDef groundBodyDef;
-	groundBodyDef.position.Set( 0.0f, getWindowHeight() );
-	b2Body* groundBody = mWorld->CreateBody(&groundBodyDef);
-
-	// Define the ground box shape.
-	b2PolygonShape groundBox;
-
-	// The extents are the half-widths of the box.
-	groundBox.SetAsBox( getWindowWidth(), 10.0f );
-
-	// Add the ground fixture to the ground body.
-	groundBody->CreateFixture(&groundBox, 0.0f);
-
-	//auto ctx = audio::Context::master();
-	//auto sourceFile = /*, ctx->getSampleRate()*/);//(app::loadResource("1.wav"));
-//audio::BufferRef buffer = sourceFile->loadBuffer();
-//    mBufferPlayerNode = ctx->makeNode( new audio::BufferPlayerNode( buffer ) );
-//    // add a Gain to reduce the volume
-//    mGain = ctx->makeNode( new audio::GainNode( 0.5f ) );
-//    // connect and enable the Context
-//    mBufferPlayerNode >> mGain >> ctx->getOutput();
-//    ctx->enable();
-
-	//float volume = 1.0f - (float)event.getPos().y / (float)getWindowHeight();
-	//float pan = (float)event.getPos().x / (float)getWindowWidth();
-	//mVoice->setVolume( volume );
-	//mVoice->setPan( pan );
-
-	new_game();
-}
-void App_::play_sound( const char* asset )
-{
-	fs::path p = "sound";
-	try {
-		if (mVoice)
-			mVoice->stop();
-		mVoice = audio::Voice::create( audio::load(loadAsset(p/asset)) );
-
-		float volume = 1.0f;
-		float pan = 0.5f;
-
-		mVoice->setVolume( volume );
-		mVoice->setPan( pan );
-
-		if( mVoice->isPlaying() )
-			mVoice->stop();
-
-		mVoice->start();
-	} catch (...) {
-	}
-}
-
-void App_::new_game()
-{
-    rows_.clear();;
-	stat_ = stat::normal;
-	M.reset(20, 10);  //std::cerr << M << "\n";
-	M.next_round();
-	// play_sound( "newgame.wav" );
-}
-
-void App_::addBox( const Vec2f &pos )
-{
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	bodyDef.position.Set( pos.x, pos.y );
-
-	b2Body *body = mWorld->CreateBody( &bodyDef );
-
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox( BOX_SIZE, BOX_SIZE );
-
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 1.0f;
-	fixtureDef.friction = 0.3f;
-	fixtureDef.restitution = 0.5f; // bounce
-
-	body->CreateFixture( &fixtureDef );
-	mBoxes.push_back( body );
-}
-
-void App_::mouseDown( MouseEvent event )
-{
-    pause();
-	//addBox( event.getPos() );
-}
-
-void App_::keyDown( KeyEvent event )
-{
-#if defined( CINDER_COCOA )
-    bool isModDown = event.isMetaDown();
-#else // windows
-    bool isModDown = event.isControlDown();
-#endif
-    if (isModDown) {
-		if( event.getChar() == 'n' ) {
-			new_game();
-        }
-		return;
-	}
-    if (event.getCode() == KeyEvent::KEY_ESCAPE || event.getChar() == 'q') {
-        // ask confirm
-		quit();
-		return;
-	}
-	if (stat_ != stat::normal) {
-        if (stat_ == stat::over) {
-            if (microsec_clock::local_time() - M.td_ > seconds(3)) {
-                new_game();
-            }
-		} else if (stat_ == stat::pause) {
-			if (event.getCode() == KeyEvent::KEY_SPACE) {
-				pause();
-			}
-		}
-		return;
-    }
-	if (event.getCode() == KeyEvent::KEY_SPACE) {
-		pause();
-		return;
-	}
-    if (event.getCode() == KeyEvent::KEY_UP) {
-		M.rotate();
-		play_sound( "rotate.wav" );
-    } else if (event.getCode() == KeyEvent::KEY_LEFT) {
-		M.Move(-1);
-    } else if (event.getCode() == KeyEvent::KEY_RIGHT) {
-		M.Move(1);
-    } else if (event.getCode() == KeyEvent::KEY_DOWN) {
-        move_down(1);
-	}
-}
-
-void App_::update()
-{
-	//for( int i = 0; i < 10; ++i ) mWorld->Step( 1 / 30.0f, 10, 10 );
-
-	if (stat_ != stat::normal)
-		return;
-
-	if (microsec_clock::local_time() - M.td_ > milliseconds(900 - get_level()*10 - get_score()/8)) {
-        move_down(0);
-	}
-}
-
-Vec2i App_::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
-{
-	Vec2i endp;
-	int bsiz = BOX_SIZE;
-	auto const s = get_shape(m);
-	for (int y=0; y != s[0]; ++y) {
-		for (int x=0; x != s[1]; ++x) {
-			Vec2i p( (bsiz+1)*x + p.x , (bsiz+1)*y + p.y );
-			endp = p + Vec2i(bsiz, bsiz);
-			Rectf rect(p, endp);
-			if (m[y][x]) {
-				gl::color( Color( 0.6f, 0.3f, 0.15f ) );
-			} else if (bg) {
-				gl::color( Color( 0.1f, 0.1f, 0.1f ) );
-			} else
-				continue;
-			gl::drawSolidRect( rect );
-		}
-	}
-	return endp;
-}
-
-gl::TextureRef make_tex(std::string const& line)
-{
-    TextLayout layout;
-    layout.setFont( Font( "Arial", 32 ) );
-    layout.setColor( Color( 1, 1, 0 ) );
-
-    layout.addLine( line );
-    //if (stat_ == stat::over) {
-    //    //layout.addLine( std::string("synths: ") );
-    //} else if (stat_ == stat::pause) {
-    //    layout.addLine( std::string("Pause") );
-    //}
-    return gl::Texture::create( layout.render( true ) );
-}
-
-void App_::drawPreview(Array2d const& pv)
-{
-	auto s = get_shape(pv);
-    Array2d a(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
-    or_assign(a, Point(0,0), pv);
-
-    Vec2i endp;
-	endp = drawMultiArray(Vec2i::zero(), a, 1);
-    endp = drawScore(Vec2i(0, endp.y+10));
-}
-
-Area App_::drawScore(Vec2i p)
-{
-	char sbuf[64];
-	sprintf(sbuf, "score: %d", get_score()); // std::itoa(100);
-    gl::color( Color::white() );
-    gl::TextureRef tex = make_tex(sbuf);
-	tex->getAreaTexCoords();
-    gl::draw( tex, Vec2f::zero(), );
-	return Area(Vec2i(0,0), tex->getSize());
-}
-
-Vec2i App_::drawStatus(Vec2i p, std::string const& s)
-{
-	Vec2i endp;
-
-    if (!s.empty()) //(stat_ != stat::normal)
-    {
-		gl::TextureRef tex;
-        if (stat_ == stat::over) {
-            tex = make_tex("Game over");
-        } else if (stat_ == stat::pause) {
-            tex = make_tex("Pause");
-        }
-        gl::draw( tex, offset );
-    }
-    return endp;
-}
-
-void App_::draw()
-{
-	gl::clear( Color( 0, 0, 0 ) );
-	gl::color( Color( 1, 0.5f, 0.25f ) );
-
-	glPushMatrix();
-        gl::translate(5, 5);
-        drawMultiArray(M.vmat_, 1);
-        gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
-        drawMultiArray(M.smat_);
-	glPopMatrix();
-
-	boost::array<int,2> s = get_shape(M.vmat_);
-	glPushMatrix();
-        // gl::translate((BOX_SIZE+1)*s[1]+BOX_SIZE, BOX_SIZE);
-        drawPreview(Vec2i((BOX_SIZE+1)*s[1]+BOX_SIZE, BOX_SIZE), M.pv_);
-
-		gl::enableAlphaBlending();
-        gl::color( Color::white() );
-        drawStatus(Vec2i( ((BOX_SIZE+1)*10 - tex->getWidth())/2, 50 ), "");
-		gl::disableAlphaBlending();
-	glPopMatrix();
-
-	//for( vector<b2Body*>::const_iterator boxIt = mBoxes.begin(); boxIt != mBoxes.end(); ++boxIt ) {
-	//	Vec2f pos( (*boxIt)->GetPosition().x, (*boxIt)->GetPosition().y );
-	//	float t = toDegrees( (*boxIt)->GetAngle() );
-
-	//	glPushMatrix();
-	//	gl::translate( pos );
-	//	gl::rotate( t );
-
-	//	Rectf rect( -BOX_SIZE, -BOX_SIZE, BOX_SIZE, BOX_SIZE );
-	//	gl::drawSolidRect( rect );
-
-	//	glPopMatrix();	
-	//}
-}
-
-struct Main_ : public msm::front::state_machine_def<Main_>
-{
     struct Quit : public msm::front::state<>
     {
         template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm)
@@ -433,16 +270,17 @@ struct Main_ : public msm::front::state_machine_def<Main_>
             template <class Ev, class SM, class SourceState, class TargetState>
             void operator()(Ev const& ev, SM& sm, SourceState&, TargetState&)
             {
-                if (!tetris_.Move(ev.how)) {
+                if (!sm.model.Move(ev.how)) {
                     if (ev.how == 0) {
-                        rows_.push_back(tetris_.last_rows[0]);
-                        if (!tetris_.next_round()) {
+                        rows_.push_back(sm.model.last_rows[0]);
+                        if (!sm.model.next_round()) {
                             sm.process_event(Ev_Over());
                         } else if (keydown) {
-                            play_sound( "speedown.wav" );
+                            view.play_sound( "speedown.wav" );
                         }
                     }
                 }
+                //sm.view.play_sound( "rotate.wav" );
             }
         };
         struct Normal : public msm::front::state<>
@@ -517,7 +355,6 @@ struct Main_ : public msm::front::state_machine_def<Main_>
     template <class Ev, class SM> void on_exit(Ev const&, SM&) {
         boost::system::error_code ec;
         deadline_.cancel(ec);
-        quit_(); //(ev, sm);
         std::cout << "Top exit\n";
     }
     template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
@@ -525,20 +362,91 @@ struct Main_ : public msm::front::state_machine_def<Main_>
         std::cout << "Tetris no transition from state " << state
             << " on event " << typeid(Ev).name() << std::endl;
     }
+}; // Main_
 
-    Main_(boost::asio::io_service& io_s, boost::function<void()> quit)
-        : io_s_(io_s)
-        , deadline_(io_s)
-        , quit_(quit)
+void Main_::new_game()
+{
+    rows_.clear();;
+	stat_ = stat::normal;
+	model.reset(20, 10);  //std::cerr << model << "\n";
+	model.next_round();
+	// play_sound( "newgame.wav" );
+}
+
+void Main_::update()
+{
+	if (stat_ != stat::normal)
+		return;
+
+	if (microsec_clock::local_time() - model.td_ > milliseconds(900 - get_level()*10 - get_score()/8)) {
+        move_down(0);
+	}
+}
+
+class App_ : public AppNative
+{
+    msm::back::state_machine<Main_> main_;
+public:
+    App_() : main_(io_service())
     {}
 
-    Tetris tetris_;
-    boost::asio::io_service& io_s_;
-    boost::asio::deadline_timer deadline_;
+	void prepareSettings( Settings *settings ) {
+        main_.view.prepareSettings(BOX_SIZE*16, BOX_SIZE*22 );
+    }
+	void setup() { main_.new_game(); }
+	void update() { main_.update(); }
+	void draw() { main_.draw(); }
 
-    boost::asio::deadline_timer& deadline() { return deadline_; }
-    boost::function<void()> quit_;
-}; // Main_
+	void mouseDown( MouseEvent event ) { main_.pause(); }
+
+	void keyDown( KeyEvent event );
+};
+
+void App_::keyDown( KeyEvent event )
+{
+#if defined( CINDER_COCOA )
+    bool isModDown = event.isMetaDown();
+#else // windows
+    bool isModDown = event.isControlDown();
+#endif
+    if (isModDown) {
+		if( event.getChar() == 'n' ) {
+			main_.new_game();
+        }
+		return;
+	}
+    if (event.getCode() == KeyEvent::KEY_ESCAPE || event.getChar() == 'q') {
+        // ask confirm
+		main_.quit();
+		return;
+	}
+	if (stat_ != stat::normal) {
+        if (stat_ == stat::over) {
+            if (microsec_clock::local_time() - model.td_ > seconds(3)) {
+                main_.new_game();
+            }
+		} else if (stat_ == stat::pause) {
+			if (event.getCode() == KeyEvent::KEY_SPACE) {
+				main_.pause();
+			}
+		}
+		return;
+    }
+	if (event.getCode() == KeyEvent::KEY_SPACE) {
+		main_.pause();
+		return;
+	}
+
+    int ev = 0;
+    switch (event.getCode()) {
+        case KeyEvent::KEY_UP: ev = 2; break;
+        case KeyEvent::KEY_LEFT: ev = -1; break;
+        case KeyEvent::KEY_RIGHT: ev = 1; break;
+        case KeyEvent::KEY_DOWN: ev = 0; break;
+        default: return;
+    }
+    main_.process_event(Ev_Input(ev));
+}
 
 template <class Ev>
 void do_event(Main& t, Ev const& ev)
@@ -599,5 +507,5 @@ int _testmain()
 //}
 //}
 
-CINDER_APP_NATIVE( App_<msm::back::state_machine<Main_>>, RendererGl )
+CINDER_APP_NATIVE( App_, RendererGl )
 

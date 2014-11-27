@@ -1,0 +1,9 @@
+### https://wiki.archlinux.org/index.php/archboot
+### https://downloads.archlinux.de/iso/archboot/2014.09
+
+menuentry "Archboot" --class iso {
+loopback loop (hdX,X)/<archboot.iso>
+linux (loop)/boot/vmlinuz_x86_64 iso_loop_dev=/dev/sdXX iso_loop_path=/<archboot.iso>
+initrd (loop)/boot/initramfs_x86_64.img
+}
+

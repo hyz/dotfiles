@@ -1,0 +1,13 @@
+### https://wiki.archlinux.org/index.php/Android
+
+
+### tips
+https blocked, but http is availiable.
+vim PKGBUILD
+change https to http
+
+#mirrors
+#http://downloads.puresoftware.org/files/android/
+#http://mirrors.neusoft.edu.cn/android/repository/
+
+
