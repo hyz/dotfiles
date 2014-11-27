@@ -28,10 +28,10 @@ class box2d_basicApp : public AppNative {
 	void update();
 
 	void draw();
-	void drawMultiArray(Array2d const& m, bool bg=0);
-	void drawStatus();
-    void drawScore();
-    void drawPreview();
+	Vec2i drawMultiArray(Vec2i p, Array2d const& m, bool bg=0);
+	Area drawStatus();
+    Area drawScore();
+    Area drawPreview(Array2d const& pv);
 	void play_sound( const char* asset );
 
 	void new_game();
@@ -80,7 +80,7 @@ class box2d_basicApp : public AppNative {
 	b2World				*mWorld;
 	vector<b2Body*>		mBoxes;
 
-	Main M;
+	Tetris M;
     std::vector<uint8_t> rows_;
     enum class stat {
         normal=0, over=1, pause
@@ -98,8 +98,7 @@ void box2d_basicApp::prepareSettings( Settings *settings )
     settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
 
 	//box_size_ = ;
-	extern void msm_test();
-	msm_test();
+	//extern void msm_test(); 	msm_test();
 }
 
 void box2d_basicApp::setup()
@@ -253,21 +252,26 @@ void box2d_basicApp::update()
 	}
 }
 
-void box2d_basicApp::drawMultiArray(Array2d const& m, bool bg)
+Vec2i box2d_basicApp::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
 {
+	Vec2i endp;
 	int bsiz = BOX_SIZE;
 	auto const s = get_shape(m);
 	for (int y=0; y != s[0]; ++y) {
 		for (int x=0; x != s[1]; ++x) {
-			Rectf rect((bsiz+1)*x, (bsiz+1)*y, (bsiz+1)*x+bsiz, (bsiz+1)*y+bsiz);
+			Vec2i p( (bsiz+1)*x + p.x , (bsiz+1)*y + p.y );
+			endp = p + Vec2i(bsiz, bsiz);
+			Rectf rect(p, endp);
 			if (m[y][x]) {
 				gl::color( Color( 0.6f, 0.3f, 0.15f ) );
 			} else if (bg) {
 				gl::color( Color( 0.1f, 0.1f, 0.1f ) );
-			} else continue;
+			} else
+				continue;
 			gl::drawSolidRect( rect );
 		}
 	}
+	return endp;
 }
 
 gl::TextureRef make_tex(std::string const& line)
@@ -285,23 +289,26 @@ gl::TextureRef make_tex(std::string const& line)
     return gl::Texture::create( layout.render( true ) );
 }
 
-void box2d_basicApp::drawPreview()
+void box2d_basicApp::drawPreview(Array2d const& pv)
 {
-    Array2d a(boost::extents[4][4]);
-    or_assign(a, make_array(0,0), M.pv_);
-    drawMultiArray(a, 1);
+	auto s = get_shape(pv);
+    Array2d a(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
+    or_assign(a, Point(0,0), pv);
 
-    gl::translate(0, (BOX_SIZE+1)*4+10);
-    drawScore();
+    Vec2i endp;
+	endp = drawMultiArray(Vec2i::zero(), a, 1);
+    endp = drawScore(Vec2i(0, endp.y+10));
 }
 
-void box2d_basicApp::drawScore()
+Area box2d_basicApp::drawScore(Vec2i p)
 {
 	char sbuf[64];
 	sprintf(sbuf, "score: %d", get_score()); // std::itoa(100);
     gl::color( Color::white() );
     gl::TextureRef tex = make_tex(sbuf);
-    gl::draw( tex, Vec2f(0,0) );
+	tex->getAreaTexCoords();
+    gl::draw( tex, Vec2f::zero(), );
+	return Area(Vec2i(0,0), tex->getSize());
 }
 
 void box2d_basicApp::drawStatus()
@@ -332,11 +339,12 @@ void box2d_basicApp::draw()
         drawMultiArray(M.smat_);
 	glPopMatrix();
 
+	boost::array<int,2> s = get_shape(M.vmat_);
 	glPushMatrix();
 		gl::enableAlphaBlending();
         drawStatus();
-        gl::translate((BOX_SIZE+1)*10+10, 10);
-        drawPreview();
+        gl::translate((BOX_SIZE+1)*s[1]+BOX_SIZE, BOX_SIZE);
+        drawPreview(M.pv_);
 		gl::disableAlphaBlending();
 	glPopMatrix();
 

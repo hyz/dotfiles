@@ -1,17 +1,35 @@
 #pragma once
 #include <time.h>
+#include <iostream>
 #include <boost/move/move.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/multi_array.hpp"
 #include "boost/cstdlib.hpp"
 #include "make_array.hpp"
-#include <iostream>
 
 typedef boost::multi_array<char,2> Array2d;
 typedef Array2d::array_view<2>::type Array2d_view_t;
 using boost::array;
 using boost::make_array;
-typedef array<int,2> Point;
+
+struct Point : array<int,2>
+{
+	template <typename I>	Point(array<I,2> p) { this->y(p[0]), this->x(p[1]); }
+	Point(int y=0, int x=0) { this->y(y), this->x(x); }
+	int y() const { return (*this)[0]; }
+	int x() const { return (*this)[1]; }
+	int y(int v) { return (*this)[0] = v; }
+	int x(int v) { return (*this)[1] = v; }
+};
+struct Size : array<size_t,2>
+{
+	template <typename I>	Size(array<I,2> p) { this->height(p[0]), this->width(p[1]); }
+	Size(size_t a=0, size_t b=0) { this->height(a), this->width(b); }
+	size_t height() const { return (*this)[0]; }
+	size_t width() const { return (*this)[1]; }
+	size_t height(int v) { return (*this)[0] = v; }
+	size_t width(int v) { return (*this)[1] = v; }
+};
 
 template <typename T>
 std::ostream& print2d(std::ostream& out, T const& m)
@@ -130,7 +148,7 @@ M& or_assign(M& va, Point bp, N const& n)
     return va;
 }
 
-struct Main // : Array2d
+struct Tetris // : Array2d
 {
     //std::vector<std::pair<char*,size_t>> const const_mats_;
     Array2dx vmat_;
@@ -140,7 +158,7 @@ struct Main // : Array2d
     int last_nclr_;
     // std::vector<unsigned char> scores_;
 
-    Main() //: const_mats_(mats_init())
+    Tetris() //: const_mats_(mats_init())
     {}
 
     void new_game(size_t h, size_t w) { reset(h,w); }
@@ -188,8 +206,11 @@ struct Main // : Array2d
             tmp[0]++;
         } else if (di < 0) {
             tmp[1]--;
-        } else {
+        } else if (di > 0) {
             tmp[1]++;
+        } else {
+            rotate();
+            return true;
         }
 
         if (is_collision(vmat_, tmp, smat_)) {
@@ -318,7 +339,7 @@ private:
         }
     }
 
-    friend std::ostream& operator<<(std::ostream& out, Main const& M)
+    friend std::ostream& operator<<(std::ostream& out, Tetris const& M)
     {
         auto& m = M.vmat_;
         for (Array2d::index i = 0; i != m.size(); ++i)
@@ -340,7 +361,7 @@ private:
 
 int main__(int argc, char* const argv[])
 {
-    Main M;
+    Tetris M;
     M.new_game(20, 10);  //std::cerr << M << "\n";
     while (M.next_round()) {
         M.rotate(); // std::cerr << M << "\n";
