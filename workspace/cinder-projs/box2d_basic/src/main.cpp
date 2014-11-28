@@ -57,24 +57,21 @@ template <class M, class Ev> void do_event(M& m, Ev const& ev)
     std::cout << "=E " << state_names[m.current_state()[0]] << "\n";
 }
 
-struct Model : Tetris
+struct Model : Tetris_Basic
 {
-    enum class stat {
-        normal=0, over=1, pause
-    };
+    //enum class stat { normal=0, over=1, pause };
 
     std::vector<round_result> rounds_;
-	stat stat_;
-
-    Model() { stat_=stat::normal; }
+    std::string stats;
+    Model() {}
 
     void reset()
     {
         rounds_.clear();;
-        stat_ = stat::normal;
+        // stat_ = stat::normal;
 
-        Tetris::reset(20, 10);  //std::cerr << model << "\n";
-        Tetris::next_round();
+        Tetris_Basic::reset(20, 10);  //std::cerr << model << "\n";
+        Tetris_Basic::next_round();
     }
 
     int get_score() const
@@ -92,7 +89,7 @@ struct Model : Tetris
     }
     int get_level() const { return rounds_.size()/10; }
 
-    bool time2falling(ptime& tp) const
+    bool time2falling(ptime const& tp) const
     {
         return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
     }
@@ -117,7 +114,7 @@ struct View
 
     Vec2i drawString(int x, int y, std::string const& v);
     Vec2i drawString(Vec2i bp, Vec2i ep, std::string const& v);
-    Vec2i drawMultiArray(Vec2i p, Array2d const& m, bool bg);
+    Vec2i drawArray2d(Vec2i p, Array2d const& m, bool bg);
 
     void prepareSettings(Settings *settings) {
         settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
@@ -153,7 +150,7 @@ Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
     return bp + Vec2i(w,h);
 }
 
-Vec2i View::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
+Vec2i View::drawArray2d(Vec2i p, Array2d const& m, bool bg)
 {
 	Vec2i endp;
 	int bsiz = BOX_SIZE;
@@ -183,9 +180,9 @@ void View::operator()(Model const& M)
         gl::color( Color( 1, 0.5f, 0.25f ) );
 
         Vec2i bp(BOX_SIZE,BOX_SIZE); // Area aMx, aPx;
-        Vec2i ep = drawMultiArray(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
+        Vec2i ep = drawArray2d(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
 
-        drawMultiArray(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_);
+        drawArray2d(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_);
 
         Array2d pv; {
             auto s = get_shape(M.pv_);
@@ -193,12 +190,13 @@ void View::operator()(Model const& M)
             or_assign(pv, Point(0,0), M.pv_);
         }
         Vec2i bp2( ep.x + BOX_SIZE, bp.y );
-        Vec2i ep2 = drawMultiArray(bp2, pv, 1);
+        Vec2i ep2 = drawArray2d(bp2, pv, 1);
 
 		gl::enableAlphaBlending();
         gl::color( Color::white() );
         drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(M.get_score()));
-        drawString(bp, ep, state); //("Game over"); ("Pause");
+        if (!stats.empty())
+            drawString(bp, ep, stats); //("Game over"); ("Pause");
 		gl::disableAlphaBlending();
 	glPopMatrix();
 }
@@ -334,7 +332,6 @@ public:
 
         void autodownfall()
         {
-            // if (stat_ != stat::normal) return;
             if (model.time2falling(microsec_clock::local_time())) {
                 do_event(te, Ev_Timeout());
             }
@@ -345,7 +342,7 @@ public:
     struct GameOver : msm::front::state<>
     {
         template <class Ev, class SM> void on_entry(Ev const&, SM&) {
-            sm.model.stat_= Model::stat::over;
+            // sm.model.stat_= Model::stat::over;
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
     };
@@ -362,8 +359,12 @@ public:
     }; // YesPlaying
     struct Paused : msm::front::interrupt_state<Ev_Leave>
     {
-        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) {}
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) {
+            sm.model.stats = "Paused";
+        }
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {
+            sm.model.stats.clear();
+        }
     }; // Paused
     struct Quit : msm::front::state<> 
     {
@@ -468,30 +469,30 @@ void App_::keyDown( KeyEvent event )
     do_event(main_, Ev_Input(ev));
 }
 
-int _testmain()
-{
-    boost::asio::io_service io_s;
-    Main te(boost::ref(io_s));
-
-    do_event(te, Ev_Input(1));
-    do_event(te, Ev_Restart());
-    do_event(te, Ev_Input(0));
-    do_event(te, Ev_Blink());
-    do_event(te, Ev_Leave());
-  //do_event(te, Ev_Resume());
-    do_event(te, Ev_Input(1));
-    do_event(te, Ev_EndBlink());
-    do_event(te, Ev_Input(0));
-    do_event(te, Ev_Blink());
-    do_event(te, Ev_Input(1));
-    do_event(te, Ev_EndBlink());
-    do_event(te, Ev_Input(0));
-    do_event(te, Ev_Quit());
-    do_event(te, Ev_Quit());
-  //do_event(te, Ev_Quit());
-
-    return 0;
-}
+//int _testmain()
+//{
+//    boost::asio::io_service io_s;
+//    Main te(boost::ref(io_s));
+//
+//    do_event(te, Ev_Input(1));
+//    do_event(te, Ev_Restart());
+//    do_event(te, Ev_Input(0));
+//    do_event(te, Ev_Blink());
+//    do_event(te, Ev_Leave());
+//  //do_event(te, Ev_Resume());
+//    do_event(te, Ev_Input(1));
+//    do_event(te, Ev_EndBlink());
+//    do_event(te, Ev_Input(0));
+//    do_event(te, Ev_Blink());
+//    do_event(te, Ev_Input(1));
+//    do_event(te, Ev_EndBlink());
+//    do_event(te, Ev_Input(0));
+//    do_event(te, Ev_Quit());
+//    do_event(te, Ev_Quit());
+//  //do_event(te, Ev_Quit());
+//
+//    return 0;
+//}
 
 
 //	void VoiceBasicApp::mouseDown( MouseEvent event )

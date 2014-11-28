@@ -148,25 +148,22 @@ M& or_assign(M& va, Point bp, N const& n)
     return va;
 }
 
-struct round_result
+struct round_result : private std::array<uint8_t,8>
 {
-    uint8_t score() const { return size(); }
+    round_result() { clear(); }
 
-    std::pair<uint8_t*,uint8_t*> rows() const {
-        return std::make_pair(&a_[0], &a_[size()]);
-    }
+    iterator begin() { return std::array<uint8_t,8>::begin(); }
+    iterator end() { return begin()+size(); }
+	iterator begin() const { return const_cast<round_result*>(this)->begin(); }
+	iterator end() const { return const_cast<round_result*>(this)->end(); }
+    uint8_t size() const { return back(); }
+	bool empty() const { return size()==0; }
 
-    round_result& put(uint8_t x) { a_[size()++] = x; return *this; }
-    void clear() { a_.assign(0); }
-
-    round_result() { a_.assign(0); }
-
-    std::array<uint8_t,8> a_;
-    inline uint8_t& size() { return a_[7]; }
-    inline uint8_t const size() const { return a_[7]; }
+    void push_back(uint8_t x) { at(back()++) = x; }
+    void clear() { assign(0); }
 };
 
-struct Tetris // : Array2d
+struct Tetris_Basic // : Array2d
 {
     //std::vector<std::pair<char*,size_t>> const const_mats_;
     Array2dx vmat_;
@@ -176,7 +173,7 @@ struct Tetris // : Array2d
     round_result last_round_result;
     // std::vector<unsigned char> scores_;
 
-    Tetris() //: const_mats_(mats_init())
+    Tetris_Basic() //: const_mats_(mats_init())
     {}
 
     void new_game(size_t h, size_t w) { reset(h,w); }
@@ -280,7 +277,7 @@ private:
         if (xlast >= xfirst) {
             if (std::find(row.begin(), row.end(), 0) == row.end()) {
                 clear(xlast);
-                res.put(xlast); // ++res;
+                res.push_back(xlast); // ++res;
             } else if (!res.empty()) {
                 vmat_[xlast+res.size()] = row; clear(xlast);
             }
@@ -354,7 +351,7 @@ private:
         }
     }
 
-    friend std::ostream& operator<<(std::ostream& out, Tetris const& M)
+    friend std::ostream& operator<<(std::ostream& out, Tetris_Basic const& M)
     {
         auto& m = M.vmat_;
         for (Array2d::index i = 0; i != m.size(); ++i)
@@ -376,7 +373,7 @@ private:
 
 int main__(int argc, char* const argv[])
 {
-    Tetris M;
+    Tetris_Basic M;
     M.new_game(20, 10);  //std::cerr << M << "\n";
     while (M.next_round()) {
         M.rotate(); // std::cerr << M << "\n";
