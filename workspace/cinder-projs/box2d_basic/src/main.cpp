@@ -30,8 +30,8 @@ using namespace msm::front;
 //using namespace std;
 //using namespace msm::front::euml; // for And_ operator
 
-const float BOX_SIZE = 40;
-const float BOX_SIZEp1 = 41;
+static const int BOX_SIZE = 40;
+static const int BOX_SIZEpx = 41;
 
 struct Ev_Restart {};
 struct Ev_Input {
@@ -90,11 +90,12 @@ struct Model : Tetris
         }
         return score;
     }
-    int get_level() const
-    {
-        return rounds_.size()/10; //(get_score()+90) / 100;
-    }
+    int get_level() const { return rounds_.size()/10; }
 
+    bool time2falling(ptime& tp) const
+    {
+        return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
+    }
 };
 
 struct View
@@ -184,7 +185,7 @@ void View::operator()(Model const& M)
         Vec2i bp(BOX_SIZE,BOX_SIZE); // Area aMx, aPx;
         Vec2i ep = drawMultiArray(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
 
-        drawMultiArray(Vec2i( bp.x + BOX_SIZEp1*M.p_[1], bp.y + BOX_SIZEp1*M.p_[0] ), M.smat_);
+        drawMultiArray(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_);
 
         Array2d pv; {
             auto s = get_shape(M.pv_);
@@ -334,7 +335,7 @@ public:
         void autodownfall()
         {
             // if (stat_ != stat::normal) return;
-            if (microsec_clock::local_time() - model.td_ > milliseconds(900 - model.get_level()*10 - model.get_score()/8)) {
+            if (model.time2falling(microsec_clock::local_time())) {
                 do_event(te, Ev_Timeout());
             }
         }
@@ -433,8 +434,7 @@ public:
 	void update() { main_.update(); }
 	void draw() { main_.draw(); }
 
-	void mouseDown( MouseEvent event ) { main_.pause(); }
-
+	void mouseDown( MouseEvent event ) { do_event(main_, Ev_Leave()); }
 	void keyDown( KeyEvent event );
 };
 
@@ -445,43 +445,27 @@ void App_::keyDown( KeyEvent event )
 #else // windows
     bool isModDown = event.isControlDown();
 #endif
+
     if (isModDown) {
 		if( event.getChar() == 'n' ) {
-            do_event(sm, Ev_Restart()); // main_.new_game();
+            do_event(main_, Ev_Restart()); // main_.new_game();
+        } else if (event.getChar() == 'q') {
+            do_event(main_, Ev_Leave(1));
         }
-		return;
-	}
-    if (event.getCode() == KeyEvent::KEY_ESCAPE || event.getChar() == 'q') {
-        do_event(sm, Ev_Quit()); // main_.quit(); // confirm?
-		return;
-	}
-
-	if (stat_ != stat::normal) {
-        if (stat_ == stat::over) {
-            if (microsec_clock::local_time() - model.td_ > seconds(3)) {
-                do_event(sm, Ev_Restart());
-            }
-		} else if (stat_ == stat::pause) {
-			if (event.getCode() == KeyEvent::KEY_SPACE) {
-                do_event(sm, Ev_Leave()); // main_.pause();
-			}
-		}
-		return;
-    }
-	if (event.getCode() == KeyEvent::KEY_SPACE) {
-        do_event(sm, Ev_Leave()); // main_.pause();
 		return;
 	}
 
     int ev = 0;
     switch (event.getCode()) {
+        case KeyEvent::KEY_ESCAPE: do_event(main_, Ev_Leave(1)); return;
+        case KeyEvent::KEY_SPACE: do_event(main_, Ev_Leave()); return;
         case KeyEvent::KEY_UP: ev = 2; break;
         case KeyEvent::KEY_LEFT: ev = -1; break;
         case KeyEvent::KEY_RIGHT: ev = 1; break;
         case KeyEvent::KEY_DOWN: ev = 0; break;
         default: return;
     }
-    do_event(sm, Ev_Input(ev));
+    do_event(main_, Ev_Input(ev));
 }
 
 int _testmain()

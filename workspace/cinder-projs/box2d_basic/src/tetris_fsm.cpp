@@ -24,9 +24,9 @@ struct Ev_Input {
         struct Ev_Blink {};
         struct Ev_EndBlink {};
 
-struct Tetris_ : public msm::front::state_machine_def<Tetris_>
+struct Tetris_ : public msm::front::state_machine_def<Tetris_> , boost::noncopyable
 {
-    struct Quit : public msm::front::state<>
+    struct Quit : public msm::front::state<> , boost::noncopyable
     {
         template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm)
         {
@@ -100,7 +100,7 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_>
     //typedef msm::back::state_machine<Playing_> Playing;
     typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
 
-    struct Paused : public msm::front::state<>
+    struct Paused : public msm::front::state<>, boost::noncopyable
     {
         template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
         template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
