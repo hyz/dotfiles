@@ -17,7 +17,7 @@
 //#include "cinder/audio/SamplePlayerNode.h"
 
 // #include "cinder/DataSource.h"
-#include "multi_array_tetris.h"
+#include "multi_array_tetris.hpp"
 
 using namespace ci;
 using namespace ci::app;
@@ -33,20 +33,28 @@ using namespace msm::front;
 const float BOX_SIZE = 40;
 const float BOX_SIZEp1 = 41;
 
-struct Ev_Quit {};
-struct Ev_Pause {};
-struct Ev_Resume {};
 struct Ev_Restart {};
-struct Ev_Over {};
-struct Ev_Play {};
-struct Ev_Idle {};
 struct Ev_Input {
-    int how;
-    Ev_Input(int x) { how=x; }
+    signed short a, man;
+    Ev_Input(signed short x, signed short y=1) { a=x; man=y; }
 };
+struct Ev_Leave {
+    int exit;
+    Ev_Leave(int x=0) { exit=x; }
+};
+struct Ev_Over {};
+
 struct Ev_Blink {};
 struct Ev_EndBlink {};
-template <class M, class Ev> void do_event(M& m, Ev const& ev);
+
+template <class M, class Ev> void do_event(M& m, Ev const& ev)
+{
+    static char const* const state_names[] = { "Preview", "Prepare", "Playing", "Paused", "Quit" };
+    std::cout << "=B " << state_names[m.current_state()[0]] 
+        << " <>"<< typeid(Ev).name() <<"\n";
+    m.process_event(ev);
+    std::cout << "=E " << state_names[m.current_state()[0]] << "\n";
+}
 
 struct Model : Tetris
 {
@@ -194,9 +202,11 @@ void View::play_sound( const char* asset )
 struct PrintS
 {
     template <class Ev, class SM, class SS, class TS>
-    void operator()(Ev const& ev, SM& sm, SS& ss, TS&)
+    void operator()(Ev const& ev, SM& sm, SS&, TS&) const
     {
-        std::cout << "from state " << typeid(ss).name() << std::endl;
+        std::cout << " on-ev " << typeid(Ev).name()
+            << " state " << typeid(SS).name() <<" "<< typeid(TS).name()
+            << "\n";
     }
 };
 
@@ -260,7 +270,7 @@ public:
     struct Prepare : public msm::front::state<>
     {
         template <class Ev,class SM> void on_entry(Ev const&, SM& ) {
-            sm.process_event(Ev_Play());
+            do_event(sm, Ev_Restart());
         }
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
     }; // Prepare
@@ -270,22 +280,36 @@ public:
         struct Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const& ev, SM& sm, SS&, TS&)
+            void operator()(Ev const& ev, SM& sm, SS&, TS&) {
+                if (rotate(ev, sm.model, sm.view))
+                    return;
+                if (!act(ev, sm.model, sm.view, "speedown.wav"))
+                    do_event(sm, Ev_Over());
+            }
+            int act(Ev_Input ev, model, view, snd)
             {
-                if (!sm.model.Move(ev.how)) {
-                    if (ev.how == 0) {
-                        rows_.push_back(sm.model.last_rows[0]);
-                        if (!sm.model.next_round()) {
-                            sm.process_event(Ev_Over());
-                        } else if (keydown) {
-                            view.play_sound( "speedown.wav" );
-                        }
+                if (!model.Move(ev.a)) {
+                    if (ev.a == 0) {
+                        model.scores_.push_back( model.last_rows );
+                        if (!model.next_round())
+                            return 0;
+                        if (snd)
+                            view.play_sound(snd);
                     }
                 }
-                if (ev.how > 1) {
-                    sm.view.play_sound( "rotate.wav" );
-                }
+                return 1;
             }
+            int act(Ev_Timeout ev, model, view, snd) { act(Ev_Input(0), model, view, 0); }
+            int rotate(Ev_Input ev, Model& model, View& view)
+            {
+                if (ev.a > 1) {
+                    model.rotate();
+                    view.play_sound( "rotate.wav" );
+                    return 1;
+                }
+                return 0;
+            }
+            template <class Ev> int rotate(Ev ev, Model& model, View& view) { return 0; }
         };
         struct Busy : public msm::front::state<>
         {
@@ -295,7 +319,7 @@ public:
         struct Blink : public msm::front::state<>
         {
             template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
-                sm.process_event(Ev_EndBlink()); // ;
+                do_event(sm, Ev_EndBlink()); // ;
             }
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         };
@@ -303,6 +327,7 @@ public:
         typedef Busy initial_state;
         struct transition_table : mpl::vector<
             Row< Busy     ,  Ev_Input    ,  none     ,  Action    ,  none >,
+            Row< Busy     ,  Ev_Timeout  ,  none     ,  Action    ,  none >,
             Row< Busy     ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
             Row< Blink    ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
         > {};
@@ -362,12 +387,12 @@ public:
 
     struct transition_table : mpl::vector<
         Row< Preview  ,  none        ,  Prepare  ,  none  ,  isNotExit  >,
-        Row< Prepare  ,  Ev_Play     ,  Playing  ,  none  ,  isNotExit  >,
+        Row< Prepare  ,  Ev_Restart  ,  Playing  ,  none  ,  isNotExit  >,
         Row< Playing  ,  Ev_Over     ,  GameOver ,  none  ,  none       >,
         Row< Playing  ,  Ev_Restart  ,  Playing  ,  none  ,  none       >,
-        Row< GameOver ,  boost::any  ,  Preview  ,  none  ,  isNotExit  >,
+        Row< GameOver ,  Ev_Restart  ,  Preview  ,  none  ,  isNotExit  >,
 
-        Row< NonPlaying ,  Ev_Play     ,  YesPlaying ,  none     ,  none       >,
+        Row< NonPlaying ,  Ev_Restart  ,  YesPlaying ,  none     ,  none       >,
         Row< NonPlaying ,  Ev_Leave    ,  Quit       ,  none     ,  none       >,
         Row< YesPlaying ,  Ev_Over     ,  NonPlaying ,  none     ,  none       >,
         Row< YesPlaying ,  Ev_Leave    ,  Paused     ,  none     ,  none       >,
@@ -401,11 +426,13 @@ void Main_::new_game()
 
 void Main_::update()
 {
-	if (stat_ != stat::normal)
-		return;
+}
 
+void Main_::time2act()
+{
+	// if (stat_ != stat::normal) return;
 	if (microsec_clock::local_time() - model.td_ > milliseconds(900 - get_level()*10 - get_score()/8)) {
-        move_down(0);
+        do_event(te, Ev_Input(0, 0));
 	}
 }
 
@@ -437,29 +464,29 @@ void App_::keyDown( KeyEvent event )
 #endif
     if (isModDown) {
 		if( event.getChar() == 'n' ) {
-            main_.process_event(Ev_Restart()); // main_.new_game();
+            do_event(sm, Ev_Restart()); // main_.new_game();
         }
 		return;
 	}
     if (event.getCode() == KeyEvent::KEY_ESCAPE || event.getChar() == 'q') {
-        main_.process_event(Ev_Quit()); // main_.quit(); // confirm?
+        do_event(sm, Ev_Quit()); // main_.quit(); // confirm?
 		return;
 	}
 
 	if (stat_ != stat::normal) {
         if (stat_ == stat::over) {
             if (microsec_clock::local_time() - model.td_ > seconds(3)) {
-                main_.process_event(Ev_Restart());
+                do_event(sm, Ev_Restart());
             }
 		} else if (stat_ == stat::pause) {
 			if (event.getCode() == KeyEvent::KEY_SPACE) {
-                main_.process_event(Ev_Pause()); // main_.pause();
+                do_event(sm, Ev_Leave()); // main_.pause();
 			}
 		}
 		return;
     }
 	if (event.getCode() == KeyEvent::KEY_SPACE) {
-        main_.process_event(Ev_Pause()); // main_.pause();
+        do_event(sm, Ev_Leave()); // main_.pause();
 		return;
 	}
 
@@ -471,17 +498,7 @@ void App_::keyDown( KeyEvent event )
         case KeyEvent::KEY_DOWN: ev = 0; break;
         default: return;
     }
-    main_.process_event(Ev_Input(ev));
-}
-
-template <class Ev>
-void do_event(Main& t, Ev const& ev)
-{
-    static char const* const state_names[] = { "Preview", "Prepare", "Playing", "Paused", "Quit" };
-    std::cout << "=B " << state_names[t.current_state()[0]] 
-        << " <>"<< typeid(Ev).name() <<"\n";
-    t.process_event(ev);
-    std::cout << "=E " << state_names[t.current_state()[0]] << "\n";
+    do_event(sm, Ev_Input(ev));
 }
 
 int _testmain()
@@ -490,11 +507,11 @@ int _testmain()
     Main te(boost::ref(io_s));
 
     do_event(te, Ev_Input(1));
-    do_event(te, Ev_Play());
+    do_event(te, Ev_Restart());
     do_event(te, Ev_Input(0));
     do_event(te, Ev_Blink());
-    do_event(te, Ev_Pause());
-    do_event(te, Ev_Resume());
+    do_event(te, Ev_Leave());
+  //do_event(te, Ev_Resume());
     do_event(te, Ev_Input(1));
     do_event(te, Ev_EndBlink());
     do_event(te, Ev_Input(0));
