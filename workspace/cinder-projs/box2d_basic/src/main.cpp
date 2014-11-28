@@ -78,7 +78,7 @@ struct Model : Tetris_Basic
     {
         int score = 0;
         for (auto& x : rounds_) {
-            switch (x.score()) {
+            switch (x.size()) {
                 case 4: score += 40 * 2; break;
                 case 3: score += 30 + 15; break;
                 case 2: score += 20 + 10; break;
@@ -97,7 +97,7 @@ struct Model : Tetris_Basic
 
 struct View
 {
-    void operator()(Model const& M);
+    void operator()(Model const& M/*, std::string const& stats*/);
 
     void play_sound( const char* asset );
 
@@ -116,7 +116,7 @@ struct View
     Vec2i drawString(Vec2i bp, Vec2i ep, std::string const& v);
     Vec2i drawArray2d(Vec2i p, Array2d const& m, bool bg);
 
-    void prepareSettings(Settings *settings) {
+    void prepareSettings(AppNative::Settings *settings) {
         settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
     }
 
@@ -127,7 +127,7 @@ Vec2i View::drawString(int x, int y, std::string const& v)
 {
     gl::TextureRef tex = make_tex(v); //("score: " + std::to_string(v));
     gl::draw( tex, Vec2i(x,y) );
-	return p + tex->getSize(); //Area(Vec2i(0,0), tex->getSize());
+	return Vec2i(x,y) + tex->getSize(); //Area(Vec2i(0,0), tex->getSize());
 }
 
 Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
@@ -135,7 +135,7 @@ Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
     gl::TextureRef tex = make_tex(v); //("score: " + std::to_string(v));
 
     Vec2i s0 = size(bp, ep);
-    Vec2i s1 = tex.getSize();
+    Vec2i s1 = tex->getSize();
 
     int w = s0.x;
     if (s0.x > s1.x) {
@@ -182,7 +182,7 @@ void View::operator()(Model const& M)
         Vec2i bp(BOX_SIZE,BOX_SIZE); // Area aMx, aPx;
         Vec2i ep = drawArray2d(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
 
-        drawArray2d(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_);
+        drawArray2d(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_, 0);
 
         Array2d pv; {
             auto s = get_shape(M.pv_);
@@ -195,8 +195,8 @@ void View::operator()(Model const& M)
 		gl::enableAlphaBlending();
         gl::color( Color::white() );
         drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(M.get_score()));
-        if (!stats.empty())
-            drawString(bp, ep, stats); //("Game over"); ("Pause");
+        if (!M.stats.empty())
+            drawString(bp, ep, M.stats); //("Game over"); ("Pause");
 		gl::disableAlphaBlending();
 	glPopMatrix();
 }
@@ -242,7 +242,7 @@ struct Main_ : msm::front::state_machine_def<Main_>
     boost::asio::deadline_timer deadline_;
 
 public:
-    Main_(boost::asio::io_service& io_s) : io_s_(io_s) , deadline_(io_s_)
+    Main_(boost::asio::io_service& io_s) : deadline_(io_s)
     {}
 
     void draw() { view(model); }
@@ -283,7 +283,7 @@ public:
             {
                 if (!model.Move(ev.a)) {
                     if (ev.a == 0) {
-                        model.rounds_.push_back( model.last_rows );
+                        model.rounds_.push_back( model.last_round_result);
                         if (!model.next_round())
                             return 0;
                         if (snd)
@@ -332,9 +332,9 @@ public:
 
         void autodownfall()
         {
-            if (model.time2falling(microsec_clock::local_time())) {
-                do_event(te, Ev_Timeout());
-            }
+            //if (model.time2falling(microsec_clock::local_time())) {
+            //    do_event(te, Ev_Timeout());
+            //}
         }
 
     }; // Playing_
@@ -374,7 +374,7 @@ public:
 
     struct isLeave
     {
-        bool selx(Ev_Leave lv) const { return lv.exit; }
+        int selx(Ev_Leave lv) const { return (lv.exit); }
         template <class Ev> bool selx(Ev) const { return false; }
         template <class Ev, class SM, class SS, class TS>
         bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return this->selx(ev); }
@@ -425,11 +425,11 @@ class App_ : public AppNative
 {
     msm::back::state_machine<Main_> main_;
 public:
-    App_() : main_(io_service())
+    App_() : main_(boost::ref(io_service()))
     {}
 
 	void prepareSettings( Settings *settings ) {
-        main_.view.prepareSettings(BOX_SIZE*16, BOX_SIZE*22 );
+        main_.view.prepareSettings(settings);//(BOX_SIZE*16, BOX_SIZE*22 );
     }
 	void setup() {}
 	void update() { main_.update(); }

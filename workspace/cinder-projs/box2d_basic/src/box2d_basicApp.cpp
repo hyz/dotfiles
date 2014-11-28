@@ -10,7 +10,7 @@
 //#include "cinder/audio/SamplePlayerNode.h"
 
 // #include "cinder/DataSource.h"
-#include "multi_array_tetris.h"
+#include "multi_array_tetris.hpp"
 
 using namespace ci;
 using namespace ci::app;
@@ -28,10 +28,10 @@ class box2d_basicApp : public AppNative {
 	void update();
 
 	void draw();
-	Vec2i drawMultiArray(Vec2i p, Array2d const& m, bool bg=0);
-	Area drawStatus();
-    Area drawScore();
-    Area drawPreview(Array2d const& pv);
+	void drawMultiArray(Array2d const& m, bool bg=0);
+	void drawStatus();
+    void drawScore();
+    void drawPreview();
 	void play_sound( const char* asset );
 
 	void new_game();
@@ -45,7 +45,7 @@ class box2d_basicApp : public AppNative {
     void move_down(bool keydown)
     {
         if (!M.Move(0)) {
-            rows_.push_back(M.last_nclr_);
+            rounds_.push_back(M.last_round_result);
             if (!M.next_round()) {
                 game_over();
             } else if (keydown) {
@@ -61,8 +61,8 @@ class box2d_basicApp : public AppNative {
     int get_score() const
     {
         int score = 0;
-        for (int x : rows_) {
-            switch (x) {
+        for (auto& x : rounds_) {
+            switch (x.size()) {
                 case 4: score += 40 * 2; break;
                 case 3: score += 30 + 15; break;
                 case 2: score += 20 + 10; break;
@@ -73,15 +73,15 @@ class box2d_basicApp : public AppNative {
     }
     int get_level() const
     {
-        return rows_.size()/10; //(get_score()+90) / 100;
+        return rounds_.size()/10; //(get_score()+90) / 100;
     }
 
 	void addBox( const Vec2f &pos );
 	b2World				*mWorld;
 	vector<b2Body*>		mBoxes;
 
-	Tetris M;
-    std::vector<uint8_t> rows_;
+	Tetris_Basic M;
+    std::vector<round_result> rounds_;
     enum class stat {
         normal=0, over=1, pause
     };
@@ -160,7 +160,7 @@ void box2d_basicApp::play_sound( const char* asset )
 
 void box2d_basicApp::new_game()
 {
-    rows_.clear();;
+    rounds_.clear();;
 	stat_ = stat::normal;
 	M.reset(20, 10);  //std::cerr << M << "\n";
 	M.next_round();
@@ -252,16 +252,13 @@ void box2d_basicApp::update()
 	}
 }
 
-Vec2i box2d_basicApp::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
+void box2d_basicApp::drawMultiArray(Array2d const& m, bool bg)
 {
-	Vec2i endp;
 	int bsiz = BOX_SIZE;
 	auto const s = get_shape(m);
 	for (int y=0; y != s[0]; ++y) {
 		for (int x=0; x != s[1]; ++x) {
-			Vec2i p( (bsiz+1)*x + p.x , (bsiz+1)*y + p.y );
-			endp = p + Vec2i(bsiz, bsiz);
-			Rectf rect(p, endp);
+			Rectf rect((bsiz+1)*x, (bsiz+1)*y, (bsiz+1)*x+bsiz, (bsiz+1)*y+bsiz);
 			if (m[y][x]) {
 				gl::color( Color( 0.6f, 0.3f, 0.15f ) );
 			} else if (bg) {
@@ -271,7 +268,6 @@ Vec2i box2d_basicApp::drawMultiArray(Vec2i p, Array2d const& m, bool bg)
 			gl::drawSolidRect( rect );
 		}
 	}
-	return endp;
 }
 
 gl::TextureRef make_tex(std::string const& line)
@@ -289,26 +285,23 @@ gl::TextureRef make_tex(std::string const& line)
     return gl::Texture::create( layout.render( true ) );
 }
 
-void box2d_basicApp::drawPreview(Array2d const& pv)
+void box2d_basicApp::drawPreview()
 {
-	auto s = get_shape(pv);
-    Array2d a(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
-    or_assign(a, Point(0,0), pv);
+    Array2d a(boost::extents[4][4]);
+    or_assign(a, make_array(0,0), M.pv_);
+    drawMultiArray(a, 1);
 
-    Vec2i endp;
-	endp = drawMultiArray(Vec2i::zero(), a, 1);
-    endp = drawScore(Vec2i(0, endp.y+10));
+    gl::translate(0, (BOX_SIZE+1)*4+10);
+    drawScore();
 }
 
-Area box2d_basicApp::drawScore(Vec2i p)
+void box2d_basicApp::drawScore()
 {
 	char sbuf[64];
 	sprintf(sbuf, "score: %d", get_score()); // std::itoa(100);
     gl::color( Color::white() );
     gl::TextureRef tex = make_tex(sbuf);
-	tex->getAreaTexCoords();
-    gl::draw( tex, Vec2f::zero(), );
-	return Area(Vec2i(0,0), tex->getSize());
+    gl::draw( tex, Vec2f(0,0) );
 }
 
 void box2d_basicApp::drawStatus()
@@ -343,8 +336,8 @@ void box2d_basicApp::draw()
 	glPushMatrix();
 		gl::enableAlphaBlending();
         drawStatus();
-        gl::translate((BOX_SIZE+1)*s[1]+BOX_SIZE, BOX_SIZE);
-        drawPreview(M.pv_);
+        gl::translate((BOX_SIZE+1)*10+10, 10);
+        drawPreview();
 		gl::disableAlphaBlending();
 	glPopMatrix();
 
