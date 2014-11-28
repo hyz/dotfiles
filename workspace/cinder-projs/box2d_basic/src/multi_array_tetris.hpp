@@ -148,6 +148,24 @@ M& or_assign(M& va, Point bp, N const& n)
     return va;
 }
 
+struct round_result
+{
+    uint8_t score() const { return size(); }
+
+    std::pair<uint8_t*,uint8_t*> rows() const {
+        return std::make_pair(&a_[0], &a_[size()]);
+    }
+
+    round_result& put(uint8_t x) { a_[size()++] = x; return *this; }
+    void clear() { a_.assign(0); }
+
+    round_result() { a_.assign(0); }
+
+    std::array<uint8_t,8> a_;
+    inline uint8_t& size() { return a_[7]; }
+    inline uint8_t const size() const { return a_[7]; }
+};
+
 struct Tetris // : Array2d
 {
     //std::vector<std::pair<char*,size_t>> const const_mats_;
@@ -155,7 +173,7 @@ struct Tetris // : Array2d
     Point p_;
     Array2d smat_, pv_;
 	boost::posix_time::ptime tb_, td_;
-    int last_nclr_;
+    round_result last_round_result;
     // std::vector<unsigned char> scores_;
 
     Tetris() //: const_mats_(mats_init())
@@ -179,8 +197,7 @@ struct Tetris // : Array2d
 
     bool next_round()
     {
-        // if (scores_.back() != 0) { scores_.push_back(0); }
-
+        last_round_result.clear();
         pop_preview(&smat_);
 
 		auto s0 = get_shape(vmat_);
@@ -218,7 +235,7 @@ struct Tetris // : Array2d
                 or_assign(vmat_, p_, smat_);
                 auto sv = get_shape(vmat_);
                 auto sa = get_shape(smat_);
-                last_nclr_ = collapse(std::min(p_[0]+sa[0], sv[0]-1), std::max(0, p_[0]));
+                collapse(std::min(p_[0]+sa[0], sv[0]-1), std::max(0, p_[0]), last_round_result);
             }
             return false;
         }
@@ -256,34 +273,32 @@ private:
         clear(src);
     }
 
-    int collapse(Array2d::index xlast, Array2d::index xfirst, int nc=0)
+    void collapse(Array2d::index xlast, Array2d::index xfirst, round_result& res)
     {
         auto const & row = this->vmat_[xlast];
 
         if (xlast >= xfirst) {
             if (std::find(row.begin(), row.end(), 0) == row.end()) {
                 clear(xlast);
-                ++nc;
-            } else if (nc > 0) {
-                vmat_[xlast+nc] = row; clear(xlast);
+                res.put(xlast); // ++res;
+            } else if (!res.empty()) {
+                vmat_[xlast+res.size()] = row; clear(xlast);
             }
             if (xlast == xfirst) {
-                if (nc == 0) {
-                    return 0;
+                if (res.empty()) {
+                    return;
                 }
-                // scores_.back() = nc; scores_.push_back(0);
+                // scores_.back() = res; scores_.push_back(0);
             }
-        } else if (nc > 0) {
+        } else if (!res.empty()) {
             // auto pred = [](int x) -> bool { return x!=0; };
-            // if (std::find(row.begin(), row.end(), pred) == row.end())
-                ;
-            vmat_[xlast+nc] = row; clear(xlast);
+            // if (std::find(row.begin(), row.end(), pred) == row.end()) ;
+            vmat_[xlast+res.size()] = row; clear(xlast);
         }
 
         if (xlast > 0) {
-            return collapse(xlast-1, xfirst, nc);
+            collapse(xlast-1, xfirst, res);
         }
-        return nc;
     }
 
     void pop_preview(Array2d* a)

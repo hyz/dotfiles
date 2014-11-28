@@ -35,14 +35,15 @@ const float BOX_SIZEp1 = 41;
 
 struct Ev_Restart {};
 struct Ev_Input {
-    signed short a, man;
-    Ev_Input(signed short x, signed short y=1) { a=x; man=y; }
+    int a;
+    Ev_Input(signed short x, signed short y=1) { a=x; }
 };
 struct Ev_Leave {
     int exit;
     Ev_Leave(int x=0) { exit=x; }
 };
 struct Ev_Over {};
+struct Ev_Timeout {};
 
 struct Ev_Blink {};
 struct Ev_EndBlink {};
@@ -58,18 +59,42 @@ template <class M, class Ev> void do_event(M& m, Ev const& ev)
 
 struct Model : Tetris
 {
-    std::vector<uint8_t> rows_;
     enum class stat {
         normal=0, over=1, pause
     };
+
+    std::vector<round_result> rounds_;
 	stat stat_;
-	// unsigned char box_size_;
-	
-    void reset(x,y)
+
+    Model() { stat_=stat::normal; }
+
+    void reset()
     {
-        rows_.clear();;
+        rounds_.clear();;
         stat_ = stat::normal;
+
+        Tetris::reset(20, 10);  //std::cerr << model << "\n";
+        Tetris::next_round();
     }
+
+    int get_score() const
+    {
+        int score = 0;
+        for (auto& x : rounds_) {
+            switch (x.score()) {
+                case 4: score += 40 * 2; break;
+                case 3: score += 30 + 15; break;
+                case 2: score += 20 + 10; break;
+                case 1: score += 10; break;
+            }
+        }
+        return score;
+    }
+    int get_level() const
+    {
+        return rounds_.size()/10; //(get_score()+90) / 100;
+    }
+
 };
 
 struct View
@@ -171,7 +196,7 @@ void View::operator()(Model const& M)
 
 		gl::enableAlphaBlending();
         gl::color( Color::white() );
-        drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(get_score()));
+        drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(M.get_score()));
         drawString(bp, ep, state); //("Game over"); ("Pause");
 		gl::disableAlphaBlending();
 	glPopMatrix();
@@ -222,42 +247,7 @@ public:
     {}
 
     void draw() { view(model); }
-    void update();
-
-	void new_game();
-    void move_down(bool keydown)
-    {
-        if (!model.Move(0)) {
-            rows_.push_back(model.last_nclr_);
-            if (!model.next_round()) {
-                game_over();
-            } else if (keydown) {
-                view.play_sound( "speedown.wav" );
-            }
-        }
-    }
-	void game_over() {
-		stat_= stat::over;
-		//play_sound( "gameover.wav" );
-	}
-
-    int get_score() const
-    {
-        int score = 0;
-        for (int x : rows_) {
-            switch (x) {
-                case 4: score += 40 * 2; break;
-                case 3: score += 30 + 15; break;
-                case 2: score += 20 + 10; break;
-                case 1: score += 10; break;
-            }
-        }
-        return score;
-    }
-    int get_level() const
-    {
-        return rows_.size()/10; //(get_score()+90) / 100;
-    }
+    void update() {}
 
 //  }; struct Main_ : public msm::front::state_machine_def<Main_> {
 
@@ -281,16 +271,20 @@ public:
         {
             template <class Ev, class SM, class SS, class TS>
             void operator()(Ev const& ev, SM& sm, SS&, TS&) {
-                if (rotate(ev, sm.model, sm.view))
+                if (is_rotate(ev)) {
+                    sm.model.rotate();
+                    sm.view.play_sound( "rotate.wav" );
                     return;
-                if (!act(ev, sm.model, sm.view, "speedown.wav"))
+                }
+                if (!act(ev, sm.model, sm.view, "speedown.wav")) {
                     do_event(sm, Ev_Over());
+                }
             }
-            int act(Ev_Input ev, model, view, snd)
+            int act(Ev_Input ev, Model& model, View& view, char const* snd)
             {
                 if (!model.Move(ev.a)) {
                     if (ev.a == 0) {
-                        model.scores_.push_back( model.last_rows );
+                        model.rounds_.push_back( model.last_rows );
                         if (!model.next_round())
                             return 0;
                         if (snd)
@@ -299,24 +293,16 @@ public:
                 }
                 return 1;
             }
-            int act(Ev_Timeout ev, model, view, snd) { act(Ev_Input(0), model, view, 0); }
-            int rotate(Ev_Input ev, Model& model, View& view)
-            {
-                if (ev.a > 1) {
-                    model.rotate();
-                    view.play_sound( "rotate.wav" );
-                    return 1;
-                }
-                return 0;
-            }
-            template <class Ev> int rotate(Ev ev, Model& model, View& view) { return 0; }
+            int act(Ev_Timeout ev, Model& model, View& view, char const* snd) { return act(Ev_Input(0), model, view, 0); }
+            int is_rotate(Ev_Input ev) { return (ev.a > 1); }
+            template <class Ev> int is_rotate(Ev ev) { return 0; }
         };
         struct Busy : public msm::front::state<>
         {
             template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         };
-        struct Blink : public msm::front::state<>
+        struct Blinking : public msm::front::state<>
         {
             template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
                 do_event(sm, Ev_EndBlink()); // ;
@@ -328,22 +314,40 @@ public:
         struct transition_table : mpl::vector<
             Row< Busy     ,  Ev_Input    ,  none     ,  Action    ,  none >,
             Row< Busy     ,  Ev_Timeout  ,  none     ,  Action    ,  none >,
-            Row< Busy     ,  Ev_Blink    ,  Blink    ,  none      ,  none >,
-            Row< Blink    ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
+            Row< Busy     ,  Ev_Blink    ,  Blinking ,  none      ,  none >,
+            Row< Blinking ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
         > {};
 
         template <class Ev, class SM> void on_entry(Ev const&, SM& ) {
-            model.reset(20, 10);  //std::cerr << model << "\n";
-            model.next_round();
+            model.reset();
             // play_sound( "newgame.wav" );
         }
-        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& )
+        {
+        }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
         {
             std::cout << "Playing no transition from state " << state
                 << " on event " << typeid(Ev).name() << std::endl;
         }
+
+        void autodownfall()
+        {
+            // if (stat_ != stat::normal) return;
+            if (microsec_clock::local_time() - model.td_ > milliseconds(900 - model.get_level()*10 - model.get_score()/8)) {
+                do_event(te, Ev_Timeout());
+            }
+        }
+
     }; // Playing_
+
+    struct GameOver : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM&) {
+            sm.model.stat_= Model::stat::over;
+        }
+        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+    };
 
     struct NonPlaying : msm::front::state<>
     {
@@ -366,17 +370,17 @@ public:
         template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
     }; // Quit
 
-    struct isExit
+    struct isLeave
     {
         bool selx(Ev_Leave lv) const { return lv.exit; }
         template <class Ev> bool selx(Ev) const { return false; }
         template <class Ev, class SM, class SS, class TS>
         bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return this->selx(ev); }
     };
-    struct isNotExit
+    struct isNotLeave
     {
         template <class Ev, class SM, class SS, class TS>
-        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return !isExit()(ev); }
+        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return !isLeave()(ev); }
     };
 
     // back-end
@@ -386,17 +390,17 @@ public:
     typedef mpl::vector<Preview,NonPlaying> initial_state;
 
     struct transition_table : mpl::vector<
-        Row< Preview  ,  none        ,  Prepare  ,  none  ,  isNotExit  >,
-        Row< Prepare  ,  Ev_Restart  ,  Playing  ,  none  ,  isNotExit  >,
-        Row< Playing  ,  Ev_Over     ,  GameOver ,  none  ,  none       >,
-        Row< Playing  ,  Ev_Restart  ,  Playing  ,  none  ,  none       >,
-        Row< GameOver ,  Ev_Restart  ,  Preview  ,  none  ,  isNotExit  >,
+        Row< Preview  ,  none        ,  Prepare  ,  none  ,  isNotLeave  >,
+        Row< Prepare  ,  Ev_Restart  ,  Playing  ,  none  ,  isNotLeave  >,
+        Row< Playing  ,  Ev_Over     ,  GameOver ,  none  ,  none        >,
+        Row< Playing  ,  Ev_Restart  ,  Playing  ,  none  ,  none        >,
+        Row< GameOver ,  Ev_Restart  ,  Preview  ,  none  ,  isNotLeave  >,
 
         Row< NonPlaying ,  Ev_Restart  ,  YesPlaying ,  none     ,  none       >,
         Row< NonPlaying ,  Ev_Leave    ,  Quit       ,  none     ,  none       >,
         Row< YesPlaying ,  Ev_Over     ,  NonPlaying ,  none     ,  none       >,
         Row< YesPlaying ,  Ev_Leave    ,  Paused     ,  none     ,  none       >,
-        Row< Paused     ,  Ev_Leave    ,  Quit       ,  none     ,  isExit     >,
+        Row< Paused     ,  Ev_Leave    ,  Quit       ,  none     ,  isLeave    >,
         Row< Paused     ,  Ev_Leave    ,  YesPlaying ,  none     ,  none       >
     > {};
 
@@ -415,27 +419,6 @@ public:
     }
 }; // Main_
 
-void Main_::new_game()
-{
-    rows_.clear();;
-	stat_ = stat::normal;
-	model.reset(20, 10);  //std::cerr << model << "\n";
-	model.next_round();
-	// play_sound( "newgame.wav" );
-}
-
-void Main_::update()
-{
-}
-
-void Main_::time2act()
-{
-	// if (stat_ != stat::normal) return;
-	if (microsec_clock::local_time() - model.td_ > milliseconds(900 - get_level()*10 - get_score()/8)) {
-        do_event(te, Ev_Input(0, 0));
-	}
-}
-
 class App_ : public AppNative
 {
     msm::back::state_machine<Main_> main_;
@@ -446,7 +429,7 @@ public:
 	void prepareSettings( Settings *settings ) {
         main_.view.prepareSettings(BOX_SIZE*16, BOX_SIZE*22 );
     }
-	void setup() { main_.new_game(); }
+	void setup() {}
 	void update() { main_.update(); }
 	void draw() { main_.draw(); }
 
