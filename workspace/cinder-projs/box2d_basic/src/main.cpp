@@ -258,7 +258,7 @@ public:
 
     struct Prepare : public msm::front::state<>
     {
-        template <class Ev,class SM> void on_entry(Ev const&, SM& ) {
+        template <class Ev,class SM> void on_entry(Ev const&, SM& sm) {
             do_event(sm, Ev_Restart());
         }
         template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
@@ -266,10 +266,12 @@ public:
 
     struct Playing_ : public msm::front::state_machine_def<Playing_>
     {
+		msm::back::state_machine<Main_> *sm_;
         struct Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const& ev, SM& sm, SS&, TS&) {
+            void operator()(Ev const& ev, SM& sm2, SS&, TS&) {
+				msm::back::state_machine<Main_> & sm = *sm2.sm_;
                 if (is_rotate(ev)) {
                     sm.model.rotate();
                     sm.view.play_sound( "rotate.wav" );
@@ -317,8 +319,11 @@ public:
             Row< Blinking ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
         > {};
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {
-            model.reset();
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
+			sm_ = &sm;
+            sm.model.reset();
+			//model_ = &sm.model;
+			//view_ = &sm.view;
             // play_sound( "newgame.wav" );
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& )
@@ -362,7 +367,7 @@ public:
         template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) {
             sm.model.stats = "Paused";
         }
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {
+        template <class Ev, class SM> void on_exit(Ev const&, SM& sm) {
             sm.model.stats.clear();
         }
     }; // Paused
@@ -382,7 +387,7 @@ public:
     struct isNotLeave
     {
         template <class Ev, class SM, class SS, class TS>
-        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return !isLeave()(ev); }
+        bool operator()(Ev const& ev, SM&, SS&, TS& ) const { return !isLeave().selx(ev); }
     };
 
     // back-end
