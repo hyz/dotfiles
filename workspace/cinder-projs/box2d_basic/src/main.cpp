@@ -51,10 +51,10 @@ struct Ev_EndBlink {};
 template <class M, class Ev> void do_event(M& m, Ev const& ev)
 {
     static char const* const state_names[] = { "Preview", "Prepare", "Playing", "Paused", "Quit" };
-    std::cout << "=B " << state_names[m.current_state()[0]] 
-        << " <>"<< typeid(Ev).name() <<"\n";
+    //std::cout << "=B " << state_names[m.current_state()[0]] 
+    //    << " <>"<< typeid(Ev).name() <<"\n";
     m.process_event(ev);
-    std::cout << "=E " << state_names[m.current_state()[0]] << "\n";
+    //std::cout << "=E " << state_names[m.current_state()[0]] << "\n";
 }
 
 struct Model : Tetris_Basic
@@ -252,8 +252,12 @@ public:
 
     struct Preview : public msm::front::state<>
     {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
-        template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
+			sm.model.rotate();
+		}
+        template <class Ev,class SM> void on_exit(Ev const&, SM& sm) {
+		    sm.model.rotate();
+		}
     }; // Preview
 
     struct Prepare : public msm::front::state<>
@@ -326,8 +330,8 @@ public:
 			//view_ = &sm.view;
             // play_sound( "newgame.wav" );
         }
-        template <class Ev, class SM> void on_exit(Ev const&, SM& )
-        {
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
+			sm_->model.rotate();
         }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state)
         {
@@ -354,13 +358,19 @@ public:
 
     struct NonPlaying : msm::front::state<>
     {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
+			sm.model.rotate();
+		}
         template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
     }; // NonPlaying
     struct YesPlaying : msm::front::state<>
     {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
-        template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
+			sm.model.rotate();
+		}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& sm) {
+			sm.model.rotate();
+		}
     }; // YesPlaying
     struct Paused : msm::front::interrupt_state<Ev_Leave>
     {
@@ -373,7 +383,9 @@ public:
     }; // Paused
     struct Quit : msm::front::state<> 
     {
-        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) { sm.stop(); }
+        template <class Ev, class SM> void on_entry(Ev const& ev, SM& sm) {
+			sm.stop();
+		}
         template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
     }; // Quit
 
@@ -404,11 +416,11 @@ public:
         Row< GameOver ,  Ev_Restart  ,  Preview  ,  none  ,  isNotLeave  >,
 
         Row< NonPlaying ,  Ev_Restart  ,  YesPlaying ,  none     ,  none       >,
-        Row< NonPlaying ,  Ev_Leave    ,  Quit       ,  none     ,  none       >,
+        Row< NonPlaying ,  Ev_Leave    ,  Quit       ,  none     ,  isLeave    >,
         Row< YesPlaying ,  Ev_Over     ,  NonPlaying ,  none     ,  none       >,
         Row< YesPlaying ,  Ev_Leave    ,  Paused     ,  none     ,  none       >,
-        Row< Paused     ,  Ev_Leave    ,  Quit       ,  none     ,  isLeave    >,
-        Row< Paused     ,  Ev_Leave    ,  YesPlaying ,  none     ,  none       >
+        Row< Paused     ,  Ev_Leave    ,  YesPlaying ,  none     ,  none       >,
+        Row< Paused     ,  Ev_Leave    ,  Quit       ,  none     ,  isLeave    >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
