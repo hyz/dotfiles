@@ -148,20 +148,26 @@ M& or_assign(M& va, Point bp, N const& n)
     return va;
 }
 
-struct round_result : private std::array<uint8_t,8>
+template <typename T,int N>
+struct arrayvec : private std::array<T,N>
 {
-    round_result() { clear(); }
+    uint8_t size_;
 
-    iterator begin() { return std::array<uint8_t,8>::begin(); }
-    iterator end() { return begin()+size(); }
-	iterator begin() const { return const_cast<round_result*>(this)->begin(); }
-	iterator end() const { return const_cast<round_result*>(this)->end(); }
-    uint8_t size() const { return back(); }
+    arrayvec() { size_=0; clear(); }
+
+    iterator begin() { return std::array<T,N>::begin(); }
+    iterator end() { return begin()+size_; }
+	iterator begin() const { return const_cast<arrayvec*>(this)->begin(); }
+	iterator end() const { return const_cast<arrayvec*>(this)->end(); }
+    int size() const { return size_; }
 	bool empty() const { return size()==0; }
 
-    void push_back(uint8_t x) { at(back()++) = x; }
+    void push_back(T const& x) { at(size_++) = x; }
+    void pop_back() { size_--; }
     void clear() { assign(0); }
 };
+
+typedef arrayvec<uint8_t,7> round_result;
 
 struct Tetris_Basic // : Array2d
 {
@@ -277,7 +283,7 @@ private:
         if (xlast >= xfirst) {
             if (std::find(row.begin(), row.end(), 0) == row.end()) {
                 clear(xlast);
-                res.push_back(xlast); // ++res;
+                res.push_back( uint8_t(xlast) ); // ++res;
             } else if (!res.empty()) {
                 vmat_[xlast+res.size()] = row; clear(xlast);
             }
