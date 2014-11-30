@@ -318,17 +318,21 @@ public:
             Row< Blinking ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
         > {};
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM&) {
+        template <class Ev, class SM> void on_entry(Ev const& ev, SM&) {
             auto& top = Top();
-            top.model.reset();
-            // play_sound( "newgame.wav" );
             top.in_playing_=1;
+			if (is_new_game(ev)) {
+				top.model.reset();
+				// play_sound( "newgame.wav" );
+			}
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
             auto& top = Top();
             // top.model.rotate();
             top.in_playing_=0;
         }
+		bool is_new_game(Ev_Restart) const { return true; }
+		template <class Ev> bool is_new_game(Ev) const { return false; }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state) {
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
@@ -349,12 +353,8 @@ public:
 
         struct Preview : msm::front::state<>
         {
-            template <class Ev, class SM> void on_entry(Ev const&, SM&) {
-                Top();
-            }
-            template <class Ev,class SM> void on_exit(Ev const&, SM&) {
-                Top();
-            }
+            template <class Ev, class SM> void on_entry(Ev const&, SM&) {}
+            template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
         }; // Preview
 
         struct GameOver : msm::front::state<>
@@ -374,17 +374,16 @@ public:
             Row< GameOver , Ev_Restart  , Preview  , none  , none    >
         > {};
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
-		}
-        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
-		}
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int s) {
             LOG << "S:Play no transition on-ev " << typeid(Ev).name() << "\n";
         }
     };
     //typedef msm::back::state_machine<Play_> Play; // back-end
-    typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
-
+    //typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
+	typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
+	
     struct Leave : msm::front::state<>
     {
         template <class Ev,class SM> void on_entry(Ev const&, SM& sm) {}
