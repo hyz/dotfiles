@@ -54,7 +54,8 @@ struct Ev_EndBlink {};
 
 template <class M, class Ev> void do_event(M& m, Ev const& ev)
 {
-    static char const* const state_names[] = {"Preview", "Menu", "Playing", "GameOver", "NonPlaying", "YesPlaying", "Paused", "Quit", "Busy", "Blinking", "", "", ""};
+    static char const* const state_names[] = {
+        "Preview", "Menu", "Playing", "GameOver", "NonPlaying", "YesPlaying", "Paused", "Quit", "Busy", "Blinking", "", "", ""};
     LOG << "=B " << state_names[m.current_state()[0]] << " Ev:"<< typeid(Ev).name() <<"\n";
     m.process_event(ev);
     LOG << "=E " << state_names[m.current_state()[0]] <<"\n";
