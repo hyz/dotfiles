@@ -326,7 +326,7 @@ public:
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
             auto& top = Top();
-            top.model.rotate();
+            // top.model.rotate();
             top.in_playing_=0;
         }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state) {
@@ -341,18 +341,19 @@ public:
         }
 
     }; // Playing_
-    typedef msm::back::state_machine<Playing_> Playing; // back-end
-    //typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
 
     struct Play_ : msm::front::state_machine_def<Play_>
     {
+        //typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
+        typedef msm::back::state_machine<Playing_> Playing; // back-end
+
         struct Preview : msm::front::state<>
         {
             template <class Ev, class SM> void on_entry(Ev const&, SM&) {
-                Top().model.rotate();
+                Top();
             }
             template <class Ev,class SM> void on_exit(Ev const&, SM&) {
-                Top().model.rotate();
+                Top();
             }
         }; // Preview
 
@@ -373,13 +374,16 @@ public:
             Row< GameOver , Ev_Restart  , Preview  , none  , none    >
         > {};
 
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) { }
-        template <class Ev, class SM> void on_exit(Ev const&, SM& ) { }
+        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
+		}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
+		}
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int s) {
             LOG << "S:Play no transition on-ev " << typeid(Ev).name() << "\n";
         }
     };
-    typedef msm::back::state_machine<Play_> Play; // back-end
+    //typedef msm::back::state_machine<Play_> Play; // back-end
+    typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
 
     struct Leave : msm::front::state<>
     {
@@ -393,7 +397,7 @@ public:
             top.model.stats = "Paused";
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& top) {
-            top.model.stats.clear();
+            top.model.stats = "";
         }
     }; // Paused
     struct Quit : msm::front::terminate_state<>
@@ -402,7 +406,7 @@ public:
             top.io_service().post(&TheEnd);
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& top) {
-            top.model.rotate();
+            // top.model.rotate();
         }
     }; // Quit
 
@@ -417,10 +421,13 @@ public:
 
     struct Menu : msm::front::state<>
     {
-        template <class Ev,class SM> void on_entry(Ev const&, SM& sm) {
+        template <class Ev,class SM> void on_entry(Ev const&, SM& top) {
+			top.model.stats = "Paused";
             // sm.io_service().post(boost::bind(&do_event<SM,Ev_Restart>, boost::ref(sm), Ev_Restart())); //([&sm]() { do_event(sm, Ev_Restart()); });
         }
-        template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
+        template <class Ev,class SM> void on_exit(Ev const&, SM& top) {
+			top.model.stats = "";
+		}
     }; // Menu
 
     struct isUnpause {
@@ -432,7 +439,7 @@ public:
         bool operator()(Ev const&, SM& sm, SS&, TS& ) const { return sm.in_playing_; }
     };
 
-    typedef mpl::vector<Play,PlayX> initial_state;
+    typedef mpl::vector<Leave,PlayX> initial_state;
 
     struct transition_table : mpl::vector<
         Row< Play    , boost::any , none    , none  , none        >,
@@ -512,7 +519,7 @@ void App_::keyDown( KeyEvent event )
     int ev = 0;
     switch (event.getCode()) {
         case KeyEvent::KEY_ESCAPE: do_event(main_, Ev_Back()); return;
-        case KeyEvent::KEY_SPACE:
+        case KeyEvent::KEY_SPACE: do_event(main_, Ev_Menu()); return;
         case KeyEvent::KEY_UP: ev = 2; break;
         case KeyEvent::KEY_LEFT: ev = -1; break;
         case KeyEvent::KEY_RIGHT: ev = 1; break;
