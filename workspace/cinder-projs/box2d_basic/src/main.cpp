@@ -34,7 +34,7 @@ using namespace msm::front;
 static const int BOX_SIZE = 40;
 static const int BOX_SIZEpx = 41;
 
-struct Ev_Restart {};
+struct Ev_Play {};
 struct Ev_Input {
     int a;
     Ev_Input(int x) { a=x; }
@@ -59,6 +59,10 @@ template <class M, class Ev> void do_event(M& m, Ev const& ev)
     LOG << "=B " << state_names[m.current_state()[0]] << " Ev:"<< typeid(Ev).name() <<"\n";
     m.process_event(ev);
     LOG << "=E " << state_names[m.current_state()[0]] <<"\n";
+}
+template <class Ev> void do_event(Ev const& ev)
+{
+    do_event(Top(), ev);
 }
 
 struct Model : Tetris_Basic
@@ -259,6 +263,22 @@ public:
     void draw() { view(model); }
     void update() {}
 
+    struct Default : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
+    };
+    struct Closed : msm::front::state<>
+    {
+        template <class Ev, class SM> void on_entry(Ev const&, SM& ) {}
+        template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
+    };
+    struct Back
+    {
+        template <class Ev, class SM, class SS, class TS>
+        void operator()(Ev const& ev, SM&, SS&, TS&) { do_event( Ev_Back() ); }
+    };
+
     struct Playing_ : msm::front::state_machine_def<Playing_> // , boost::noncopyable
     {
         struct Action
@@ -332,7 +352,7 @@ public:
             // top.model.rotate();
             top.in_playing_=0;
         }
-		bool is_new_game(Ev_Restart) const { return true; }
+		bool is_new_game(Ev_Play) const { return true; }
 		template <class Ev> bool is_new_game(Ev) const { return false; }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int state) {
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
@@ -352,27 +372,43 @@ public:
         //typedef msm::back::state_machine<Playing_,msm::back::ShallowHistory<mpl::vector<Ev_Resume>>> Playing;
         typedef msm::back::state_machine<Playing_> Playing; // back-end
 
-        struct Preview : msm::front::state<>
+        struct Preview_ : msm::front::state_machine_def<Preview_>
         {
+            typedef Default initial_state;
+            struct transition_table : mpl::vector<
+                Row< Default  , Ev_Menu     , Menu     , none  , none >,
+                Row< Menu     , Ev_Back     , Default  , none  , none >
+              //Row< Default  , Ev_Back     , Closed   , none  , none >
+            > {};
+            template <class Ev, class SM> void on_entry(Ev const&, SM&) {
+                //timer;
+                //Ev_Play
+            }
+            template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
+        }; // Preview_
+        typedef msm::back::state_machine<Preview_> Preview; // back-end
+
+        struct Gameover_ : msm::front::state_machine_def<Gameover_>
+        {
+            typedef Default initial_state;
+            struct transition_table : mpl::vector<
+                Row< Default  , Ev_Menu     , Menu     , none  , none >,
+                Row< Menu     , Ev_Back     , Default  , none  , none >
+            > {};
             template <class Ev, class SM> void on_entry(Ev const&, SM&) {}
             template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
-        }; // Preview
-
-        struct GameOver : msm::front::state<>
-        {
-            template <class Ev, class SM> void on_entry(Ev const&, SM&) {
-                // sm.model.stat_= Model::stat::over;
-            }
-            template <class Ev, class SM> void on_exit(Ev const&, SM&) {}
-        };
+        }; // Gameover_
+        typedef msm::back::state_machine<Gameover_> GameOver; // back-end
 
         typedef Preview initial_state;
         struct transition_table : mpl::vector<
-            Row< Preview  , Ev_Timeout  , Preview  , none  , none    >,
-            Row< Preview  , Ev_Restart  , Playing  , none  , none    >,
+            Row< Preview  , Ev_Back     , Closed   , Back  , none    >,
+            Row< Preview  , Ev_Play     , Playing  , none  , none    >,
+            Row< Playing  , Ev_Back     , Closed   , none  , none    >,
             Row< Playing  , Ev_Over     , GameOver , none  , none    >,
-            Row< Playing  , Ev_Restart  , Playing  , none  , none    >,
-            Row< GameOver , Ev_Restart  , Preview  , none  , none    >
+            Row< Playing  , Ev_Play     , Playing  , none  , none    >,
+            Row< GameOver , Ev_Back     , Closed   , none  , none    >,
+            Row< GameOver , Ev_Play     , Playing  , none  , none    >
         > {};
 
         template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
@@ -423,7 +459,7 @@ public:
     {
         template <class Ev,class SM> void on_entry(Ev const&, SM& top) {
 			top.model.stats = "Paused";
-            // sm.io_service().post(boost::bind(&do_event<SM,Ev_Restart>, boost::ref(sm), Ev_Restart())); //([&sm]() { do_event(sm, Ev_Restart()); });
+            // sm.io_service().post(boost::bind(&do_event<SM,Ev_Play>, boost::ref(sm), Ev_Play())); //([&sm]() { do_event(sm, Ev_Play()); });
         }
         template <class Ev,class SM> void on_exit(Ev const&, SM& top) {
 			top.model.stats = "";
@@ -442,6 +478,9 @@ public:
     typedef mpl::vector<Leave,PlayX> initial_state;
 
     struct transition_table : mpl::vector<
+        Row< Play    , boost::any , none    , none  , none        >,
+        Row< Play    , Ev_Back    , Quit    , none  , none        >,
+
         Row< Play    , boost::any , none    , none  , none        >,
         Row< Play    , Ev_Leave   , Leave   , none  , none        >,
         Row< Leave   , Ev_Play    , Play    , none  , none        >,
@@ -510,7 +549,7 @@ void App_::keyDown( KeyEvent event )
 
     if (isModDown) {
         if( event.getChar() == 'n' ) {
-            do_event(main_, Ev_Restart());
+            do_event(main_, Ev_Play());
             // } else if (event.getChar() == 'q') { do_event(main_, Ev_Back(1));
         }
         return;
@@ -535,7 +574,7 @@ void App_::keyDown( KeyEvent event )
 //    Main te(boost::ref(io_s));
 //
 //    do_event(te, Ev_Input(1));
-//    do_event(te, Ev_Restart());
+//    do_event(te, Ev_Play());
 //    do_event(te, Ev_Input(0));
 //    do_event(te, Ev_Blink());
 //    do_event(te, Ev_Back());
