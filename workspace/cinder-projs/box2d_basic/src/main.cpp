@@ -403,12 +403,12 @@ public:
         typedef Preview initial_state;
         struct transition_table : mpl::vector<
             Row< Preview  , Ev_Back     , Closed   , Back  , none    >,
-            Row< Preview  , Ev_Play     , Playing  , none  , none    >,
             Row< Playing  , Ev_Back     , Closed   , none  , none    >,
-            Row< Playing  , Ev_Over     , GameOver , none  , none    >,
-            Row< Playing  , Ev_Play     , Playing  , none  , none    >,
             Row< GameOver , Ev_Back     , Closed   , none  , none    >,
-            Row< GameOver , Ev_Play     , Playing  , none  , none    >
+            Row< Preview  , Ev_Play     , Playing  , none  , none    >,
+            Row< Playing  , Ev_Play     , Playing  , none  , none    >,
+            Row< GameOver , Ev_Play     , Playing  , none  , none    >,
+            Row< Playing  , Ev_Over     , GameOver , none  , none    >
         > {};
 
         template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {}
