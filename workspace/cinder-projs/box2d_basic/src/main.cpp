@@ -107,6 +107,9 @@ struct View
 {
     void operator()(Model const& M/*, std::string const& stats*/);
 
+    Vec2i drawMain(Vec2i bp, Model const& M);
+    Vec2i drawSide(Vec2i bp, Model const& M);
+
     void play_sound( const char* asset );
 
     gl::TextureRef make_tex(std::string const& line)
@@ -128,6 +131,10 @@ struct View
         settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
     }
 
+    View() : boxfg_(0.6f, 0.3f, 0.15f), boxbg_(0.1f, 0.1f, 0.1f) {}
+
+    Color boxfg_;
+    Color boxbg_;
     audio::VoiceRef mVoice;
 };
 
@@ -135,7 +142,7 @@ Vec2i View::drawString(int x, int y, std::string const& v)
 {
     gl::TextureRef tex = make_tex(v); //("score: " + std::to_string(v));
     gl::draw( tex, Vec2i(x,y) );
-    return Vec2i(x,y) + tex->getSize(); //Area(Vec2i(0,0), tex->getSize());
+    return Vec2i(x,y) + tex->getSize();
 }
 
 Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
@@ -158,54 +165,85 @@ Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
     return bp + Vec2i(w,h);
 }
 
-Vec2i View::drawArray2d(Vec2i p, Array2d const& m, bool bg)
+Vec2i View::drawArray2d(Vec2i bp, Array2d const& m, Color color, Pred pred)
 {
     Vec2i endp;
     int bsiz = BOX_SIZE;
     auto const s = get_shape(m);
+    gl::color( color );
     for (int y=0; y != s[0]; ++y) {
         for (int x=0; x != s[1]; ++x) {
-            Vec2i p( (bsiz+1)*x + p.x , (bsiz+1)*y + p.y );
-            endp = p + Vec2i(bsiz, bsiz);
-            Rectf rect(p, endp);
-            if (m[y][x]) {
-                gl::color( Color( 0.6f, 0.3f, 0.15f ) );
-            } else if (bg) {
-                gl::color( Color( 0.1f, 0.1f, 0.1f ) );
-            } else
-                continue;
-            gl::drawSolidRect( rect );
+            if (pred(m[y][x])) {
+                Vec2i p( (bsiz+1)*x + bp.x , (bsiz+1)*y + bp.y );
+                endp = p + Vec2i(bsiz, bsiz);
+                Rectf rect(p, endp);
+                // if (m[y][x]) {
+                //     gl::color( Color( 0.6f, 0.3f, 0.15f ) );
+                // } else if (bg) {
+                //     gl::color( Color( 0.1f, 0.1f, 0.1f ) );
+                // } //else continue;
+                gl::drawSolidRect( rect );
+            }
         }
     }
     return endp;
+}
+
+struct AlwayTrue{
+    template <typename T> int operator()(T const&) const { return 1; }
+};
+struct IsTrue{
+    template <typename T> int operator()(T const& b) const { return (!!b); }
+};
+
+Vec2i View::drawMain(Vec2i bp, Model const& M)
+{
+    Vec2i ep = drawArray2d(bp, M.vmat_, boxbg_, AlwayTrue());
+
+    drawArray2d(bp, M.vmat_, boxfg_, IsTrue());
+
+    Vec2i p( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] );
+    drawArray2d(p, M.smat_, boxfg_, IsTrue());
+
+    return ep;
+}
+
+Vec2i View::drawSide(Vec2i bp, Model const& M)
+{
+    Vec2i ep;
+
+    auto s = get_shape(M.pv_);
+    Array2d v(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
+    ep = drawArray2d(bp, v, boxbg_, AlwayTrue());
+    drawArray2d(bp, M.pv_, boxfg_, IsTrue());
+
+    gl::enableAlphaBlending();
+    gl::color( Color::white() );
+    ep = drawString(bp.x, ep.y+BOX_SIZE, "score: " + std::to_string(M.get_score()));
+    ep = drawString(bp.x, ep.y+2, "level: " + std::to_string(M.get_level()));
+    ep = drawString(bp.x, ep.y+2, "round: " + std::to_string(M.rounds_.size()));
+    gl::disableAlphaBlending();
+
+    return ep;
 }
 
 void View::operator()(Model const& M)
 {
     gl::clear( Color( 0, 0, 0 ) );
     glPushMatrix();
-        // gl::translate(5, 5);
-        gl::color( Color( 1, 0.5f, 0.25f ) );
+        // gl::translate(x, y);
+        // gl::color( Color( 1, 0.5f, 0.25f ) );
 
-        Vec2i bp(BOX_SIZE,BOX_SIZE); // Area aMx, aPx;
-        Vec2i ep = drawArray2d(bp, M.vmat_, 1); // gl::translate( (BOX_SIZE+1)*M.p_[1], (BOX_SIZE+1)*M.p_[0] );
+        Vec2i bp(BOX_SIZE,BOX_SIZE);
+        Vec2i ep = drawMain(bp, M);
+        drawSide(Vec2i(ep.x+BOX_SIZE, bp.y), M);
 
-        drawArray2d(Vec2i( bp.x + BOX_SIZEpx*M.p_[1], bp.y + BOX_SIZEpx*M.p_[0] ), M.smat_, 0);
-
-        Array2d pv; {
-            auto s = get_shape(M.pv_);
-            pv.resize(boost::extents[std::max(4,s[0])][std::max(4,s[1])]);
-            or_assign(pv, Point(0,0), M.pv_);
-        }
-        Vec2i bp2( ep.x + BOX_SIZE, bp.y );
-        Vec2i ep2 = drawArray2d(bp2, pv, 1);
-
-        gl::enableAlphaBlending();
-        gl::color( Color::white() );
-        drawString(bp2.x, ep2.y+BOX_SIZE, "score: " + std::to_string(M.get_score()));
-        if (!M.stats.empty())
+        if (!M.stats.empty()) {
+            gl::enableAlphaBlending();
+            gl::color( Color::white() );
             drawString(bp, ep, M.stats); //("Game over"); ("Pause");
-        gl::disableAlphaBlending();
+            gl::disableAlphaBlending();
+        }
     glPopMatrix();
 }
 
@@ -279,6 +317,17 @@ public:
         void operator()(Ev const& ev, SM&, SS&, TS&) { do_event( Ev_Back() ); }
     };
 
+    struct Menu_ : msm::front::state_machine_def<Menu_>
+    {
+        typedef Default initial_state;
+        struct transition_table : mpl::vector<
+            Row< Default  , Ev_Back     , Back  , none  , none >
+        > {};
+        template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
+        template <class Ev,class SM> void on_entry(Ev const&, SM& top) {}
+    }; // Menu_
+    typedef msm::back::state_machine<Menu_> Menu; // back-end
+
     struct Playing_ : msm::front::state_machine_def<Playing_> // , boost::noncopyable
     {
         struct Action
@@ -330,31 +379,35 @@ public:
             }
             template <class Ev, class SM> void on_exit(Ev const&, SM& ) {}
         };
+        struct Paused : msm::front::state<>
+        {
+            template <class Ev, class SM> void on_entry(Ev const& ev, SM&) {
+                Top().model.stats = "Paused";
+            }
+            template <class Ev, class SM> void on_exit(Ev const&, SM&) {
+                Top().model.stats = "";
+            }
+        }; // Paused
 
         typedef Busy initial_state;
         struct transition_table : mpl::vector<
-            Row< Busy     ,  Ev_Input    ,  none     ,  Action    ,  none >,
-            Row< Busy     ,  Ev_Timeout  ,  none     ,  AutoFall  ,  none >,
-            Row< Busy     ,  Ev_Blink    ,  Blinking ,  none      ,  none >,
-            Row< Blinking ,  Ev_EndBlink ,  Busy     ,  none      ,  none >
+            Row< Busy     , Ev_Input    , none     , Action    , none >,
+            Row< Busy     , Ev_Timeout  , none     , AutoFall  , none >,
+            Row< Busy     , Ev_Blink    , Blinking , none      , none >,
+            Row< Busy     , Ev_Back     , Paused   , none      , none >,
+            Row< Paused   , Ev_Back     , Closed   , Back      , none >,
+            Row< Blinking , Ev_EndBlink , Busy     , none      , none >
         > {};
 
-        template <class Ev, class SM> void on_entry(Ev const& ev, SM&) {
+        template <class Ev, class SM> void on_entry(Ev const&, SM&) {
             auto& top = Top();
-            top.in_playing_=1;
-			if (is_new_game(ev)) {
-				top.model.reset();
-				// play_sound( "newgame.wav" );
-			}
+            top.model.reset();
+            timer_.reset(new boost::asio::deadline_timer(top.io_service()));
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
-            auto& top = Top();
-            // top.model.rotate();
-            top.in_playing_=0;
+            timer_.reset();
         }
-		bool is_new_game(Ev_Play) const { return true; }
-		template <class Ev> bool is_new_game(Ev) const { return false; }
-        template <class SM, class Ev> void no_transition(Ev const&, SM&, int state) {
+        template <class SM, class Ev> void no_transition(Ev const&, SM&, int) {
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
 
@@ -364,6 +417,7 @@ public:
             //    do_event(te, Ev_Timeout());
             //}
         }
+        std::unique_ptr<boost::asio::deadline_timer> timer_;
 
     }; // Playing_
 
@@ -378,10 +432,8 @@ public:
             struct transition_table : mpl::vector<
                 Row< Default  , Ev_Menu     , Menu     , none  , none >,
                 Row< Menu     , Ev_Back     , Default  , none  , none >
-              //Row< Default  , Ev_Back     , Closed   , none  , none >
             > {};
             template <class Ev, class SM> void on_entry(Ev const&, SM&) {
-                //timer;
                 //Ev_Play
             }
             template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
@@ -403,8 +455,8 @@ public:
         typedef Preview initial_state;
         struct transition_table : mpl::vector<
             Row< Preview  , Ev_Back     , Closed   , Back  , none    >,
-            Row< Playing  , Ev_Back     , Closed   , none  , none    >,
-            Row< GameOver , Ev_Back     , Closed   , none  , none    >,
+            Row< Playing  , Ev_Back     , Closed   , Back  , none    >,
+            Row< GameOver , Ev_Back     , Closed   , Back  , none    >,
             Row< Preview  , Ev_Play     , Playing  , none  , none    >,
             Row< Playing  , Ev_Play     , Playing  , none  , none    >,
             Row< GameOver , Ev_Play     , Playing  , none  , none    >,
@@ -416,81 +468,24 @@ public:
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int s) {
             LOG << "S:Play no transition on-ev " << typeid(Ev).name() << "\n";
         }
-    };
+    }; // Play_
     //typedef msm::back::state_machine<Play_> Play; // back-end
     //typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
 	typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
 	
-    struct Leave : msm::front::state<>
-    {
-        template <class Ev,class SM> void on_entry(Ev const&, SM& sm) {}
-        template <class Ev,class SM> void on_exit(Ev const&, SM& ) {}
-    }; // Leave
-
-    struct Paused : msm::front::interrupt_state<Ev_Back>
-    {
-        template <class Ev, class SM> void on_entry(Ev const& ev, SM& top) {
-            top.model.stats = "Paused";
-        }
-        template <class Ev, class SM> void on_exit(Ev const&, SM& top) {
-            top.model.stats = "";
-        }
-    }; // Paused
     struct Quit : msm::front::terminate_state<>
     {
         template <class Ev, class SM> void on_entry(Ev const& ev, SM& top) {
             top.io_service().post(&TheEnd);
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& top) {
-            // top.model.rotate();
         }
     }; // Quit
 
-    struct PlayX : msm::front::state<> {
-        template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
-            do_event(sm, Ev_Play());
-        }
-        template <class Ev, class SM> void on_exit(Ev const&, SM& sm) {
-            do_event(sm, Ev_Leave());
-        }
-    };
-
-    struct Menu : msm::front::state<>
-    {
-        template <class Ev,class SM> void on_entry(Ev const&, SM& top) {
-			top.model.stats = "Paused";
-            // sm.io_service().post(boost::bind(&do_event<SM,Ev_Play>, boost::ref(sm), Ev_Play())); //([&sm]() { do_event(sm, Ev_Play()); });
-        }
-        template <class Ev,class SM> void on_exit(Ev const&, SM& top) {
-			top.model.stats = "";
-		}
-    }; // Menu
-
-    struct isUnpause {
-        template <class Ev, class SM, class SS, class TS>
-        bool operator()(Ev const& b, SM&, SS&, TS& ) const {return (b.unpause);}
-    };
-    struct isPlaying {
-        template <class Ev, class SM, class SS, class TS>
-        bool operator()(Ev const&, SM& sm, SS&, TS& ) const { return sm.in_playing_; }
-    };
-
-    typedef mpl::vector<Leave,PlayX> initial_state;
+    typedef Play initial_state;
 
     struct transition_table : mpl::vector<
-        Row< Play    , boost::any , none    , none  , none        >,
-        Row< Play    , Ev_Back    , Quit    , none  , none        >,
-
-        Row< Play    , boost::any , none    , none  , none        >,
-        Row< Play    , Ev_Leave   , Leave   , none  , none        >,
-        Row< Leave   , Ev_Play    , Play    , none  , none        >,
-
-        Row< PlayX   , Ev_Menu    , Menu    , none  , none        >,
-        Row< PlayX   , Ev_Back    , Quit    , none  , none        >,
-        Row< PlayX   , Ev_Back    , Paused  , none  , isPlaying   >,
-        Row< Paused  , Ev_Back    , Quit    , none  , none        >,
-        Row< Paused  , Ev_Back    , PlayX   , none  , isUnpause   >,
-        Row< Menu    , Ev_Back    , PlayX   , none  , none        >
+        Row< Play    , Ev_Back    , Quit    , none  , none        >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
