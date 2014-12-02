@@ -1,3 +1,6 @@
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 30 //or whatever you need                       
+#define BOOST_MPL_LIMIT_MAP_SIZE 30 //or whatever you need                   
 #include <string>
 #include <iostream>
 #include <boost/asio/io_service.hpp>
@@ -34,19 +37,15 @@ using namespace msm::front;
 static const int BOX_SIZE = 40;
 static const int BOX_SIZEpx = 41;
 
-struct Ev_Play {};
 struct Ev_Input {
     int a;
     Ev_Input(int x) { a=x; }
 };
-struct Ev_Back {
-    int unpause;
-    Ev_Back(int x=0) { unpause=x; }
-};
-struct Ev_Over {};
-struct Ev_Timeout {};
-struct Ev_Leave {};
 struct Ev_Play {};
+struct Ev_Over {};
+struct Ev_Back {};
+struct Ev_Quit {};
+struct Ev_Timeout {};
 struct Ev_Menu {};
 
 struct Ev_Blink {};
@@ -125,7 +124,8 @@ struct View
 
     Vec2i drawString(int x, int y, std::string const& v);
     Vec2i drawString(Vec2i bp, Vec2i ep, std::string const& v);
-    Vec2i drawArray2d(Vec2i p, Array2d const& m, bool bg);
+	template <typename Pred>
+    Vec2i drawArray2d(Vec2i bp, Array2d const& m, Color color, Pred pred);
 
     void prepareSettings(AppNative::Settings *settings) {
         settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
@@ -165,6 +165,7 @@ Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
     return bp + Vec2i(w,h);
 }
 
+template <typename Pred>
 Vec2i View::drawArray2d(Vec2i bp, Array2d const& m, Color color, Pred pred)
 {
     Vec2i endp;
@@ -290,12 +291,10 @@ struct Main_ : msm::front::state_machine_def<Main_> , boost::noncopyable
     View view;
 
     boost::asio::deadline_timer deadline_;
-    bool in_playing_;
 
 public:
     Main_(boost::asio::io_service& io_s) : deadline_(io_s)
     {
-        in_playing_ = 0;
     }
 
     void draw() { view(model); }
@@ -321,10 +320,14 @@ public:
     {
         typedef Default initial_state;
         struct transition_table : mpl::vector<
-            Row< Default  , Ev_Back     , Back  , none  , none >
+            Row< Default  , Ev_Back     , Closed  , Back  , none >
         > {};
-        template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
-        template <class Ev,class SM> void on_entry(Ev const&, SM& top) {}
+        template <class Ev,class SM> void on_entry(Ev const&, SM&) {
+			Top().model.stats = "Menu";
+		}
+        template <class Ev,class SM> void on_exit(Ev const&, SM&) {
+			Top().model.stats = "";
+		}
     }; // Menu_
     typedef msm::back::state_machine<Menu_> Menu; // back-end
 
@@ -395,7 +398,9 @@ public:
             Row< Busy     , Ev_Timeout  , none     , AutoFall  , none >,
             Row< Busy     , Ev_Blink    , Blinking , none      , none >,
             Row< Busy     , Ev_Back     , Paused   , none      , none >,
-            Row< Paused   , Ev_Back     , Closed   , Back      , none >,
+	        Row< Busy     , Ev_Menu     , Menu     , none      , none >,
+			Row< Menu     , Ev_Back     , Busy     , none      , none >,
+            Row< Paused   , Ev_Back     , Busy     , none      , none >,
             Row< Blinking , Ev_EndBlink , Busy     , none      , none >
         > {};
 
@@ -469,9 +474,9 @@ public:
             LOG << "S:Play no transition on-ev " << typeid(Ev).name() << "\n";
         }
     }; // Play_
-    //typedef msm::back::state_machine<Play_> Play; // back-end
+    typedef msm::back::state_machine<Play_> Play; // back-end
     //typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
-	typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
+	//typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
 	
     struct Quit : msm::front::terminate_state<>
     {
@@ -485,7 +490,8 @@ public:
     typedef Play initial_state;
 
     struct transition_table : mpl::vector<
-        Row< Play    , Ev_Back    , Quit    , none  , none        >
+	    Row< Play   , Ev_Quit    , Quit  , none  , none >,
+        Row< Play   , Ev_Back    , Quit  , none  , none >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
@@ -520,7 +526,7 @@ public:
     void update() { main_.update(); }
     void draw() { main_.draw(); }
 
-    void mouseDown( MouseEvent event ) { do_event(main_, Ev_Back(1)); }
+    void mouseDown( MouseEvent event ) { do_event(main_, Ev_Menu()); }
     void keyDown( KeyEvent event );
 };
 
@@ -545,7 +551,9 @@ void App_::keyDown( KeyEvent event )
     if (isModDown) {
         if( event.getChar() == 'n' ) {
             do_event(main_, Ev_Play());
-            // } else if (event.getChar() == 'q') { do_event(main_, Ev_Back(1));
+        }
+        if( event.getChar() == 'c' ) {
+            do_event(main_, Ev_Quit());
         }
         return;
     }
