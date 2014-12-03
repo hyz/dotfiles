@@ -96,9 +96,11 @@ struct Model : Tetris_Basic
     }
     int get_level() const { return rounds_.size()/10; }
 
-    bool time2falling(ptime const& tp) const
+    // (microsec_clock::local_time())
+    milliseconds time2falling(int n) const
     {
-        return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
+        //return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
+        return milliseconds(900 - get_level()*10 - get_score()/8);
     }
 };
 
@@ -299,6 +301,7 @@ public:
 
     void draw() { view(model); }
     void update() {}
+    boost::asio::deadline_timer* deadline_timer() { return &deadline_; }
 
     struct Default : msm::front::state<>
     {
@@ -333,23 +336,27 @@ public:
 
     struct Playing_ : msm::front::state_machine_def<Playing_> // , boost::noncopyable
     {
+        int nincr;
         struct Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const& ev, SM&, SS&, TS&) {
+            void operator()(Ev const& ev, SM& csm, SS&, TS&) {
                 auto& top = Top();
                 if (is_rotate(ev)) {
                     top.model.rotate();
                     top.view.play_sound( "rotate.wav" );
+                } else if (act(ev, top, "speedown.wav")) {
+                    nincr = 0;
+                } else {
+                    do_event(top, Ev_Over());
                     return;
                 }
-                if (!act(ev, top, "speedown.wav")) {
-                    do_event(top, Ev_Over());
-                }
+                milliseconds ms = top.model.time2falling(nincr);
             }
             template <class Top>
             int act(Ev_Input ev, Top& top, char const* snd)
             {
+                ++csm.nincr;
                 if (!top.model.Move(ev.a)) {
                     if (ev.a == 0) {
                         top.model.rounds_.push_back( top.model.last_round_result);
@@ -407,22 +414,28 @@ public:
         template <class Ev, class SM> void on_entry(Ev const&, SM&) {
             auto& top = Top();
             top.model.reset();
-            timer_.reset(new boost::asio::deadline_timer(top.io_service()));
+            timer_ = top.deadline_timer(); //.reset(new boost::asio::deadline_timer(top.io_service()));
+            timer_reset();
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
-            timer_.reset();
+            boost::system::error_code ec;
+            timer_->cancel(ec);
+            timer_ = 0;
         }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int) {
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
 
-        void autofall()
+        void timer_reset(boost::system::error_code ec)
         {
-            //if (model.time2falling(microsec_clock::local_time())) {
-            //    do_event(te, Ev_Timeout());
-            //}
+            if (timer_) {
+                milliseconds ms = Top().model.time2falling(nincr);
+                timer_->expires_from_now(ms);
+                timer_->async_wait( boost::bind(&::do_event<Ev_Timeout>, Ev_Timeout()) );
+            }
         }
-        std::unique_ptr<boost::asio::deadline_timer> timer_;
+        boost::asio::deadline_timer* timer_;
+        // std::unique_ptr<boost::asio::deadline_timer> timer_;
 
     }; // Playing_
 
@@ -549,13 +562,11 @@ void App_::keyDown( KeyEvent event )
 #endif
 
     if (isModDown) {
-        if( event.getChar() == 'n' ) {
-            do_event(main_, Ev_Play());
+        swith ( event.getChar() ){
+			case 'n': do_event(main_, Ev_Play()); break;
+		    case 'c': do_event(main_, Ev_Quit()); break;
         }
-        if( event.getChar() == 'c' ) {
-            do_event(main_, Ev_Quit());
-        }
-        return;
+		return;
     }
 
     int ev = 0;
