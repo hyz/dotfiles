@@ -336,27 +336,25 @@ public:
 
     struct Playing_ : msm::front::state_machine_def<Playing_> // , boost::noncopyable
     {
-        int nincr;
+        int n_reset_;
         struct Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const& ev, SM& csm, SS&, TS&) {
+            void operator()(Ev const& ev, SM& sm, SS&, TS&) {
                 auto& top = Top();
                 if (is_rotate(ev)) {
+                    sm.timer_do(boost::system::error_code(), ++sm.n_reset_);
                     top.model.rotate();
                     top.view.play_sound( "rotate.wav" );
-                } else if (act(ev, top, "speedown.wav")) {
-                    nincr = 0;
+                } else if (act(ev, top, sm, "speedown.wav")) {
                 } else {
                     do_event(top, Ev_Over());
                     return;
                 }
-                milliseconds ms = top.model.time2falling(nincr);
             }
-            template <class Top>
-            int act(Ev_Input ev, Top& top, char const* snd)
+            template <class Top,class SM>
+            int act(Ev_Input ev, Top& top, SM& sm, char const* snd)
             {
-                ++csm.nincr;
                 if (!top.model.Move(ev.a)) {
                     if (ev.a == 0) {
                         top.model.rounds_.push_back( top.model.last_round_result);
@@ -373,8 +371,8 @@ public:
         struct AutoFall : Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const&, SM&, SS&, TS&) {
-                act(Ev_Input(0), Top(), 0);
+            void operator()(Ev const&, SM& sm, SS&, TS&) {
+                act(Ev_Input(0), Top(), sm, 0);
             }
         };
         struct Busy : msm::front::state<>
@@ -414,8 +412,7 @@ public:
         template <class Ev, class SM> void on_entry(Ev const&, SM&) {
             auto& top = Top();
             top.model.reset();
-            timer_ = top.deadline_timer(); //.reset(new boost::asio::deadline_timer(top.io_service()));
-            timer_reset();
+            timer_do(boost::system::error_code(), 0);
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
             boost::system::error_code ec;
@@ -426,12 +423,19 @@ public:
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
 
-        void timer_reset(boost::system::error_code ec)
+        void timer_do(boost::system::error_code ec, int reset)
         {
             if (timer_) {
-                milliseconds ms = Top().model.time2falling(nincr);
-                timer_->expires_from_now(ms);
-                timer_->async_wait( boost::bind(&::do_event<Ev_Timeout>, Ev_Timeout()) );
+                if (!ec) {
+                    milliseconds ms = Top().model.time2falling(n_reset_);
+                    timer_->expires_from_now(ms);
+                    timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0) );
+                    if (!reset) {
+                        n_reset_ = 0;
+                        do_event(Ev_Timeout());
+                    }
+                    // boost::bind(&::do_event<Ev_Timeout>, Ev_Timeout())
+                }
             }
         }
         boost::asio::deadline_timer* timer_;
