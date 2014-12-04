@@ -1,3 +1,6 @@
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 30 //or whatever you need                       
+#define BOOST_MPL_LIMIT_MAP_SIZE 30 //or whatever you need                   
 #include <string>
 #include <iostream>
 #include <boost/asio/io_service.hpp>
@@ -34,19 +37,15 @@ using namespace msm::front;
 static const int BOX_SIZE = 40;
 static const int BOX_SIZEpx = 41;
 
-struct Ev_Play {};
 struct Ev_Input {
     int a;
     Ev_Input(int x) { a=x; }
 };
-struct Ev_Back {
-    int unpause;
-    Ev_Back(int x=0) { unpause=x; }
-};
-struct Ev_Over {};
-struct Ev_Timeout {};
-struct Ev_Leave {};
 struct Ev_Play {};
+struct Ev_Over {};
+struct Ev_Back {};
+struct Ev_Quit {};
+struct Ev_Timeout {};
 struct Ev_Menu {};
 
 struct Ev_Blink {};
@@ -97,9 +96,11 @@ struct Model : Tetris_Basic
     }
     int get_level() const { return rounds_.size()/10; }
 
-    bool time2falling(ptime const& tp) const
+    // (microsec_clock::local_time())
+    milliseconds time2falling(int n) const
     {
-        return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
+        //return (tp - td_ > milliseconds(900 - get_level()*10 - get_score()/8));
+        return milliseconds(900 - get_level()*10 - get_score()/8);
     }
 };
 
@@ -125,7 +126,8 @@ struct View
 
     Vec2i drawString(int x, int y, std::string const& v);
     Vec2i drawString(Vec2i bp, Vec2i ep, std::string const& v);
-    Vec2i drawArray2d(Vec2i p, Array2d const& m, bool bg);
+	template <typename Pred>
+    Vec2i drawArray2d(Vec2i bp, Array2d const& m, Color color, Pred pred);
 
     void prepareSettings(AppNative::Settings *settings) {
         settings->setWindowSize( BOX_SIZE*16, BOX_SIZE*22 );
@@ -165,6 +167,7 @@ Vec2i View::drawString(Vec2i bp, Vec2i ep, std::string const& v)
     return bp + Vec2i(w,h);
 }
 
+template <typename Pred>
 Vec2i View::drawArray2d(Vec2i bp, Array2d const& m, Color color, Pred pred)
 {
     Vec2i endp;
@@ -290,16 +293,15 @@ struct Main_ : msm::front::state_machine_def<Main_> , boost::noncopyable
     View view;
 
     boost::asio::deadline_timer deadline_;
-    bool in_playing_;
 
 public:
     Main_(boost::asio::io_service& io_s) : deadline_(io_s)
     {
-        in_playing_ = 0;
     }
 
     void draw() { view(model); }
     void update() {}
+    boost::asio::deadline_timer* deadline_timer() { return &deadline_; }
 
     struct Default : msm::front::state<>
     {
@@ -321,31 +323,37 @@ public:
     {
         typedef Default initial_state;
         struct transition_table : mpl::vector<
-            Row< Default  , Ev_Back     , Back  , none  , none >
+            Row< Default  , Ev_Back     , Closed  , Back  , none >
         > {};
-        template <class Ev,class SM> void on_exit(Ev const&, SM&) {}
-        template <class Ev,class SM> void on_entry(Ev const&, SM& top) {}
+        template <class Ev,class SM> void on_entry(Ev const&, SM&) {
+			Top().model.stats = "Menu";
+		}
+        template <class Ev,class SM> void on_exit(Ev const&, SM&) {
+			Top().model.stats = "";
+		}
     }; // Menu_
     typedef msm::back::state_machine<Menu_> Menu; // back-end
 
     struct Playing_ : msm::front::state_machine_def<Playing_> // , boost::noncopyable
     {
+        int n_reset_;
         struct Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const& ev, SM&, SS&, TS&) {
+            void operator()(Ev const& ev, SM& sm, SS&, TS&) {
                 auto& top = Top();
                 if (is_rotate(ev)) {
+                    sm.timer_do(boost::system::error_code(), ++sm.n_reset_);
                     top.model.rotate();
                     top.view.play_sound( "rotate.wav" );
+                } else if (act(ev, top, sm, "speedown.wav")) {
+                } else {
+                    do_event(top, Ev_Over());
                     return;
                 }
-                if (!act(ev, top, "speedown.wav")) {
-                    do_event(top, Ev_Over());
-                }
             }
-            template <class Top>
-            int act(Ev_Input ev, Top& top, char const* snd)
+            template <class Top,class SM>
+            int act(Ev_Input ev, Top& top, SM& sm, char const* snd)
             {
                 if (!top.model.Move(ev.a)) {
                     if (ev.a == 0) {
@@ -363,8 +371,8 @@ public:
         struct AutoFall : Action
         {
             template <class Ev, class SM, class SS, class TS>
-            void operator()(Ev const&, SM&, SS&, TS&) {
-                act(Ev_Input(0), Top(), 0);
+            void operator()(Ev const&, SM& sm, SS&, TS&) {
+                act(Ev_Input(0), Top(), sm, 0);
             }
         };
         struct Busy : msm::front::state<>
@@ -395,29 +403,43 @@ public:
             Row< Busy     , Ev_Timeout  , none     , AutoFall  , none >,
             Row< Busy     , Ev_Blink    , Blinking , none      , none >,
             Row< Busy     , Ev_Back     , Paused   , none      , none >,
-            Row< Paused   , Ev_Back     , Closed   , Back      , none >,
+	        Row< Busy     , Ev_Menu     , Menu     , none      , none >,
+			Row< Menu     , Ev_Back     , Busy     , none      , none >,
+            Row< Paused   , Ev_Back     , Busy     , none      , none >,
             Row< Blinking , Ev_EndBlink , Busy     , none      , none >
         > {};
 
         template <class Ev, class SM> void on_entry(Ev const&, SM&) {
             auto& top = Top();
             top.model.reset();
-            timer_.reset(new boost::asio::deadline_timer(top.io_service()));
+            timer_do(boost::system::error_code(), 0);
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
-            timer_.reset();
+            boost::system::error_code ec;
+            timer_->cancel(ec);
+            timer_ = 0;
         }
         template <class SM, class Ev> void no_transition(Ev const&, SM&, int) {
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
 
-        void autofall()
+        void timer_do(boost::system::error_code ec, int reset)
         {
-            //if (model.time2falling(microsec_clock::local_time())) {
-            //    do_event(te, Ev_Timeout());
-            //}
+            if (timer_) {
+                if (!ec) {
+                    milliseconds ms = Top().model.time2falling(n_reset_);
+                    timer_->expires_from_now(ms);
+                    timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0) );
+                    if (!reset) {
+                        n_reset_ = 0;
+                        do_event(Ev_Timeout());
+                    }
+                    // boost::bind(&::do_event<Ev_Timeout>, Ev_Timeout())
+                }
+            }
         }
-        std::unique_ptr<boost::asio::deadline_timer> timer_;
+        boost::asio::deadline_timer* timer_;
+        // std::unique_ptr<boost::asio::deadline_timer> timer_;
 
     }; // Playing_
 
@@ -469,9 +491,9 @@ public:
             LOG << "S:Play no transition on-ev " << typeid(Ev).name() << "\n";
         }
     }; // Play_
-    //typedef msm::back::state_machine<Play_> Play; // back-end
+    typedef msm::back::state_machine<Play_> Play; // back-end
     //typedef msm::back::state_machine<Play_,msm::back::ShallowHistory<mpl::vector<Ev_Play>>> Play;
-	typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
+	//typedef msm::back::state_machine<Play_,msm::back::AlwaysHistory> Play;
 	
     struct Quit : msm::front::terminate_state<>
     {
@@ -485,7 +507,8 @@ public:
     typedef Play initial_state;
 
     struct transition_table : mpl::vector<
-        Row< Play    , Ev_Back    , Quit    , none  , none        >
+	    Row< Play   , Ev_Quit    , Quit  , none  , none >,
+        Row< Play   , Ev_Back    , Quit  , none  , none >
     > {};
 
     template <class Ev, class SM> void on_entry(Ev const&, SM& sm) {
@@ -520,7 +543,7 @@ public:
     void update() { main_.update(); }
     void draw() { main_.draw(); }
 
-    void mouseDown( MouseEvent event ) { do_event(main_, Ev_Back(1)); }
+    void mouseDown( MouseEvent event ) { do_event(main_, Ev_Menu()); }
     void keyDown( KeyEvent event );
 };
 
@@ -543,11 +566,11 @@ void App_::keyDown( KeyEvent event )
 #endif
 
     if (isModDown) {
-        if( event.getChar() == 'n' ) {
-            do_event(main_, Ev_Play());
-            // } else if (event.getChar() == 'q') { do_event(main_, Ev_Back(1));
+        swith ( event.getChar() ){
+			case 'n': do_event(main_, Ev_Play()); break;
+		    case 'c': do_event(main_, Ev_Quit()); break;
         }
-        return;
+		return;
     }
 
     int ev = 0;
