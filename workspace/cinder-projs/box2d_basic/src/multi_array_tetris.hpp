@@ -155,16 +155,16 @@ struct arrayvec : private std::array<T,N>
 
     arrayvec() { size_=0; clear(); }
 
-    iterator begin() { return std::array<T,N>::begin(); }
+    iterator begin() { BOOST_ASSERT(size_>0); return std::array<T,N>::begin(); }
     iterator end() { return begin()+size_; }
 	iterator begin() const { return const_cast<arrayvec*>(this)->begin(); }
 	iterator end() const { return const_cast<arrayvec*>(this)->end(); }
     int size() const { return size_; }
 	bool empty() const { return size()==0; }
 
-    void push_back(T const& x) { at(size_++) = x; }
-    void pop_back() { size_--; }
-    void clear() { assign(0); }
+    void push_back(T const& x) { BOOST_ASSERT(size_<N); at(size_++) = x; }
+    void pop_back() { BOOST_ASSERT(size_>0); size_--; }
+    void clear() { size_ = 0; }
 };
 
 typedef arrayvec<uint8_t,7> round_result;
@@ -238,6 +238,7 @@ struct Tetris_Basic // : Array2d
                 or_assign(vmat_, p_, smat_);
                 auto sv = get_shape(vmat_);
                 auto sa = get_shape(smat_);
+				last_round_result.clear();
                 collapse(std::min(p_[0]+sa[0], sv[0]-1), std::max(0, p_[0]), last_round_result);
             }
             return false;

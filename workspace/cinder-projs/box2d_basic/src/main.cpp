@@ -343,7 +343,7 @@ public:
             void operator()(Ev const& ev, SM& sm, SS&, TS&) {
                 auto& top = Top();
                 if (is_rotate(ev)) {
-                    sm.timer_do(boost::system::error_code(), ++sm.n_reset_);
+                    sm.timer_do(1, boost::system::error_code());
                     top.model.rotate();
                     top.view.play_sound( "rotate.wav" );
                 } else if (act(ev, top, sm, "speedown.wav")) {
@@ -412,7 +412,8 @@ public:
         template <class Ev, class SM> void on_entry(Ev const&, SM&) {
             auto& top = Top();
             top.model.reset();
-            timer_do(boost::system::error_code(), 0);
+			timer_ = top.deadline_timer();
+            timer_do(1, boost::system::error_code());
         }
         template <class Ev, class SM> void on_exit(Ev const&, SM& ) {
             boost::system::error_code ec;
@@ -423,23 +424,23 @@ public:
             LOG << "S:Playing no transition on-ev " << typeid(Ev).name() << "\n";
         }
 
-        void timer_do(boost::system::error_code ec, int reset)
+        void timer_do(int rs, boost::system::error_code ec)
         {
             if (timer_) {
                 if (!ec) {
-                    milliseconds ms = Top().model.time2falling(n_reset_);
-                    timer_->expires_from_now(ms);
-                    timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0) );
-                    if (!reset) {
+                    if (rs) {
+                        ++n_reset_;
+                    } else {
                         n_reset_ = 0;
                         do_event(Ev_Timeout());
                     }
-                    // boost::bind(&::do_event<Ev_Timeout>, Ev_Timeout())
+                    milliseconds ms = Top().model.time2falling(n_reset_);
+                    timer_->expires_from_now(ms);
+                    timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0, _1) );
                 }
             }
         }
-        boost::asio::deadline_timer* timer_;
-        // std::unique_ptr<boost::asio::deadline_timer> timer_;
+        boost::asio::deadline_timer* timer_; // std::unique_ptr<boost::asio::deadline_timer>
 
     }; // Playing_
 
@@ -566,7 +567,7 @@ void App_::keyDown( KeyEvent event )
 #endif
 
     if (isModDown) {
-        swith ( event.getChar() ){
+        switch ( event.getChar() ){
 			case 'n': do_event(main_, Ev_Play()); break;
 		    case 'c': do_event(main_, Ev_Quit()); break;
         }
