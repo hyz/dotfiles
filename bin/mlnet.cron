@@ -3,11 +3,13 @@
 exec >>/tmp/mlnet.cron
 exec 2>&1
 
+date
 case "$1" in
     stop)
         pid=`cat .mldonkey/mlnet.pid`
-        kill $pid
-        sh -c "sleep 2; kill -9 $pid"
+        if [ -n "$pid" ]; then
+            kill $pid ; sh -c "sleep 2; kill -9 $pid" &
+        fi
         ;;
     start)
         mlnet &
