@@ -1,5 +1,5 @@
 
 16 21 * * * sh $HOME/bin/cron/mlnet start
 55  8 * * * sh $HOME/bin/cron/mlnet stop
-59  8 * * 6 sh $HOME/bin/cron/mlnet start
+59  8 * * 0 sh $HOME/bin/cron/mlnet start
 
