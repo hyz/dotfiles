@@ -2,7 +2,7 @@
 ### dos/windows
 > cd cinder\boost
 > bootstrap
-> b2 runtime-link=static toolset=msvc --with-regex --with-thread --with-filesystem --with-date_time --with-system --with-chrono
+> b2 runtime-link=static toolset=msvc --with-thread --with-filesystem --with-date_time --with-system --with-chrono
 > copy stage\lib\*.lib ..\lib\msw\x64
 > copy stage\lib\*.lib ..\lib\msw\x86
 

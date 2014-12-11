@@ -20,6 +20,9 @@ tcpdump -nn -A -r pcap
 ### ssh-keygen ###
 ssh-keygen -y -f .ssh/id_rsa > id_rsa.pub
 
+### ssh ###
+x=_subdir_ ; tar czf - $x/*.{h,hpp,cpp,jam} |ssh _host_ 'cat > $x.tgz-$(date +%F)'
+
 ### pgrep ###
 pgrep -lf yxim
 
@@ -89,3 +92,5 @@ hello
 
 ### ###
 ### ###
+#
+

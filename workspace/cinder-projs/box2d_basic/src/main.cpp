@@ -426,19 +426,18 @@ public:
 
         void timer_do(int rs, boost::system::error_code ec)
         {
-            if (timer_) {
-                if (!ec) {
-                    if (rs) {
-                        ++n_reset_;
-                    } else {
-                        n_reset_ = 0;
-                        do_event(Ev_Timeout());
-                    }
-                    milliseconds ms = Top().model.time2falling(n_reset_);
-                    timer_->expires_from_now(ms);
-                    timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0, _1) );
-                }
+            if (!timer_ || ec) {
+                return;
             }
+            if (rs) {
+                ++n_reset_;
+            } else {
+                n_reset_ = 0;
+                do_event(Ev_Timeout());
+            }
+            milliseconds ms = Top().model.time2falling(n_reset_);
+            timer_->expires_from_now(ms);
+            timer_->async_wait( boost::bind(&Playing_::timer_do, this, 0, _1) );
         }
         boost::asio::deadline_timer* timer_; // std::unique_ptr<boost::asio::deadline_timer>
 
