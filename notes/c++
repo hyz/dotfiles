@@ -1,0 +1,14 @@
+ Like all references, universal references must be initialized, and it is a universal reference’s initializer that determines whether it represents an lvalue reference or an rvalue reference:
+
+    If the expression initializing a universal reference is an lvalue, the universal reference becomes an lvalue reference.
+    If the expression initializing the universal reference is an rvalue, the universal reference becomes an rvalue reference.
+
+This information is useful only if you are able to distinguish lvalues from rvalues.  A precise definition for these terms is difficult to develop (the C++11 standard generally specifies whether an expression is an lvalue or an rvalue on a case-by-case basis), but in practice, the following suffices:
+
+    If you can take the address of an expression, the expression is an lvalue.
+    If the type of an expression is an lvalue reference (e.g., T& or const T&, etc.), that expression is an lvalue. 
+    Otherwise, the expression is an rvalue.  Conceptually (and typically also in fact), rvalues correspond to temporary objects, such as those returned from functions or created through implicit type conversions. Most literal values (e.g., 10 and 5.3) are also rvalues.
+
+http://isocpp.org/blog/2012/11/universal-references-in-c11-scott-meyers
+Remember that “&&” indicates a universal reference only where type deduction takes place.  Where there’s no type deduction, there’s no universal reference.  In such cases, “&&” in type declarations always means rvalue reference.  Hence:
+

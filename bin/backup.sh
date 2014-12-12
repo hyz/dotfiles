@@ -2,9 +2,9 @@
 
 exec >/tmp/backup.sh.log 2>&1
 
-which svn
+which svn || exit 1
 
-for repo in moon im-trunk ; do
+for repo in im-trunk ; do
     cd $HOME/backup/$repo
     if svn up |grep '^[UA]\>' >/dev/null ; then
         cd $HOME
