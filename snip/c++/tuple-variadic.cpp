@@ -1,7 +1,9 @@
-#include <cstddef>
+/// http://en.wikipedia.org/wiki/Variadic_template
+/// http://en.cppreference.com/w/cpp/language/parameter_pack
 #include <tuple>
 #include <type_traits>
-#include <utility>
+//#include <cstddef>
+//#include <utility>
 
 // template<size_t N>
 // struct applyF_ {
