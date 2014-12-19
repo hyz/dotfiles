@@ -1,0 +1,4 @@
+# export CC=/opt/bin/gcc CXX=/opt/bin/g++ CXXFLAGS="-std=c++11"
+
+include_directories(/opt/boost)
+
