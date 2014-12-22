@@ -1,9 +1,10 @@
-/// http://en.wikipedia.org/wiki/Variadic_template
-/// http://en.cppreference.com/w/cpp/language/parameter_pack
+#include <vector>
+#include <cstddef>
 #include <tuple>
 #include <type_traits>
-//#include <cstddef>
-//#include <utility>
+#include <utility>
+
+// static constexpr
 
 // template<size_t N>
 // struct applyF_ {
@@ -67,7 +68,7 @@ struct Foo
     }
 };
 
-int main()
+int _1_main()
 {
     auto t2 = std::make_tuple(11, "foo");
     auto t22 = std::make_tuple(11, std::make_tuple(22, "bar"));
@@ -76,5 +77,36 @@ int main()
     apply(Foo(), t22); puts("");
     //apply(Foo(), t2); puts("");
     // apply(Foo(), t22); puts("");
+    return 0;
+}
+
+#include <boost/variant/variant.hpp>
+
+namespace detail {
+    template <typename> struct variant;
+    template <template<typename...> class Tuple, typename... T>
+    struct variant<Tuple<T...>> {
+        typedef boost::variant<T...> type;
+    };
+    template <typename> struct tuple;
+    template <template<typename...> class Variant, typename... T>
+    struct tuple<Variant<T...>> {
+        typedef std::tuple<T...> type;
+    };
+} // namespace type
+
+int main()
+{
+    typedef std::tuple<int,std::string,std::vector<int>> Tuple0;
+    typedef detail::variant<Tuple0>::type Variant;
+    typedef detail::tuple<Variant>::type Tuple;
+
+    std::cout << "sizeof"
+        <<"\n tuple " << sizeof(Tuple0) <<" "<< typeid(Tuple0).name()
+        <<"\n variant " << sizeof(Variant) // <<" "<< typeid(Tuple0).name()
+        <<"\n tuple " << sizeof(Tuple) <<" "<< typeid(Tuple).name()
+        <<"\n";
+
+    return 0;
 }
 

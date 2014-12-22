@@ -58,7 +58,7 @@ struct Vec : std::vector<gps_position>
     int tag;
 };
 
-int main(int argc, char* const argv[])
+int ___main(int argc, char* const argv[])
 {
     // create class instance
     std::vector<gps_position> vec;
@@ -160,4 +160,51 @@ int main_x(int argc, char* const argv[])
 }
 
 
+#include <vector>
+#include <boost/interprocess/streams/vectorstream.hpp>
+#include <boost/interprocess/streams/bufferstream.hpp>
+
+#include <iostream>
+
+int main(int argc, char* const argv[])
+{
+    typedef boost::interprocess::basic_vectorbuf<std::vector<char> >        vectorbuf;
+    typedef boost::interprocess::basic_bufferbuf<char>        bufferbuf;
+
+    // create class instance
+    std::vector<char> vecs;
+    {
+        std::vector<gps_position> vec;
+        vec.push_back( gps_position(35, 59, 24.567f) );
+        vec.push_back( gps_position(36, 59, 24.567f) );
+
+        std::cout << boost::make_iterator_range(vec)
+            << "\n std::streambuf " << sizeof(std::streambuf)
+            << "\n asio::streambuf " << sizeof(boost::asio::streambuf)
+            << "\n interprocess::vectorbuf " << sizeof(vectorbuf)
+            << "\n interprocess::bufferbuf " << sizeof(bufferbuf)
+            << "\n iarchive " << sizeof(boost::archive::binary_iarchive)
+            << "\n oarchive " << sizeof(boost::archive::binary_oarchive)
+            << "\n std::istream " << sizeof(std::istream)
+            << "\n std::ostream " << sizeof(std::ostream)
+            << "\n<>\n";
+
+        vectorbuf sbuf; //boost::asio::streambuf sbuf;
+        {
+            std::ostream outs(&sbuf);
+            boost::archive::binary_oarchive oa(outs, ARFLAG);
+            oa << vec;
+        }
+        sbuf.swap_vector(vecs);
+    } {
+        bufferbuf sbuf(&vecs[0], vecs.size(), std::ios_base::in); // boost::asio::streambuf sbuf;
+        {
+            std::vector<gps_position> vec;
+            boost::archive::binary_iarchive ia(sbuf, ARFLAG);
+            ia >> vec;
+            std::cout << boost::make_iterator_range(vec) << "\n";
+        }
+    }
+    return 0;
+}
 
