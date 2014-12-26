@@ -53,7 +53,6 @@ void apply(F&& f, T&& t) {
 }
 
 #include <iostream>
-#include <boost/core/ref.hpp>
 
 struct Foo
 {

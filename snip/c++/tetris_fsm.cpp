@@ -4,6 +4,7 @@
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/state_machine_def.hpp>
 #include <boost/msm/front/functor_row.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 namespace msm = boost::msm;
 namespace mpl = boost::mpl;
@@ -21,9 +22,20 @@ struct Ev_Input {
     Ev_Input(int x) { how=x; }
 };
 
-template <class Quit>
-struct Tetris_ : public msm::front::state_machine_def<Tetris_<Quit>>
+struct Tetris_;
+typedef msm::back::state_machine<Tetris_> Tetris_b;
+std::unique_ptr<Tetris_b> Tetris_ptr___;
+
+#include <boost/intrusive/list.hpp>
+
+//template <class Quit>
+struct Tetris_ : msm::front::state_machine_def<Tetris_>
 {
+struct Quit : public msm::front::state<>
+{
+    template <class Ev, class SM> void on_entry(Ev const&, SM& sm);
+    template <class Ev, class SM> void on_exit(Ev const&, SM&) { std::cout << "Quit exit\n"; }
+}; // Quit
     struct Preview : public msm::front::state<>
     {
         template <class Ev, class SM> void on_entry(Ev const&, SM& ) {
@@ -116,20 +128,34 @@ struct Tetris_ : public msm::front::state_machine_def<Tetris_<Quit>>
     boost::asio::deadline_timer deadline_;
 
     boost::asio::deadline_timer& deadline() { return deadline_; }
+
+    void test() {
+        std::cout << "test\n";
+    }
 }; // Tetris_
 
-struct Quit_ : public msm::front::state<>
+struct Tetris ;
+boost::intrusive_ptr<Tetris>  intrusive_ptr__;
+
+void intrusive_ptr_release(Tetris*) {}
+void intrusive_ptr_ref_add(Tetris*) {}
+
+struct Tetris : Tetris_b
+             , std::vector<int>
+             , boost::intrusive::list_base_hook<>
+             , boost::noncopyable
 {
-    template <class Ev, class SM> void on_entry(Ev const&, SM& sm);
-    template <class Ev, class SM> void on_exit(Ev const&, SM&) { std::cout << "Quit exit\n"; }
-}; // Quit_
-template <class Ev, class SM> void Quit_::on_entry(Ev const&, SM& sm)
+    template <typename...T>
+        Tetris(T&&... a) : Tetris_b(std::forward<T>(a)...) {}
+};
+
+template <class Ev, class SM>
+void Tetris_::Quit::on_entry(Ev const&, SM& sm)
 {
     std::cout << "stopping ...\n";
     sm.stop();
     std::cout << "stopped\n";
 }
-typedef msm::back::state_machine<Tetris_<Quit_>> Tetris;
 
 template <class Ev>
 void do_event(Tetris& t, Ev const& ev)
@@ -145,6 +171,24 @@ int main()
 {
     boost::asio::io_service io_s;
     Tetris te(boost::ref(io_s));
+    te.test();
+
+    {
+        boost::intrusive::list<Tetris> lis;
+
+        BOOST_STATIC_ASSERT(is_base_of<std::vector<int>,Tetris>::value);
+        lis.push_back(te);
+        Tetris_& b = te;
+
+        auto it1 = lis.iterator_to(te);
+        auto it2 = lis.begin();
+
+        BOOST_ASSERT(it1 == it2
+                && &*it1 == &*it2
+                && &*it1 == &te);
+        Tetris& te2 = *it1;
+        BOOST_ASSERT(&te2 == &te);
+    }
 
     do_event(te, Ev_Input(1));
     do_event(te, Ev_Play());

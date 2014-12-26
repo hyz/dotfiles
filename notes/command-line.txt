@@ -91,6 +91,10 @@ hello
 > cat out
 
 ### ###
+find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
+
+### ###
 ### ###
 #
+
 
