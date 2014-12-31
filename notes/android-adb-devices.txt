@@ -1,5 +1,10 @@
 ### https://wiki.archlinux.org/index.php/android
 
+$ ls -ld /opt/android-*
+
+# chown -R wood:sdkusers /opt/android-sdk
+# usermod -G adbusers -a wood
+
 $ lsusb
 Bus 002 Device 006: ID 0bb4:0c8d High Tech Computer Corp.
 
@@ -11,7 +16,6 @@ $ ls -l /dev/ |grep android
 $ ls -l /dev/bus/usb/001/011
 crw-rw---- 1 root adbusers 189, 10 Dec 23 16:48 /dev/bus/usb/001/011
 
-# usermod -G adbusers -a wood
 # adb kill-server
 # adb start-server
 
