@@ -1,4 +1,24 @@
 
 pacman -S --clean
-pacman -Qs netcat
+pacman -Qs android
+pacman -Qe
+
+### https://wiki.archlinux.org/index.php/Pacman_tips
+
+$ pacman -Qs android
+local/android-ndk r10c-2
+    Android C/C++ developer kit
+local/android-platform 21_r01-1
+    Android SDK Platform, latest API
+local/android-sdk r23.0.5-1
+    Google Android SDK
+local/android-sdk-build-tools r21.1.1-1
+    Build-Tools for Google Android SDK (aapt, aidl, dexdump, dx, llvm-rs-cc)
+local/android-sdk-platform-tools r21-1
+    Platform-Tools for Google Android SDK (adb and fastboot)
+local/android-tools 5.0.0_r7-1
+    Android platform tools
+local/android-udev r124-1
+    Udev rules to connect Android devices to your linux box
+$
 
