@@ -12,3 +12,7 @@ rsync -vurt --no-o --no-g pc:Dropbox .
 
 rsync -vrR --no-o --no-g pc:Dropbox .
 
+### backup Downloads
+rsync -vr --ignore-existing lan:ws/Downloads/sync wood/
+rsync -vr --size-only lan:ws/Downloads/sync wood/
+
