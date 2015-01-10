@@ -1,3 +1,5 @@
 
 :help cedit
 
+:set makeprg=/opt/bin/g++\ -std=c++11\ -I/opt/boost\ %\ ~/lib/libboost_system.a\ ~/lib/libboost_serialization.a
+

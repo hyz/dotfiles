@@ -1,5 +1,5 @@
 
-path-constant BOOST_ROOT : /opt/boost_1_56_0-android ;
+path-constant BOOST_ROOT : /opt/wood/boost ;
 
 use-project /boost : $(BOOST_ROOT) ;
 
