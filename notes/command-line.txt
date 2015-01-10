@@ -92,6 +92,8 @@ hello
 
 ### ###
 find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
+find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
+find 0nodes -maxdepth 1 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 
 ### ###
 ### ###
