@@ -93,6 +93,15 @@ hello
 ### ###
 find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 
+### cpio #
+### http://en.wikipedia.org/wiki/Cpio
+### http://www.thegeekstuff.com/2010/08/cpio-utility/
+$ find . -depth -print | cpio -o > /path/archive.cpio
+$ cpio -i -t < archive.cpio
+$ cpio -i -vd < archive.cpio
+$ cpio -i -vd etc/fstab < archive.cpio
+$ find . -depth -print | cpio -p -vdum new-path
+
 ### ###
 ### ###
 #
