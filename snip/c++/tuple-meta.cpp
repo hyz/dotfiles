@@ -63,7 +63,7 @@ template <typename F, typename T>
 struct Convertible<F,T> : std::conditional<
     std::is_arithmetic<T>::value
         , typename std::is_convertible<F,T>::type
-        , std::false_type
+        , typename std::is_same<F,T>::type
     >::type
 {};
 template <typename F, typename T>
