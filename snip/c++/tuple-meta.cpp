@@ -58,12 +58,16 @@ struct size_of {
 };
 // struct SS : std::string, std::string {};
 
-template <typename...> struct Cvtable ;
+template <typename...> struct Convertible ;
 template <typename F, typename T>
-struct Cvtable<F,T> : std::is_convertible<F,T>::type
+struct Convertible<F,T> : std::conditional<
+    std::is_arithmetic<T>::value
+        , typename std::is_convertible<F,T>::type
+        , std::false_type
+    >::type
 {};
 template <typename F, typename T>
-struct Cvtable<std::pair<F,T>> : Cvtable<F,T>
+struct Convertible<std::pair<F,T>> : Convertible<F,T>
 {};
 
 template <typename...T> struct All ; // : std::false_type {};
@@ -74,7 +78,7 @@ template <> struct All<> : std::true_type
 {};
 template <typename A, typename...T> 
 struct All<A,T...> : std::conditional<
-    Cvtable<A>::value //std::is_integral<A>::value
+    Convertible<A>::value //std::is_integral<A>::value
         , typename All<T...>::type
         , std::false_type
     >::type
@@ -84,12 +88,12 @@ template<class... L>
 struct Zip {
     template<class... R>
     struct With {
+        BOOST_STATIC_ASSERT(sizeof...(L)==sizeof...(R));
         typedef std::tuple<std::pair<L,R>...> type;
     };
     template<class... R>
-    struct With<std::tuple<R...>> {
-        typedef std::tuple<std::pair<L,R>...> type;
-    };
+    struct With<std::tuple<R...>> : With<R...>
+    {};
 };
 template<class... L> struct Zip<std::tuple<L...>> : Zip<L...> {};
 
