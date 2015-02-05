@@ -95,6 +95,9 @@ find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[h
 find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes -maxdepth 1 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 
+find etc -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
+find usr -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
+
 ### ###
 ### ###
 #
