@@ -43,71 +43,142 @@ struct TVar_match<Tp,A,T...>
     BOOST_STATIC_ASSERT(std::tuple_size<Tp>::value==1+sizeof...(T));
 };
 
-template <typename Tp, size_t N, size_t I=0> 
+template <typename Tp, int N, int I=0> 
 struct Tuple_each {
     static void sf(Tp tp) {
         std::cout <<" "<< typeid(typename std::tuple_element<I,Tp>::type).name();
         Tuple_each<Tp,N,I+1>::sf(tp); 
     }
 };  
-template <typename Tp, size_t N> struct Tuple_each<Tp,N,N> { static void sf(Tp) {} };
+template <typename Tp, int N> struct Tuple_each<Tp,N,N> { static void sf(Tp) {} };
 
 template<class... Types>
 struct size_of {
-    static const std::size_t value = sizeof...(Types);
+    BOOST_STATIC_CONSTANT(int,value=sizeof...(Types));
 };
 // struct SS : std::string, std::string {};
 
+//template <typename...T> struct All_convertible ; // : std::false_type {};
+//template <typename...T>
+//struct All_convertible<std::tuple<T...>> : All_convertible<T...>
+//{};
+//template <> struct All_convertible<> : std::true_type
+//{};
+//template <typename A, typename...T> 
+//struct All_convertible<A,T...> : std::conditional< Convertible<A>::value //std::is_integral<A>::value
+//        , typename All_convertible<T...>::type
+//        , std::false_type
+//    >::type
+//{};
+//
+//template<typename... L>
+//struct Zip {
+//    template<typename... R>
+//    struct With {
+//        BOOST_STATIC_ASSERT(sizeof...(L)==sizeof...(R));
+//        typedef std::tuple<std::pair<L,R>...> type;
+//    };
+//    template<typename... R>
+//    struct With<std::tuple<R...>> : With<R...>
+//    {};
+//};
+//template<typename... L> struct Zip<std::tuple<L...>> : Zip<L...> {};
+
 template <typename...> struct Convertible ;
 template <typename F, typename T>
-struct Convertible<F,T> : std::conditional<
-    std::is_arithmetic<T>::value
-        , typename std::is_convertible<F,T>::type
-        , typename std::is_same<F,T>::type
-    >::type
+struct Convertible<F,T>
+        : std::is_convertible<F,T>
+    //: std::conditional< std::is_same<F,T>::value
+    //    , std::true_type
+    //    , std::is_convertible<F,T>
+    //    //, typename std::conditional< std::is_arithmetic<T>::value
+    //    //    , std::is_convertible<F,T>
+    //    //    , typename std::conditional< std::is_same<T,std::string>::value
+    //    //        , std::is_same<char,typename std::remove_cv<typename std::remove_pointer<F>::type>>
+    //    //        , std::false_type
+    //    //    >::type
+    //    //>::type
+    //>::type
 {};
-template <typename F, typename T>
-struct Convertible<std::pair<F,T>> : Convertible<F,T>
-{};
+template <typename F, typename T> struct Convertible<std::pair<F,T>> : Convertible<F,T> {};
 
-template <typename...T> struct All ; // : std::false_type {};
-template <typename...T>
-struct All<std::tuple<T...>> : All<T...>
-{};
-template <> struct All<> : std::true_type
-{};
-template <typename A, typename...T> 
-struct All<A,T...> : std::conditional<
-    Convertible<A>::value //std::is_integral<A>::value
-        , typename All<T...>::type
+template<typename FT, typename TT>
+struct Tuple_convertible
+    : std::conditional<Convertible<typename std::tuple_element<0,FT>::type,typename std::tuple_element<0,TT>::type>::value
+        , typename Tuple_convertible<typename pop_front<FT>::type,typename pop_front<TT>::type>::type
         , std::false_type
     >::type
 {};
- 
-template<class... L>
-struct Zip {
-    template<class... R>
-    struct With {
-        BOOST_STATIC_ASSERT(sizeof...(L)==sizeof...(R));
-        typedef std::tuple<std::pair<L,R>...> type;
-    };
-    template<class... R>
-    struct With<std::tuple<R...>> : With<R...>
-    {};
+template <> struct Tuple_convertible<std::tuple<>,std::tuple<>> : std::true_type {};
+template <typename...T> struct Tuple_convertible<std::tuple<T...>,std::tuple<>> : std::false_type {};
+template <typename...T> struct Tuple_convertible<std::tuple<>,std::tuple<T...>> : std::false_type {};
+
+template <int,typename...> struct Match_result;
+template <int I,typename Tp, typename First_type,typename Second_type>
+struct Match_result<I,Tp,First_type,Second_type> : std::true_type
+{
+    BOOST_STATIC_CONSTANT(int,index=I);
+    typedef First_type first_type;
+    typedef Second_type second_type;
+    typedef Tp from_type;
 };
-template<class... L> struct Zip<std::tuple<L...>> : Zip<L...> {};
+template <typename Tp>
+struct Match_result<-1,Tp> : std::false_type
+{
+    BOOST_STATIC_CONSTANT(int,index=-1);
+    typedef std::tuple<> first_type;
+    typedef std::tuple<> second_type;
+    typedef Tp from_type;
+};
+
+template <typename Tp, typename Tab, int N, int I=0> 
+struct Table_index
+{
+    typedef typename std::tuple_element<I,Tab>::type Pair_type;
+    typedef typename std::tuple_element<0,Pair_type>::type First_type;
+    typedef typename std::tuple_element<1,Pair_type>::type Second_type;
+
+    typedef typename std::conditional<Tuple_convertible<Tp,First_type>::value//std::tuple_size<Tp>::value != std::tuple_size<First_type>::value
+            , Match_result<I,Tp,First_type,Second_type>
+            , typename Table_index<Tp, Tab, N, I+1>::result_type
+        >::type result_type;
+};
+template <typename Tp, typename Tab, int N> struct Table_index<Tp,Tab,N,N>
+{ typedef Match_result<-1,Tp> result_type; };
+
+template <typename Tab,typename Tp> 
+using Table_index0 = typename Table_index<Tp,Tab,std::tuple_size<Tab>::value,0>::result_type;
+
+typedef std::tuple<
+    std::tuple<std::tuple<int>, std::tuple<int>>
+    , std::tuple<std::tuple<bool,int>, std::tuple<int>>
+    , std::tuple<std::tuple<bool,int,std::string>, std::tuple<int>>
+    , std::tuple<std::tuple<int,std::string,long>, std::tuple<int>>
+> table_t;
 
 int main()
 {
     typedef std::tuple<bool,int,std::string> Tp0;
 
-    typedef Zip<bool,int,std::string>::With<char,std::string,std::string>::type Zip0;
-    typedef Zip<long,int,std::string>::With<Tp0>::type Zip1;
-    typedef Zip<Tp0>::With<Tp0>::type Zip2;
-    std::cout <<"All:"
-        <<"\n\t"<< All<Zip0>::value
-        <<"\n\t"<< All<Zip1>::value
-        <<"\n\t"<< All<Zip2>::value
+    //typedef Zip<bool,int,std::string>::With<char,std::string,std::string>::type Zip0;
+    //typedef Zip<long,int,std::string>::With<Tp0>::type Zip1;
+    //typedef Zip<Tp0>::With<Tp0>::type Zip2;
+    //std::cout <<"All_convertible:"
+    //    <<"\n\t"<< All_convertible<Zip0>::value
+    //    <<"\n\t"<< All_convertible<Zip1>::value
+    //    <<"\n\t"<< All_convertible<Zip2>::value
+    //    <<"\n";
+    std::cout <<"Table_index0:"
+        <<"\n\t"<< Table_index0<table_t, std::tuple<bool,short>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int,long,std::string>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int,std::string,bool>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<long long int>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int,char*,int>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int,char const* const,int const&>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<int,int*,int>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<bool const&>>::index
+        <<"\n\t"<< Table_index0<table_t, std::tuple<char const&>>::index
         <<"\n";
 
     std::cout << std::tuple_size<Tp0>::value
