@@ -91,18 +91,25 @@ hello
 > cat out
 
 ### ###
+### find & cpio ###
+### http://en.wikipedia.org/wiki/Cpio
+### http://www.thegeekstuff.com/2010/08/cpio-utility/
+
 find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes -maxdepth 1 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 
-### cpio #
-### http://en.wikipedia.org/wiki/Cpio
-### http://www.thegeekstuff.com/2010/08/cpio-utility/
+find etc -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
+find usr -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
+
 $ find . -depth -print | cpio -o > /path/archive.cpio
 $ cpio -i -t < archive.cpio
 $ cpio -i -vd < archive.cpio
 $ cpio -i -vd etc/fstab < archive.cpio
 $ find . -depth -print | cpio -p -vdum new-path
+
+gzip -dc < 0nodes.cpio.gz-2015-02-03 |cpio -t
+gzip -dc < 0nodes.cpio.gz-2015-02-03 |cpio -di
 
 ### ###
 ### ###

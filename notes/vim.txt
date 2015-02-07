@@ -3,3 +3,6 @@
 
 :set makeprg=/opt/bin/g++\ -std=c++11\ -I/opt/boost\ %\ ~/lib/libboost_system.a\ ~/lib/libboost_serialization.a
 
+:g/:10014..devtok/ .w >> user-10014.txt
+:g/"cmd":\(99\|211\|111\|112\),/ .w >>10014-99-211.txt
+
