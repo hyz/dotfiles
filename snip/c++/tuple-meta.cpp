@@ -52,6 +52,14 @@ struct Tuple_each {
 };  
 template <typename Tp, int N> struct Tuple_each<Tp,N,N> { static void sf(Tp) {} };
 
+        template <size_t...> struct sum;
+        template<size_t x> struct sum<x> {
+            enum { value = x };
+        };
+        template<size_t x, size_t... y> struct sum<x, y...> {
+            enum { value = x + sum<y...>::value }; 
+        };
+
 template<class... Types>
 struct size_of {
     BOOST_STATIC_CONSTANT(int,value=sizeof...(Types));
