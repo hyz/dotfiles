@@ -13,7 +13,7 @@ int main()
 
     std::cout << sizeof(boost::asio::ip::tcp::socket) << std::endl;
 
-    std::cout << sizeof(std::vector) << std::endl;
+    std::cout << sizeof(std::vector<int>) << std::endl;
     // std::cout << sizeof(boost::container::flat_map<std::string,std::string>) << std::endl;
 
     return 0;
