@@ -95,8 +95,16 @@ find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[h
 find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes -maxdepth 1 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 
+### cygwin
+tail -f $K/../i51.log |grep --line-buffered -vE '(^kitpay 0 00000000|^wapfe notify|^app-boot|^ADE - OS|^i51|^KEL : Kit Path|^if do|^$)' |sed '/error/s/error/***error***/'
+tail -f $K/../i51.log |grep -i --line-buffered 'pay'
+
+export T=~/isdk/alpha/i51EMU/WIN32FS/DRIVE_E ; export K=$T/i51/i51KIT
+
+;cmdow 'zsh' /MOV 200 -30 /SIZ 1100 808 ;cmdow '-zsh' /MOV -4 -30 /SIZ 1100 808 #CMDOW
+;cmdow 'zsh' /MOV 364 -30 /SIZ 1100 1196 ;cmdow '-zsh' /MOV -4 -30 /SIZ 1100 1196 #CMDOW
+
 ### ###
 ### ###
 #
-
 
