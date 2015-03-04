@@ -76,8 +76,10 @@ date --date="-1 day" +%F
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
 $ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 
-### du | awk ###
+### file-size, du | awk ###
 du -sm * | awk '$1 > 1000'
+
+find . -type f -size +1000M
 
 ### ###
 > echo "echo \$X"| X=hello sh                                                                             ~
