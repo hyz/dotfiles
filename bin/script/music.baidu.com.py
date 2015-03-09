@@ -178,7 +178,7 @@ class baidu_music(object):
         song_info['song_name'] = modificate_text(j['data']['songList'][0]['songName']).strip()
         song_info['album_name'] = modificate_text(j['data']['songList'][0]['albumName']).strip()
         song_info['artist_name'] = modificate_text(j['data']['songList'][0]['artistName']).strip()
-        song_info['album_pic_url'] = j['data']['songList'][0]['songPicRadio']
+        song_info['album_pic_url'] = None # j['data']['songList'][0]['songPicRadio']
         if args.flac:
             file_ext = '.flac'
         song_info['file_name'] = song_info['song_name'] + ' - ' + song_info['artist_name'] + file_ext
