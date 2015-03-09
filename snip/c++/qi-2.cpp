@@ -1,5 +1,6 @@
 /// http://stackoverflow.com/questions/28340430/c-fast-way-to-read-mapped-file-into-a-matrix
 // grep -hRv ';' qi-2.cpp | sort -R | xargs -d\\n -n 3 | while read a b c; do echo "$a $b;$RANDOM;$c"; done > input.txt
+// do grep -v "'" /etc/dictionaries-common/words | sort -R | xargs -d\\n -n 3 | while read a b c; do echo "$a $b;$RANDOM;$c"; done
 //
 #include <boost/fusion/adapted/struct.hpp>
 #include <boost/spirit/include/qi.hpp>
