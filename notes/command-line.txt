@@ -71,6 +71,8 @@ sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'
 # http://www.cyberciti.biz/tips/linux-unix-get-yesterdays-tomorrows-date.html
 date --date="yesterday" +%F
 date --date="-1 day" +%F
+date +%F -d "+24 hours"
+date +%F -d "2015-03-02 +24 hours"
 
 ### dd ###
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
@@ -160,8 +162,13 @@ ip link set wlan0 up
 ip addr
 ip route
 
-### ### ### ###
+### curl ###
+curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://127.0.0.1:9909/hello
+
+tpx="`date +'%F %T'`"
+tps="`perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$tpx"`"
+
 ### ###
-###
 #
+### ### ### ### ### ### ### ###
 
