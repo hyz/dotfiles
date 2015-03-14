@@ -1,4 +1,6 @@
 
+makepkg --noextract
+
 pacman -S --clean
 pacman -Qs android
 pacman -Qe
