@@ -73,6 +73,7 @@ date --date="yesterday" +%F
 date --date="-1 day" +%F
 date +%F -d "+24 hours"
 date +%F -d "2015-03-02 +24 hours"
+date -d '@2147483647'
 
 ### dd ###
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
