@@ -56,6 +56,7 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 # exec enlightenment_start
 #exec subtle
 #exec awesome
+exec 2bwm
 exec fvwm
 exec gnome-session
 exec openbox-session
@@ -71,7 +72,6 @@ exec startfluxbox
 #export LC_ALL="en_GB.UTF-8"
 #export LANGUAGE="en_GB.UTF-8"
 #export LC_CTYPE="en_GB.UTF-8"
-
 
 # Source scripts in /etc/X11/xinit/xinitrc.d/
 if [ -d /etc/X11/xinit/xinitrc.d ]; then

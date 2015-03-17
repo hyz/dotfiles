@@ -144,7 +144,8 @@ class baidu_music(object):
             for i in bs.find_all('li'): #(, {'data-songitem':has_songitem})
                 try:
                     si = i.get('data-songitem')
-                    if not si:
+                    print( si )
+                    if not si or not si.get('sid',None):
                         continue
                     si = json.loads(si)['songItem']
                     si['format'] = 'mp3'
@@ -157,7 +158,7 @@ class baidu_music(object):
                     if os.path.exists(file_name):
                         print('exist: ' + file_name)
                         continue
-                    print( file_name, si )
+                    print( file_name )
                     self.song_id = si['sid']
                     self.get_song_infos(file_ext='.'+si['format'])
                     self.song_infos = []
@@ -182,6 +183,7 @@ class baidu_music(object):
         if args.flac:
             file_ext = '.flac'
         song_info['file_name'] = song_info['song_name'] + ' - ' + song_info['artist_name'] + file_ext
+        # file_name = '{song_name} - {artist_name}.{format}'.format(format=file_ext, **song_info)
         song_info['durl'] = j['data']['songList'][0]['songLink']
         self.song_infos.append(song_info)
         self.download()
