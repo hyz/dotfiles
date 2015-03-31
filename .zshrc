@@ -43,7 +43,7 @@ bindkey "\e#" vi-pound-insert
 # alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
-alias ls='ls -F --color=auto'
+alias ls='ls -F' # alias ls='ls -F --color=auto'
 alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
@@ -61,13 +61,17 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
-if [ "`uname -o`" = "Cygwin" ] ; then
+if [ "`uname -s`" = "Cygwin" ] ; then
     PATH=$PATH:$HOME/bin/cygwin
     export GNUPGHOME="C:\\gnupg"
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
         explorer "`cygpath -w $(pwd)/$1`" &
     }
+else
+    if [ "`uname -s`" = "Darwin" ] ; then
+        export CLICOLOR=1
+    fi
 fi
 
 ###########################################################
