@@ -43,10 +43,16 @@ bindkey "\e#" vi-pound-insert
 # alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
-alias ls='ls -F' # alias ls='ls -F --color=auto'
-alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
+
+if ls -d --color=auto 2>/dev/null ; then
+    alias ls='ls -F --color=auto'
+else
+    export CLICOLOR=1
+    alias ls='ls -F' # alias ls='ls -F --color=auto'
+fi
+alias ll='ls -l'
 
 #
 #
@@ -68,10 +74,7 @@ if [ "`uname -s`" = "Cygwin" ] ; then
     er() {
         explorer "`cygpath -w $(pwd)/$1`" &
     }
-else
-    if [ "`uname -s`" = "Darwin" ] ; then
-        export CLICOLOR=1
-    fi
+# else if [ "`uname -s`" = "Darwin" ] ; then fi
 fi
 
 ###########################################################
