@@ -114,6 +114,10 @@ if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
     export COCOS_CONSOLE_ROOT
 fi
 
+if [ -d "/opt/local/bin" ]; then
+    PATH=$PATH:/opt/local/bin:/opt/local/sbin
+fi
+
 # Add environment variable ANT_ROOT for cocos2d-x
 export ANT_HOME=/usr/share/apache-ant
 export ANT_ROOT=/bin
