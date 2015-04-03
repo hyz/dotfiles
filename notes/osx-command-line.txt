@@ -1,0 +1,8 @@
+
+### homebrew
+brew install --use-clang ffmeg
+brew install mpd mpc
+
+### Macports
+port install mplayer
+
