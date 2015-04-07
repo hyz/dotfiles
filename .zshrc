@@ -49,7 +49,7 @@ alias df='df -h'
 if ls -d --color=auto 2>/dev/null ; then
     alias ls='ls -F --color=auto'
 else
-    export CLICOLOR=1
+    # export CLICOLOR=1
     alias ls='ls -F' # alias ls='ls -F --color=auto'
 fi
 alias ll='ls -l'
