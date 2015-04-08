@@ -53,6 +53,9 @@ sort -k1,1 -s t.txt
 yum list all
 yum list installed
 
+yum install qemu-kvm
+rpm -ql qemu-kvm
+
 ### grep ###
 echo "foo=123 bar=432" |/bin/grep -Po '\d+'
 echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
@@ -168,6 +171,9 @@ curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://
 
 tpx="`date +'%F %T'`"
 tps="`perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$tpx"`"
+
+###
+history 0 |awk '{print $2}' | sort | uniq -c | sort -gr | head -30
 
 ### ###
 #
