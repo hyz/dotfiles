@@ -14,4 +14,5 @@ port install screen
 ###
 sysctl hw
 otool -L /bin/cat
+xcodebuild -showsdks
 
