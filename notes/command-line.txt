@@ -25,6 +25,7 @@ x=_subdir_ ; tar czf - $x/*.{h,hpp,cpp,jam} |ssh _host_ 'cat > $x.tgz-$(date +%F
 
 ### pgrep ###
 pgrep -lf yxim
+grep -Hl -R boost_locale .
 
 ### ps ###
 ps -lF

@@ -11,3 +11,7 @@ port install sshfs
 port install screen
 ##port install iterm2 xterm rxvt
 
+###
+sysctl hw
+otool -L /bin/cat
+

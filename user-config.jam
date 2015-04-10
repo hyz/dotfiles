@@ -11,3 +11,22 @@
 
 #
 
+###
+### http://libcinder.org/docs/v0.8.5/_cinder_boost.html
+# ./bootstrap.sh –with-libraries=filesystem,system,date_time
+# 
+# using clang : osx
+#     : xcrun clang -arch i386 -arch x86_64 -stdlib=libc++ -std=c++11 -mmacosx-version-min=10.7 -fvisibility-inlines-hidden
+#     ;
+# ##b2 -a -j4 toolset=clang-osx link=static stage cp stage/lib/*.a ../lib/macosx
+# 
+# using clang : ios
+#     : xcrun clang -arch armv7 -arch armv7s -stdlib=libc++ -std=c++11 -miphoneos-version-min=5.0 -fvisibility-inlines-hidden -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS6.0.sdk/
+#     ;
+# ##b2 -a -j4 toolset=clang-ios link=static stage
+# 
+# using clang : ios_sim
+#     : xcrun clang -arch i386 -stdlib=libc++ -std=c++11 -miphoneos-version-min=5.0 -fvisibility-inlines-hidden -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator6.0.sdk/
+#     ;
+# ##b2 -a -j4 toolset=clang-ios_sim link=static stage
+
