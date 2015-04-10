@@ -67,14 +67,15 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
-if [ "`uname -s`" = "Cygwin" ] ; then
+if [ "`uname -o`" = "Cygwin" ] ; then
     PATH=$PATH:$HOME/bin/cygwin
     export GNUPGHOME="C:\\gnupg"
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
-        explorer "`cygpath -w $(pwd)/$1`" &
+        `cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
-# else if [ "`uname -s`" = "Darwin" ] ; then fi
+elif [ "`uname -s`" = "Darwin" ] ; then
+
 fi
 
 ###########################################################

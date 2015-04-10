@@ -1,0 +1,17 @@
+
+### 鼠标滚轮方向
+# Device Manager
+Mice and other pointing devices
+  \ HID-compliant mouse Properties
+      \ Details \ Property:
+          Device Instance Path
+# regedit
+HKEY_LOCAL_MACHINE
+    \ SYSTEM
+    \ CurrentControlSet
+    \ Enum
+    \ HID
+    \ ??? \ ???
+    \ Device Parameters
+        FlipFlopWheel: 默认0，修改成1
+
