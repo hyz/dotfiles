@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# http://apple.stackexchange.com/questions/90040/look-up-a-word-in-dictionary-app-in-terminal
+#
 
 import sys
 from DictionaryServices import *
