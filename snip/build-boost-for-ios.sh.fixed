@@ -22,9 +22,9 @@
 #===============================================================================
 
 #!/bin/sh
-here="`dirname \"$0\"`"
-echo "cd-ing to $here"
-cd "$here" || exit 1
+#here="`dirname \"$0\"`"
+#echo "cd-ing to $here"
+#cd "$here" || exit 1
 
 CPPSTD=c++11    #c++89, c++99, c++14
 STDLIB=libc++   # libstdc++
@@ -35,6 +35,7 @@ BOOST_V2=1_57_0
 
 CURRENTPATH=`pwd`
 LOGDIR="$CURRENTPATH/build/logs/"
+[ -d "$LOGDIR" ] || mkdir -p $LOGDIR
 
 SDKVERSION=`xcrun -sdk iphoneos --show-sdk-version`
 OSX_SDKVERSION=`xcrun -sdk macosx --show-sdk-version`
@@ -67,7 +68,7 @@ esac
 #: ${BOOST_LIBS:="random regex graph chrono thread signals filesystem system date_time"}
 #: ${BOOST_LIBS:="coroutine random regex graph chrono thread signals filesystem system date_time"}
 #: ${BOOST_LIBS:="random regex chrono thread filesystem system locale"}
-: ${BOOST_LIBS:="regex chrono thread system locale"}
+: ${BOOST_LIBS:="regex chrono thread system"}
 : ${IPHONE_SDKVERSION:=`xcodebuild -showsdks | grep iphoneos | egrep "[[:digit:]]+\.[[:digit:]]+" -o | tail -1`}
 : ${EXTRA_CPPFLAGS:="-DBOOST_AC_USE_PTHREADS -DBOOST_SP_USE_PTHREADS -std=$CPPSTD -stdlib=$STDLIB"}
 
@@ -79,34 +80,31 @@ esac
 #
 # Should perhaps also consider/use instead: -BOOST_SP_USE_PTHREADS
 
-: ${TARBALLDIR:=`pwd`/..}
-: ${SRCDIR:=`pwd`/../build/src}
-: ${IOSBUILDDIR:=`pwd`/../build/libs/boost/lib}
-: ${IOSINCLUDEDIR:=`pwd`/../build/libs/boost/include/boost}
-: ${PREFIXDIR:=`pwd`/../build/ios/prefix}
+: ${TARBALLDIR:=$HOME/Downloads}
+#: ${SRCDIR:=`pwd`/build/src}
+: ${IOSBUILDDIR:=`pwd`/build/libs/boost/lib}
+: ${IOSINCLUDEDIR:=`pwd`/build/libs/boost/include/boost}
+: ${PREFIXDIR:=`pwd`/build/ios/prefix}
 : ${COMPILER:="clang++"}
-: ${OUTPUT_DIR:=`pwd`/../libs/boost/}
-: ${OUTPUT_DIR_LIB:=`pwd`/../libs/boost/ios/}
-: ${OUTPUT_DIR_SRC:=`pwd`/../libs/boost/include/boost}
+: ${OUTPUT_DIR:=`pwd`/libs/boost/}
+: ${OUTPUT_DIR_LIB:=`pwd`/libs/boost/ios/}
+: ${OUTPUT_DIR_SRC:=`pwd`/libs/boost/include/boost}
 
 : ${BOOST_VERSION:=$BOOST_V1}
 : ${BOOST_VERSION2:=$BOOST_V2}
 
 BOOST_TARBALL=$TARBALLDIR/boost_$BOOST_VERSION2.tar.bz2
-BOOST_SRC=$SRCDIR/boost_${BOOST_VERSION2}
+BOOST_SRC=`pwd`/boost_${BOOST_VERSION2}
 BOOST_INCLUDE=$BOOST_SRC/boost
-
-
 
 #===============================================================================
 ARM_DEV_CMD="xcrun --sdk iphoneos"
 SIM_DEV_CMD="xcrun --sdk iphonesimulator"
 OSX_DEV_CMD="xcrun --sdk macosx"
 
-ARM_COMBINED_LIB=$IOSBUILDDIR/lib_boost_arm.a
+##ARM_COMBINED_LIB=$IOSBUILDDIR/lib_boost_arm.a
 
 #===============================================================================
-
 
 #===============================================================================
 # Functions
@@ -137,7 +135,7 @@ cleanEverythingReadyToStart()
     rm -rf $IOSBUILDDIR
     rm -rf $PREFIXDIR
     rm -rf $IOSINCLUDEDIR
-    rm -rf $TARBALLDIR/build
+    ##rm -rf $TARBALLDIR/build
     rm -rf $LOGDIR
 
     doneSection
@@ -155,19 +153,17 @@ postcleanEverything()
 	rm -rf $IOSBUILDDIR/arm64/obj
     rm -rf $IOSBUILDDIR/i386/obj
 	rm -rf $IOSBUILDDIR/x86_64/obj
-    rm -rf $TARBALLDIR/build
+    ##rm -rf $TARBALLDIR/build
     rm -rf $LOGDIR
 	doneSection
 }
 
 prepare()
 {
-
     mkdir -p $LOGDIR
     mkdir -p $OUTPUT_DIR
     mkdir -p $OUTPUT_DIR_SRC
     mkdir -p $OUTPUT_DIR_LIB
-
 }
 
 #===============================================================================
@@ -178,8 +174,7 @@ downloadBoost()
         echo "Downloading boost ${BOOST_VERSION}"
         curl -L -o $TARBALLDIR/boost_${BOOST_VERSION2}.tar.bz2 sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION2}.tar.bz2/download
     fi
-
-    doneSection
+    # doneSection
 }
 
 #===============================================================================
@@ -190,19 +185,17 @@ unpackBoost()
 
     echo Unpacking boost into $SRCDIR...
 
-    [ -d $SRCDIR ]    || mkdir -p $SRCDIR
-    [ -d $BOOST_SRC ] || ( cd $SRCDIR; tar xfj $BOOST_TARBALL )
-    [ -d $BOOST_SRC ] && echo "    ...unpacked as $BOOST_SRC"
+    #[ -d $SRCDIR ]    || mkdir -p $SRCDIR
+    #[ -d $BOOST_SRC ] || ( cd $SRCDIR; tar xfj $BOOST_TARBALL )
+    [ -d $BOOST_SRC ] || exit 11
+    #[ -d $BOOST_SRC ] && echo "    ...unpacked as $BOOST_SRC"
 
-    doneSection
+    # doneSection
 }
 
 #===============================================================================
 
-restoreBoost()
-{
-    cp $BOOST_SRC/tools/build/example/user-config.jam-bk $BOOST_SRC/tools/build/example/user-config.jam
-}
+USER_CONFIG_JAM=/tmp/user-config.jam
 
 #===============================================================================
 
@@ -210,16 +203,18 @@ updateBoost()
 {
     echo Updating boost into $BOOST_SRC...
 
-    cp $BOOST_SRC/tools/build/example/user-config.jam $BOOST_SRC/tools/build/example/user-config.jam-bk
+    # cp $BOOST_SRC/tools/build/example/user-config.jam $BOOST_SRC/tools/build/example/user-config.jam-bk
 
-    cat >> $BOOST_SRC/tools/build/example/user-config.jam <<EOF
+    # cat >> $BOOST_SRC/tools/build/example/user-config.jam <<EOF
+# : $XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/$COMPILER -arch armv7 -arch armv7s -arch arm64 -fvisibility=hidden -fvisibility-inlines-hidden $EXTRA_CPPFLAGS
+    cat > $USER_CONFIG_JAM <<EOF
 using darwin : ${IPHONE_SDKVERSION}~iphone
-: $XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/$COMPILER -arch armv7 -arch armv7s -arch arm64 -fvisibility=hidden -fvisibility-inlines-hidden $EXTRA_CPPFLAGS
+: xcrun $COMPILER -arch armv7 -arch armv7s -arch arm64 -fvisibility=hidden -fvisibility-inlines-hidden $EXTRA_CPPFLAGS
 : <striper> <root>$XCODE_ROOT/Platforms/iPhoneOS.platform/Developer
 : <architecture>arm <target-os>iphone
 ;
 using darwin : ${IPHONE_SDKVERSION}~iphonesim
-: $XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/$COMPILER -arch i386 -arch x86_64 -fvisibility=hidden -fvisibility-inlines-hidden $EXTRA_CPPFLAGS
+: xcrun $COMPILER -arch i386 -arch x86_64 -fvisibility=hidden -fvisibility-inlines-hidden $EXTRA_CPPFLAGS
 : <striper> <root>$XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer
 : <architecture>x86 <target-os>iphone
 ;
@@ -258,18 +253,13 @@ bootstrapBoost()
 buildBoostForIPhoneOS()
 {
     cd $BOOST_SRC
-
     # Install this one so we can copy the includes for the frameworks...
-
     
-    set +e    
-    echo "------------------"
+    #set +e    
+
     LOG="$LOGDIR/build-iphone-stage.log"
-    echo "Running bjam for iphone-build stage"
-    echo "To see status in realtime check:"
-    echo " ${LOG}"
-    echo "Please stand by..."
-    ./bjam -j16 --build-dir=iphone-build -sBOOST_BUILD_USER_CONFIG=$BOOST_SRC/tools/build/example/user-config.jam --stagedir=iphone-build/stage --prefix=$PREFIXDIR abi=aapcs binary-format=mach-o address-model=32 toolset=darwin architecture=arm target-os=iphone macosx-version=iphone-${IPHONE_SDKVERSION} define=_LITTLE_ENDIAN link=static stage > "${LOG}" 2>&1
+    echo bjam -j16 --build-dir=iphone-build -sBOOST_BUILD_USER_CONFIG=$USER_CONFIG_JAM --stagedir=iphone-build/stage --prefix=$PREFIXDIR abi=aapcs binary-format=mach-o address-model=32 toolset=darwin architecture=arm target-os=iphone macosx-version=iphone-${IPHONE_SDKVERSION} define=_LITTLE_ENDIAN link=static stage
+    ./bjam -j16 --build-dir=iphone-build -sBOOST_BUILD_USER_CONFIG=$USER_CONFIG_JAM --stagedir=iphone-build/stage --prefix=$PREFIXDIR abi=aapcs binary-format=mach-o address-model=32 toolset=darwin architecture=arm target-os=iphone macosx-version=iphone-${IPHONE_SDKVERSION} define=_LITTLE_ENDIAN link=static stage > "${LOG}" 2>&1
     if [ $? != 0 ]; then 
         echo "Problem while Building iphone-build stage - Please check ${LOG}"
         exit 1
@@ -277,28 +267,23 @@ buildBoostForIPhoneOS()
         echo "iphone-build stage successful"
     fi
 
-    echo "------------------"
-    LOG="$LOGDIR/build-iphone-install.log"
-    echo "Running bjam for iphone-build install"
-    echo "To see status in realtime check:"
-    echo " ${LOG}"
-    echo "Please stand by..."
-    ./bjam -j16 --build-dir=iphone-build -sBOOST_BUILD_USER_CONFIG=$BOOST_SRC/tools/build/example/user-config.jam --stagedir=iphone-build/stage --prefix=$PREFIXDIR abi=aapcs binary-format=mach-o address-model=32 toolset=darwin architecture=arm target-os=iphone macosx-version=iphone-${IPHONE_SDKVERSION} define=_LITTLE_ENDIAN link=static install > "${LOG}" 2>&1
-    if [ $? != 0 ]; then 
-        echo "Problem while Building iphone-build install - Please check ${LOG}"
-        exit 1
-    else 
-        echo "iphone-build install successful"
-    fi
-    doneSection
+    #echo "------------------"
+    #LOG="$LOGDIR/build-iphone-install.log"
+    #echo "Running bjam for iphone-build install"
+    #echo "To see status in realtime check:"
+    #echo " ${LOG}"
+    #echo "Please stand by..."
+    #./bjam -j16 --build-dir=iphone-build -sBOOST_BUILD_USER_CONFIG=$USER_CONFIG_JAM --stagedir=iphone-build/stage --prefix=$PREFIXDIR abi=aapcs binary-format=mach-o address-model=32 toolset=darwin architecture=arm target-os=iphone macosx-version=iphone-${IPHONE_SDKVERSION} define=_LITTLE_ENDIAN link=static install > "${LOG}" 2>&1
+    #if [ $? != 0 ]; then 
+    #    echo "Problem while Building iphone-build install - Please check ${LOG}"
+    #    exit 1
+    #else 
+    #    echo "iphone-build install successful"
+    #fi
+    #doneSection
 
-    echo "------------------"
-    LOG="$LOGDIR/build-iphone-simulator-build.log"
-    echo "Running bjam for iphone-sim-build "
-    echo "To see status in realtime check:"
-    echo " ${LOG}"
-    echo "Please stand by..."
-    ./bjam -j16 --build-dir=iphonesim-build -sBOOST_BUILD_USER_CONFIG=$BOOST_SRC/tools/build/example/user-config.jam --stagedir=iphonesim-build/stage --toolset=darwin-${IPHONE_SDKVERSION}~iphonesim architecture=x86 target-os=iphone macosx-version=iphonesim-${IPHONE_SDKVERSION} link=static stage > "${LOG}" 2>&1
+    echo ./bjam -j16 --build-dir=iphonesim-build -sBOOST_BUILD_USER_CONFIG=$USER_CONFIG_JAM --stagedir=iphonesim-build/stage --toolset=darwin-${IPHONE_SDKVERSION}~iphonesim architecture=x86 target-os=iphone macosx-version=iphonesim-${IPHONE_SDKVERSION} link=static stage
+    ./bjam -j16 --build-dir=iphonesim-build -sBOOST_BUILD_USER_CONFIG=$USER_CONFIG_JAM --stagedir=iphonesim-build/stage --toolset=darwin-${IPHONE_SDKVERSION}~iphonesim architecture=x86 target-os=iphone macosx-version=iphonesim-${IPHONE_SDKVERSION} link=static stage > "${LOG}" 2>&1
     if [ $? != 0 ]; then 
         echo "Problem while Building iphone-simulator build - Please check ${LOG}"
         exit 1
@@ -404,8 +389,8 @@ buildIncludes()
 
 mkdir -p $IOSBUILDDIR
 
-cleanEverythingReadyToStart #may want to comment if repeatedly running during dev
-restoreBoost
+#cleanEverythingReadyToStart #may want to comment if repeatedly running during dev
+#restoreBoost
 
 echo "BOOST_VERSION:     $BOOST_VERSION"
 echo "BOOST_LIBS:        $BOOST_LIBS"
@@ -429,9 +414,8 @@ buildBoostForIPhoneOS
 scrunchAllLibsTogetherInOneLibPerPlatform
 buildIncludes
 
-restoreBoost
-
-postcleanEverything
+#restoreBoost
+# postcleanEverything
 
 echo "Completed successfully"
 
