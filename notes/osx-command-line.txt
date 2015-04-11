@@ -16,3 +16,9 @@ sysctl hw
 otool -L /bin/cat
 xcodebuild -showsdks
 
+###
+brew install libimobiledevice
+brew install mobiledevice
+
+idevicesyslog |tee idevice.log
+
