@@ -1,0 +1,4 @@
+
+
+> make clean -C src/2bwm ; rm -f 2bwm-0.2-2-x86_64.pkg.tar.xz ; makepkg --noextract
+
