@@ -3,7 +3,13 @@
 #Port Forwarding Using SSH Tunnel
 #
 
-#ssh utils
-ssh -p 44331 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
-ssh-copy-id "-p 44331 wood@58.6x.x.x"
+###ssh commands
+ssh -p 22 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
+ssh-copy-id "-p 22 wood@58.6x.x.x"
+
+ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
+ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
+
+###ssh hosts
+uid502@s6.sshwall.com
 

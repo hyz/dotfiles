@@ -2,3 +2,11 @@
 $ Xvfb :1 -screen 0 1024x768x24 &
 $ DISPLAY=:1 ./eclipse/eclimd start
 
+### 改变鼠标滚轮方向
+xmodmap -e "pointer = 1 2 3 4 5" # 默认方向
+xmodmap -e "pointer = 1 2 3 5 4" # macosx
+
+### 2bwm/archlinux
+# abs
+> make clean -C src/2bwm ; rm -f 2bwm-0.2-2-x86_64.pkg.tar.xz ; makepkg --noextract
+

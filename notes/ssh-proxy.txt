@@ -1,6 +1,0 @@
-uid502@s6.sshwall.com qY61y1Yql6
-
-ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
-
-ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
-
