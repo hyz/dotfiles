@@ -25,6 +25,7 @@ x=_subdir_ ; tar czf - $x/*.{h,hpp,cpp,jam} |ssh _host_ 'cat > $x.tgz-$(date +%F
 
 ### pgrep ###
 pgrep -lf yxim
+grep -Hl -R boost_locale .
 
 ### ps ###
 ps -lF
@@ -53,6 +54,9 @@ sort -k1,1 -s t.txt
 yum list all
 yum list installed
 
+yum install qemu-kvm
+rpm -ql qemu-kvm
+
 ### grep ###
 echo "foo=123 bar=432" |/bin/grep -Po '\d+'
 echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
@@ -73,6 +77,7 @@ date --date="yesterday" +%F
 date --date="-1 day" +%F
 date +%F -d "+24 hours"
 date +%F -d "2015-03-02 +24 hours"
+date -d '@2147483647'
 
 ### dd ###
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
@@ -167,6 +172,9 @@ curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://
 
 tpx="`date +'%F %T'`"
 tps="`perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$tpx"`"
+
+###
+history 0 |awk '{print $2}' | sort | uniq -c | sort -gr | head -30
 
 ### ###
 #

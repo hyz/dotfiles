@@ -23,7 +23,7 @@ ontop=1
 #good exclude H264 Video codec
 #vf=expand=:::::4/3:2
 #fs=1
-fontconfig=1
+###osx fontconfig=1
 
 #subcp=cp936
 # subcp=enca:zh:cp936

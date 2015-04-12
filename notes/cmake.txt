@@ -1,0 +1,25 @@
+###
+export CC=/opt/bin/gcc CXX=/opt/bin/g++ CXXFLAGS="-std=c++11 -stdlib=libc++"
+
+###
+cmake ../cpp-netlib -DCMAKE_C_COMPILER=/opt/bin/gcc -DCMAKE_CXX_COMPILER=/opt/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_LIBRARY_DIR=/opt/boost/stage/lib 
+
+#b2 -j8 link=static runtime-link=static threading=multi variant=release stage --with-system --with-filesystem --with-regex --with-date_time
+b2 -j8 link=static threading=multi variant=release stage --with-system --with-filesystem --with-regex --with-date_time
+
+### find icu # include=? -sICU_LINK="" # icu-config --cppflags --ldflags
+# http://www.boost.org/doc/libs/1_57_0/libs/locale/doc/html/building_boost_locale.html
+b2 -j8 link=static runtime-link=static threading=multi variant=release \
+    include=/opt/local/include -sICU_LINK="-L/opt/local/lib -licui18n -licuuc -licudata" stage \
+    --with-system --with-filesystem --with-regex --with-date_time --with-thread
+b2 -j8 link=static threading=multi variant=release include=/usr/local/Cellar/icu4c/54.1 -sICU_LINK="-L/usr/local/Cellar/icu4c/54.1/lib -licui18n -licuuc -licudata" stage --with-system --with-filesystem --with-regex --with-thread --with-random --with-chrono --with-locale
+b2 -j8 link=static threading=multi variant=release boost.locale.iconv=off -sICU_PATH=/usr/local/Cellar/icu4c/54.1 stage --with-system --with-filesystem --with-regex --with-thread --with-random --with-chrono --with-locale
+
+### 1 build casablanca
+b2 link=static threading=multi variant=release include=/opt/local/include -sICU_LINK="-L/opt/local/lib -licui18n -licuuc -licudata" stage --with-system --with-filesystem --with-regex --with-thread --with-random --with-chrono --with-locale
+cmake ../Release -DCMAKE_BUILD_TYPE=Release -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_LIBRARY_DIR=/opt/boost/stage/lib -DOPENSSL_ROOT_DIR=/opt/local
+
+### 2 build casablanca
+cmake ../Release -DCMAKE_BUILD_TYPE=Release -G Xcode
+
+

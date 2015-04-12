@@ -43,10 +43,17 @@ bindkey "\e#" vi-pound-insert
 # alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
-alias ls='ls -F --color=auto'
-alias ll='ls -l'
 alias grep='grep --color=auto'
 alias df='df -h'
+alias dict='sdcv -0'
+
+if ls -d --color=auto 2>/dev/null ; then
+    alias ls='ls -F --color=auto'
+else
+    # export CLICOLOR=1
+    alias ls='ls -F' # alias ls='ls -F --color=auto'
+fi
+alias ll='ls -l'
 
 #
 #
@@ -61,12 +68,14 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
-if [ "`uname -o`" = "Cygwin" ] ; then
+if [ "`uname -s`" = "Darwin" ] ; then
+    true
+elif [ "`uname -o`" = "Cygwin" ] ; then
     PATH=$PATH:$HOME/bin/cygwin
     export GNUPGHOME="C:\\gnupg"
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
-        explorer "`cygpath -w $(pwd)/$1`" &
+        `cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
 fi
 
@@ -78,7 +87,7 @@ if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_ROOT=/usr/bin
 
-SDK_ROOT=/opt/android-sdk
+SDK_ROOT=/opt/android/sdk
 if [[ -d "$SDK_ROOT" ]] ; then
     ANDROID_SDK_ROOT=$SDK_ROOT
     ANDROID_HOME=$SDK_ROOT
@@ -87,7 +96,7 @@ if [[ -d "$SDK_ROOT" ]] ; then
     PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
 fi
 
-NDK_ROOT=/opt/android-ndk
+NDK_ROOT=/opt/android/ndk
 if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
@@ -105,6 +114,10 @@ COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
 if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
     PATH=$PATH:$COCOS_CONSOLE_ROOT
     export COCOS_CONSOLE_ROOT
+fi
+
+if [ -d "/opt/local/bin" ]; then
+    PATH=$PATH:/opt/local/bin:/opt/local/sbin
 fi
 
 # Add environment variable ANT_ROOT for cocos2d-x

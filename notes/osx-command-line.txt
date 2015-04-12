@@ -1,0 +1,24 @@
+
+### homebrew
+brew install --use-clang ffmeg
+brew install mpd mpc
+
+### Macports
+port install python35
+port install pass
+port install mplayer
+port install sshfs
+port install screen
+##port install iterm2 xterm rxvt
+
+###
+sysctl hw
+otool -L /bin/cat
+xcodebuild -showsdks
+
+###
+brew install libimobiledevice
+brew install mobiledevice
+
+idevicesyslog |tee idevice.log
+
