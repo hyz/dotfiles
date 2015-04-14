@@ -1,0 +1,10 @@
+### yum ###
+
+yum grouplist | grep -i virt
+sudo yum install "@Virtualization*"
+#yum install qemu-kvm
+rpm -ql qemu-kvm
+
+yum list all
+yum list installed
+

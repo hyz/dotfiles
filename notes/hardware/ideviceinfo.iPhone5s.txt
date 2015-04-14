@@ -1,0 +1,79 @@
+ActivationState: Activated
+ActivationStateAcknowledged: true
+BasebandActivationTicketVersion: V2
+BasebandCertId: 3255536192
+BasebandChipID: 7278817
+BasebandKeyHashInformation: 
+ AKeyStatus: 2
+ SKeyHash: 7MQEUyvzG4gjjZc7KsNNAVTS8g4=
+ SKeyStatus: 0
+BasebandMasterKeyHash: AEA5CCE143668D0EFB4CE1F2C94C966A6496C6AA
+BasebandRegionSKU: AgAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+BasebandSerialNumber: GpT12Q==
+BasebandStatus: BBInfoAvailable
+BasebandVersion: 8.01.00
+BluetoothAddress: c8:e0:eb:68:ee:45
+BoardId: 2
+BrickState: false
+BuildVersion: 12F70
+CPUArchitecture: armv7s
+CarrierBundleInfoArray[0]: 
+CertID: 3255536192
+ChipID: 35152
+ChipSerialNo: GpT12Q==
+CompassCalibration: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+DeviceClass: iPhone
+DeviceColor: #e1e4e3
+DeviceName: “kklink”的 iPhone
+DevicePublicKey: LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJDZ0tDQVFFQTFUSGtqV0d2ckhaZVUrcGR2dCt1YkZIdG9wODk4VE4vUmVNL3ZYOHdZNEZTcmRtcEsvRHMKaDRqWFExb0ptaEJzMTN2c2dobUhpUzE5QTdGMzY1R1UvMXdzNHY4cEMxQUdPd3V2TkVmSTE5UzIxNVVqMkpUTApWT2hScEFWUFFZaXNxT0ZXcjErZUZuaHlKd2NyNndaV1VNYUw2WW0rVUtZQnMwQXFGSTloZVJlRWdWNGRzVTduCkxkY0hxQlRzVmZQZjd3RnVHbENvaFBTQmlXRElETTFpSHpibzVob0REZXZnWVhWR2szYlQxVm56MFRlaFhEaDIKajFyQmM1czhaMDNvU3pmS3p5ekdFeWxsUG5odktuUy9lOUJiWXBFb3FEdTZkN3VIRXBKNzR0OE42YjRBN1l3bApHSjA4VEZXaXE3K3QyVytESmFjRDdJQjRwU3U0OHFhenV3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K
+DieID: 1883140674993347040
+EthernetAddress: c8:e0:eb:68:ee:46
+FirmwareVersion: iBoot-2261.20.20
+FusingStatus: 3
+HardwareModel: N42AP
+HardwarePlatform: s5l8950x
+HostAttached: true
+InternationalMobileEquipmentIdentity: 013474004071660
+MLBSerialNumber: F3Y3213DKYAF64RE
+MobileSubscriberCountryCode: 
+MobileSubscriberNetworkCode: 
+ModelNumber: MD298
+NonVolatileRAM: 
+ auto-boot: dHJ1ZQ==
+ backlight-level: MTQ2OA==
+ boot-args: 
+ bootdelay: MA==
+ enable-rolld-dev1: L2Rldi9kaXNrMHMxczI=
+ oblit-begins: MjAxNC0xMi0xOSAxMTo0MDowMSBHTVQrODogT2JsaXRUeXBlOiBPYmxpdGVyYXRlRGF0YVBhcnRpdGlvbi4gUmVhc29uOiBTQlJlc2V0TW9kZT0z
+ obliteration: MjAxNC0xMi0xOSAxMTo0MTowNCBHTVQrODogaGFuZGxlX21lc3NhZ2U6IE9ibGl0ZXJhdGlvbiBDb21wbGV0ZQ==
+PartitionType: 
+PasswordProtected: false
+PkHash: wguKQOoMFsrCLtMrgu2YMM0rtSJ7ik4ia9YLIdt1ny0=
+ProductType: iPhone5,2
+ProductVersion: 8.3
+ProductionSOC: true
+ProtocolVersion: 2
+ProximitySensorCalibration: T00DAA0KRDgQAwAAAABeAQAAHwEEAPCjBgQFAD8J5gLuAi4AGoG8ApqTVBcAAABXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+RegionInfo: CH/A
+SBLockdownEverRegisteredKey: true
+SIMStatus: kCTSIMSupportSIMStatusNotInserted
+SIMTrayStatus: kCTSIMSupportSIMTrayInsertedNoSIM
+SerialNumber: F19KQLHPDTWF
+SoftwareBehavior: QQEAAAAAAAAAAAAAAAAAAA==
+SoftwareBundleVersion: 
+SupportedDeviceFamilies[1]: 
+ 0: 1
+TelephonyCapability: true
+TimeIntervalSince1970: 1428905919.396621
+TimeZone: Asia/Shanghai
+TimeZoneOffsetFromUTC: 28800.000000
+TrustedHostAttached: true
+UniqueChipID: 2384715095411
+UniqueDeviceID: 11bb6256f99e1b043290179935449149a3ddfb5c
+UseRaptorCerts: true
+Uses24HourClock: true
+WiFiAddress: c8:e0:eb:68:ee:44
+WirelessBoardSerialNumber: 13193431866
+kCTPostponementInfoPRIVersion: 0.0.0
+kCTPostponementInfoPRLName: 0
+kCTPostponementStatus: kCTPostponementStatusActivated

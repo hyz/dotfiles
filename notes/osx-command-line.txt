@@ -16,9 +16,13 @@ sysctl hw
 otool -L /bin/cat
 xcodebuild -showsdks
 
+### mpd build from source
+brew install --build-from-source mpd
+
 ###
 brew install libimobiledevice
 brew install mobiledevice
 
 idevicesyslog |tee idevice.log
+ideviceinfo
 
