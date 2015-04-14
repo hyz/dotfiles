@@ -222,3 +222,4 @@ static Button buttons[] = {
     {  MOD|ALT,    XCB_BUTTON_INDEX_1,     changescreen,    {.i=1}},
     {  MOD|ALT,    XCB_BUTTON_INDEX_3,     changescreen,    {.i=0}}
 };
+
