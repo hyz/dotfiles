@@ -120,7 +120,7 @@ const char *atomnames[NB_ATOMS][1] = {
 xcb_atom_t ATOM[NB_ATOMS];
 ///---Functions prototypes---///
 static void run(void);
-static bool setup(int screen);
+static bool setup();
 static void start(const Arg *arg);
 static void mousemotion(const Arg *arg);
 static void cursor_move(const Arg *arg);
@@ -829,9 +829,8 @@ int setuprandr(void)                // Set up RANDR extension. Get the extension
     if (!extension->present) return -1;
     else getrandr();
     int base = extension->first_event;
-    xcb_randr_select_input(conn, screen->root,XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE |
-        XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE |XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE |
-        XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
+    xcb_randr_select_input(conn, screen->root
+            , XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE |XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE |XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE |XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
     return base;
 }
 
@@ -1112,8 +1111,10 @@ void setfocus(struct client *client)// Set focus on window client.
         return;
     }   
     /* Don't bother focusing on the root window or on the same window that already has focus. */
-    if (client->id == screen->root) return;
-    if (NULL != focuswin) setunfocus(); /* Unset last focus. */
+    if (client->id == screen->root)
+        return;
+    if (NULL != focuswin)
+        setunfocus(); /* Unset last focus. */
     long data[] = { XCB_ICCCM_WM_STATE_NORMAL, XCB_NONE };
     xcb_change_property(conn, XCB_PROP_MODE_REPLACE, client->id,ATOM[wm_state], ATOM[wm_state], 32, 2, data);
     xcb_set_input_focus(conn, XCB_INPUT_FOCUS_POINTER_ROOT, client->id,XCB_CURRENT_TIME); /* Set new input focus. */
@@ -1241,15 +1242,19 @@ static void snapwindow(struct client *client)
 
 void mousemove(const int16_t rel_x, const int16_t rel_y)
 {                                   // Move window win as a result of pointer motion to coordinates rel_x,rel_y.
-    if(focuswin==NULL||NULL == focuswin->wsitem[curws])return;
-    focuswin->x = rel_x;        focuswin->y = rel_y;
-    if (borders[2] >0 ) snapwindow(focuswin);
+    if(focuswin==NULL||NULL == focuswin->wsitem[curws])
+        return;
+    focuswin->x = rel_x;
+    focuswin->y = rel_y;
+    if (borders[2] >0 )
+        snapwindow(focuswin);
     movelim(focuswin);
 }
 
 void mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y)
 {
-    if(focuswin->id==screen->root||focuswin->maxed) return;
+    if (focuswin->id==screen->root||focuswin->maxed)
+        return;
     client->width  = abs(rel_x);
     client->height = abs(rel_y);
     if (resize_by_line) {
@@ -1748,6 +1753,8 @@ struct client create_back_win(void)
 
 static void mousemotion(const Arg *arg)
 {
+    if(focuswin==NULL)
+        return;
     xcb_query_pointer_reply_t *pointer = xcb_query_pointer_reply(conn, xcb_query_pointer(conn, screen->root), 0);
     if (!pointer||focuswin->maxed){ 
         free(pointer);
@@ -1760,17 +1767,20 @@ static void mousemotion(const Arg *arg)
     struct client example;
     raise_current_window();
 
-    if(arg->i == TWOBWM_MOVE) cursor = Create_Font_Cursor (conn, 52 ); /* fleur */
-    else  {                   
+    if(arg->i == TWOBWM_MOVE)
+        cursor = Create_Font_Cursor (conn, 52 ); /* fleur */
+    else {                   
         cursor  = Create_Font_Cursor (conn, 120); /* sizing */
         example = create_back_win();
         xcb_map_window(conn,example.id);
     }
-    xcb_grab_pointer_reply_t *grab_reply = xcb_grab_pointer_reply(conn, xcb_grab_pointer(conn, 0, screen->root, BUTTONMASK|
-        XCB_EVENT_MASK_BUTTON_MOTION|XCB_EVENT_MASK_POINTER_MOTION,XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, cursor, XCB_CURRENT_TIME), NULL);
+    xcb_grab_pointer_reply_t *grab_reply = xcb_grab_pointer_reply(conn
+            , xcb_grab_pointer(conn, 0, screen->root, BUTTONMASK|XCB_EVENT_MASK_BUTTON_MOTION|XCB_EVENT_MASK_POINTER_MOTION, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, cursor, XCB_CURRENT_TIME)
+            , NULL);
     if (grab_reply->status != XCB_GRAB_STATUS_SUCCESS) {
         free(grab_reply);
-        if (arg->i == TWOBWM_RESIZE) xcb_unmap_window(conn,example.id);
+        if (arg->i == TWOBWM_RESIZE)
+            xcb_unmap_window(conn,example.id);
         return;
     }
     free(grab_reply);
@@ -1778,8 +1788,10 @@ static void mousemotion(const Arg *arg)
     xcb_generic_event_t        *e = NULL;
     bool ungrab                   = false;
     do {
-        if (NULL!=e) free(e);
-        while(!(e = xcb_wait_for_event(conn))) xcb_flush(conn);
+        if (NULL!=e)
+            free(e);
+        while(!(e = xcb_wait_for_event(conn)))
+            xcb_flush(conn);
 
         switch (e->response_type & ~0x80) {
         case XCB_CONFIGURE_REQUEST: case XCB_MAP_REQUEST:
@@ -1802,14 +1814,23 @@ static void mousemotion(const Arg *arg)
             }
             ungrab = true;
         break;
+        case XCB_ENTER_NOTIFY: break;
         }
     } while (!ungrab && focuswin!=NULL);
     free(pointer);
     free(e);
     xcb_free_cursor(conn,cursor);
     xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
-    if (arg->i == TWOBWM_RESIZE) xcb_unmap_window(conn,example.id);
+    if (arg->i == TWOBWM_RESIZE)
+        xcb_unmap_window(conn,example.id);
     xcb_flush(conn);
+}
+
+static void focus_raise(struct client *client)
+{
+    setfocus(client);
+    raisewindow(client->id);
+    setborders(client,true);
 }
 
 void buttonpress(xcb_generic_event_t *ev)
@@ -1817,9 +1838,43 @@ void buttonpress(xcb_generic_event_t *ev)
     xcb_button_press_event_t *e = (xcb_button_press_event_t *)ev;
     for (unsigned int i=0; i<LENGTH(buttons); i++)
         if (buttons[i].func && buttons[i].button == e->detail &&CLEANMASK(buttons[i].mask) == CLEANMASK(e->state)){
-            if((focuswin==NULL) && buttons[i].func ==mousemotion) return;
+            //if((focuswin==NULL) && buttons[i].func ==mousemotion)
+            //    return;
             buttons[i].func(&(buttons[i].arg));
+            return;
         }
+
+    //if (!focuswin || focuswin->id != e->event) {
+    //    struct client *client = findclient(&e->event);
+    //    if (client)
+    //        focus_raise(client);
+    //}
+}
+void enternotify(xcb_generic_event_t *ev)
+{
+    // return;
+    xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;
+    /* If this isn't a normal enter notify, don't bother. We also need
+    * ungrab events, since these will be generated on button and key
+    * grabs and if the user for some reason presses a button on the
+    * root and then moves the pointer to our window and releases the
+    * button, we get an Ungrab EnterNotify. The other cases means the
+    * pointer is grabbed and that either means someone is using it for
+    * menu selections or that we're moving or resizing. We don't want
+    * to change focus in those cases. */
+    if (e->mode == XCB_NOTIFY_MODE_NORMAL||e->mode == XCB_NOTIFY_MODE_UNGRAB) {
+        struct client *client;
+        /* If we're entering the same window we focus now, then don't bother focusing. */
+        if (NULL != focuswin && e->event == focuswin->id)
+            return;
+        /* Otherwise, set focus to the window we just entered if we can find it among the windows we
+        * know about. If not, just keep focus in the old window. */
+        if (client = findclient(&e->event)) {
+            setfocus(client);
+            setborders(client,true);
+//raisewindow(client->id);
+        }
+    }
 }
 
 void clientmessage(xcb_generic_event_t *ev)
@@ -1849,30 +1904,6 @@ void destroynotify(xcb_generic_event_t *ev)
     struct client *cl = findclient( & e->window);
     if (NULL != cl)    forgetwin(cl->id); /* Find this window in list of clients and forget about it. */
     updateclientlist();
-}
-
-void enternotify(xcb_generic_event_t *ev)
-{
-    xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;
-    struct client *client;
-    /* If this isn't a normal enter notify, don't bother. We also need
-    * ungrab events, since these will be generated on button and key
-    * grabs and if the user for some reason presses a button on the
-    * root and then moves the pointer to our window and releases the
-    * button, we get an Ungrab EnterNotify. The other cases means the
-    * pointer is grabbed and that either means someone is using it for
-    * menu selections or that we're moving or resizing. We don't want
-    * to change focus in those cases. */
-    if (e->mode == XCB_NOTIFY_MODE_NORMAL||e->mode == XCB_NOTIFY_MODE_UNGRAB) {
-        /* If we're entering the same window we focus now, then don't bother focusing. */
-        if (NULL != focuswin && e->event == focuswin->id) return;
-        /* Otherwise, set focus to the window we just entered if we can find it among the windows we
-        * know about. If not, just keep focus in the old window. */
-        client = findclient(&e->event);
-        if (NULL == client) return;
-        setfocus(client);
-        setborders(client,true);
-    }
 }
 
 void unmapnotify(xcb_generic_event_t *ev)
@@ -1958,8 +1989,11 @@ void ewmh_init(void)
     xcb_ewmh_init_atoms_replies(ewmh, cookie, (void *)0);
 }
 
-bool setup(int scrno)
+bool setup()
 {
+    int scrno;
+    if (!xcb_connection_has_error(conn = xcb_connect(NULL, &scrno)))
+        return false;
     screen = xcb_screen_of_display(conn, scrno);
     if (!screen)
         return false;
@@ -2028,15 +2062,13 @@ void twobwm_restart()
 
 int main()
 {
-    int scrno;
     /* Install signal handlers. */
     signal(SIGCHLD, SIG_IGN);
     signal(SIGINT, sigcatch);
     signal(SIGTERM, sigcatch);
     atexit(cleanup);
-    if (!xcb_connection_has_error(conn = xcb_connect(NULL, &scrno)))
-        if (setup(scrno))
-            run();
+    if (setup())
+        run();
     exit(sigcode); /* the WM has stopped running, because sigcode is not 0 */
 }
 

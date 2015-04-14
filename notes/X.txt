@@ -10,3 +10,10 @@ xmodmap -e "pointer = 1 2 3 5 4" # macosx
 # abs
 > make clean -C src/2bwm ; rm -f 2bwm-0.2-2-x86_64.pkg.tar.xz ; makepkg --noextract
 
+### https://wiki.archlinux.org/index.php/Xephyr
+### Xephyr is a nested X server that runs as an X application. 
+# pacman -S xorg-server-xephyr
+> Xephyr -br -ac -noreset -screen 800x600 :1
+> DISPLAY=:1 src/tilewm
+> DISPLAY=:1 xterm
+

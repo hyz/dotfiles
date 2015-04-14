@@ -56,7 +56,7 @@ feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 # exec enlightenment_start
 #exec subtle
 #exec awesome
-exec 2bwm
+#exec 2bwm
 exec fvwm
 exec gnome-session
 exec openbox-session
