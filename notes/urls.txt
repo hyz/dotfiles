@@ -8,3 +8,23 @@ https://github.com/cloudwu/ejoy2d
 https://github.com/avplayer
 http://kylelutz.github.io/compute/
 
+### DOS games
+http://i.wanga.me/430
+
+全部电驴资源如下，建议使用迅雷下载，并启用会员加速，速度飞快，合计4.81GB。
+
+[经典DOS游戏合集].dosgame1第一部.exe – 1.64GB
+[经典DOS游戏合集].dosgame2终结篇升级包.执行文件.7z – 16.49MB
+[经典DOS游戏合集].dosgame3终结篇游戏包1(RPG_SPG_SLG_RST).7z – 1.57GB
+[经典DOS游戏合集].dosgame4终结篇游戏包2(ACT_SIM_PUZ_AVG).7z – 1.58GB
+[经典DOS游戏合集].dosgame5终结篇DUKE3D(这个漏打包了).7z – 16.58MB
+[经典DOS游戏合集].DOSGameGUI.v1.02.rar – 197.37KB
+[经典DOS游戏合集].dosgame合集安装说明.txt – 1.41KB
+下载完毕后，安装及使用方法如下：
+
+x. 先安装 第一部.exe ，默认安装在E盘根目录下。如果改变了安装路径，必须在安装后运行游戏目录下的 phpatch.bat 修复路径，才可以正常进行游戏。
+x. 安装 终结篇：将几个7z 压缩包解压到第一部的安装目录下，再执行 安装升级包.bat
+x. 执行 dosgame.bat 即可启动游戏选单，默认以窗口模式运行，如果在快捷方式中加上 -fullscreen 参数，即可以全屏模式启动。
+x. 在游戏选单中，除了正常游戏外，按 9，还可以进入隐藏启蒙游戏菜单……但……
+x. DOSGameGUI v1.02 为热心网友Cataero 制作了一个GUI 界面，可以按名字和类型检索游戏，直接鼠标点击就能开始游戏，比原始菜单更方便，但有些游戏还是要用原始菜单才能打开
+

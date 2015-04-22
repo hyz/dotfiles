@@ -169,6 +169,9 @@ tps="`perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$tpx"`"
 ###
 history 0 |awk '{print $2}' | sort | uniq -c | sort -gr | head -30
 
+###
+useradd -Um -u 1000 -G wheel -s `which zsh` wood
+
 ### ###
 #
 ### ### ### ### ### ### ### ###

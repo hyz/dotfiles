@@ -2,6 +2,22 @@
 ### homebrew
 brew install --use-clang ffmeg
 brew install mpd mpc
+#
+brew list
+brew list mpd
+
+### mpd build from source
+brew install --build-from-source mpd
+
+###
+brew install libimobiledevice
+brew install mobiledevice
+
+### disk
+diskutil list
+brew search fuse
+brew install osxfuse
+brew install ext4fuse
 
 ### Macports
 port install python35
@@ -11,18 +27,22 @@ port install sshfs
 port install screen
 ##port install iterm2 xterm rxvt
 
-###
+### binutils
 sysctl hw
 otool -L /bin/cat
+
+### developer/xcode
 xcodebuild -showsdks
-
-### mpd build from source
-brew install --build-from-source mpd
-
-###
-brew install libimobiledevice
-brew install mobiledevice
 
 idevicesyslog |tee idevice.log
 ideviceinfo
+
+### input method
+#https://discussions.apple.com/thread/2185860?tstart=0
+find {/,}/Library/Preferences/com.apple.HIToolbox.plist |cpio -pud  tmp/
+
+### startup
+#http://www.macworld.com/article/2047747/take-control-of-startup-and-login-items.html
+find {/,}Library -type d -name "StartupItems"
+find {/,}Library -type d -name "LaunchAgents"
 
