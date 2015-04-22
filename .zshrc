@@ -47,7 +47,7 @@ alias grep='grep --color=auto'
 alias df='df -h'
 alias dict='sdcv -0'
 
-if ls -d --color=auto 2>/dev/null ; then
+if ls -d --color=auto >/dev/null 2>&1 ; then
     alias ls='ls -F --color=auto'
 else
     # export CLICOLOR=1
