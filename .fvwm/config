@@ -375,11 +375,11 @@ Key q       A    MS  Quit
 #Key R  A        CM  Restart
 key q       A    M   Restart
 # key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
-key Return  A    MS  Exec xterm -geometry 128x32
+key Return  A    MS  Exec xterm -geometry 128x36
 #Key b  A    MS  Exec chromium
-# Key p     A    M  Exec `dmenu_path | dmenu`
-Key p       A    M   Exec dmenu_run
-Key F2      A    M   Exec gmrun
+#Key p     A    M  Exec `dmenu_path | dmenu`
+#Key p       A    M   Exec dmenu_run
+Key Return  A    M   Exec gmrun
 # Key p       A    MS   None (*run) Exec grun || gmrun || fbrun || xfrun4
 # Key x       A    M    Exec rox
 #Key F3 A        M   Exec exec emacs

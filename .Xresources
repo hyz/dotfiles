@@ -30,9 +30,16 @@ xterm*faceName: Monaco:antialias=True:pixelsize=15
 xterm*faceNameDoublesize: Microsoft YaHei:pixelsize=16:antialias=True
 xterm*xftAntialias: true
 !! xterm*cjkWidth: false
-xterm*onXClicks: 4
-xterm*on2Clicks: regex [a-zA-Z0-9_.\-]+
+!xterm*onXClicks: 4
+!#xterm*on2Clicks: regex [a-zA-Z0-9_.:_\-\/]+
 ! xterm*on4Clicks: regex [^(){}\[\]]+
+!===
+!xterm*cutNewLine: false
+!xterm*cutToBeginningOfLine: false
+!xterm*charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
+XTerm*VT100.cutNewLine: false
+XTerm*VT100.cutToBeginningOfLine: false
+XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 !=== fix alt key input
 !!!xterm*eightBitInput: false
 !!!xterm*altSendsEscape: true

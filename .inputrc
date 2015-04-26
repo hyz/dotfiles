@@ -1,5 +1,4 @@
 set editing-mode vi
-set bell-style none
 
 #$if mode=vi
 #    set keymap vi-command
@@ -8,6 +7,9 @@ set bell-style none
 #    set keymap vi-insert       #notice how the "jj" movement is
 #    "jj": vi-movement-mode     #after 'set keymap vi-insert'?
 #    "\C-w": backward-kill-word
-#    "\C-p": history-search-backward
+#    "\C-r": history-search-backward
+#   #"\C-n": history-search-forward
 #$endif
+
+set bell-style none
 

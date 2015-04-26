@@ -37,7 +37,8 @@ xset -b
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
-xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
+        -e "pointer = 1 2 3 5 4"
 
 # exec ck-launch-session gnome-session
 which xmonad && exec xmonad
@@ -47,7 +48,7 @@ which xmonad && exec xmonad
 #fbpanel &
 
 #xloadimage -onroot -fullscreen Desktop/Untitled/100_0210.JPG
-feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
+#[ which feh 2>/dev/null >&2 ] && feh --bg-center Pictures/Wallpapers/vladstudio_rainbows_1920x1440.jpg
 
 # urxvtd -q -f -o
 # urxvt -e screen -e^jj &
