@@ -20,3 +20,5 @@ xmodmap -e "pointer = 1 2 3 5 4" # macosx
 ###
 # http://hack.org/mc/projects/mcwm/
 
+## ctags --c++-kinds=+px /usr/include/X11/keysymdef.h /usr/include/xcb/*.h *.{h,c}
+

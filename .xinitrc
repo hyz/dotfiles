@@ -42,6 +42,7 @@ xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
 
 # exec ck-launch-session gnome-session
 which xmonad && exec xmonad
+which awesome && exec awesome
 
 #rox -p default
 # tint2 &
@@ -54,10 +55,11 @@ which xmonad && exec xmonad
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
 
-exec i3
+#exec $HOME/snip/2bwm/src/2bwm
+#exec i3
+
 # exec enlightenment_start
 #exec subtle
-#exec awesome
 #exec 2bwm
 exec fvwm
 exec gnome-session
