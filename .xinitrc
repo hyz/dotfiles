@@ -54,6 +54,7 @@ which xmonad && exec xmonad
 # urxvt -e screen -e^jj &
 # xterm -e screen -e^jj &
 
+exec i3
 # exec enlightenment_start
 #exec subtle
 #exec awesome

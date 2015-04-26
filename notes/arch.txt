@@ -1,5 +1,6 @@
 
 makepkg --noextract
+makepkg --nobuild --nodeps
 
 pacman -S --clean
 pacman -Qs android
