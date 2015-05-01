@@ -45,7 +45,6 @@ alias mv='mv -i'
 alias rm='rm -i'
 alias grep='grep --color=auto'
 alias df='df -h'
-alias dict='sdcv -0'
 
 if ls -d --color=auto >/dev/null 2>&1 ; then
     alias ls='ls -F --color=auto'
@@ -127,4 +126,17 @@ export ANT_ROOT=/bin
 export PATH
 
 # limit coredumpsize 0
+
+#alias dict='sdcv -0'
+dict() {
+    if which sdcv >/dev/null 2>&1; then
+        sdcv -0 "$1"
+    elif which ydcv >/dev/null 2>&1; then
+        ydcv "$1"
+    elif which xdg-open >/dev/null 2>&1; then
+        xdg-open "http://dict.cn/$1"
+    else
+        grep "$1" /usr/share/dict/*
+    fi
+}
 
