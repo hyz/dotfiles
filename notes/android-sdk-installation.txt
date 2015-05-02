@@ -10,4 +10,8 @@ change https to http
 #http://downloads.puresoftware.org/files/android/
 #http://mirrors.neusoft.edu.cn/android/repository/
 
+###
+### Downloads
+###
+http://www.cnblogs.com/bjzhanghao/archive/2012/11/14/android-platform-sdk-download-mirror.html
 

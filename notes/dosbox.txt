@@ -1,0 +1,5 @@
+
+### http://gaming.stackexchange.com/questions/16565/mouse-jumps-around-when-using-dosbox
+
+export SDL_VIDEO_X11_DGAMOUSE=0 
+

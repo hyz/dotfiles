@@ -81,3 +81,12 @@ Options:
 $ tools/android list sdk --all --extended > /tmp/list-sdk
 $ tools/android update sdk --no-ui --filter platform-tools,android-19,extra-android-support
 $ tools/android update sdk --no-https --no-ui -a --filter tools,platform-tools,build-tools-19.1.0,android-10
+
+
+$ ls -1 /opt/android-sdk
+add-ons/
+build-tools/
+platforms/
+platform-tools/
+tools/
+
