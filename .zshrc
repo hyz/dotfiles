@@ -140,3 +140,14 @@ dict() {
     fi
 }
 
+google() {
+    # echo "Googling: $@"
+    [ -n "$*" ] || return 1
+    h="173.194.14.53" # 210.242.125.83 # www.google.com
+    q=""
+    for x in $@; do
+        q="$q%20$x"
+    done
+    xdg-open "http://$h/search?q=$q"
+}
+

@@ -42,6 +42,7 @@ xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
 
 # exec ck-launch-session gnome-session
 which xmonad && exec xmonad
+which dwm && exec dwm
 which awesome && exec awesome
 
 #rox -p default
