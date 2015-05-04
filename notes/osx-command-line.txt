@@ -46,3 +46,12 @@ find {/,}/Library/Preferences/com.apple.HIToolbox.plist |cpio -pud  tmp/
 find {/,}Library -type d -name "StartupItems"
 find {/,}Library -type d -name "LaunchAgents"
 
+### CocoaPods
+# https://github.com/CocoaPods/Specs/issues/12707
+pod update --verbose
+pod install --verbose
+pod install --no-repo-update
+
+### cat -u
+idevicesyslog | cat -u >> beacon.$(date +%F)
+
