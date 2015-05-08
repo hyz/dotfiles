@@ -1,0 +1,8 @@
+TheElements/
+djinni/
+XVim/
+beacon/BeaconScanner/
+beacon/ForgetMeNot-project/
+beacon/HiBeacons/
+beacon/ForgetMeNot-project/ForgetMeNot-final-project.zip
+
