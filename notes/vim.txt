@@ -6,3 +6,13 @@
 :g/:10014..devtok/ .w >> user-10014.txt
 :g/"cmd":\(99\|211\|111\|112\),/ .w >>10014-99-211.txt
 
+### ###
+### http://stackoverflow.com/questions/4789811/how-do-i-repeat-any-command-in-vim-like-c-x-z-in-emacs
+# @:
+# q:k
+:help repeating
+
+:normal A^I^I^[J
+## :normal \t\t\Ctrl-v<Esc>
+
+

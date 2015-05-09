@@ -60,6 +60,11 @@ $ cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -
 # http://www.pement.org/awk/awk1line.txt
 # http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
 
+$ ls -1 |awk 'BEGIN {printf("%s %8s %8s %8s \n" ,"field1", "field2", "field3", "field4")} {printf("%6.2f %8.2f %8.2f %8.2f\n", $1, $2, $3, $4)}'
+
+### column
+(printf "PERM LINKS OWNER GROUP SIZE MONTH DAY HH:MM/YEAR NAME\n" ; ls -l | sed 1d) | column -t
+
 ### sed ###
 # http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=1
 sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' 

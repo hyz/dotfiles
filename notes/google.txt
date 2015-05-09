@@ -4,3 +4,17 @@
 # 173.194.14.53 210.242.125.83
 
 
+
+### Google Earth Pro 7.1.4.1529
+Google Earth Pro        : 7.1.4.1529
+Build Date              : 3/30/2015
+Build Time              : 10:21:18 pm
+Renderer                : DirectX
+Operating System        : Microsoft Windows (6.1.7601.1)
+Video Driver            : Google Inc. (00009.00018.00013.04052)
+Max Texture Size        : 16384x16384
+available video memory  : 4051 MB
+Server                  : kh.google.com
+User                    : jiyong.wu@gmail.com
+License Key             : GEPFREE
+
