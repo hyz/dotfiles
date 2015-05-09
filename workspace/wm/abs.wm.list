@@ -1,0 +1,66 @@
+extra/fvwm 2.6.5-4 [installed]
+    A multiple large virtual desktop window manager originally derived from twm
+extra/fvwm-crystal 3.3.2-2
+    Transparent Themes for fvwm
+extra/icewm 1.3.8-3
+    A Window Manager designed for speed, usability, and consistency
+extra/libwmf 0.2.8.4-12
+    A library for reading vector images in Microsoft's native Windows Metafile Format (WMF)
+extra/windowmaker 0.95.6-1
+    An X11 window manager with a NEXTSTEP look and feel
+extra/windowmaker-extra 0.1-5
+    Extra WindowMaker icons and themes
+extra/xcb-util-wm 0.4.1-1 [installed]
+    Utility libraries for XC Binding - client and window-manager helpers for ICCCM
+extra/xfwm4 4.12.2-1 (xfce4)
+    Xfce window manager
+extra/xfwm4-themes 4.10.0-2 (xfce4)
+    A set of additional themes for the Xfce window manager
+extra/xorg-twm 1.0.9-1
+    Tab Window Manager for the X Window System
+community/archlinux-xdg-menu 0.7.6.2-2
+    automatic generate WM menu from xdg files
+community/audio-convert 0.3.1.1-7
+    A script with an easy to use interface to convert audio files: wav, mp3, ogg, flac, aac, mpc, ape and wma
+community/bspwm 0.9-1
+    Tiling window manager based on binary space partitioning
+community/dwm 6.0-2 [installed]
+    A dynamic window manager for X
+community/fbpanel 6.1-6
+    NetWM compliant desktop panel
+community/herbstluftwm 0.6.2-2
+    Manual tiling window manager for X
+community/i3-wm 4.10.2-1 (i3) [installed]
+    An improved dynamic tiling window manager
+community/icewm-themes 1.2.26-4
+    icewm themes
+community/idesk 0.7.5-6
+    gives users of minimal wm's (fluxbox, blackbox, openbox, windowsmaker...) icons on their desktop
+community/jwm 2.2.2-1
+    A lightweight window manager for the X11 Window System
+community/libgtksourceviewmm2 2.10.3-1
+    A C++ API for gtksourceview2
+community/libmatchbox 1.11-1
+    Base library for Matchbox WM
+community/lwm 1.2.3-1
+    A very light weight window manager
+community/menumaker 0.99.7-9
+    Heuristics-driven menu generator for Deskmenu, FluxBox, IceWM, OpenBox, WindowMaker and XFCE
+community/obconf 2.0.4-1
+    A GTK2 based configuration tool for the Openbox windowmanager
+community/pawm 2.3.0-3
+    Puto Amo Window Manager is a full featured window manager, but without useless bells and whistles
+community/pekwm 0.1.17-2
+    Small, fast, functional, and flexible window manager
+community/pekwm-themes 1.0.5-3
+    PekWM themes collection
+community/spectrwm 2.6.2-1
+    A minimalistic automatic tiling window manager that tries to stay out of the way.
+community/tint2 0.11-8
+    Basic, good-looking task manager for WMs
+community/wmctrl 1.07-4
+    Control your EWMH compliant window manager from command line
+community/wmii 3.9.2-4
+    A small, dynamic window manager for X11
+community/wmname 0.1-3
+    A utility to set the name of your window manager
