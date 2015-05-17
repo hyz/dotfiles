@@ -44,7 +44,7 @@ bindkey "\e#" vi-pound-insert
 alias mv='mv -i'
 alias rm='rm -i'
 alias grep='grep --color=auto'
-alias df='df -h'
+alias df='df -Th'
 
 if ls -d --color=auto >/dev/null 2>&1 ; then
     alias ls='ls -F --color=auto'
