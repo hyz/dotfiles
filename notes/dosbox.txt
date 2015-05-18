@@ -3,3 +3,8 @@
 
 export SDL_VIDEO_X11_DGAMOUSE=0 
 
+### dosbox
+mount c /path/to/game
+mount d /path/to/game -t cdrom
+loadfix -16
+
