@@ -6,8 +6,9 @@
 export SDL_VIDEO_X11_DGAMOUSE=0 
 
 ### dosbox
-mount c /path/to/game
-mount d /path/to/game -t cdrom
+# http://www.myabandonware.com/game/sid-meier-s-civilization-1nj
+mount c: /path/to/game
+mount d: /path/to/game -t cdrom
 # http://www.vogons.org/viewtopic.php?t=15878
 loadfix -16
 
