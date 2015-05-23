@@ -25,3 +25,12 @@ local/android-udev r124-1
     Udev rules to connect Android devices to your linux box
 $
 
+### https://wiki.archlinux.org/index.php/Netctl
+### netctl
+
+wifi-menu
+netctl list
+netctl stop-all
+netctl start wireless-static
+netctl enable ethernet-static
+

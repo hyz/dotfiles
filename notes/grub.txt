@@ -1,0 +1,6 @@
+
+### https://wiki.archlinux.org/index.php/GRUB
+
+grub-install --target=i386-pc --recheck --debug /dev/sdx
+grub-mkconfig -o /boot/grub/grub.cfg
+

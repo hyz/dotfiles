@@ -154,9 +154,6 @@ iw dev wlan0 set power_save on 	|	iwconfig wlan0 power on 	|	Enabling power save
 ### wpa_supplicant -B -P /run/wpa_supplicant_wlp3s0.pid -i wlan0 -D nl80211,wext -c/run/network/wpa_supplicant_wlp3s0.conf
 
 $ sudo wifi-menu
-$ sudo netctl list
-$ sudo netctl stop-all
-$ sudo netctl start wireless-static
 
 iw dev wlan0 station dump
 iw list

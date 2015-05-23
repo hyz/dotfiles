@@ -1,8 +1,14 @@
 
-http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/
+### http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/
 
 lsblk
 lsscsi
 parted -l
 fdisk -l
+
+### https://wiki.archlinux.org/index.php/Swap
+
+mkswap /dev/sdb8
+swapon /dev/sdb8
+swapon -s
 
