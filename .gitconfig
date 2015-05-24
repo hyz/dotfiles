@@ -11,5 +11,4 @@
 
 #[push]
 #	default = simple
-[push]
-	default = simple
+
