@@ -1,8 +1,0 @@
-CREATE TABLE `` (
-`msgid`  int NOT NULL AUTO_INCREMENT COMMENT '消息id' ,
-`barid`  int NOT NULL DEFAULT 0 COMMENT ' 酒吧id' ,
-`content`  varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息内容' ,
-`ctime`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息的时间' ,
-PRIMARY KEY (`msgid`),
-INDEX `i_chat_barid` (`barid`) 
-) ;

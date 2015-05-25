@@ -1,6 +1,0 @@
- python gen-user-reg_json.py -o lindu 1000 10
- yxim-post -h 127.0.0.1 -p 10014 lindu.reg 
- yxim-test -h 127.0.0.1 -p 10010 lindu.user lindu.sign 
- python gen-101.py -n 10000 lindu.user > lindu.msgs
- yxim-test --ack=1 -h 127.0.0.1 -p 10010 lindu.user lindu.sign > lindu.test.out 2>lindu.test.err
- yxim-post -h 127.0.0.1 -p 10014 lindu.msgs > lindu.msgs.out

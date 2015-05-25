@@ -1,6 +1,0 @@
-# 获取acb10文件存的账号相关信息
-echo "select userid,username,password,token from user_client_view" |sh tools/db.sh
-
-#让周刚使用酒吧sessionid生成base64位编码和ＵＲＬ编码
-# acb10 是存的账号相关信息
-for x in `awk '{print $4}' abc10` ; do curl -b MT=$x "http://192.168.1.55:9000/mylocation?longtitude=114.02682188&latitude=22.53224789&s=S0sxMDA4QQ%3D%3D" ; done

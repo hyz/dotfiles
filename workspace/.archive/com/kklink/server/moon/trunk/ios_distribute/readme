@@ -1,3 +1,0 @@
-openssl x509 -in ios_distribution.cer -inform der -out PushChatCert.pem
-pkcs12 -nocerts -out PushChatKey.pem -in aaaa.p12
-openssl s_client -connect gateway.push.apple.com:2195 -cert PushChatCert.pem -key PushChatKey.pem
