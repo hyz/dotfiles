@@ -34,3 +34,7 @@ netctl stop-all
 netctl start wireless-static
 netctl enable ethernet-static
 
+### netstat, nslookup
+pacman -S dnsutils
+pacman -S net-tools
+
