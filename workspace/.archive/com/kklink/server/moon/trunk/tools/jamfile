@@ -1,0 +1,171 @@
+project
+    : requirements <threading>multi <include>.
+        <include>/opt/boost
+        # <cflags>-std=c++11 # <cflags>-pg <linkflags>-pg
+    ;
+
+lib curl : : <link>shared ;
+exe lbtest : lbtest.cpp /boost//thread curl : <link>static ;
+
+exe jvalue : jvalue.cpp ;
+exe ptree-ini : readini.cpp ;
+exe readxml : readxml.cpp ;
+exe dbtest : dbtest.cpp ..//mysqlclient /boost//system ;
+
+exe jss : jss_test.cpp jss-obj my-err log-obj ../libjson//libjson.a /boost//system ;
+
+obj my-err : ../myerror.cpp ;
+obj jss-obj : ../jss.cpp ;
+# obj sms-obj : ../sms.cpp : <include>../libEUCPCommC ;
+obj log-obj : ../log.cpp ;
+obj dbc-obj : ../dbc.cpp ..//hiredis ;
+
+lib jpeg : : <name>jpeg ;
+lib png : : <name>png ;
+
+exe chat
+    : chat_client.cpp jss-obj my-err log-obj /boost//system /boost//program_options ../libjson//libjson.a
+    : <cflags>-std=c++11 <include>..
+    ;
+explicit chat ;
+
+# exe sms
+#     : testsms.cpp
+#         sms-obj log-obj
+#         ../libjson//libjson.a
+#         ../libEUCPCommC//libEUCPCommC.a
+#         ../boost//boost
+#     ;
+
+exe sock
+    : socket.cpp
+        jss-obj
+        log-obj
+        my-err
+        ../libjson//libjson.a
+        ../libEUCPCommC//libEUCPCommC.a
+        /boost//system
+    ;
+
+# lib ssl : : <name>ssl ;
+lib crypto : : <name>crypto ;
+
+exe push
+    : IosPushMessage.cpp
+        ssl crypto
+    ;
+
+exe apple_push
+    : apple_push.cpp
+        ssl crypto /boost//system
+    ;
+
+# lib magick++ : : <name>GraphicsMagick++ <search>/usr/local/lib/ : : <include>/usr/local/include/GraphicsMagick ;
+# lib magick : : <name>GraphicsMagick <search>/usr/local/lib/ : : <include>/usr/local/include/GraphicsMagick ;
+
+lib lcms : : <name>lcms ;
+lib tiff : : <name>tiff ;
+lib freetype : : <name>freetype ;
+lib jasper : : <name>jasper ;
+# lib png12 : : <name>png12 ;
+lib Xext : : <name>Xext ;
+lib SM : : <name>SM ;
+lib ICE : : <name>ICE ;
+lib X11 : : <name>X11 ;
+lib bz2 : : <name>bz2 ;
+lib xml2 : : <name>xml2 ;
+lib z : : <name>z ;
+lib m : : <name>m ;
+lib gomp : : <name>gomp ;
+lib ssl : : <name>ssl ;
+lib pthread : : <name>pthread ;
+
+alias lib3p
+    :
+        # magick++ magick
+        lcms
+        tiff
+        jasper
+        jpeg
+        png
+        freetype ICE Xext SM X11
+        bz2
+        xml2
+        z
+        m
+        gomp
+        : <link>shared
+    ;
+
+
+exe graphic
+    : graphic.cpp lib3p /boost//system
+    ;
+explicit graphic ;
+
+exe ios_push
+    : ios_push.cpp
+        ../libjson//libjson.a
+        jss-obj
+        log-obj
+        my-err
+        /boost//system
+        ssl
+    ;
+     
+# exe echo_tester
+#     : echo_tester.cpp
+#            sms-obj log-obj
+#         ../libjson//libjson.a
+#         ../sms//libEUCPCommC.a
+#         ../boost//boost
+#     ;
+
+# g++\ -Wall\ -DNDEBUG\ -I.\ -I~/boost\ %\ -Llibjson\ -ljson
+
+
+# exe boost
+#     : boost.cpp /boost//filesystem /boost//system
+#     ;
+
+#actions link_s 
+#{ 
+#    touch $(<)
+#    rm -f $(CUR_DIR)/jv
+#    # ln -v -s $(>) $(CUR_DIR)/jv
+#} 
+#
+# make jv : jvalue : @link_s ; 
+
+exe chat-images
+    :   chat-images.cpp
+        dbc-obj jss-obj log-obj my-err
+        ..//hiredis
+        ../libjson//libjson.a ..//mysqlclient /boost//system
+    ;
+
+#exe sql_effective
+#    :   test_sql_effective.cpp
+#        dbc-obj jss-obj log-obj my-err
+#        ..//hiredis 
+#        /boost//timer
+#        ../libjson//libjson.a ..//mysqlclient /boost//system
+#    ;
+
+exe test_multiIndex 
+    : test_multiIndex.cpp 
+    dbc-obj jss-obj 
+    ..//hiredis
+    log-obj my-err 
+    ../libjson//libjson.a 
+    ..//mysqlclient 
+    /boost//system 
+    ;
+
+exe statisticIm
+    :   statisticIm.cpp
+    ..//our
+    ;
+
+install $(HOME)/bin : ptree-ini lbtest ;
+

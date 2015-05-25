@@ -1,0 +1,21 @@
+tmpfn=/tmp/moon.tmp.$USER
+cat >$tmpfn <<_EoF
+
+MY_ID=123
+MY_USER=$USER
+MY_HOST=127.0.0.1
+MY_PORT=9000
+MY_PLAT=iPhone
+MY_ETHER=`ip link show eth0 |grep 'link/ether' |awk '{print $2}'`
+
+_EoF
+#MY_GWID=KK1007A
+
+env |grep "^MY_" >> $tmpfn
+source $tmpfn
+
+[ -n "$MY_COOKIE" ] || MY_COOKIE=cook
+[ -n "$MY_PASS" ] || MY_PASS=1234$MY_USER
+
+export MY_DIR MY_ID MY_USER MY_PASS MY_HOST MY_PLAT MY_ETHER MY_COOKIE
+

@@ -1,0 +1,124 @@
+#!/bin/bash
+
+c_exec=/usr/local/bin/yxim-chat-proxy
+v_exec=/usr/local/bin/yxim-virtual-proxy
+v_args="--config /etc/yxim/proxy/virtualusers.conf --daemon"
+c_args="--config /etc/yxim/proxy/chatroom.conf --daemon"
+v_prog=yxim-virtual-proxy
+c_prog=yxim-chat-proxy
+
+start() {
+    v_flag=false
+    c_flag=false
+    for arg in $@
+    do
+        if [[ "$1" == "$arg" ]]; then 
+            continue 
+        fi 
+
+        echo "start arg:" $arg
+        case $arg in
+            $v_prog)
+                if [[ `pidof $arg` -eq 0 ]]; then
+                    echo "start arg:" $arg
+                    v_flag=true
+                fi
+                ;;
+            $c_prog)
+                if [[ `pidof $arg` -eq 0 ]]; then
+                    echo "start arg:" $arg
+                    c_flag=true
+                fi
+                ;;
+            *)
+                echo $arg " is ileage!"
+        esac
+    done
+
+    export LD_LIBRARY_PATH=/opt/lib64
+    if $v_flag ; then
+        [ -x $v_exec ] || exit 5
+        echo "starting :" $v_prog " $v_flag"
+        $v_exec $v_args
+    elif $c_flag ; then
+        [ -x $c_exec ] || exit 5
+        echo "starting :" $c_prog " $c_flag"
+        $c_exec $c_args
+    else
+        echo "starting :" $v_prog
+        [ -x $v_exec ] && $v_exec $v_args
+
+        echo "starting :" $c_prog
+        [ -x $c_exec ] && $c_exec $c_args
+    fi
+}
+
+stop() {
+    v_flag=false
+    c_flag=false
+    for arg in $@
+    do
+        if [[ "$1" == "$arg" ]]
+        then 
+            continue 
+        fi 
+
+        echo "stop arg:" $arg
+        case $arg in
+            $v_prog)
+                v_flag=true
+                ;;
+            $c_prog)
+                c_flag=true
+                ;;
+            *)
+                echo $arg " is ileage!"
+        esac
+    done
+
+    if $v_flag ; then
+        echo "stoping:" $v_prog " $v_flag"
+        killall $v_prog
+    elif $c_flag = ture ; then
+        echo "stoping:" $c_prog " $c_flag"
+        killall $c_prog
+    else
+        echo "stoping:" $v_prog
+        killall $v_prog
+        echo "stoping:" $c_prog
+        killall $c_prog
+    fi
+}
+
+status() {
+    for arg in $@
+    do
+        if [[ "$1" == "$arg" ]]
+        then 
+            continue 
+        fi 
+        echo "status:" $arg
+    done
+}
+
+restart() {
+    stop $@
+    sleep 2
+    start $@
+}
+
+case "$1" in
+    start)
+        $1 $@
+        ;;
+    stop)
+        $1 $@
+        ;;
+    restart)
+        $1 $@
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart} { ${v_prog} | ${c_prog} }"
+        exit 2
+esac
+exit $?

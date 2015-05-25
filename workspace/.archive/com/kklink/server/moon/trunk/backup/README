@@ -1,0 +1,23 @@
+月下数据备份说明：
+
+1. mysql数据库备份说明：
+（1） 备份工具mysqldump
+（2） 备份频率一天一次 （暂定）
+（3） 备份时间每天上午9点
+（4） 备份脚本 backup_mysql.sh
+（5） 实施备份：
+    chmod +x backup_mysql.sh
+    cp backup_mysql.sh /root/bin/
+    crontab -e 添加事件：
+    0 9 * * * /root/bin/backup_mysql.sh
+
+2. redis数据库备份说明：
+（1） 备份工具redis-cli
+（2） 备份频率一天一次 （暂定）
+（3） 备份时间每天上午9:15
+（4） 备份脚本 backup_redis.sh
+（5） 实施备份：
+    chmod +x backup_redis.sh
+    cp backup_redis.sh /root/bin/
+    crontab -e 添加事件：
+    15 9 * * * /root/bin/backup_redis.sh

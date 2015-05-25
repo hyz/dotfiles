@@ -1,0 +1,6 @@
+
+lib client
+    : # sources
+    : <name>mysqlclient <search>/usr/lib64/mysql <link>shared
+    ;
+

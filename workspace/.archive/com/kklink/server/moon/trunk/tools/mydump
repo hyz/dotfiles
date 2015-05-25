@@ -1,0 +1,21 @@
+#!/bin/sh
+
+TOP_=`dirname $0`/..
+
+ini=ptree-ini
+
+cfg=$1 ; shift
+if [ ! -f "$cfg" ]; then
+    exit 1
+fi
+
+usr=`$ini $cfg "database.user"`
+pass=`$ini $cfg "database.password"`
+host=`$ini $cfg "database.host"`
+port=`$ini $cfg "database.port"`
+db=`$ini $cfg "database.db"`
+
+export PATH=/usr/local/mysql/bin:$PATH
+#
+mysqldump -p$pass -u $usr --host $host --port $port $db $*
+

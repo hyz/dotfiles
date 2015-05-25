@@ -1,0 +1,25 @@
+project
+    : requirements
+        <cxxflags>-std=c++0x
+        # <cflags>-std=c++11 # <cflags>-pg <linkflags>-pg
+    ;
+
+obj my-err : ../myerror.cpp ;
+obj jss-obj : ../jss.cpp ;
+obj log-obj : ../log.cpp ;
+obj util.o : ../util.cpp ;
+obj dbc.o : ../dbc.cpp ;
+
+exe union_pay
+    : main.cpp jss-obj log-obj my-err util.o dbc.o
+        ..//ssl
+        ..//mysqlclient
+        ..//hiredis
+        ../libjson//libjson.a
+        /boost//system
+        /boost//regex
+    : <link>static # <cflags>"-g"
+    ;
+
+install $(TOP)/usr/local/bin : union_pay ;
+

@@ -1,0 +1,10 @@
+{
+    "version": "1.0.0",
+        "appid": "yx",
+        "cmd": 211,
+        "body": {
+            "uid": 10001,
+            "devtype": 3,
+            "devtok": "tomy"
+        }
+}

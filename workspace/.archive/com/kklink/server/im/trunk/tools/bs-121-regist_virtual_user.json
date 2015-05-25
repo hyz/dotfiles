@@ -1,0 +1,10 @@
+{
+    "version": "1.0.0",
+    "appid"  : "yx",
+    "cmd"    : 121,
+    "auth"   : "0c4707dab8c186a7bcaffa58abeb2310",
+    "body"   : {
+        "users" : [10067]
+    }
+}
+

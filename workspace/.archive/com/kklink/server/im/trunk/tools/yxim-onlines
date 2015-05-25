@@ -1,0 +1,18 @@
+#!/bin/sh
+
+h=${HOST:-ims.kklink.com}
+p=${PORT:-8443}
+
+if [ "$1" = "list" ]; then
+    #echo '{"cmd":71}' |yxim-pack |nc $h $p |yxim-unpack
+    echo "echo {\"cmd\":71} |yxim-nc $h $p |python -mjson.tool"
+    echo '{"cmd":71}' |yxim-nc $h $p |python -mjson.tool
+else
+    echo '{"cmd":72}' |yxim-nc $h $p |/bin/grep -Po '"count"[^\d]+\K\d+'
+    #echo '{"cmd":72}' |yxim-pack |nc $h $p |yxim-unpack |awk '/"count"/{print $NF}'
+fi
+
+#echo '{"cmd":71}' |yxim-pack |nc $h $p |yxim-unpack
+#echo '{"cmd":72}' |yxim-pack |nc $h $p |yxim-unpack |awk '/"count"/{print $NF}'
+# yxim-onlines list |sed -e 's/"//g' -e 's/\//\t/' |tools/statis.py -xjoin /home/yxim/yxim/onlmsg/29.uid-xinfo.txt
+

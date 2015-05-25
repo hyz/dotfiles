@@ -1,0 +1,8 @@
+project
+    : requirements <threading>multi
+        <include>..
+        <include>$(BOOST_ROOT)
+        <define>DEBUG
+        <cflags>-std=c++11 # <cflags>-pg <linkflags>-pg
+    ;
+exe main : main.cpp mycurl.cpp users.cpp task.cpp interaction.cpp ..//our ;

@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+        "appid": "yx",
+        "cmd": 101,
+        "auth": "0c4707dab8c186a7bcaffa58abeb2310",
+        "body": {
+            "to": [ { "uid": 1000, "name": "系统账号" } ],
+            "sid": "21/sid001",
+            "notification": "系统消息",
+            "data": {
+                "msg": "aldaksjdk"
+            }
+        }
+}

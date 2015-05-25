@@ -1,0 +1,3 @@
+//certification generation command
+openssl x509 -in aps_development.cer -inform der -out PushChatCert.pem
+openssl pkcs12 -nocerts -out PushChatKey.pem -in enterprise.p12 

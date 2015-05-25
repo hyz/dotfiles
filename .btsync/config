@@ -60,8 +60,7 @@
 , "shared_folders" :
   [
     {
-      "secret" : "AT742KDVTZB5HRNDADPJZQGRBZDL2Y4TT",
-      "dir" : "/home/wood/Music",
+      "secret" : "AT742KDVTZB5HRNDADPJZQGRBZDL2Y4TT", "dir" : "/home/wood/Music",
       "use_relay_server" : true, //  use relay server when direct connection fails
       "use_tracker" : true, 
       "use_dht" : false,
@@ -74,8 +73,20 @@
       ]
     }
     , {
-      "secret" : "AEZVF3XP26TOAGGQ4QELVPTAYTG2AXBBU",
-      "dir" : "/home/wood/Repos",
+      "secret" : "AEZVF3XP26TOAGGQ4QELVPTAYTG2AXBBU", "dir" : "/home/wood/Repos",
+      "use_relay_server" : true, //  use relay server when direct connection fails
+      "use_tracker" : true, 
+      "use_dht" : false,
+      "search_lan" : true,
+      "use_sync_trash" : true, // enable SyncArchive to store files deleted on remote devices
+      "overwrite_changes" : false, // restore modified files to original version, ONLY for Read-Only folders
+      "known_hosts" : // specify hosts to attempt connection without additional search
+      [
+      "58.68.160.243"
+      ]
+    }
+    , {
+      "secret" : "A5ZIV2HEMYSUREE5IYR62PLUWSX5BJDIB", "dir" : "/home/wood/workspace",
       "use_relay_server" : true, //  use relay server when direct connection fails
       "use_tracker" : true, 
       "use_dht" : false,

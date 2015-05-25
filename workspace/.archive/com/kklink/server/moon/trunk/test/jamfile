@@ -1,0 +1,23 @@
+project
+    : requirements
+        <threading>multi
+        <include>.
+        <include>$(BOOST_ROOT)
+        <toolset>clang:<cxxflags>"-stdlib=libc++"
+        <toolset>clang:<linkflags>"-stdlib=libc++"
+        # <cflags>-pg <linkflags>-pg
+    ;
+
+obj obj-ter : ter.cpp : <cxxflags>-std=c++11 ;
+exe ter
+    : obj-ter
+      /boost//system
+      /boost//regex
+      /boost//program_options
+      /boost//log
+      /boost//filesystem
+    : <link>static
+    ;
+
+install $(HOME)/bin : ter ;
+

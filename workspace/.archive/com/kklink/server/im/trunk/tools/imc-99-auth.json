@@ -1,0 +1,10 @@
+{
+    "version": "1.0.0",
+    "cmd"    : 99,
+    "body"   : {
+        "appid" : "yx",
+        "uid"   : 10068,
+        "token" : "427915dee63afc0209fd7c77f0e701db"
+    }
+}
+
