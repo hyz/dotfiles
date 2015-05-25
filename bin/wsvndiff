@@ -1,7 +1,0 @@
-#/bin/sh
-
-#-u -L portal_tsr_main.c (revision 1360) -L portal_tsr_main.c    (working copy) .svn/text-base/portal_tsr_main.c.svn-base portal_tsr_main.c
-
-shift 5
-vimdiff $@
-
