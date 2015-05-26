@@ -151,15 +151,15 @@ google() {
     xdg-open "http://$h/search?q=$q"
 }
 
-PASS=`which pass`
-pass() {
-    GNUPGHOME=$HOME/mnt/wood/.gnupg
-    if [ -d "$GNUPGHOME" ]; then
-        GNUPGHOME=$GNUPGHOME $PASS $*
-    else
-        $PASS $*
-    fi
-    #export PASSWORD_STORE_DIR=~/mnt/wood/.password-store
-    #export PASSWORD_STORE_GIT=$PASSWORD_STORE_DIR
-}
+if [ ! -d "$HOME/.gnupg" -a ! -d "$GNUPGHOME" ] ; then
+    PASS=`which pass`
+    pass() {
+        _gnupg=$HOME/mnt$HOME/.gnupg
+        if [ -d "$_gnupg" ]; then
+            GNUPGHOME=$_gnupg $PASS $*
+        fi # else $PASS $*
+        #export PASSWORD_STORE_DIR=~/mnt/wood/.password-store
+        #export PASSWORD_STORE_GIT=$PASSWORD_STORE_DIR
+    }
+fi
 

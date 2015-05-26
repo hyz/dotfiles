@@ -1,0 +1,5 @@
+
+pacman -Qe
+pacman -Qdt
+# pacman -R $(pacman -Qdtq) # autoclean
+

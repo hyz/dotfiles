@@ -1,3 +1,5 @@
+/usr/sbin/openvpn --config /etc/openvpn/config/client.conf
+
 ### arch
 ### https://wiki.archlinux.org/index.php/PPTP_VPN_client_setup_with_pptpclient
 ### http://pptpclient.sourceforge.net/routing.phtml

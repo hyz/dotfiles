@@ -31,3 +31,7 @@ Thanks for the help!
 
 ### http://lists.wald.intevation.org/pipermail/gpg4win-devel/2009-September/000882.html
 
+###
+$ export GNUPGHOME=~/mnt/home/wood/.gnupg                         ~
+$ gpg2 --list-keys                                                ~
+
