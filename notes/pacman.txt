@@ -1,5 +1,7 @@
 
-pacman -Qe
-pacman -Qdt
+pacman -Qe # explicit-installed
+pacman -Qdt #
 # pacman -R $(pacman -Qdtq) # autoclean
+
+pacman -S --clean
 
