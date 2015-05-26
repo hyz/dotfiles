@@ -34,4 +34,5 @@ Thanks for the help!
 ###
 $ export GNUPGHOME=~/mnt/home/wood/.gnupg                         ~
 $ gpg2 --list-keys                                                ~
+$ gpg2 --list-private-keys                                                ~
 

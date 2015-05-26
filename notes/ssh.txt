@@ -1,12 +1,20 @@
 
-###http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
-#Port Forwarding Using SSH Tunnel
-#
+### commands
 
-###ssh commands
+## http://serverfault.com/questions/52285/create-a-public-ssh-key-from-the-private-key
+ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub
+
+## http://serverfault.com/questions/50775/how-do-i-change-my-private-key-passphrase
+ssh-keygen -p -f ~/.ssh/id_dsa
+
+##
 ssh -p 22 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
 ssh-copy-id "-p 22 wood@58.6x.x.x"
 
+###http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
+#Port Forwarding Using SSH Tunnel
+
+##
 ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
 ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
 
