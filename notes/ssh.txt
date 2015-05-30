@@ -5,6 +5,7 @@
 ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub
 
 ## http://serverfault.com/questions/50775/how-do-i-change-my-private-key-passphrase
+## http://www.cyberciti.biz/faq/howto-ssh-changing-passphrase/
 ssh-keygen -p -f ~/.ssh/id_dsa
 
 ##
