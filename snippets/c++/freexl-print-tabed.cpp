@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <memory>
-
 #include "freexl.h"
 
 namespace utility {
@@ -13,7 +12,7 @@ class sentry {
     sentry( sentry && ) = delete;
     sentry( sentry const & ) = delete;
 public:
-    sentry( T b ) : h_( std::move( b ) ) {}
+    sentry(T h) : h_( std::move(h) ) {}
     ~ sentry() noexcept {
         static_assert(noexcept(h_()), "Finally block cannot throw, please mark as noexcept.");
         h_();
