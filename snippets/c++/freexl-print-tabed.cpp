@@ -10,20 +10,15 @@ namespace utility {
 template <typename T>
 class sentry {
     T h_;
-public:
-    sentry( T in_o ) : h_( std::move( in_o ) ) {}
-
     sentry( sentry && ) = delete;
     sentry( sentry const & ) = delete;
-
+public:
+    sentry( T b ) : h_( std::move( b ) ) {}
     ~ sentry() noexcept {
-        static_assert( noexcept( h_() ),
-            "Please check that the finally block cannot throw, "
-            "and mark the lambda as noexcept." );
+        static_assert(noexcept(h_()), "Finally block cannot throw, please mark as noexcept.");
         h_();
     }
 };
- 
 template <typename T> sentry<T> finally(T h) { return { std::move(h) }; }
 
 } // namespace utility
@@ -33,7 +28,7 @@ static void print_notab_string (const char *string)
     printf("%s", string);
 }
 
-const void* print_cell(unsigned short col, const void* handle, unsigned int row)
+const void* print_cell(const void* handle, unsigned int row, unsigned short col)
 {
     FreeXL_CellValue cell;
     int ret = freexl_get_cell_value (handle, row, col, &cell);
@@ -69,10 +64,10 @@ const void* print_cell(unsigned short col, const void* handle, unsigned int row)
     return handle;
 }
 
-const void* print_row(unsigned int row, const void* handle, unsigned short columns)
+const void* print_row_(unsigned short columns, const void* handle, unsigned int row)
 {
     for (unsigned short col = 0; col < columns; col++) {
-        if (!print_cell(col, handle, row))
+        if (!print_cell(handle, row, col))
             return 0;
     }
     return handle;
@@ -81,9 +76,6 @@ const void* print_row(unsigned int row, const void* handle, unsigned short colum
 const void* print_table(const void* handle, unsigned int worksheet_index)
 {
     int ret;
-    unsigned int rows;
-    unsigned short columns;
-    unsigned int row;
 
     //const char *utf8_worsheet_name;
     //ret = freexl_get_worksheet_name (handle, worksheet_index, &utf8_worsheet_name);
@@ -98,14 +90,17 @@ const void* print_table(const void* handle, unsigned int worksheet_index)
         return 0;
     }
 
+    unsigned int rows;
+    unsigned short columns;
     ret = freexl_worksheet_dimensions (handle, &rows, &columns);
     if (ret != FREEXL_OK) {
         fprintf (stderr, "WORKSHEET-DIMENSIONS Error: %d\n", ret);
         return 0;
     }
 
-    for (row = 0; row < rows; row++) {
-        if (!print_row(row, handle, columns))
+    auto print_row = [columns,handle](unsigned int row) { return print_row_(columns, handle, row); };
+    for (unsigned int row = 0; row < rows; row++) {
+        if (!print_row(row))
             return 0;
         printf("\n");
     }
@@ -113,24 +108,23 @@ const void* print_table(const void* handle, unsigned int worksheet_index)
     return handle;
 }
 
-int
-main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if (argc < 2) {
         fprintf (stderr, "usage: xl2sql path.xls [table_prefix]\n");
         return -1;
     }
-    int ret;
     const void *handle;
+    int ret;
 
-    if ( (ret = freexl_open (argv[1], &handle)) != FREEXL_OK) {
+    if ( (ret = freexl_open(argv[1], &handle)) != FREEXL_OK) {
         fprintf (stderr, "OPEN ERROR: %d\n", ret);
         return -1;
     }
-    auto && finally = utility::finally([handle]()noexcept{ freexl_close (handle); });
+    auto && finally = utility::finally([handle]()noexcept{ freexl_close(handle); });
 
     unsigned int info;
-    if ( (ret = freexl_get_info (handle, FREEXL_BIFF_PASSWORD, &info)) != FREEXL_OK) {
+    if ( (ret = freexl_get_info(handle, FREEXL_BIFF_PASSWORD, &info)) != FREEXL_OK) {
         fprintf (stderr, "GET-INFO [FREEXL_BIFF_PASSWORD] Error: %d\n", ret);
         return 0;
     }
@@ -144,7 +138,7 @@ main (int argc, char *argv[])
     };
 
     unsigned int max_worksheet;
-    if ( (ret = freexl_get_info (handle, FREEXL_BIFF_SHEET_COUNT, &max_worksheet)) != FREEXL_OK) {
+    if ( (ret = freexl_get_info(handle, FREEXL_BIFF_SHEET_COUNT, &max_worksheet)) != FREEXL_OK) {
         fprintf (stderr, "GET-INFO [FREEXL_BIFF_SHEET_COUNT] Error: %d\n", ret);
         return -1;
     }
