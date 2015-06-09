@@ -1,0 +1,3 @@
+
+ntfsclone --save-image --output vmware11-xp-usb-sdd1-partclone.ntfs /dev/sdd1
+
