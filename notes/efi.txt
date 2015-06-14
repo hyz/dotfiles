@@ -1,0 +1,10 @@
+
+pacman -Sy efibootmgr efivar
+efibootmgr
+efibootmgr --help
+efibootmgr -v
+efibootmgr -b 3 -B
+efibootmgr -b 4 -B
+efibootmgr -l "\EFI\1b67c7b976754d5d20933e1386a24707\BOOTX64.EFI*" -L "Windows7" -c
+efibootmgr -o 0,6
+
