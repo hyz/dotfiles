@@ -1,0 +1,5 @@
+
+### https://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html
+ifconfig eth0:1 192.168.11.11/24
+ip addr add 192.168.11.11/24 dev eth0 label eth0:1
+
