@@ -22,3 +22,7 @@ ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.p
 ###ssh hosts
 uid502@s6.sshwall.com
 
+###sshfs
+sshfs -p 44331 root@192.168.1.55:/etc mnt
+sshfs 192.168.1.55:. mnt
+
