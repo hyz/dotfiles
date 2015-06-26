@@ -1,0 +1,20 @@
+## cp shadowsocks-libev.service /usr/lib/systemd/system/
+## systemctl start shadowsocks-libev
+
+[Unit]
+Description=Shadowsocks Socks5 Proxy
+After=network.target auditd.service
+#ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
+
+[Service]
+#EnvironmentFile=-/etc/default/ssh
+#ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
+ExecStart=/usr/local/bin/ss-server -u -c /etc/shadowsocks-libev/config.json -f /var/run/shadowsocks-server/pid
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=ss.service
+
