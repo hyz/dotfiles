@@ -1,0 +1,32 @@
+### https://wiki.archlinux.org/index.php/GNU_Parted
+
+(parted) unit s
+(parted) print free
+Model: ADATA USB Flash Drive (scsi)
+Disk /dev/sdd: 30869504s
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags:
+
+Number  Start      End        Size       File system  Name                  Flags
+        34s        39s        6s         Free Space
+ 1      40s        409639s    409600s    fat32        EFI System Partition  boot, esp
+ 2      409640s    23847135s  23437496s  hfs+         MacUSB
+        23847136s  30869470s  7022335s   Free Space
+
+---------------------
+$ python
+>>> start, end = 23847136, 30869470   # START,END sectors
+>>> int((start + 2047) / 2048) * 2048 # aligned START
+>>> 23848960
+>>> int(end / 2048) * 2048            # aligned END
+>>> 30867456
+>>> 30867456 - 23848960
+---------------------
+
+(parted) mkpart primary ext3 23848960s -1s
+Warning: You requested a partition from 23848960s to 30869503s (sectors 23848960..30869503).
+The closest location we can manage is 23848960s to 30869470s (sectors 23848960..30869470).
+Is this still acceptable to you?
+Yes/No? y
+
