@@ -1,0 +1,7 @@
+vim sudo zsh git openssh parted pass keychain {bind,net}-tools iw
+shadowsocks
+xorg-{server,xinit,xmodmap,xrdb,xdpyinfo,xwininfo} xterm xf86-video-{intel,fbdev,vesa} dwm dmenu
+ibus-googlepinyin firefox firefox-firebug rox xdg-utils
+mplayer mpc mpd feh
+arch-install-scripts
+
