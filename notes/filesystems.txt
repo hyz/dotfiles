@@ -1,0 +1,3 @@
+
+mount -t vfat /dev/sda2 /mnt -o uid=1000,gid=1000
+
