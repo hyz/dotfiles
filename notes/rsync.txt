@@ -16,3 +16,5 @@ rsync -vrR --no-o --no-g pc:Dropbox .
 rsync -vr --ignore-existing lan:ws/Downloads/sync wood/
 rsync -vr --size-only lan:ws/Downloads/sync wood/
 
+rsync -aPh ... ...
+
