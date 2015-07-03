@@ -178,3 +178,4 @@ useradd -Um -u 1000 -G wheel -s `which zsh` wood
 #
 ### ### ### ### ### ### ### ###
 
+7z e /mnt/sources/install.wim 2/Windows/Boot/EFI/bootmgfw.efi

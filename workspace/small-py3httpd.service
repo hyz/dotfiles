@@ -1,0 +1,26 @@
+[Unit]
+Description=Taobao Helper
+After=network.target auditd.service
+##ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
+
+[Service]
+Type=simple
+##Type=forking
+##PIDFile=/var/run/xxx/pid
+User=wood
+Group=wood
+WorkingDirectory=/home/wood/www
+StandardOutput=syslog
+StandardError=syslog
+##EnvironmentFile=-/etc/default/ssh
+##ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
+ExecStart=/usr/bin/env HOME=/home/wood python3 /home/wood/bin/taobao-helper.py
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=ss.service
+

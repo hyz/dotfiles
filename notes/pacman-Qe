@@ -1,11 +1,14 @@
 vim sudo zsh git openssh parted pass keychain {bind,net}-tools iw rsync
-btrfs-progs
+btrfs-progs ntfs-3g dosfstools
 sshfs
 dnscrypt-proxy shadowsocks
+zip p7zip
+arch-install-scripts
+
 xorg-{server,xinit,xmodmap,xrdb,xdpyinfo,xwininfo} xterm xf86-video-{intel,fbdev,vesa} dwm dmenu
 ibus-googlepinyin firefox firefox-firebug rox xdg-utils
 mplayer mpc mpd feh
-arch-install-scripts
 
+qemu
 
-ntfs-3g
+make
