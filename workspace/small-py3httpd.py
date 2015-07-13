@@ -148,7 +148,7 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         with open(_xls_txt) as f:
             th = f.readline().split('\t')
             assert len(th) > 2
-            rows, tmps, pos = [], [], 1
+            rows, tmps, pos = [], [], 0
             for i,line in enumerate(f,1): #out.decode().split('\n'): #str(out, 'UTF-8')
                 r = line.split('\t') 
                 if len(r) != len(th):
@@ -159,11 +159,12 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     # rows.append(r)
                     rows += tmps
                     tmps = []
-                    pos = i+5
-                elif i < pos:
+                    pos = i+4
+                    rows.append(r)
+                elif i <= pos:
                     rows.append(r)
                 else:
-                    if len(tmps) > 5:
+                    if len(tmps) >= 3:
                         tmps.pop(0)
                     tmps.append(r)
             # rows.sort(key=lambda r: len(r[2])-r[2].rfind(word))#(, reverse=True)
@@ -402,7 +403,10 @@ def ch_cwd():
 def main():
     ch_cwd()
     print('cwd', os.getcwd())
-    httpd = http.server.HTTPServer(('', 8000), SimpleHTTPRequestHandler)
+    httpd = http.server.HTTPServer(('', 80), SimpleHTTPRequestHandler)
+    if os.getuid() == 0:
+        os.setegid(1000)
+        os.seteuid(1000)
     httpd.serve_forever()
  
 if __name__ == '__main__':
