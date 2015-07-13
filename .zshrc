@@ -77,7 +77,10 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     export GNUPGHOME=`cygpath -w $HOME/.gnupg`
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
-        `cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
+        if x=`/bin/ls -1d "$1" || /bin/ls -1d "$(pwd)/$1"` ; then
+            `cygpath $WINDIR`/explorer "`cygpath -w "$x"`" &
+        fi
+        #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
 fi
 
