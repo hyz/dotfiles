@@ -11,8 +11,8 @@ see: https://gist.github.com/UniIsland/3346170
  
 __version__ = "0.1"
 __all__ = ["simple-py3httpd"]
-__author__ = "bones7456"
-__home_page__ = "http://li2z.cn/"
+__author__ = "woody"
+__home_page__ = "https://github.com/hyz/"
  
 import os, sys, io
 import re
@@ -148,15 +148,25 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         with open(_xls_txt) as f:
             th = f.readline().split('\t')
             assert len(th) > 2
-            rows = []
-            for line in f: #out.decode().split('\n'): #str(out, 'UTF-8')
+            rows, tmps, pos = [], [], 1
+            for i,line in enumerate(f,1): #out.decode().split('\n'): #str(out, 'UTF-8')
                 r = line.split('\t') 
                 if len(r) != len(th):
                     continue
-                kpos2 = len(r[2]) - r[2].rfind(word)
-                if kpos2 <= len(r[2]) or len(r[6]) - r[6].rfind(word) <= len(r[6]):
+                if r[2].endswith(word):
+                    # kpos2 = len(r[2]) - r[2].rfind(word)
+                    # if kpos2 < len(r[2]): # or len(r[6]) - r[6].rfind(word) <= len(r[6]):
+                    # rows.append(r)
+                    rows += tmps
+                    tmps = []
+                    pos = i+5
+                elif i < pos:
                     rows.append(r)
-            rows.sort(key=lambda r: len(r[2])-r[2].rfind(word))#(, reverse=True)
+                else:
+                    if len(tmps) > 5:
+                        tmps.pop(0)
+                    tmps.append(r)
+            # rows.sort(key=lambda r: len(r[2])-r[2].rfind(word))#(, reverse=True)
             return (th, rows)
  
     def do_GET(self):

@@ -24,7 +24,28 @@
 
 static void print_notab_string (const char *string)
 {
-    printf("%s", string);
+    char tmpbuf[512];
+    const char *ends = string;
+    int len = 0;
+
+    while (*string && isspace(*string))
+        ++string;
+    ends = string + strlen(string);
+    while (ends > string && isspace(*(ends-1)))
+        --ends;
+    len = MIN(int(ends - string), 512);
+
+    if (memchr(string, len, '\t')) {
+        const char* p;
+        strncpy(tmpbuf, string, len); // memcpy(tmpbuf, string, n);
+        string = &tmpbuf[0];
+        ends = &tmpbuf[len];
+        for (p = string, p != ends; ++p)
+            if (*p == '\t')
+                *p = ' ';
+    }
+
+    printf("%.*s", len, string);
 }
 
 const void* print_cell(const void* handle, unsigned int row, unsigned short col)
