@@ -1,14 +1,25 @@
-vim sudo zsh git openssh parted pass keychain {bind,net}-tools iw rsync
-btrfs-progs ntfs-3g dosfstools
-sshfs
+vim sudo zsh git openssh parted pass keychain {bind,net}-tools rsync
+zip p7zip unzip unrar
+wpa_supplicant dialog iw pptpclient
+ntfs-3g dosfstools btrfs-progs sshfs
 dnscrypt-proxy shadowsocks
-zip p7zip
+
 arch-install-scripts
+alsa-utils
+hwinfo lm_sensors
+screen
 
 xorg-{server,xinit,xmodmap,xrdb,xdpyinfo,xwininfo} xterm xf86-video-{intel,fbdev,vesa} dwm dmenu
-ibus-googlepinyin firefox firefox-firebug rox xdg-utils
+ibus-googlepinyin
+xdg-utils
+firefox firefox-firebug rox
 mplayer mpc mpd feh
 
-qemu
+gcc make cloc
+curl wget
+ydcv
+ncdu fdupes
 
-make
+qemu
+dosbox dosemu wine
+

@@ -18,3 +18,5 @@ rsync -vr --size-only lan:ws/Downloads/sync wood/
 
 rsync -aPh ... ...
 
+rsync -aPh /mnt/. foo/bar/
+
