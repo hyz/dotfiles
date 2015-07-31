@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 //#include <memory>
 #include "freexl.h"
 
@@ -33,14 +34,15 @@ static void print_notab_string (const char *string)
     ends = string + strlen(string);
     while (ends > string && isspace(*(ends-1)))
         --ends;
-    len = MIN(int(ends - string), 512);
+#define MIN(x,y) ((x)>(y)?(y):(x))
+    len = MIN((int)(ends - string), 512);
 
     if (memchr(string, len, '\t')) {
-        const char* p;
+        char *p;
         strncpy(tmpbuf, string, len); // memcpy(tmpbuf, string, n);
-        string = &tmpbuf[0];
+        string = p = &tmpbuf[0];
         ends = &tmpbuf[len];
-        for (p = string, p != ends; ++p)
+        for (; p != ends; ++p)
             if (*p == '\t')
                 *p = ' ';
     }
