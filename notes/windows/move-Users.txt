@@ -1,0 +1,36 @@
+http://answers.microsoft.com/en-us/windows/forum/windows_7-security/move-cusers-to-dusers/23b1b55c-9b2c-43e7-8c2e-1a50adfc06da?auth=1
+
+This is what I have got working for me, after much help on this forum. Thanks.
+I did a fresh install for this and so far it seems to be working. ¡°User¡± is the Account name created at install.
+Enable built in admin account, open cmd.exe (run as admin) and type -
+
+1.      net user administrator /active:yes
+2.      shutdown /r /f /t 00
+ After restart, login to Administrator and open CMD, Run as Admin, enter the following ¨C
+3.      robocopy /copyall /mir /xj "C:\Users\Public" "D:\Users\Public"
+4.      robocopy /copyall /mir /xj "C:\Users\wood" "D:\Users\wood"
+5.      rmdir /S /Q "C:\Users\Public"
+6.      rmdir /S /Q "C:\Users\wood"
+7.      mklink /J "C:\Users\Public" "D:\Users\Public"
+8.      mklink /J "C:\Users\wood" "D:\Users\wood"
+9.      shutdown /r /f /t 00
+After restart, login back in to administrator
+10.   Under HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
+a.      Find a key similar to this, "S-1-5-21-4288074848-3222386265-3783365272-1000", that has your User name and change the C to D.
+Disable built in admin account, open cmd.exe (run as admin) and type -
+11.   net user administrator /active:no
+12.   shutdown /r /f /t 00
+After restart, login to your account.
+
+I actually created 3 cmd files, 1st with steps 1-2, the 2nd with steps 3-9, 3rd with steps 11-12.( Put Pause in between -each step)
+Once again, thanks for the help!
+
+*If not a fresh install, after step 2's restart press F8 to perform steps 3-9 in safe mode.
+
+
+
+robocopy c:\users d:\users /mir /xj /copyall
+rmdir /s /q c:\users
+rmdir "c:\documents and settings"
+mklink /j c:\users d:\users
+mkdir /j "c:\documents and settings" d:\users
