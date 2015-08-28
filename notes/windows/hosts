@@ -1,17 +1,6 @@
 ﻿# /cygdrive/c/Windows/System32/drivers/etc
 # C:\Windows\System32\drivers\etc\hosts
 
-#108.160.167.208 www.dropbox.com
-#174.36.30.73 www.dropbox.com
-#174.36.30.71 www.dropbox.com
-#108.160.166.61 dropbox.com
-
-# ------ ?��?Ѹ?׿??????? ------
-0.0.0.0   pubstat.sandai.net
-0.0.0.0   mcfg.sandai.net
-0.0.0.0   biz5.sandai.net
-0.0.0.0   float.sandai.net
-0.0.0.0   cl.kankan.xunlei.com
 
 ###
 0.0.0.0     www.xiaohei.com
@@ -29,8 +18,8 @@
 0.0.0.0     v.hao123.com
 0.0.0.0     www.3bbb.net
 0.0.0.0     www.yunpp.com
-#0.0.0.0     www.hunantv.com
-#0.0.0.0     www.feixiangtv.com
+0.0.0.0     www.hunantv.com
+0.0.0.0     www.feixiangtv.com
 
 0.0.0.0     www.7k7k.com
 0.0.0.0     www.uuuuu.com.cn
@@ -94,7 +83,21 @@
 0.0.0.0     smzt2.43999youxi.com
 0.0.0.0     web.2144.cn
 
-#
+# ------ 屏蔽迅雷看看广告 ------
+0.0.0.0   pubstat.sandai.net
+0.0.0.0   mcfg.sandai.net
+0.0.0.0   biz5.sandai.net
+0.0.0.0   float.sandai.net
+0.0.0.0   cl.kankan.xunlei.com
+
+
+###
+#108.160.167.208 www.dropbox.com
+#174.36.30.73 www.dropbox.com
+#174.36.30.71 www.dropbox.com
+#108.160.166.61 dropbox.com
+
+###
 127.0.0.1 activate.adobe.com
 127.0.0.1 practivate.adobe.com
 127.0.0.1 ereg.adobe.com
@@ -109,15 +112,14 @@
 127.0.0.1 activate-sea.adobe.com
 127.0.0.1 wwis-dubc1-vip60.adobe.com
 127.0.0.1 activate-sjc0.adobe.com
-
-
-# ------ 屏蔽迅雷看看广告 ------
-0.0.0.0   pubstat.sandai.net
-0.0.0.0   mcfg.sandai.net
-0.0.0.0   biz5.sandai.net
-0.0.0.0   float.sandai.net
-0.0.0.0   cl.kankan.xunlei.com
-
+### CC 2015
+127.0.0.1 lmlicenses.wip4.adobe.com
+127.0.0.1 lm.licenses.adobe.com
+127.0.0.1 na1r.services.adobe.com
+127.0.0.1 hlrcv.stage.adobe.com
+127.0.0.1 practivate.adobe.com 
+127.0.0.1 activate.adobe.com
+###
 
 # Copyright (c) 1993-2009 Microsoft Corp.
 #
