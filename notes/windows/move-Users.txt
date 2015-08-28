@@ -27,6 +27,10 @@ Once again, thanks for the help!
 
 *If not a fresh install, after step 2's restart press F8 to perform steps 3-9 in safe mode.
 
+### http://superuser.com/questions/84536/moving-windows-7-programdata-folder-after-installation
+# start from Windows 7 DVD and choose to repair Windows, open Command Prompt (CMD)
+# ROBOCOPY "C:\ProgramData" "D:\ProgramData" /E /COPYALL /MIR /XJ.
+
 
 
 robocopy c:\users d:\users /mir /xj /copyall
