@@ -1,0 +1,21 @@
+wood@arch> sudo parted /dev/sda print                                                                                                      ~
+[sudo] password for wood: 
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 250GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system     Name                  Flags
+ 1      20.5kB  210MB   210MB   fat32           EFI System Partition  boot, esp
+ 2      211MB   2210MB  2000MB  fat32           vfat-2g               msftdata
+ 3      2210MB  6210MB  3999MB  linux-swap(v1)  SWAP
+ 4      6210MB  38.2GB  32.0GB  ntfs            WIN                   msftdata
+ 5      38.2GB  102GB   63.5GB  hfs+            OSX
+ 6      102GB   102GB   650MB   hfs+            Recovery HD
+ 7      102GB   126GB   24.0GB  ext4            Arch
+ 8      126GB   161GB   34.4GB  btrfs           Home
+ 9      161GB   195GB   34.4GB  ntfs            Basic data partition  msftdata
+10      195GB   226GB   31.3GB                  Basic data partition  msftdata
+11      226GB   250GB   23.7GB  fat32           X                     msftdata
+
