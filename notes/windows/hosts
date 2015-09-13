@@ -1,0 +1,145 @@
+﻿# /cygdrive/c/Windows/System32/drivers/etc
+# C:\Windows\System32\drivers\etc\hosts
+
+
+###
+0.0.0.0     www.xiaohei.com
+0.0.0.0     www.tudou.com
+0.0.0.0     www.youku.com
+0.0.0.0     v.youku.com
+0.0.0.0     www.abab.com
+0.0.0.0     www.iqiyi.com
+0.0.0.0     app.baidu.com
+0.0.0.0     v.baidu.com
+0.0.0.0     www.letv.com
+0.0.0.0     hz.letv.com
+0.0.0.0     kumi.hz.letv.com
+0.0.0.0     donghua.cntv.cn
+0.0.0.0     v.hao123.com
+0.0.0.0     www.3bbb.net
+0.0.0.0     www.yunpp.com
+0.0.0.0     www.hunantv.com
+0.0.0.0     www.feixiangtv.com
+
+0.0.0.0     www.7k7k.com
+0.0.0.0     www.uuuuu.com.cn
+0.0.0.0     www.fun.tv
+0.0.0.0     www.973.com
+0.0.0.0     www.youban.com
+0.0.0.0     www.play99.net
+0.0.0.0     www.17yy.com
+0.0.0.0     www.91danji.com
+0.0.0.0     www.543.cn
+0.0.0.0     www.3366.com
+0.0.0.0     flash.07073.com
+0.0.0.0     www.4399.com
+0.0.0.0     www.4399er.com
+
+0.0.0.0     www.7399.com
+0.0.0.0     www.5523.com
+0.0.0.0     www.3155.com
+0.0.0.0     xyx.ali213.net
+0.0.0.0     www.11584.com
+0.0.0.0     www.5397.com
+0.0.0.0     123.sogou.com
+0.0.0.0     ertong.973.com
+0.0.0.0     flash.5068.cn
+0.0.0.0     www.3199.cn
+0.0.0.0     www.2144.cn
+0.0.0.0     www.8dou.com
+0.0.0.0     www.doyo.cn
+0.0.0.0     xiaoyouxi.2345.com
+0.0.0.0     www.bilibili.com
+0.0.0.0     xyx.lehou.com
+0.0.0.0     xyx.hao123.com
+0.0.0.0     www.2344.com
+0.0.0.0     www.4999.com.cn
+0.0.0.0     www.2214.cn
+0.0.0.0     www.66rpg.com
+0.0.0.0     www.126disk.com
+0.0.0.0     www.3536.com
+0.0.0.0     www.4997.com
+0.0.0.0     www.game773.com
+0.0.0.0     www.40wan.com
+0.0.0.0     www.yx99.com
+0.0.0.0     www.7729.com
+0.0.0.0     xiaoyouxi.360.cn
+0.0.0.0     flash.17173.com
+0.0.0.0     v.17173.com
+0.0.0.0     www.92-7k7k.com
+0.0.0.0     x.61k.com
+0.0.0.0     www.973.com
+
+0.0.0.0     game.funshion.com
+0.0.0.0     static.funshion.com
+0.0.0.0     7399.6949.com
+0.0.0.0     flash.5068.com
+0.0.0.0     9669.6949.com
+0.0.0.0     ad.3323.com
+0.0.0.0     flashs1.4399.com
+0.0.0.0     www.gy456.com
+0.0.0.0     qs.2144.cn
+0.0.0.0     s9.44921.cn
+0.0.0.0     smzt2.43999youxi.com
+0.0.0.0     web.2144.cn
+
+# ------ 屏蔽迅雷看看广告 ------
+0.0.0.0   pubstat.sandai.net
+0.0.0.0   mcfg.sandai.net
+0.0.0.0   biz5.sandai.net
+0.0.0.0   float.sandai.net
+0.0.0.0   cl.kankan.xunlei.com
+
+
+###
+#108.160.167.208 www.dropbox.com
+#174.36.30.73 www.dropbox.com
+#174.36.30.71 www.dropbox.com
+#108.160.166.61 dropbox.com
+
+###
+127.0.0.1 activate.adobe.com
+127.0.0.1 practivate.adobe.com
+127.0.0.1 ereg.adobe.com
+127.0.0.1 activate.wip3.adobe.com
+127.0.0.1 wip3.adobe.com
+127.0.0.1 3dns-3.adobe.com
+127.0.0.1 3dns-2.adobe.com
+127.0.0.1 adobe-dns.adobe.com
+127.0.0.1 adobe-dns-2.adobe.com
+127.0.0.1 adobe-dns-3.adobe.com
+127.0.0.1 ereg.wip3.adobe.com
+127.0.0.1 activate-sea.adobe.com
+127.0.0.1 wwis-dubc1-vip60.adobe.com
+127.0.0.1 activate-sjc0.adobe.com
+### CC 2015
+127.0.0.1 lmlicenses.wip4.adobe.com
+127.0.0.1 lm.licenses.adobe.com
+127.0.0.1 na1r.services.adobe.com
+127.0.0.1 hlrcv.stage.adobe.com
+127.0.0.1 practivate.adobe.com 
+127.0.0.1 activate.adobe.com
+###
+
+# Copyright (c) 1993-2009 Microsoft Corp.
+#
+# This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
+#
+# This file contains the mappings of IP addresses to host names. Each
+# entry should be kept on an individual line. The IP address should
+# be placed in the first column followed by the corresponding host name.
+# The IP address and the host name should be separated by at least one
+# space.
+#
+# Additionally, comments (such as these) may be inserted on individual
+# lines or following the machine name denoted by a '#' symbol.
+#
+# For example:
+#
+#      102.54.94.97     rhino.acme.com          # source server
+#       38.25.63.10     x.acme.com              # x client host
+
+# localhost name resolution is handled within DNS itself.
+#	127.0.0.1       localhost
+#	::1             localhost
+

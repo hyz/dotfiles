@@ -78,7 +78,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {
         if x=`/bin/ls -1d "$1" || /bin/ls -1d "$(pwd)/$1"` ; then
-            `cygpath $WINDIR`/explorer "`cygpath -w "$x"`" &
+            "`cygpath "$WINDIR"`/explorer" "`cygpath -w "$x"`" &
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }

@@ -1,0 +1,3 @@
+/cygdrive/c/Users/wood/AppData/Roaming/Microsoft/Windows/Cookies
+
+/cygdrive/c/Windows/system32/drivers/etc/hosts
