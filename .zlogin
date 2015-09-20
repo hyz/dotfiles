@@ -2,9 +2,10 @@
 echo "zlogin" >> /tmp/zsh.txt
 
 if which keychain ; then
-    for x in office.id_rsa ; do
-        [ -r ".ssh/$x" ] && eval `keychain --eval $x`
-    done
+    eval `keychain --eval $(find .ssh/*id_[dr]sa)`
+    #for x in .ssh/*.id_[dr]sa ; do
+    #    [ -r ".ssh/$x" ] && eval `keychain --eval $x`
+    #done
 fi
 
 #if which ssh-agent ; then
