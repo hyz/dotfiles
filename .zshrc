@@ -71,9 +71,9 @@ if [ "`uname -s`" = "Darwin" ] ; then
     true
 elif [ "`uname -o`" = "Cygwin" ] ; then
     PATH=$PATH:$HOME/bin/cygwin
-    #if [ -d "/cygdrive/c/gnupg" ] ; then
-    #    export GNUPGHOME="C:\\gnupg"
-    #fi
+    /bin/ls -1d /cygdrive/[cd]/*/GNU/GnuPG | while read x ; do
+        PATH=$PATH:$x
+    done
     export GNUPGHOME=`cygpath -w $HOME/.gnupg`
     #alias er='explorer "`cygpath -w $(pwd)`" &'
     er() {

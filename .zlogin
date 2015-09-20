@@ -6,16 +6,15 @@ if which keychain ; then
     #for x in .ssh/*.id_[dr]sa ; do
     #    [ -r ".ssh/$x" ] && eval `keychain --eval $x`
     #done
+elif which ssh-agent ; then
+    # SSHAGENT=/usr/sbin/ssh-agent ; SSHAGENTARGS="-s"
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+        eval `ssh-agent -s`
+        trap "kill $SSH_AGENT_PID" 0
+        ssh-add $(find .ssh/*id_[dr]sa)
+        #[ -r ".ssh/office.id_rsa" ] && ssh-add .ssh/office.id_rsa
+    fi
 fi
-
-#if which ssh-agent ; then
-#    # SSHAGENT=/usr/sbin/ssh-agent ; SSHAGENTARGS="-s"
-#    if [ -z "$SSH_AUTH_SOCK" ]; then
-#      eval `ssh-agent -s`
-#      trap "kill $SSH_AGENT_PID" 0
-#      [ -r ".ssh/office.id_rsa" ] && ssh-add .ssh/office.id_rsa
-#    fi
-#fi
 
 # Start the GnuPG agent and enable OpenSSH agent emulation
 # if which gpg-agent ; then
