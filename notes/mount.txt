@@ -1,3 +1,7 @@
 
-mount /dev/sda1 /esp -o uid=1000,gid=1000
+> mount /dev/sda1 /esp -o uid=1000,gid=1000
+
+
+> parted bootmgr.vhd unit B print
+> mount -t ntfs-3g -o loop,ro,offset=65536 bootmgr.vhd /mnt
 

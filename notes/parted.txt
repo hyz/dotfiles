@@ -14,6 +14,148 @@ Number  Start      End        Size       File system  Name                  Flag
  2      409640s    23847135s  23437496s  hfs+         MacUSB
         23847136s  30869470s  7022335s   Free Space
 
+(parted) mkpart primary ext3 23848960s -1s
+Warning: You requested a partition from 23848960s to 30869503s (sectors 23848960..30869503).
+The closest location we can manage is 23848960s to 30869470s (sectors 23848960..30869470).
+Is this still acceptable to you?
+Yes/No? y
+
+=== === ===
+wood@arch> sudo parted /dev/sda unit chs print free
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 30401,80,62
+Sector size (logical/physical): 512B/512B
+BIOS cylinder,head,sector geometry: 30401,255,63.  Each cylinder is 8225kB.
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start         End           File system     Name                  Flags
+        0,0,34        0,0,39        Free Space
+ 1      0,0,40        25,127,13     fat32           EFI System Partition  boot, esp
+        25,127,14     25,159,5      Free Space
+ 2      25,159,6      268,186,45    fat32           vfat-2g               msftdata
+ 3      268,186,46    754,241,62    linux-swap(v1)  SWAP
+ 4      754,242,0     8732,166,9    ntfs            WIN                   msftdata
+ 5      8732,166,10   8790,4,45     ntfs                                  hidden, diag
+        8790,4,46     12442,162,7   Free Space
+ 6      12442,162,8   15360,81,16   ext4            Arch
+        15360,81,17   15360,113,48  Free Space
+ 7      15360,113,49  19537,198,52  btrfs           Home
+ 8      19537,198,53  23715,28,56   ntfs            Basic data partition  msftdata
+ 9      23715,28,57   27518,8,9                     Basic data partition  msftdata
+        27518,8,10    27518,40,41   Free Space
+10      27518,40,42   30401,75,9    fat32           X                     msftdata
+        30401,75,10   30401,80,29   Free Space
+wood@arch>
+wood@arch> sudo parted /dev/sda unit cyl print free
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 30401cyl
+Sector size (logical/physical): 512B/512B
+BIOS cylinder,head,sector geometry: 30401,255,63.  Each cylinder is 8225kB.
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start     End       Size     File system     Name                  Flags
+        0cyl      0cyl      0cyl     Free Space
+ 1      0cyl      25cyl     25cyl    fat32           EFI System Partition  boot, esp
+        25cyl     25cyl     0cyl     Free Space
+ 2      25cyl     268cyl    243cyl   fat32           vfat-2g               msftdata
+ 3      268cyl    754cyl    486cyl   linux-swap(v1)  SWAP
+ 4      754cyl    8732cyl   7977cyl  ntfs            WIN                   msftdata
+ 5      8732cyl   8790cyl   57cyl    ntfs                                  hidden, diag
+        8790cyl   12442cyl  3652cyl  Free Space
+ 6      12442cyl  15360cyl  2917cyl  ext4            Arch
+        15360cyl  15360cyl  0cyl     Free Space
+ 7      15360cyl  19537cyl  4177cyl  btrfs           Home
+ 8      19537cyl  23715cyl  4177cyl  ntfs            Basic data partition  msftdata
+ 9      23715cyl  27518cyl  3802cyl                  Basic data partition  msftdata
+        27518cyl  27518cyl  0cyl     Free Space
+10      27518cyl  30401cyl  2883cyl  fat32           X                     msftdata
+        30401cyl  30401cyl  0cyl     Free Space
+wood@arch>
+wood@arch> sudo parted /dev/sda unit s print free
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 488397168s
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start       End         Size        File system     Name                  Flags
+        34s         39s         6s          Free Space
+ 1      40s         409639s     409600s     fat32           EFI System Partition  boot, esp
+        409640s     411647s     2008s       Free Space
+ 2      411648s     4317183s    3905536s    fat32           vfat-2g               msftdata
+ 3      4317184s    12128255s   7811072s    linux-swap(v1)  SWAP
+ 4      12128256s   140290047s  128161792s  ntfs            WIN                   msftdata
+ 5      140290048s  141211647s  921600s     ntfs                                  hidden, diag
+        141211648s  199890943s  58679296s   Free Space
+ 6      199890944s  246763519s  46872576s   ext4            Arch
+        246763520s  246765567s  2048s       Free Space
+ 7      246765568s  313874431s  67108864s   btrfs           Home
+ 8      313874432s  380983295s  67108864s   ntfs            Basic data partition  msftdata
+ 9      380983296s  442077183s  61093888s                   Basic data partition  msftdata
+        442077184s  442079231s  2048s       Free Space
+10      442079232s  488396799s  46317568s   fat32           X                     msftdata
+        488396800s  488397134s  335s        Free Space
+wood@arch>
+wood@arch> sudo parted /dev/sda print free
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 250GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system     Name                  Flags
+        17.4kB  20.5kB  3072B   Free Space
+ 1      20.5kB  210MB   210MB   fat32           EFI System Partition  boot, esp
+        210MB   211MB   1028kB  Free Space
+ 2      211MB   2210MB  2000MB  fat32           vfat-2g               msftdata
+ 3      2210MB  6210MB  3999MB  linux-swap(v1)  SWAP
+ 4      6210MB  71.8GB  65.6GB  ntfs            WIN                   msftdata
+ 5      71.8GB  72.3GB  472MB   ntfs                                  hidden, diag
+        72.3GB  102GB   30.0GB  Free Space
+ 6      102GB   126GB   24.0GB  ext4            Arch
+        126GB   126GB   1049kB  Free Space
+ 7      126GB   161GB   34.4GB  btrfs           Home
+ 8      161GB   195GB   34.4GB  ntfs            Basic data partition  msftdata
+ 9      195GB   226GB   31.3GB                  Basic data partition  msftdata
+        226GB   226GB   1049kB  Free Space
+10      226GB   250GB   23.7GB  fat32           X                     msftdata
+        250GB   250GB   172kB   Free Space
+
+
+### http://www.gnu.org/software/parted/manual/html_node/unit.html
+2.4.14 unit
+Command: unit unit
+    Selects the current default unit that Parted will use to display locations and capacities on the disk and to interpret those given by the user if they are not suffixed by an unit.
+    unit may be one of:
+    ‘s’
+        sector (n bytes depending on the sector size, often 512)
+    ‘B’
+        byte
+    ‘KiB’
+        kibibyte (1024 bytes)
+    ‘MiB’
+        mebibyte (1048576 bytes)
+    ‘GiB’
+        gibibyte (1073741824 bytes)
+    ‘TiB’
+        tebibyte (1099511627776 bytes)
+    ‘kB’
+        kilobyte (1000 bytes)
+    ‘MB’
+        megabyte (1000000 bytes)
+    ‘GB’
+        gigabyte (1000000000 bytes)
+    ‘TB’
+        terabyte (1000000000000 bytes)
+    ‘%’
+        percentage of the device (between 0 and 100)
+    ‘cyl’
+        cylinders (related to the BIOS CHS geometry)
+    ‘chs’
+        cylinders, heads, sectors addressing (related to the BIOS CHS geometry)
+
 ---------------------
 $ python
 >>> start, end = 23847136, 30869470   # START,END sectors
@@ -23,10 +165,4 @@ $ python
 >>> 30867456
 >>> 30867456 - 23848960
 ---------------------
-
-(parted) mkpart primary ext3 23848960s -1s
-Warning: You requested a partition from 23848960s to 30869503s (sectors 23848960..30869503).
-The closest location we can manage is 23848960s to 30869470s (sectors 23848960..30869470).
-Is this still acceptable to you?
-Yes/No? y
 
