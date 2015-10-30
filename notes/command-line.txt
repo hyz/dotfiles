@@ -50,6 +50,7 @@ sort -k1,1 -s t.txt
 ### grep ###
 echo "foo=123 bar=432" |/bin/grep -Po '\d+'
 echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
+grep -E '((交易|操作).*买.*[0-9]{6}|日期:2015)' 704179.txt
 
 ### awk ###
 $ cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
