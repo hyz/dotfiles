@@ -1,0 +1,4 @@
+http://www.experts-exchange.com/articles/2155/Keyboard-Remapping-CAPSLOCK-to-Ctrl-and-Beyond.html
+
+http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_Windows
+
