@@ -1,0 +1,47 @@
+### http://reboot.pro/topic/19516-hack-bootmgr-to-boot-windows-in-bios-to-gpt/page-3
+
+@cdob and Sha0  I managed to boot using wimboot with NO pre-existing image!
+
+ 
+
+My setup : 
+
+gpt1 : NTFS
+
+/bootmgr.exe
+
+/Boot/BCD
+
+ 
+
+gpt2: BIOS Boot Partition with raw Grub2 core.img code
+
+ 
+
+gpt3 : FAT
+
+/wimboot
+
+/grub2/grub.cfg
+
+/grub2 [other files+folders]
+
+ 
+
+/gpt4 : NTFS
+
+/Windows
+
+ 
+
+My grub.cfg entry :
+
+menuentry 'Windows GPT bootmgr wimboot' {
+    linux16 /wimboot
+    initrd16 newc:bootmgr.exe:(hd0,gpt1)/bootmgr.exe newc:bcd:(hd0,gpt1)/Boot/BCD  
+}
+
+Windows boots fine. Works with bootmgr & bootmgr.exe equally well.
+
+### https://www.dokuwiki.org/wiki:sandbox
+

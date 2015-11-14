@@ -166,3 +166,28 @@ $ python
 >>> 30867456 - 23848960
 ---------------------
 
+> sudo parted /dev/sda unit MiB print free
+Model: ATA WDC WD2500BEVS-0 (scsi)
+Disk /dev/sda: 238475MiB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start      End        Size      File system     Name                  Flags
+        0.02MiB    1.00MiB    0.98MiB   Free Space
+11      1.00MiB    4.00MiB    3.00MiB                                         bios_grub
+ 1      4.00MiB    201MiB     197MiB    fat32                                 boot, esp
+ 2      201MiB     2108MiB    1907MiB   fat32           vfat-2g               msftdata
+ 3      2108MiB    5922MiB    3814MiB   linux-swap(v1)  SWAP
+ 4      5922MiB    68501MiB   62579MiB  ntfs            WIN                   msftdata
+ 5      68501MiB   68951MiB   450MiB    ntfs                                  hidden, diag
+        68951MiB   97603MiB   28652MiB  Free Space
+ 6      97603MiB   120490MiB  22887MiB  ext4            Arch
+        120490MiB  120491MiB  1.00MiB   Free Space
+ 7      120491MiB  153259MiB  32768MiB  btrfs           Home
+ 8      153259MiB  186027MiB  32768MiB  ntfs            Basic data partition  msftdata
+ 9      186027MiB  215858MiB  29831MiB                  Basic data partition  msftdata
+        215858MiB  215859MiB  1.00MiB   Free Space
+10      215859MiB  238475MiB  22616MiB  fat32           X                     msftdata
+        238475MiB  238475MiB  0.16MiB   Free Space
+
