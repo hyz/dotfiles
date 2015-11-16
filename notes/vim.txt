@@ -15,4 +15,5 @@
 :normal A^I^I^[J
 ## :normal \t\t\Ctrl-v<Esc>
 
+:.!xargs rm -f
 

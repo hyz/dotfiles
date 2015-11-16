@@ -1,5 +1,16 @@
 # tcpdump -w a.pcap -i eth0
 # tcpdump -nn -A -r a.pcap ether host 94:db:c9:5e:78:14 and host 58.67.160.246
+# tcpdump -vnn -w a.pcap -i wlp3s0 'port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' ## ipv4 and port 80
 
 ### http://www.thegeekstuff.com/2010/08/tcpdump-command-examples/
+
+### http://stackoverflow.com/questions/22691096/save-raw-binary-payload-only-using-tcpdump
+$ tcpflow -r traffic.pcap -o flows/
+$ cat flows/* > big.flow
+$ foremost -t exe,pdf -i big.flow
+
+OR
+$ tcpxtract --file traffic.pcap -o output/
+
+###
 
