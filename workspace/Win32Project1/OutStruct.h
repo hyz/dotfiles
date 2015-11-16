@@ -29,6 +29,17 @@ typedef struct tag_NTime
 		boost::format ft("%u-%02u-%02u %02u:%02u:%02u");
 		return os << ft % a.year % (int)a.month % (int)a.day % (int)a.hour % (int)a.minute % (int)a.second;
 	}
+	bool operator<(const tag_NTime& o) const {
+		return year < o.year
+			|| year==o.year && (month < o.month
+			|| month==o.month && (day < o.day
+			|| day==o.day && (hour < o.hour
+			|| hour ==o.hour && (minute < o.minute
+			|| minute==o.minute && second < o.second))));
+	}
+	bool operator >(const tag_NTime& o) const { return o < *this; }
+	bool operator!=(const tag_NTime& o) const { return (*this<o || *this>o); }
+	bool operator==(const tag_NTime& o) const { return !(*this!=o); }
 } NTime;
 
 //分析数据
@@ -57,7 +68,7 @@ typedef struct tag_HISDAT
 		return os << a.Time
 			<< boost::format(" %.2f %.2f %.2f %.2f %.2fw %dh")
 					% a.Open % a.High % a.Low % a.Close
-					% (a.a.Amount/10000) % int(a.fVolume)
+					% (a.a.Amount/10000) % int(a.fVolume/100)
 			;
 	}
 
