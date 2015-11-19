@@ -84,8 +84,8 @@ typedef struct tag_REPORTDAT2
 	float   Min;                // 最低价
 	float   Now;                // 现价
 	DWORD	RefreshNum;			// 刷新数
-	DWORD   Volume;             // 总手
-	DWORD   NowVol;             // 现手(总手差)
+	DWORD   Volume;             //总手
+	DWORD   NowVol;             //现手//(总手差) 
 	float   Amount;             // 总成交金额
 	DWORD   Inside;             // 内盘
 	DWORD   Outside;            // 外盘

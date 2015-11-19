@@ -4,6 +4,7 @@
 #undef min
 #undef max
 #include <stdio.h>
+#include <cmath>
 #include <string>
 #include <vector>
 #include <set>
@@ -379,14 +380,14 @@ namespace dfcf
 	}
 }
 
-static BOOL myflt2(char* Code, short nSetCode
+static BOOL Pc_o(char* Code, short nSetCode
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	int n;
 	REPORTDAT2 hq = {};
 	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &hq, 1, t0, t1, nTQ, 0);
-	if (n < 1 || hq.Volume < 1) {
+	if (n < 1 || hq.Volume*100 < 1) {
 		return FALSE;
 	}
 	// if (hq.Now < hq.Close) { return FALSE; }
@@ -407,21 +408,24 @@ static BOOL myflt2(char* Code, short nSetCode
 	LOG << hq <<"#"<< a <<"%";
 	return TRUE;
 }
+
 static BOOL myflt1(char* Code, short nSetCode
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	int n;
 
-	REPORTDAT2 hq = {};
-	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &hq, 1, t0, t1, nTQ, 0);
-	if (n < 1 || hq.Volume < 1) {
-		LOG << Code << "Stop/TP";
+	REPORTDAT2 smx = {};
+	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
+	if (n < 1 || smx.Volume*100 < 1 || (smx.Now - smx.Close)/smx.Close < -0.008) {
+		LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
 		return FALSE;
 	}
-	//if ((hq.Now - hq.Close) / hq.Close < -0.01) { return FALSE; }
+	STOCKINFO sinf = {};
+	n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0);
+	//if (smx.Volume*100 / sinf.ActiveCapital < 0.04) { return FALSE; }
 
-	std::vector<HISDAT> his(16); // typedef std::vector<HISDAT>::reverse_iterator itertype;
+	std::vector<HISDAT> his(6); // typedef std::vector<HISDAT>::reverse_iterator itertype;
 	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
 	if (n < (int)his.size()) {
 		LOG << Code << "Few"<< n;
@@ -429,9 +433,72 @@ static BOOL myflt1(char* Code, short nSetCode
 	}
 	// his.resize(n);
 
-	auto last = his.rbegin();
-	auto lastp1 = last + 1;
-	if (last->Close < last->Open && (last->Close - lastp1->Close)/lastp1->Close < -0.01) {
+	auto rbeg = his.rbegin();
+	auto rnext = rbeg + 1;
+	if (rbeg->Close < rbeg->Open && (rbeg->Close - rnext->Close)/rnext->Close < -0.01) {
+		return FALSE;
+	}
+
+	auto lowp = std::min_element(his.rbegin(), his.rend()
+		, [](HISDAT const& lhs, HISDAT const& rhs){
+			return std::min(lhs.Open, lhs.Close) < std::min(rhs.Open,rhs.Close);
+		});
+	if (lowp  > rbeg + 3) {
+		return FALSE;
+	}
+	//auto it1= std::max_element(his.rbegin(), lowp +1
+	//	, [](HISDAT const& lhs, HISDAT const& rhs){
+	//		return std::max(lhs.Open, lhs.Close) < std::max(rhs.Open,rhs.Close);
+	//	});
+	//if (it1->Close < it1->Open) {
+	//	return FALSE;
+	//}
+	//if ((it1->Close - lowp ->Open)/lowp ->Open < 0.06) {
+	//	return TRUE;
+	//}
+	float upr = (rbeg->Close - lowp->Close) / lowp->Close;
+	if (lowp == rbeg) {
+		upr = (rbeg->Close - rnext->Close) / rnext->Close;
+	}
+	if (upr < -0.0088 || upr > 0.15) {
+		return FALSE;
+	}
+	float exr = smx.Volume*100.0 / sinf.ActiveCapital;
+	if (exr < 0.04 || exr > 0.1) {
+	LOG <<Code << "Volume" << int(rbeg->fVolume) << smx.Volume << smx.NowVol << int(sinf.ActiveCapital);
+		return FALSE;
+	}
+	if ((rbeg->fVolume - rnext->fVolume) * 100 / sinf.ActiveCapital < 0.009) {
+		return FALSE;
+	}
+	//if ((rbeg->fVolume - lowp->fVolume) * 100 / sinf.ActiveCapital < (lowp - rbeg) * 0.004 + 0.0025) { return FALSE; }
+	return TRUE;
+}
+static BOOL myflt2(char* Code, short nSetCode
+	, int Value[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+	int n;
+
+	REPORTDAT2 hq = {};
+	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &hq, 1, t0, t1, nTQ, 0);
+	if (n < 1 || hq.Volume*100 < 1) {
+		LOG << Code << "Stop/TP";
+		return FALSE;
+	}
+	//if ((hq.Now - hq.Close) / hq.Close < -0.01) { return FALSE; }
+
+	std::vector<HISDAT> his(15); // typedef std::vector<HISDAT>::reverse_iterator itertype;
+	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+	if (n < (int)his.size()) {
+		LOG << Code << "Few"<< n;
+		return FALSE;
+	}
+	// his.resize(n);
+
+	auto rbeg = his.rbegin();
+	auto rnext = rbeg + 1;
+	if (rbeg->Close < rbeg->Open && (rbeg->Close - rnext->Close)/rnext->Close < -0.01) {
 		return FALSE;
 	}
 
@@ -468,7 +535,6 @@ static BOOL prev_flt(char* Code, short nSetCode
 {
 	// int ac = atoi(Code); // if (ac != 600570) return FALSE; // Test
 
-	STOCKINFO brief = {};
 	std::vector<HISDAT> his(8); //(std::max(int(nData),8)); // (std::min(int(nDataNum), 8));
 	int n;
 
@@ -484,16 +550,17 @@ static BOOL prev_flt(char* Code, short nSetCode
 	}
 	his.resize(n);
 
+	STOCKINFO brief = {};
 	n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &brief, 1, t0, t1, nTQ, 0);
 
-	auto last = his.rbegin();
-	auto last2 = last+1;
-	if (last->fVolume < last2->fVolume
-		|| (last->fVolume - last2->fVolume)*100 / brief.ActiveCapital < std::max(Value[1],10)/1000) {
+	auto rbeg = his.rbegin();
+	auto rnext = rbeg+1;
+	if (rbeg->fVolume < rnext->fVolume
+		|| (rbeg->fVolume - rnext->fVolume)*100 / brief.ActiveCapital < std::max(Value[1],10)/1000) {
 		return FALSE;
 	}
-	if (last->Close < last2->Close
-		|| (last->Close - last2->Close) / last2->Close < std::max(Value[2],25)/1000) {
+	if (rbeg->Close < rnext->Close
+		|| (rbeg->Close - rnext->Close) / rnext->Close < std::max(Value[2],25)/1000) {
 		return FALSE;
 	}
 
@@ -502,7 +569,7 @@ static BOOL prev_flt(char* Code, short nSetCode
 
 	for (auto& x : his) {
 		LOG << x << "rate-ex" << std::fixed << std::setprecision(2)
-				<< (x.fVolume*100 / brief.ActiveCapital) << (hq.Volume / (brief.ActiveCapital))
+				<< (x.fVolume*100 / brief.ActiveCapital) << (hq.Volume*100 / brief.ActiveCapital)
 			;
 	}
 	LOG << Code << " STKINFO_DAT:" << n << "\n" << brief;
@@ -526,7 +593,7 @@ static BOOL defaf(char* Code, short nSetCode
 }
 
 GDef::GDef()  {
-	logging::logfile( fopen("D:/home/wood/tdx/log.txt", "w") );
+	logging::logfile( fopen("D:/home/wood/stock/tdx/log.txt", "w") );
 	for (auto& f : funcs_)
 		f = defaf;
 	funcs_[0] = myflt1; // Default
