@@ -54,7 +54,7 @@ typedef struct tag_HISDAT
 		float	Amount;		//成交金额
 		DWORD	VolInStock;	//持仓量(期货有效)
 	} a;
-	float fVolume;			//成交量
+	float fVolume;			//成交量(股)
 	union  { 
 		float Settle;		//结算价(期货有效)
 		long  lYClose;		//
@@ -84,8 +84,8 @@ typedef struct tag_REPORTDAT2
 	float   Min;                // 最低价
 	float   Now;                // 现价
 	DWORD	RefreshNum;			// 刷新数
-	DWORD   Volume;             //总手
-	DWORD   NowVol;             //现手//(总手差) 
+	DWORD   Volume;             //总手(手)
+	DWORD   NowVol;             //现手//(总手差)(手) 
 	float   Amount;             // 总成交金额
 	DWORD   Inside;             // 内盘
 	DWORD   Outside;            // 外盘
