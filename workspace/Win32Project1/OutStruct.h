@@ -1,11 +1,17 @@
 #ifndef OUTSTRUCT_H_
 #define OUTSTRUCT_H_
 
+#include "stdafx.h"
+
 #pragma pack(push,1)
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+//#include "date/date.h"
 #include <boost/format.hpp>
 #include <ostream>
 #include <iomanip>
 #include <stdint.h>
+#include <time.h>
 
 #define ASK_ALL		-1
 
@@ -25,9 +31,50 @@ typedef struct tag_NTime
 	uint8_t	minute;
 	uint8_t	second;
 
+	boost::posix_time::ptime ptime() const{
+		return boost::posix_time::ptime(this->date());
+	}
+	boost::gregorian::date date() const{
+		return boost::gregorian::date(year, month, day);
+	}
+
+    static tag_NTime init(boost::gregorian::date d) {
+        tag_NTime nt ={0};
+		// auto d = boost::posix_time::second_clock::local_time().date();
+		nt.year = d.year(); // 1900 + tm->tm_year;
+        nt.month = d.month();
+		nt.day = d.day();
+        return nt;
+    }
+    static tag_NTime init(int y, int m, int d) {
+        tag_NTime nt ={0};
+        nt.year = y;
+        nt.month = m;
+        nt.day = d;
+        return nt;
+    }
+  //  time_t time() const {
+  //      boost::posix_time::ptime pt(boost::gregorian::date(year,month,day));
+  //      //struct tm tm = {0};
+  //      //tm.tm_year = year - 1900;
+  //      //tm.tm_mon = month - 1;
+  //      //tm.tm_mday = day;
+  //      //tm.tm_hour = hour;
+  //      //tm.tm_min = minute;
+  //      //tm.tm_sec = second;
+  //      //tm.tm_isdst = -1;
+		//return pt.time_of_day().total_seconds(); //  to_time_t(pt); //mktime(&tm);
+  //  }
+    //int seconds_fr(uint16_t y, uint8_t m, uint8_t d) const {
+    //    return int(this->time() - tag_NTime::init(y,m,d).time());
+    //}
+    //int days_fr(uint16_t y, uint8_t m, uint8_t d) const {
+    //    return int(seconds_fr(y,m,d)/60*60*24);
+    //}
+
 	friend std::ostream& operator<<(std::ostream& os, tag_NTime const& a) {
-		boost::format ft("%u-%02u-%02u %02u:%02u:%02u");
-		return os << ft % a.year % (int)a.month % (int)a.day % (int)a.hour % (int)a.minute % (int)a.second;
+		boost::format ft("%u-%02u-%02u");
+		return os << ft % a.year % (int)a.month % (int)a.day;// % (int)a.hour % (int)a.minute % (int)a.second;
 	}
 	bool operator<(const tag_NTime& o) const {
 		return year < o.year

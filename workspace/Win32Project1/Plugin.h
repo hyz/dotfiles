@@ -52,6 +52,25 @@ PLUGIN_API BOOL	 InputInfoThenCalc1(char * Code,short nSetCode,int Value[4],shor
 //选取区段计算
 PLUGIN_API BOOL	 InputInfoThenCalc2(char * Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
 
+struct GDef
+{
+	template <typename ...T> static long tdx_read(T&&... a) { return (*ref().tdx_read_)(a...); }
+
+	static GDef& ref();
+
+	PDATAIOFUNC	 tdx_read_;
+
+	typedef BOOL(*FuncType)(char* Code, short nSetCode
+		, int Value[4]
+		, short DataType, NTime time1, NTime time2, BYTE nTQ, unsigned long unused);
+
+	FuncType funcs_[8];
+	
+	~GDef() { fclose(logging::logfile()); }
+private:
+	GDef();
+};
+
 
 #pragma pack(pop)
 #endif

@@ -1,4 +1,11 @@
+project user-config ; 
 
+### msvc
+using msvc ;
+#using boost : 1.59 : <include>/workspace/boost_1_59_0 <library>/workspace/boost_1_59_0/stage/lib ; 
+#use-project boost : /cygdrive/d/home/wood/workspace/boost_1_59_0 ; 
+
+### gcc
 # using gcc : 4.8 : /opt/bin/g++ : <cxxflags>-std=c++11 ;
 #    <compileflags>"-std=c++11"
 # using gcc ;

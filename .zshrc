@@ -82,6 +82,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
+    PATH=$PATH:/cygdrive/c/WINDOWS/system32
 fi
 
 ###########################################################
