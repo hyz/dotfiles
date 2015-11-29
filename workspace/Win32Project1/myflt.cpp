@@ -1,4 +1,9 @@
 // MyPlugin.cpp : 通达信行情软件插件选股代码示例，根据通达信官方模板改编。
+//template <typename X,typename Y>
+//std::ostream& operator<<(std::ostream& out, std::pair<X, Y> const& rhs)
+//{
+//	return out << rhs.first << ' ' << rhs.second <<'\t';
+//}
 
 #include <stdio.h>
 #include <time.h>
@@ -7,6 +12,9 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <map>
+#include <istream>
+#include <fstream>
 #include <boost/config/warning_disable.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <fstream>
@@ -14,22 +22,19 @@
 #include "log.h"
 #include "Plugin.h"
 
-static float getsubs(tag_NTime const& nt)
+static float tvolume(tag_NTime const& nt)
 {
 	using namespace boost::posix_time;
 
 	auto lt = second_clock::local_time();
 
-	if (lt.date() != nt.ptime().date())
+	if (lt.date() != nt.date())
 		return 1;
 
 	auto tpc = lt.time_of_day().total_seconds();
 	auto tp0 = (hours(9) + minutes(30)).total_seconds();
 	auto tp1 = hours(15).total_seconds();
-	LOG << tpc << tp0 << tp1;
-    //time_t tpc = time(0);
-    //time_t tp0 = nt.time() + 60*60*9 + 60*30;
-    //time_t tp1 = tp0 + 60*30*11;
+	LOG << lt << tpc << tp0 << tp1;
 
     if (tpc < tp0 || tpc > tp1)
         return 1;
@@ -95,224 +100,6 @@ template <typename I> bool vola(const char* Code, I it, I end, int nlast=3)
 
     return 1;
 }
-BOOL myflt0(char* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-    static const NTime sdate = NTime::init(2015,9,15);
-	int n;
-	const int nskip = 0; // args[1];
-    t0 = NTime::init(args[3]/10000+2000, args[3]/100%100, args[3]%100);
-	t1 = NTime::init(boost::posix_time::second_clock::local_time().date());
-    if (t0 > t1 || t0 < sdate)
-        t0 = sdate;
-
-	REPORTDAT2 smx = {};
-	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
-	if (n < 1 || smx.Volume*100 < 1 /*|| (smx.Now - smx.Close)/smx.Close < -0.008*/) {
-		LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
-		return FALSE;
-	}
-	STOCKINFO sinf = {};
-	n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0);
-
-	std::vector<HISDAT> his(100); // typedef std::vector<HISDAT>::reverse_iterator itertype;
-	if ((n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0)) < 1) {
-		return FALSE;
-	}
-    his.resize(n);
-    if (strcmp(Code,"600570") == 0) { // help info
-		LOG << Code << nSetCode << DataType << (int)nTQ << t0 << t1 << boost::make_iterator_range(&args[0], &args[4]);
-        LOG << Code << his.front() <<"\n"<< his.back();
-        LOG << smx;
-        LOG << sinf;
-		//print_his(Code, nSetCode, PER_MIN1, 4, nTQ);
-		//time_t t = time(0);
-		//auto nt = NTime::init(t);
-		//LOG << t <<"<>"<< nt <<"<>"<< nt.time();
-		//int doy = boost::gregorian::day_clock::local_day().day_of_year();
-        boost::posix_time::ptime pt(boost::gregorian::date(2015,11,22)
-                , boost::posix_time::hours(17) + boost::posix_time::minutes(30));
-		boost::gregorian::date date = pt.date();
-		boost::posix_time::time_duration tod = pt.time_of_day();
-		auto x = tod.hours();
-		LOG << pt << "\t" << tod
-			<<"\n"<< date.year() << date.month() << date.day()
-			<<"\n"<< tod.hours() << tod.minutes() << tod.seconds()
-			;
-        LOG << boost::posix_time::second_clock::local_time();
-        LOG << boost::posix_time::from_time_t(time(0));
-    }
-	if (his.size() < 20) {
-		LOG << Code << his.size() << t0 << t1
-	        <<"\n"<< his.front()
-			<<"\n"<< his.back();
-        return FALSE;
-	}
-
-    auto it = his.rbegin() + nskip;
-    vola(Code, it, it+3);
-    vola(Code, it, it+5);
-    vola(Code, it, it+10);
-    vola(Code, it, it+15);
-    vola(Code, it, his.rend());
-    return 0;
-}
-BOOL myflt0_(char* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-	int n;
-
-	REPORTDAT2 smx = {};
-	if ((n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0)) < 1) {
-		return FALSE;
-	}
-	STOCKINFO sinf = {};
-	if ((n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 1) {
-		return FALSE;
-	}
-	if (smx.Volume*100 < 1 /*|| (smx.Now - smx.Close)/smx.Close < -0.008*/) {
-		LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
-		return FALSE;
-	}
-	//if (smx.Volume*100 / sinf.ActiveCapital < 0.04) { return FALSE; }
-
-	std::vector<HISDAT> his(10); // typedef std::vector<HISDAT>::reverse_iterator itertype;
-	if ((n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0)) < his.size()) {
-		LOG << Code << "Few"<< n;
-		return FALSE;
-	}
-    if (strcmp(Code,"600570") == 0) { // help info
-		LOG << Code << nSetCode << DataType << (int)nTQ << t0 << t1 << boost::make_iterator_range(&args[0], &args[4]);
-        LOG << Code << his.front() <<"\n"<< his.back();
-        LOG << smx;
-        LOG << sinf;
-		////print_his(Code, nSetCode, PER_MIN1, 4, nTQ);
-		//time_t t = time(0);
-		//auto nt = NTime::init(t);
-		//LOG << t <<"<>"<< nt <<"<>"<< nt.time();
-        boost::posix_time::ptime pt(boost::gregorian::date(2015,11,22)
-                , boost::posix_time::hours(17) + boost::posix_time::minutes(30));
-		boost::gregorian::date date = pt.date();
-		boost::posix_time::time_duration tod = pt.time_of_day();
-		auto x = tod.hours();
-		LOG << pt << "\t" << tod
-			<<"\n"<< date.year() << date.month() << date.day()
-			<<"\n"<< tod.hours() << tod.minutes() << tod.seconds()
-			;
-        LOG << boost::posix_time::second_clock::local_time();
-        LOG << boost::posix_time::from_time_t(time(0));
-    }
-    if (strcmp(Code,"600570") == 0) { // help info
-		LOG << Code << nSetCode << DataType << (int)nTQ << t0 << t1 << boost::make_iterator_range(&args[0], &args[4]);
-        LOG << his.back();
-        LOG << smx;
-        LOG << sinf;
-		//print_his(Code, nSetCode, PER_MIN30, 4, nTQ);
-    }
-
-	auto rbeg = his.rbegin();
-	for (; rbeg != his.rend(); ++rbeg) {
-		if (rbeg->fVolume / sinf.ActiveCapital > 0.05 && rbeg->Close > rbeg->Open) {
-			rbeg = his.rbegin();
-            break;
-		}
-	}
-    if (rbeg != his.rbegin()) {
-        return FALSE;
-    }
-	auto rnext = rbeg + 1;
-	if ((rbeg->Close - rnext->Close)/rnext->Close < -0.01) {
-		return FALSE;
-	}
-
-	auto lowp = std::min_element(his.rbegin(), his.rend()
-		, [](HISDAT const& lhs, HISDAT const& rhs){
-			return std::min(lhs.Open, lhs.Close) < std::min(rhs.Open,rhs.Close);
-		});
-	auto topp = std::max_element(lowp, his.rend()
-		, [](HISDAT const& lhs, HISDAT const& rhs){
-			return std::max(lhs.Open,lhs.Close) < std::max(rhs.Open,rhs.Close);
-		});
-	if (topp - lowp < 4) {
-		return FALSE;
-	}
-	if (lowp - rbeg > 2) {
-		return FALSE;
-	}
-	if (lowp == rbeg) {
-		float upr = (rbeg->Close - rnext->Close) / rnext->Close;
-		return (upr > -0.01);
-	}
-	float upr = (rbeg->Close - lowp->Close) / lowp->Close;
-	if (upr < -0.01 || upr > 0.11) {
-		return FALSE;
-	}
-	float exr = float(smx.Volume*100 / sinf.ActiveCapital);
-	if (exr < 0.04 || exr > 0.11) {
-        //LOG <<Code << "Volume" << int(rbeg->fVolume) << smx.Volume << smx.NowVol << int(sinf.ActiveCapital);
-		return FALSE;
-	}
-	if ((rbeg->fVolume - rnext->fVolume) / sinf.ActiveCapital < 0.009) {
-		return FALSE;
-	}
-	//if ((rbeg->fVolume - lowp->fVolume) * 100 / sinf.ActiveCapital < (lowp - rbeg) * 0.004 + 0.0025) { return FALSE; }
-	return TRUE;
-}
-
-BOOL myflt1(char* Code, short nSetCode
-	, int Value[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-	int n;
-
-	REPORTDAT2 smx = {};
-	n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
-	if (n < 1 || smx.Volume*100 < 1) {
-		LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
-		return FALSE;
-	}
-	STOCKINFO sinf = {};
-	n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0);
-	if (n<0)
-		return FALSE;
-	std::vector<HISDAT> his(10); // typedef std::vector<HISDAT>::reverse_iterator itertype;
-	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-	if (n < (int)his.size()) {
-		LOG << Code << "Few"<< n;
-		return FALSE;
-	}
-	auto rbeg = his.rbegin();
-	for (; rbeg != his.rend(); ++rbeg) {
-		if (rbeg->fVolume / sinf.ActiveCapital > 0.05 && rbeg->Close > rbeg->Open) {
-			rbeg = his.rbegin();
-            break;
-		}
-	}
-    if (rbeg != his.rbegin()) {
-        return FALSE;
-    }
-	auto rnext = rbeg + 1;
-    const float Ss = getsubs(his.back().Time); //(Value[1]<1 ? 4 : Value[1])/4.0;
-
-	// float upr = (rbeg->Close - rnext->Close) / rnext->Close;
-	if (rbeg->Close < rbeg->Open) {
-		return FALSE;
-	}
-	//float exr = (rbeg->fVolume - rnext->fVolume) / sinf.ActiveCapital;
-	//if (exr < (0.06*Ss)) {
-		//return FALSE;
-	//}
-	if (rbeg->fVolume * 0.8 < rnext->fVolume *Ss) {
-		return FALSE;
-	}
-
-	LOG << Code << "(" << int(rbeg->fVolume) << "-" << int(rnext->fVolume) << ")/" << int(sinf.ActiveCapital)
-		<< rbeg->Time;
-
-	return TRUE;
-}
 
 template <typename Iter>
 static float ma(Iter it, Iter end, char const* Code="0")
@@ -330,7 +117,7 @@ static float ma(Iter it, Iter end, char const* Code="0")
     return a.first/a.second;
 }
 
-BOOL myflt2(char* Code, short nSetCode
+BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -342,10 +129,6 @@ BOOL myflt2(char* Code, short nSetCode
 	//	LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
 	//	return FALSE;
 	//}
-	//STOCKINFO sinf = {};
-	//n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0);
-	//if (n<0)
-	//	return FALSE;
 	std::vector<HISDAT> his(30);
 	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
 	if (n < (int)his.size()) {
@@ -361,22 +144,251 @@ BOOL myflt2(char* Code, short nSetCode
 		LOG << Code << boost::gregorian::day_clock::local_day() << his.back() << n;
 	}
 
+	STOCKINFO sinf = {};
+	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
+		return 0;
+	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
+		return 0;
+	if (his.back().fVolume / sinf.ActiveCapital < 3.5*tvolume(his.back().Time))
+		return 0;
+
 	auto beg = his.rbegin() + args[3];
     float a = ma(beg, beg+3, Code);
     for (int i=1; i < (args[2] ? args[2] : 6); ++i) {
         float x = ma(beg+i, beg+i+3, Code);
 		if (args[1]) {
-			if (x > a && (x - a) > 0.06)
+			if (x > a && (x - a) > 0.05)
 				return 0;
 		} else {
-			if (x < a && (a - x) > 0.06)
+			if (x < a && (a - x) > 0.05)
 				return 0;
 		}
         a = x;
 	}
     return 1;
 }
-BOOL myflt3(char* Code, short nSetCode // 扫描复牌
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+
+/* tags for accessing both sides of a bidirectional map */
+
+using namespace boost::multi_index;
+
+template <typename Cmp = std::less<float>>
+struct CodeSet //: bimap_type //std::map<int,float>
+{
+    struct Value {
+        int code;
+        float val;
+        boost::gregorian::date d;
+
+		friend std::istream& operator>>(std::istream& in, Value& rhs) {
+			return in >> rhs.code >> rhs.val >> rhs.d;
+		}
+		friend std::ostream& operator<<(std::ostream& out, Value const& rhs) {
+			return out << rhs.code <<'\t'<< rhs.val <<'\t' << rhs.d;
+		}
+    };
+    typedef boost::multi_index::multi_index_container<
+      Value, //std::pair<int,float>,
+      indexed_by<
+        ordered_unique<member<Value,int,  &Value::code>>,
+		ordered_non_unique<member<Value, float, &Value::val>,Cmp> //std::greater<float>
+      >
+    > type;
+
+    type bimap;
+    char const* tempf = "D:\\home\\wood\\stock\\.temp.1";
+
+    CodeSet(int step, int nelem=0)
+    {
+		LOG << "INIT";
+        if (step == 0) {
+            ;
+		} else {
+            load(nelem);
+			LOG << "load" << nelem << bimap.size();
+            tempf = nullptr;
+		}
+    }
+	~CodeSet() {
+        if (tempf)
+            save();
+		LOG << "UNINIT";
+    }
+
+	void add(int x, float y, boost::gregorian::date const& d) { bimap.insert( Value{ x, y, d } ); }
+    bool exist(int x) const { return bimap.find(x) != bimap.end(); }
+
+private:
+    void load(int nelem);
+
+    void save() const;
+};
+
+//namespace std {
+//}
+
+template <typename Cmp> void CodeSet<Cmp>::load(int nelem)
+{
+    std::ifstream ifs(tempf);
+    if (ifs) {
+        //std::istream_iterator<std::pair<int, float> > it(ifs), end;
+        Value val; //std::pair<int, float> p;
+        for (int x = 0; x < nelem; ++x) {
+            if (ifs >> val) {
+                bimap.insert(val); //LOG << p <<"std:pair" <<x << nelem;
+            } else
+                break;
+        }
+    }
+}
+template <typename Cmp> void CodeSet<Cmp>::save() const
+{
+    std::ofstream ofs(tempf, std::ios::trunc|std::ios::out);
+    if (ofs) {
+        std::ostream_iterator<Value> it(ofs, "\n"); //, end;
+        auto& m = get<1>(bimap);
+        std::copy(m.begin(), m.end(), it);
+    }
+}
+
+BOOL myflt1(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    static CodeSet<> codes(args[1], args[2] ? args[2] : 50);
+    int code = atoi(Code);
+	int n;
+
+    if (args[1] != 0) {
+        return codes.exist(code);
+    }
+
+	//REPORTDAT2 smx = {};
+	//n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
+	//if (n < 0 || smx.Volume*100 < 1) {
+	//	LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
+	//	return FALSE;
+	//}
+	std::vector<HISDAT> his(args[2]<1 ? 20 : args[2]);
+	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+	if (n < (int)his.size()) {
+		LOG << Code << "Few"<< n;
+		return FALSE;
+	}
+    n = (boost::gregorian::day_clock::local_day() - his.back().Time.date()).days();
+	if (n > 3 || his.back().fVolume < 1) {
+        LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
+        return 0;
+    }
+	//if (atoi(Code) == 600259) {
+	//	LOG << Code << boost::gregorian::day_clock::local_day() << his.back() << n;
+	//}
+
+	STOCKINFO sinf = {};
+	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
+		return 0;
+	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
+		return 0;
+	if (his.back().fVolume / sinf.ActiveCapital < 0.035*tvolume(his.back().Time))
+		return 0;
+
+    auto last = his.rbegin();
+	auto high = std::max_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+		, [](HISDAT const& lhs, HISDAT const& rhs){
+			return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+		});
+    auto lowp = std::min_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+        , [](HISDAT const& lhs, HISDAT const& rhs){
+            return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+        });
+    float a0 = last->a.Amount/last->fVolume;
+    float al = lowp->a.Amount/lowp->fVolume;
+    float ah = high->a.Amount/high->fVolume;
+	float ax = al;
+	auto px = lowp;
+	if ((a0 - al) < (ah - a0)) {
+        ax = ah;
+		px = high;
+	}
+    codes.add(code, (a0 - ax) / ax, px->Time.date()); //codes.save();
+
+    return 0;
+}
+
+BOOL myflt2(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    static CodeSet<> codes(args[1], args[2] ? args[2] : 50);
+    int code = atoi(Code);
+	int n;
+
+    if (args[1] != 0) {
+        return codes.exist(code);
+    }
+
+	//REPORTDAT2 smx = {};
+	//n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
+	//if (n < 0 || smx.Volume*100 < 1) {
+	//	LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
+	//	return FALSE;
+	//}
+	std::vector<HISDAT> his(args[2]<1 ? 20 : args[2]);
+	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+	if (n < 1 || n < /*(int)*/his.size()) {
+		LOG << Code << "Few"<< n;
+		return FALSE;
+	}
+    n = (boost::gregorian::day_clock::local_day() - his.back().Time.date()).days();
+	if (n > 3 || his.back().fVolume < 1) {
+        LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
+        return 0;
+    }
+
+	STOCKINFO sinf = {};
+	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
+		return 0;
+	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
+		return 0;
+	if (his.back().fVolume / sinf.ActiveCapital < 0.035*tvolume(his.back().Time))
+		return 0;
+
+    auto it = his.begin();
+    for ( ; it != his.end(); ++it) {
+        ;
+    }
+
+    HISDAT const* it = &his.front(); // auto it = his.rbegin();
+    it = std::accumulate(it+1, &his.back()+1, it, [](HISDAT const* x, HISDAT const& e){
+                ;
+                //return std::make_pair(x.first + e.a.Amount, x.second + e.fVolume);
+            });
+
+    auto last = his.rbegin();
+	auto high = std::max_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+		, [](HISDAT const& lhs, HISDAT const& rhs){
+			return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+		});
+    auto lowp = std::min_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+        , [](HISDAT const& lhs, HISDAT const& rhs){
+            return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+        });
+
+    float a0 = last->a.Amount/last->fVolume;
+    float al = lowp->a.Amount/lowp->fVolume;
+    float ah = high->a.Amount/high->fVolume;
+    if ((a0 - al) < (ah - a0))
+        al = ah;
+    //codes.add(code, (a0 - al) / al); //codes.save();
+
+	return 0;
+}
+
+BOOL myflt3(char const* Code, short nSetCode // 扫描复牌
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -399,7 +411,7 @@ BOOL myflt3(char* Code, short nSetCode // 扫描复牌
 	//return rbeg->Time.date().day_of_year() - rnext->Time.date().day_of_year() > 3;
 }
 
-BOOL myflt4(char* Code, short nSetCode
+BOOL myflt4(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -431,42 +443,42 @@ BOOL myflt4(char* Code, short nSetCode
 	return 0;
 }
 
-BOOL myflt5(char* Code, short nSetCode
+BOOL myflt5(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
 }
 
-BOOL myflt6(char* Code, short nSetCode
+BOOL myflt6(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
 }
 
-BOOL myflt7(char* Code, short nSetCode
+BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
 }
 
-BOOL myflt8(char* Code, short nSetCode
+BOOL myflt8(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
 }
 
-BOOL myflt9(char* Code, short nSetCode
+BOOL myflt9(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
 }
 
-BOOL myflt10(char* Code, short nSetCode
+BOOL myflt10(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {

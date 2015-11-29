@@ -86,8 +86,8 @@
     <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OutStruct.h" />
-    <ClInclude Include="Plugin.h" />
+    <ClInclude Include="tdxdef.h" />
+    <ClInclude Include="tdxif.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

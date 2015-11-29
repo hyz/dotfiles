@@ -47,26 +47,26 @@ PLUGIN_API void  RegisterDataInterface(PDATAIOFUNC pfn);
 PLUGIN_API void	 GetCopyRightInfo(PluginInfo* info);
 
 //按最近数据计算(nDataNum为ASK_ALL表示所有数据)
-PLUGIN_API BOOL	 InputInfoThenCalc1(char * Code,short nSetCode,int Value[4],short DataType,short nDataNum,BYTE nTQ,unsigned long unused);
+PLUGIN_API BOOL	 InputInfoThenCalc1(char* Code,short nSetCode,int Value[4],short DataType,short nDataNum,BYTE nTQ,unsigned long unused);
 
 //选取区段计算
-PLUGIN_API BOOL	 InputInfoThenCalc2(char * Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
+PLUGIN_API BOOL	 InputInfoThenCalc2(char* Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
 
 struct GDef
 {
-	template <typename ...T> static long tdx_read(T&&... a) { return (*ref().tdx_read_)(a...); }
+	template <typename ...T> static long tdx_read(const char* c, T&&... a) { return (*ref().tdx_read_)(const_cast<char*>(c), a...); }
 
 	static GDef& ref();
 
 	PDATAIOFUNC	 tdx_read_;
 
-	typedef BOOL(*FuncType)(char* Code, short nSetCode
+	typedef BOOL(*FuncType)(char const* Code, short nSetCode
 		, int Value[4]
 		, short DataType, NTime time1, NTime time2, BYTE nTQ, unsigned long unused);
 
-	FuncType funcs_[8];
+	FuncType funcs_[24];
 	
-	~GDef() { fclose(logging::logfile()); }
+	~GDef();
 private:
 	GDef();
 };

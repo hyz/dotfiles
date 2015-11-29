@@ -42,8 +42,8 @@ typedef struct tag_NTime
         tag_NTime nt ={0};
 		// auto d = boost::posix_time::second_clock::local_time().date();
 		nt.year = d.year(); // 1900 + tm->tm_year;
-        nt.month = d.month();
-		nt.day = d.day();
+        nt.month = (uint8_t)d.month();
+		nt.day = (uint8_t)d.day();
         return nt;
     }
     static tag_NTime init(int y, int m, int d) {
