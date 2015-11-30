@@ -12,7 +12,7 @@
 //#include <fstream>
 //#include <iostream>
 #include "log.h"
-#include "Plugin.h"
+#include "tdxif.h"
 
 
 //#define PLUGIN_EXPORTS

@@ -11,7 +11,7 @@
 #define PLUGIN_API extern "C" __declspec(dllimport)
 #endif
 
-#include "OutStruct.h"
+#include "tdxdef.h"
 
 #pragma pack(push,1)
 

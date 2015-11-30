@@ -8,7 +8,7 @@
 #include <set>
 #include <fstream>
 #include "log.h"
-#include "OutStruct.h"
+#include "tdxdef.h"
 
 namespace dfcf
 {

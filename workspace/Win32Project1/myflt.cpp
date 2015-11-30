@@ -20,7 +20,7 @@
 //#include <fstream>
 //#include <iostream>
 #include "log.h"
-#include "Plugin.h"
+#include "tdxif.h"
 
 static float tvolume(tag_NTime const& nt)
 {
@@ -140,9 +140,6 @@ BOOL myflt0(char const* Code, short nSetCode
         LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
         return 0;
     }
-	if (atoi(Code) == 600259) {
-		LOG << Code << boost::gregorian::day_clock::local_day() << his.back() << n;
-	}
 
 	STOCKINFO sinf = {};
 	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
@@ -362,28 +359,27 @@ BOOL myflt2(char const* Code, short nSetCode
         ;
     }
 
-    HISDAT const* it = &his.front(); // auto it = his.rbegin();
-    it = std::accumulate(it+1, &his.back()+1, it, [](HISDAT const* x, HISDAT const& e){
-                ;
+    //HISDAT const* it = &his.front(); // auto it = his.rbegin();
+    //it = std::accumulate(it+1, &his.back()+1, it, [](HISDAT const* x, HISDAT const& e){
                 //return std::make_pair(x.first + e.a.Amount, x.second + e.fVolume);
-            });
+            //});
 
-    auto last = his.rbegin();
-	auto high = std::max_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
-		, [](HISDAT const& lhs, HISDAT const& rhs){
-			return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
-		});
-    auto lowp = std::min_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
-        , [](HISDAT const& lhs, HISDAT const& rhs){
-            return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
-        });
+    //auto last = his.rbegin();
+	//auto high = std::max_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+	//	, [](HISDAT const& lhs, HISDAT const& rhs){
+	//		return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+	//	});
+    //auto lowp = std::min_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
+    //    , [](HISDAT const& lhs, HISDAT const& rhs){
+    //        return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
+    //    });
 
-    float a0 = last->a.Amount/last->fVolume;
-    float al = lowp->a.Amount/lowp->fVolume;
-    float ah = high->a.Amount/high->fVolume;
-    if ((a0 - al) < (ah - a0))
-        al = ah;
-    //codes.add(code, (a0 - al) / al); //codes.save();
+    //float a0 = last->a.Amount/last->fVolume;
+    //float al = lowp->a.Amount/lowp->fVolume;
+    //float ah = high->a.Amount/high->fVolume;
+    //if ((a0 - al) < (ah - a0))
+    //    al = ah;
+    ////codes.add(code, (a0 - al) / al); //codes.save();
 
 	return 0;
 }
@@ -407,7 +403,7 @@ BOOL myflt3(char const* Code, short nSetCode // 扫描复牌
 	//		<< rbeg->Time << rnext->Time
 	//		<< "\n" << rbeg->Time.date() << rnext->Time.date();
 	//}
-	return (rbeg->Time.date() - rnext->Time.date()).days() > 3;
+	return (rbeg->Time.date() - rnext->Time.date()).days() > 3 || rbeg->fVolume*100 < 1;
 	//return rbeg->Time.date().day_of_year() - rnext->Time.date().day_of_year() > 3;
 }
 
