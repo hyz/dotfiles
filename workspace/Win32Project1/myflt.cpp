@@ -68,7 +68,6 @@ template <typename I> bool vola(const char* Code, I it, I end, int nlast=3)
     return ((volume_s1 - volume_s0) / volume_s0 > 0.1);
     // 61780.51 6005620736.00/85917488.00 11671623680.00/162795984.00 27870810112.00/374703648.00
 
-
     float volume_s, volume_sr, volume_sg;
     float amount_s, amount_sr, amount_sg;
     volume_s = volume_sr = volume_sg = 0;
@@ -117,7 +116,100 @@ static float ma(Iter it, Iter end, char const* Code="0")
     return a.first/a.second;
 }
 
+BOOL myflt9(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+	STOCKINFO si = {};
+	REPORTDAT2 rp = {};
+	std::vector<HISDAT> his(args[1] ? args[1] : 50);
+
+    {
+        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
+        if (n < 0) {
+            LOG << Code << "STKINFO_DAT error" << n;
+            return 0;
+        }
+        if (si.ActiveCapital < 1) {
+            return 0;
+        }
+    } {
+        int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+        if (n < 1)/*(n < (int)his.size())*/ {
+            LOG << Code << "PER_DAY error"<< n;
+            return 0;
+        }
+        his.resize(n);
+    } if(false){
+        int n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &rp, 1, t0, t1, nTQ, 0);
+        if (n < 0 || rp.Volume*100 < 1) {
+            LOG << Code << "REPORT_DAT2 error" << n << "Vol" << rp.Volume <<"Price"<< rp.Now << rp.Close;
+            return 0;
+        }
+    }
+
+    using boost::format;
+    {
+        static std::ofstream ofs("D:\\home\\wood\\stock\\tdx\\lis", std::ios::trunc);
+        ofs << Code
+            //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
+            <<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
+            <<'\t'<< format("%.2f\t%.2f") % si.J_mgsy % si.J_mgsy2
+            //<<'\t'<< format("%.2f\t%.2f\t%.2f""\t""%.2f\t%.2f\t%.2f\t%.2f")
+            //            % si.J_yysy % si.J_yycb % si.J_yyly
+            //            % si.J_lyze % si.J_shly % si.J_jly % si.J_jyl
+            <<'\t'<< int(si.J_hy) // <<'\t'<< int(si.J_zjhhy *100)
+			<<'\t'<< nSetCode << '\n' << std::flush;
+        //float       J_yysy;			//营业收入 # 营业收入(元)
+        //float       J_yycb;			//营业成本
+        //float       J_yyly;			//营业利润
+        //
+        //float       J_lyze;			//利益总额
+        //float       J_shly;			//税后利益
+        //float       J_jly;			//净利益   # 归属净利润(元)
+        //float		J_jyl;				//净益率%  # 摊薄净资产收益率(%)
+        //
+        //float       J_bg;				//B股
+        //float       J_hg;				//H股
+        //
+        //short       J_hy;				//所属行业
+        //float       J_zjhhy;			//证监会行业
+        //float		J_mgsy;				//每股收益(折算成全年的)
+        //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
+
+    } {
+        std::ofstream ofs(str(format("D:\\home\\wood\\stock\\tdx\\%1%") % Code), std::ios::trunc);
+        //for (auto& a : his) { }
+        for (auto it=his.rbegin(); it!=his.rend(); ++it) {
+            auto& a = *it;
+            ofs //    << Code <<'\t'
+                << a.Time
+                <<'\t'<< format("%.2f\t%.2f") % a.a.Amount % a.fVolume
+                <<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f") % a.Open % a.High % a.Low % a.Close
+                <<'\n';
+        }
+    }
+
+    return 0;
+}
+
 BOOL myflt0(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    static std::set<int> s;
+    if (s.empty()) {
+        std::ifstream ifs(str(boost::format("D:\\home\\wood\\stock\\tdx\\%1%") % args[1]));
+        std::string line;
+        while (getline(ifs, line)) {
+            s.insert(atoi(line.c_str()));
+        }
+    }
+
+    return s.find(atoi(Code)) != s.end();
+}
+
+BOOL myflt0_(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -316,71 +408,12 @@ BOOL myflt1(char const* Code, short nSetCode
     return 0;
 }
 
+/// _----^
+//
 BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static CodeSet<> codes(args[1], args[2] ? args[2] : 50);
-    int code = atoi(Code);
-	int n;
-
-    if (args[1] != 0) {
-        return codes.exist(code);
-    }
-
-	//REPORTDAT2 smx = {};
-	//n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
-	//if (n < 0 || smx.Volume*100 < 1) {
-	//	LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
-	//	return FALSE;
-	//}
-	std::vector<HISDAT> his(args[2]<1 ? 20 : args[2]);
-	n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-	if (n < 1 || n < /*(int)*/his.size()) {
-		LOG << Code << "Few"<< n;
-		return FALSE;
-	}
-    n = (boost::gregorian::day_clock::local_day() - his.back().Time.date()).days();
-	if (n > 3 || his.back().fVolume < 1) {
-        LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
-        return 0;
-    }
-
-	STOCKINFO sinf = {};
-	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
-		return 0;
-	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
-		return 0;
-	if (his.back().fVolume / sinf.ActiveCapital < 0.035*tvolume(his.back().Time))
-		return 0;
-
-    auto it = his.begin();
-    for ( ; it != his.end(); ++it) {
-        ;
-    }
-
-    //HISDAT const* it = &his.front(); // auto it = his.rbegin();
-    //it = std::accumulate(it+1, &his.back()+1, it, [](HISDAT const* x, HISDAT const& e){
-                //return std::make_pair(x.first + e.a.Amount, x.second + e.fVolume);
-            //});
-
-    //auto last = his.rbegin();
-	//auto high = std::max_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
-	//	, [](HISDAT const& lhs, HISDAT const& rhs){
-	//		return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
-	//	});
-    //auto lowp = std::min_element(his.rbegin(), his.rbegin() + (args[2]<1 ? 20 : args[2])
-    //    , [](HISDAT const& lhs, HISDAT const& rhs){
-    //        return (lhs.a.Amount/lhs.fVolume) < (rhs.a.Amount/rhs.fVolume);
-    //    });
-
-    //float a0 = last->a.Amount/last->fVolume;
-    //float al = lowp->a.Amount/lowp->fVolume;
-    //float ah = high->a.Amount/high->fVolume;
-    //if ((a0 - al) < (ah - a0))
-    //    al = ah;
-    ////codes.add(code, (a0 - al) / al); //codes.save();
-
 	return 0;
 }
 
@@ -467,7 +500,7 @@ BOOL myflt8(char const* Code, short nSetCode
 	return 0;
 }
 
-BOOL myflt9(char const* Code, short nSetCode
+BOOL myflt9_x(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {

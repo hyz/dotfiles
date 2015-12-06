@@ -118,7 +118,6 @@ typedef struct tag_HISDAT
 					% (a.a.Amount/10000) % int(a.fVolume/100)
 			;
 	}
-
 } HISDAT,*LPHISDAT;
 
 //行情数据(第二版)
@@ -262,6 +261,7 @@ typedef struct tag_STOCKINFO
 			<< "\nzc(y) " << a.J_jzc / 100000000 << " " << a.J_ldzc / 100000000 << " " << a.J_gdzc / 100000000 << " " << a.J_wxzc / 100000000
 			;
 	}
+
 } STOCKINFO,*LPSTOCKINFO;
 
 //股本总股本信息
