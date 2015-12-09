@@ -230,7 +230,7 @@ static BOOL help_info_dump(char const* Code, short nSetCode
     static bool showtime = 0;
     if (!showtime) { //(sz.empty() && hz.empty())  // test time
         showtime = 1;
-
+		boost::gregorian::from_simple_string("2000-01-01");
         LOG << "posix_time:second_clock:local_time" <<boost::posix_time::second_clock::local_time();
         LOG << "posix_time:from_time_t" <<boost::posix_time::from_time_t(time(0));
         LOG << "gregorian:day_clock:local_day"<< boost::gregorian::day_clock::local_day();

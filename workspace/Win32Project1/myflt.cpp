@@ -180,7 +180,7 @@ BOOL myflt9(char const* Code, short nSetCode
     } {
         std::ofstream ofs(str(format("D:\\home\\wood\\stock\\tdx\\%1%") % Code), std::ios::trunc);
         //for (auto& a : his) { }
-        for (auto it=his.rbegin(); it!=his.rend(); ++it) {
+        for (auto it=his.begin(); it!=his.end(); ++it) {
             auto& a = *it;
             ofs //    << Code <<'\t'
                 << a.Time
@@ -199,6 +199,7 @@ BOOL myflt0(char const* Code, short nSetCode
 {
     static std::set<int> s;
     if (s.empty()) {
+		s.insert(0);
         std::ifstream ifs(str(boost::format("D:\\home\\wood\\stock\\tdx\\%1%") % args[1]));
         std::string line;
         while (getline(ifs, line)) {
@@ -209,7 +210,7 @@ BOOL myflt0(char const* Code, short nSetCode
     return s.find(atoi(Code)) != s.end();
 }
 
-BOOL myflt0_(char const* Code, short nSetCode
+BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -236,9 +237,9 @@ BOOL myflt0_(char const* Code, short nSetCode
 	STOCKINFO sinf = {};
 	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
 		return 0;
-	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
+	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 500)
 		return 0;
-	if (his.back().fVolume / sinf.ActiveCapital < 3.5*tvolume(his.back().Time))
+	if (his.back().fVolume / sinf.ActiveCapital < 0.03*tvolume(his.back().Time))
 		return 0;
 
 	auto beg = his.rbegin() + args[3];
@@ -313,7 +314,6 @@ struct CodeSet //: bimap_type //std::map<int,float>
 
 private:
     void load(int nelem);
-
     void save() const;
 };
 
@@ -344,7 +344,7 @@ template <typename Cmp> void CodeSet<Cmp>::save() const
     }
 }
 
-BOOL myflt1(char const* Code, short nSetCode
+BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -373,14 +373,11 @@ BOOL myflt1(char const* Code, short nSetCode
         LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
         return 0;
     }
-	//if (atoi(Code) == 600259) {
-	//	LOG << Code << boost::gregorian::day_clock::local_day() << his.back() << n;
-	//}
-
+	
 	STOCKINFO sinf = {};
 	if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
 		return 0;
-	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
+	if ((his.back().Close * sinf.ActiveCapital)/100000000 > 500)
 		return 0;
 	if (his.back().fVolume / sinf.ActiveCapital < 0.035*tvolume(his.back().Time))
 		return 0;
@@ -406,15 +403,6 @@ BOOL myflt1(char const* Code, short nSetCode
     codes.add(code, (a0 - ax) / ax, px->Time.date()); //codes.save();
 
     return 0;
-}
-
-/// _----^
-//
-BOOL myflt2(char const* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-	return 0;
 }
 
 BOOL myflt3(char const* Code, short nSetCode // 扫描复牌
@@ -490,6 +478,8 @@ BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
+    static std::ofstream ofs("D:\\home\\wood\\stock\\tdx\\codes", std::ios::trunc);
+    ofs << Code <<'\t'<< nSetCode << '\n';
 	return 0;
 }
 

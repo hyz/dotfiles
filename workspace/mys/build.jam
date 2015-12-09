@@ -1,0 +1,20 @@
+#import boost ; 
+#boost.use-project 1.59 ; 
+
+import os ;
+path-constant HOME : [ os.environ HOME ] ;
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+
+use-project boost : $(BOOST_ROOT) ; 
+# /boost//headers
+
+project mys
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    ;
+
+exe f1 : f1.cc /boost//date_time : <link>static ;
+exe f2 : f2.cc /boost//date_time : <link>static ;
+exe f3 : f3.cc /boost//date_time : <link>static ;
+
+install $(HOME)/bin : f1 f2 f3 ;
+
