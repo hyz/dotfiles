@@ -55,7 +55,7 @@ struct VStock : std::vector<VDay>
     void init_(std::array<gregorian::date,2> dr)
     {
         using namespace boost;
-        std::ifstream ifs(str(format("D:\\home\\wood\\stock\\tdx\\%06d") % this->code));
+        std::ifstream ifs(str(format("%06d"/*"D:\\home\\wood\\stock\\tdx\\%06d"*/) % this->code));
         std::string line;
         while(getline(ifs, line)) {
             VDay a;
@@ -99,7 +99,7 @@ struct Stocks : boost::multi_index::multi_index_container
         std::array<gregorian::date,2> dp = get_date_range(argc, argv);
         clog << dp[0] <<" "<< dp[1] <<"\n";// << ret.front() <<" "<< ret.back() <<"\n";
 
-        std::ifstream ifs("D:\\home\\wood\\stock\\tdx\\lis");
+        std::ifstream ifs("lis"/*"D:\\home\\wood\\stock\\tdx\\lis"*/);
         std::string line;
         while(getline(ifs, line)) {
             VStock a;
@@ -129,7 +129,7 @@ struct Stocks : boost::multi_index::multi_index_container
         if (argc >= 2) {
             const char* fn = argv[1];
             if (strcmp(fn, "-") == 0)
-                fn = "D:\\home\\wood\\stock\\tdx\\lis";
+                fn = "lis";//"D:\\home\\wood\\stock\\tdx\\lis";
             std::ifstream ifs(fn);
             if (ifs) {
                 std::set<int> s;
@@ -183,15 +183,23 @@ int main(int argc, char* const argv[])
                 continue;
             // clog << ds.front() <<" "<< ds.back() <<"\n";
             SVal sv = {};
+            Av av = {};
 
             auto it = s.begin();
+            av.amount = it->amount;
+            av.volume = it->volume;
             for (auto p=it++; it != s.end(); ++it, ++p) {
                 if ((0.10 - abs(it->close - p->close)/p->close)*p->close < 0.01)
                     sv.x10[p->close < it->close]++;
                 sv.gr[p->close < it->close]++;
+                av.amount += it->amount;
+                av.volume += it->volume;
             }
 
-            sv.val = sv.gr[1]*1.0/std::max(sv.gr[0],1); //(last->close - it->open) / it->open; //sv[1].amount/sv[0].amount;
+            auto last = s.rbegin();
+
+            float a = av.amount / av.volume;
+            sv.val = (last->close - a)/a; //sv.gr[1]*1.0/std::max(sv.gr[0],1); //(last->close - it->open) / it->open; //sv[1].amount/sv[0].amount;
             sv.code = s.code;
             result.insert(sv);
         }

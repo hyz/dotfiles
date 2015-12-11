@@ -116,13 +116,17 @@ static float ma(Iter it, Iter end, char const* Code="0")
     return a.first/a.second;
 }
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
+
 BOOL myflt9(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	STOCKINFO si = {};
 	REPORTDAT2 rp = {};
-	std::vector<HISDAT> his(args[1] ? args[1] : 50);
+	std::vector<HISDAT> his(args[1] ? args[1]*20 : 50);
 
     {
         int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
@@ -147,10 +151,16 @@ BOOL myflt9(char const* Code, short nSetCode
             return 0;
         }
     }
+	using boost::format;
+	boost::filesystem::path fp = "D:\\home\\wood\\workspace\\mys";
+	fp /= str(format("%02d") % args[3]);
 
-    using boost::format;
+	if (!boost::filesystem::exists(fp)) {
+		boost::filesystem::create_directories(fp);
+	}
+
     {
-        static std::ofstream ofs("D:\\home\\wood\\stock\\tdx\\lis", std::ios::trunc);
+		static boost::filesystem::ofstream ofs(fp/"lis", std::ios::trunc);
         ofs << Code
             //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
             <<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
@@ -178,8 +188,7 @@ BOOL myflt9(char const* Code, short nSetCode
         //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
 
     } {
-        std::ofstream ofs(str(format("D:\\home\\wood\\stock\\tdx\\%1%") % Code), std::ios::trunc);
-        //for (auto& a : his) { }
+        boost::filesystem::ofstream ofs(fp/Code, std::ios::trunc);
         for (auto it=his.begin(); it!=his.end(); ++it) {
             auto& a = *it;
             ofs //    << Code <<'\t'
@@ -200,7 +209,7 @@ BOOL myflt0(char const* Code, short nSetCode
     static std::set<int> s;
     if (s.empty()) {
 		s.insert(0);
-        std::ifstream ifs(str(boost::format("D:\\home\\wood\\stock\\tdx\\%1%") % args[1]));
+        std::ifstream ifs(str(boost::format("D:\\home\\wood\\%1%") % args[1]));
         std::string line;
         while (getline(ifs, line)) {
             s.insert(atoi(line.c_str()));
