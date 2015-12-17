@@ -163,10 +163,10 @@ int main(int argc, char* const argv[])
         float amount;
         float volume;
     };
-    struct SVal : std::array<float,3> {
+    struct SVal : std::array<Av,2> {
         int code;
         float val;
-        float val2;
+        // float valx;
     };
 
     try {
@@ -178,28 +178,34 @@ int main(int argc, char* const argv[])
         // stock/tdx/999999
 
         for (auto && s : ss) {
-            if (s.empty() || s.back().volume<1)
+            if (s.empty() || s.back().volume<1 || s.size() < 5)
                 continue;
-
-            auto hi = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
-                        return (l.amount/l.volume) < (r.amount/r.volume);
-                    });
-
+            // clog << ds.front() <<" "<< ds.back() <<"\n";
             SVal sv = {};
 
-            sv[0] = s.front().amount / s.front().volume; //std::max(s.front().open,s.front().close);
-            sv[1] = hi->amount / hi->volume;
-            sv[2] = s.back().amount  / s.back().volume;
+            auto pday = (s.end()-3);
+            auto yday = (s.end()-2);
+            auto tday = (s.end()-1);
 
-            sv.val  = (sv[1] - sv[2]) / sv[1];
-            sv.val2 = (sv[1] - sv[0]) / sv[0];
+            auto a = yday->amount/yday->volume;
+            if (a < pday->close || a < tday->close
+                    || yday->volume < pday->volume || yday->volume < tday->volume
+                    || yday->close < yday->open)
+                continue;
+            //if (yday->volume < pday->volume)
+            //    continue;
+            //if (yday->volume > tday->volume)
+            //    continue;
 
             sv.code = s.code;
+            sv.val = yday->amount / (pday->amount + tday->amount);
+            //sv.val = sv[1].amount / std::max(sv[0].amount,1.0f);
+
             result.insert(sv);
         }
 
         for (auto & v : result) {
-            printf("%06d\t%.2f\t%.2f\n", v.code, v.val, v.val2);
+            printf("%06d\t%.2f\n", v.code, v.val);
         }
 
     } catch (std::exception const& e) {

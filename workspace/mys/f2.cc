@@ -55,7 +55,7 @@ struct VStock : std::vector<VDay>
     void init_(std::array<gregorian::date,2> dr)
     {
         using namespace boost;
-        std::ifstream ifs(str(format("D:\\home\\wood\\stock\\tdx\\%06d") % this->code));
+        std::ifstream ifs(str(format("%06d"/*"D:\\home\\wood\\stock\\tdx\\%06d"*/) % this->code));
         std::string line;
         while(getline(ifs, line)) {
             VDay a;
@@ -99,7 +99,7 @@ struct Stocks : boost::multi_index::multi_index_container
         std::array<gregorian::date,2> dp = get_date_range(argc, argv);
         clog << dp[0] <<" "<< dp[1] <<"\n";// << ret.front() <<" "<< ret.back() <<"\n";
 
-        std::ifstream ifs("D:\\home\\wood\\stock\\tdx\\lis");
+        std::ifstream ifs("lis"/*"D:\\home\\wood\\stock\\tdx\\lis"*/);
         std::string line;
         while(getline(ifs, line)) {
             VStock a;
@@ -129,7 +129,7 @@ struct Stocks : boost::multi_index::multi_index_container
         if (argc >= 2) {
             const char* fn = argv[1];
             if (strcmp(fn, "-") == 0)
-                fn = "D:\\home\\wood\\stock\\tdx\\lis";
+                fn = "lis";//"D:\\home\\wood\\stock\\tdx\\lis";
             std::ifstream ifs(fn);
             if (ifs) {
                 std::set<int> s;
@@ -166,6 +166,7 @@ int main(int argc, char* const argv[])
     struct SVal : std::array<Av,2> {
         int code;
         float val;
+        float valx;
     };
 
     try {
@@ -177,7 +178,7 @@ int main(int argc, char* const argv[])
         // stock/tdx/999999
 
         for (auto && s : ss) {
-            if (s.empty())
+            if (s.empty() || s.back().volume<1)
                 continue;
             // clog << ds.front() <<" "<< ds.back() <<"\n";
             SVal sv = {};
@@ -193,12 +194,21 @@ int main(int argc, char* const argv[])
             }
 
             sv.code = s.code;
-            sv.val = sv[1].amount/sv[0].amount;
+            sv.val = sv[1].amount / std::max(sv[0].amount,1.0f);
+
+            {
+                auto h = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
+                        return (l.amount/l.volume) < (r.amount/r.volume);
+                    });
+                auto p0 = (h->amount/h->volume);
+                sv.valx = (s.back().close - p0) / p0;
+            }
+
             result.insert(sv);
         }
 
         for (auto & v : result) {
-            printf("%06d\t%d\t%d\n", v.code, v[1].count, v[0].count);
+            printf("%06d\t%.2f\t%.2f\t%d\t%.2f\n", v.code, v.val, float(v[1].count)/std::max(v[0].count,1), v[1].count+v[0].count, v.valx);
         }
 
     } catch (std::exception const& e) {

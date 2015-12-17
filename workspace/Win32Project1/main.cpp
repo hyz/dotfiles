@@ -216,17 +216,6 @@ static BOOL help_info_dump(char const* Code, short nSetCode
 		, int args[4]
 		, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)
 {
-    static const std::set<int> cset = {
-		399001, 399005, 399006, 2550 // 0
-		, 999999, 600570 // 1
-	};
-
-    if (cset.find(atoi(Code)) != cset.end()) {
-        test_hisdat(Code, nSetCode, DataType, nTQ, "PER_DAY");
-		test_hisdat(Code, nSetCode, PER_MIN1, nTQ, "PER_MIN1");
-        return 1;
-    }
-
     static bool showtime = 0;
     if (!showtime) { //(sz.empty() && hz.empty())  // test time
         showtime = 1;
@@ -250,6 +239,17 @@ static BOOL help_info_dump(char const* Code, short nSetCode
 
 		test_hisdat("999999", 1, DataType, nTQ, "PER_DAY"); // more
     }
+
+	static const std::set<int> cset = {
+		399001, 399005, 399006, 2550 // 0
+		, 999999, 600570 // 1
+	};
+
+	if (cset.find(atoi(Code)) != cset.end()) {
+		test_hisdat(Code, nSetCode, DataType, nTQ, "PER_DAY");
+		test_hisdat(Code, nSetCode, PER_MIN1, nTQ, "PER_MIN1");
+		return 1;
+	}
 
     LOG << Code << nSetCode << "......";
     return 0;

@@ -163,10 +163,11 @@ int main(int argc, char* const argv[])
         float amount;
         float volume;
     };
-    struct SVal : std::array<float,3> {
+    struct SVal {
         int code;
         float val;
-        float val2;
+        std::array<int,2> gr;
+        std::array<int,2> x10;
     };
 
     try {
@@ -177,29 +178,37 @@ int main(int argc, char* const argv[])
         auto ss = Stocks::init(argc, argv); //(get_codes(argc, argv), get_date_range(argc, argv));
         // stock/tdx/999999
 
-        for (auto && s : ss) {
-            if (s.empty() || s.back().volume<1)
+        for (auto const & s : ss) {
+            if (s.empty())
                 continue;
-
-            auto hi = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
-                        return (l.amount/l.volume) < (r.amount/r.volume);
-                    });
-
+            // clog << ds.front() <<" "<< ds.back() <<"\n";
             SVal sv = {};
+            Av av = {};
 
-            sv[0] = s.front().amount / s.front().volume; //std::max(s.front().open,s.front().close);
-            sv[1] = hi->amount / hi->volume;
-            sv[2] = s.back().amount  / s.back().volume;
+            auto it = s.begin();
+            av.amount = it->amount;
+            av.volume = it->volume;
+            for (auto p=it++; it != s.end(); ++it, ++p) {
+                if ((0.10 - abs(it->close - p->close)/p->close)*p->close < 0.01)
+                    sv.x10[p->close < it->close]++;
+                sv.gr[p->close < it->close]++;
+                av.amount += it->amount;
+                av.volume += it->volume;
+            }
 
-            sv.val  = (sv[1] - sv[2]) / sv[1];
-            sv.val2 = (sv[1] - sv[0]) / sv[0];
+            it = s.begin();
+            auto last = s.rbegin();
 
+            //float a = it->amount / it->volume; // = av.amount / av.volume;
+            sv.val = (last->close - it->close)/it->close; //= (last->amount/last->volume - a)/a;
             sv.code = s.code;
+            //clog << sv.code << std::fixed << std::setprecision(2)
+            //    <<'\t'<< sv.val <<'\t'<< last->close <<'\t'<< a <<'\t'<< it->close <<'\n';
             result.insert(sv);
         }
 
         for (auto & v : result) {
-            printf("%06d\t%.2f\t%.2f\n", v.code, v.val, v.val2);
+            printf("%06d\t%.2f\t%d\t%d\t%d\t%d\n", v.code, v.val, v.gr[1], v.gr[0], v.x10[1], v.x10[0]);
         }
 
     } catch (std::exception const& e) {

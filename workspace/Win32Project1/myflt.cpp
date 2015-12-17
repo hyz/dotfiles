@@ -209,7 +209,7 @@ BOOL myflt0(char const* Code, short nSetCode
     static std::set<int> s;
     if (s.empty()) {
 		s.insert(0);
-        std::ifstream ifs(str(boost::format("D:\\home\\wood\\%1%") % args[1]));
+        std::ifstream ifs(str(boost::format("D:\\home\\wood\\%02d") % args[1]));
         std::string line;
         while (getline(ifs, line)) {
             s.insert(atoi(line.c_str()));

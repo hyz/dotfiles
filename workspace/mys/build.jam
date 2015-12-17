@@ -17,6 +17,8 @@ exe f2 : f2.cc /boost//date_time : <link>static ;
 exe f3 : f3.cc /boost//date_time : <link>static ;
 exe f4 : f4.cc /boost//date_time : <link>static ;
 exe f5 : f5.cc /boost//date_time : <link>static ;
+exe f6 : f6.cc /boost//date_time : <link>static ;
+exe f7 : f7.cc /boost//date_time : <link>static ;
 
-install $(HOME)/bin : f1 f2 f3 f4 f5 ;
+install $(HOME)/bin : f1 f2 f3 f4 f5 f6 f7 ;
 
