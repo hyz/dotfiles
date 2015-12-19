@@ -201,15 +201,12 @@ float calc(VStock const& s);
 int main(int argc, char* const argv[])
 {
     struct Av {
-        int count;
         float amount;
         float volume;
     };
-    struct SVal : std::array<float,3> {
+    struct SVal : std::array<float,2> {
         int code;
         float val;
-        //float val2; float pa[2];
-        //gregorian::date dp[2];
     };
 
     try {
@@ -225,7 +222,7 @@ int main(int argc, char* const argv[])
                 continue;
 
             auto last = s.end()-1;
-            //auto lasp = last-1; if (Ma(last) < Ma(lasp)) continue;
+            auto lasp = last-1; //if (Ma(last) < Ma(lasp)) continue;
 
             SVal sv = {};
 
@@ -242,10 +239,10 @@ int main(int argc, char* const argv[])
             sv[0] = (Ma(lo) - Ma(hi)) / Ma(hi);
             if (sv[0] >= 0)
                 continue;
-            sv[2] = (Ma(last) - Ma(hi)) / Ma(hi);
-            if (sv[2] >= 0)
+            sv[1] = (Ma(last) - Ma(hi)) / Ma(hi);
+            if (sv[1] >= 0)
                 continue;
-            sv[1] = (Ma(last) - Ma(lo)) / Ma(lo);
+            //sv[1] = (Ma(last) - Ma(lo)) / Ma(lo);
 
             sv.val = last->amount / lasp->amount;
             sv.code = s.code;
@@ -253,7 +250,7 @@ int main(int argc, char* const argv[])
         }
 
         for (auto & v : result) {
-            printf("%06d\t%.2f\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1], v[2]);
+            printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]);
         }
 
     } catch (std::exception const& e) {
@@ -261,20 +258,4 @@ int main(int argc, char* const argv[])
     }
 }
 
-float calc(VStock const& s)
-{
-	//auto hi = std::max_element(s.begin(), s.end()
-	//	, [](VDay const& l, VDay const& r){
-	//		return (l.amount/l.volume) < (r.amount/r.volume);
-	//	});
-	//auto lo = std::min_element(hi, s.end()
-	//	, [](VDay const& l, VDay const& r){
-	//		return (l.amount/l.volume) < (r.amount/r.volume);
-	//	});
-
-    //if (hi >= lo) return 13;
-    //float lx = lo->amount/lo->volume;
-    //if ((s.back().close - lx)/lx > 0.10) return 10;
-    return 0;
-}
 
