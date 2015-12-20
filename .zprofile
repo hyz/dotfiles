@@ -18,9 +18,5 @@ for x in /usr/local/bin /opt/bin ; do
 done
 PATH=$PATH:/sbin:/usr/sbin
 
-if [ "`uname -s`" = "Cygwin" ]; then
-    PATH=$PATH:/cygdrive/c/Windows:"/cygdrive/e/Program Files (x86)/GNU/GnuPG"
-fi
-
 export PATH
 
