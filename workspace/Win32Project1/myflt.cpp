@@ -487,7 +487,7 @@ BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static std::ofstream ofs("D:\\home\\wood\\stock\\tdx\\codes", std::ios::trunc);
+    static std::ofstream ofs("D:\\home\\wood\\codes.sb", std::ios::trunc);
     ofs << Code <<'\t'<< nSetCode << '\n';
 	return 0;
 }

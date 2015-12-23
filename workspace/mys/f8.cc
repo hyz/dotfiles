@@ -5,6 +5,7 @@
 #include <array>
 #include <sstream>
 #include <fstream>
+#include <iterator>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
@@ -111,6 +112,7 @@ struct VStock : std::vector<VDay>
         }
     }
 
+
     friend std::ostream& operator<<(std::ostream& out, VStock const& a)
     {
         return out << a.code << std::fixed << std::setprecision(2)
@@ -164,6 +166,17 @@ struct Stocks : boost::multi_index::multi_index_container
         }
         return dr;
     }
+
+    static std::set<int> read_ints(char const* fn)
+    {
+        std::set<int> ints;
+        std::string s;
+        std::ifstream fp(fn, std::ios::binary);
+        while (getline(fp, s)) {
+            ints.insert(atoi(s.c_str()));
+        }
+        return std::move(ints);
+    }
     static std::set<int> get_codes(int argc, char* const argv[])
     {
         if (argc >= 2) {
@@ -172,12 +185,12 @@ struct Stocks : boost::multi_index::multi_index_container
                 fn = "lis";//"D:\\home\\wood\\stock\\tdx\\lis";
             std::ifstream ifs(fn);
             if (ifs) {
-                std::set<int> s;
-                std::string line;
-                while(getline(ifs, line)) {
-                    s.insert(atoi(line.c_str()));
-                }
-                return std::move(s);
+                std::set<int> ret;
+                std::set<int> s0 = read_ints(fn);
+                std::set<int> s1 = read_ints("../cyb.lis");
+                std::set_difference(s0.begin(), s0.end(), s1.begin(), s1.end()
+                        , std::inserter(ret,ret.end()));
+                return std::move(ret);
             }
         }
         return std::set<int>();
@@ -271,13 +284,19 @@ int main(int argc, char* const argv[])
             auto lo = std::min_element(hi, va3.end(), [](float l, float r){ return l<r; });
             if (hi >= lo)
                 continue;
+            if (va3.end() - lo > 3)
+                continue;
+
             auto hv = *hi, lv = *lo;
-            auto zv = Ma1(stk.rbegin()); //last = stk.end()-1; // auto lasp = last-1; // if (Ma(last) < Ma(lasp)) continue;
+            auto lastv = Ma1(stk.rbegin()); //last = stk.end()-1; // auto lasp = last-1; // if (Ma(last) < Ma(lasp)) continue;
+            auto firstv = Ma1(stk.begin());
 
             printf("%06d", stk.code);
-            printf("\t%.2f\t%.2f\t%.2f", (zv - hv)/hv, (zv - lv)/lv, (lv - hv)/hv);
+            printf("\t%.2f\t%.2f", (hv - firstv)/std::max(lastv - firstv, 0.0001f), (lastv - firstv)/firstv );
+            //printf("\t%.2f\t%.2f\t%.2f", (lastv - hv)/hv, (lastv - lv)/lv, (lv - hv)/hv);
             printf("\t%.2f\t%.2f\t%.2f", grmx3[1].amount/grmx3[0].amount, grmx3[1].amount/total.amount, grmx3[0].amount/total.amount);
-            printf("\t%.2f\t%.2f\t%.2f", grsum[1].amount/grsum[0].amount, grsum[1].amount/total.amount, grsum[0].amount/total.amount);
+            //printf("\t%.2f\t%.2f\t%.2f", grsum[1].amount/grsum[0].amount, grsum[1].amount/total.amount, grsum[0].amount/total.amount);
+            //printf("\t%.2f\t%.2f\t%.2f", hv, lastv, firstv);
             printf("\t%d\n", (int)stk.size());
         }
         //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
