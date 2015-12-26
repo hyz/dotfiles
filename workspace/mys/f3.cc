@@ -89,23 +89,32 @@ struct VStock : std::vector<VDay>
 {
     int code;
     float gbActive, gbTotal;
+    VDay maxvols[6];
 
     void init_(std::array<gregorian::date,2> dr)
     {
         using namespace boost;
-        std::ifstream ifs(str(format("%06d"/*"D:\\home\\wood\\stock\\tdx\\%06d"*/) % this->code));
+        std::ifstream ifs(str(format("%06d") % this->code));
         std::string line;
+        std::array<VDay,2> dp = {};
         while(getline(ifs, line)) {
-            VDay a;
+            VDay a = {};
             std::istringstream iss(line);
             iss >> a;
 
-            if (a.date < dr[0])
-                continue;
-            if (a.date > dr[1])
+            if (a.date < dr[0]) {
+                if ((dr[0] - a.date).total_days() < 30) {
+                    auto & v = grmx3_[pa < a];
+                    std::pop_heap(&v[0], &v[4], SComp());
+                    v[3] = it;
+                    std::push_heap(&v[0], &v[4], SComp());
+                }
+            } else if (a.date > dr[1]) {
                 break;
-
-            this->push_back(a);
+            } else {
+                this->push_back(a);
+            }
+            dp[1] = a;
         }
     }
 
@@ -136,9 +145,9 @@ struct Stocks : boost::multi_index::multi_index_container
         Stocks ret;
         std::set<int> s = get_codes(argc, argv);
         std::array<gregorian::date,2> dp = get_date_range(argc, argv);
-        clog << dp[0] <<" "<< dp[1] <<"\n";// << ret.front() <<" "<< ret.back() <<"\n";
+        clog << dp[0] <<" "<< dp[1] <<"\n";
 
-        std::ifstream ifs("lis"/*"D:\\home\\wood\\stock\\tdx\\lis"*/);
+        std::ifstream ifs("lis");
         std::string line;
         while(getline(ifs, line)) {
             VStock a;
@@ -179,7 +188,7 @@ struct Stocks : boost::multi_index::multi_index_container
         if (argc >= 2) {
             const char* fn = argv[1];
             if (strcmp(fn, "-") == 0)
-                fn = "lis";//"D:\\home\\wood\\stock\\tdx\\lis";
+                fn = "lis";
             std::ifstream ifs(fn);
             if (ifs) {
                 std::set<int> ret;
@@ -193,16 +202,6 @@ struct Stocks : boost::multi_index::multi_index_container
         return std::set<int>();
     }
 };
-
-template <typename Iter>
-float ma_price(Iter it, Iter end)
-{
-    std::pair<float,float> a = {0.0f,0.0f};
-    a = std::accumulate(it,end, a, [](decltype(a) const& x, VDay const& e){
-                return std::make_pair(x.first + e.amount, x.second + e.volume);
-            });
-    return a.first/a.second;
-}
 
 template <int N, typename I>
 float Ma(I it)
@@ -250,45 +249,77 @@ void Main(int argc, char* const argv[])
 
     auto greater = [](c_iterator j, c_iterator i){ return !(j->volume < i->volume); };
 
+    auto print_date = [](auto it) {
+        printf("\t%02d%02d", (int)it->date.month(), (int)it->date.day());
+    };
+
     auto stocks = Stocks::init(argc, argv);
 
     for (auto && stk : stocks) {
-        if (stk.empty() || stk.back().volume<1 || stk.size() < 5)
+        if (stk.empty() || stk.back().volume<1 || stk.size() < 10)
             continue;
 
-        std::vector<c_iterator> reds;
-        std::vector<c_iterator> gres;
-        Av a = {};
+        struct GRIs : std::array<std::vector<c_iterator>,4> {
+            //std::vector<c_iterator> reds; std::vector<c_iterator> gres;
+        } gris = {};
+        struct Vols : std::array<float,4> {
+            float volume; //float amount;
+        } vols = {};
 
-        for (auto it=stk.begin(); it != stk.end(); ++it) {
+        for (auto it=stk.begin(), l5=stk.end()-5; it != stk.end(); ++it) {
             if (isred(it,stk.begin())) {
-                a.volume += it->volume;
-                a.amount += it->amount;
-                reds.push_back(it);
+                gris[1].push_back(it); // reds.push_back(it);
+                vols[1] += it->volume; // a.amount += it->amount;
+                if (it >= l5) {
+                    gris[3].push_back(it); // reds.push_back(it);
+                    vols[3] += it->volume;
+                }
             } else {
-                gres.push_back(it);
+                gris[0].push_back(it);// gres.push_back(it);
+                vols[0] += it->volume;
+                if (it >= l5) {
+                    gris[2].push_back(it);
+                    vols[2] += it->volume;
+                }
             }
+            vols.volume += it->volume; //vols.amount += it->amount;
         }
-        if (reds.size() < 2 || gres.size() < 2)
+        if (gris[1].empty() || gris[0].empty() || gris[3].empty() || gris[4].empty())
             continue;
-        a.amount /= reds.size();
-        a.volume /= reds.size();
+        vols[0] /= gris[0].size();
+        vols[2] /= gris[2].size();
+        vols[1] /= gris[1].size();
+        vols[3] /= gris[3].size();
+        vols.volume /= stk.size(); //vols.amount += it->amount;
 
-        std::nth_element(reds.begin(), reds.begin()+2, reds.end(), greater);
-        std::nth_element(gres.begin(), gres.begin()+2, gres.end(), greater);
+        float l5x[4] = {};
+        if (!gris[3].empty()) {
+            for (unsigned i=0; i < gris[3].size(); ++i) {
+                l5x[3] += abs(gris[3][i]->volume - vols[3]);
+            }
+            l5x[3] /= gris[3].size();
+        }
+        if (!gris[2].empty()) {
+            for (unsigned i=0; i < gris[2].size(); ++i) {
+                l5x[2] += abs(gris[2][i]->volume - vols[3]);
+            }
+            l5x[2] /= gris[2].size();
+        }
 
-        auto r2v = (reds[0]->volume + reds[1]->volume)/2;
-        auto g2v = (gres[0]->volume + gres[1]->volume)/2;
-        //if ((g2v - a.volume)/a.volume > 0.5) continue;
+        float m2x[2] = {};
+        std::nth_element(gris[1].begin(), gris[1].begin()+2, gris[1].end(), greater);
+        std::nth_element(gris[0].begin(), gris[0].begin()+2, gris[0].end(), greater);
+        m2x[0] = (gris[1][0]->volume + gris[1][1]->volume)/2;
+        m2x[1] = (gris[0][0]->volume + gris[0][1]->volume)/2;
+
+        //if ((m2x[1] - vols[0])/vols[0] > 0.5) continue;
         printf("%06d", stk.code);
+        printf("\t%.2f", l5x[2]/vols[3], l5x[3]/vols[3]);
+        printf("\t%.2f\t%.2f", (m2x[0]-vols[1])/vols[1], (m2x[1]-vols[1])/vols[1]);
+        printf("\t%.2f", float(gris[1].size())/gris[0].size());
         printf("\t%.2f", incr(stk.begin(),stk.end()));
-        printf("\t%.2f\t%.2f", (g2v-a.volume)/a.volume, (r2v-a.volume)/a.volume);
-        printf("\t%.2f", float(reds.size())/gres.size());
-        auto print_date = [](auto it) {
-            printf("\t%02d%02d", (int)it->date.month(), (int)it->date.day());
-        };
-        print_date(gres[0]); print_date(gres[1]);// print_date(gres[gres.size()-1]);
-        print_date(reds[0]); print_date(reds[1]);// print_date(reds[reds.size()-1]);
+        print_date(gris[0][0]); print_date(gris[0][1]);
+        print_date(gris[1][0]); print_date(gris[1][1]);
         printf("\t%d\n", (int)stk.size());
     }
     //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
