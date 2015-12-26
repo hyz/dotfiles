@@ -1,12 +1,14 @@
 ﻿# /cygdrive/c/Windows/System32/drivers/etc
 # C:\Windows\System32\drivers\etc\hosts
 
+# 0.0.0.0     v.163.com
 
-###
+0.0.0.0     v.sohu.com
 0.0.0.0     www.xiaohei.com
 0.0.0.0     www.tudou.com
 0.0.0.0     www.youku.com
 0.0.0.0     v.youku.com
+0.0.0.0     www.soku.com
 0.0.0.0     www.abab.com
 0.0.0.0     www.iqiyi.com
 0.0.0.0     app.baidu.com
