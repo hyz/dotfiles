@@ -159,13 +159,14 @@ float calc(VStock const& s);
 int main(int argc, char* const argv[])
 {
     struct Av {
+        int count;
         float amount;
         float volume;
     };
     struct SVal : std::array<Av,2> {
         int code;
         float val;
-        float valx;
+        // float valx;
     };
 
     try {
@@ -177,37 +178,34 @@ int main(int argc, char* const argv[])
         // stock/tdx/999999
 
         for (auto && s : ss) {
-            if (s.empty() || s.back().volume<1)
+            if (s.empty() || s.back().volume<1 || s.size() < 5)
                 continue;
             // clog << ds.front() <<" "<< ds.back() <<"\n";
             SVal sv = {};
 
-            auto it = s.begin();
-            float pa = it->amount/it->volume;
-            for (++it; it != s.end(); ++it) {
-                auto a = it->amount/it->volume;
-                auto& v = sv[pa < a];
-                v.amount += it->amount;
-                v.volume += it->volume;
-                pa = a;
-            }
+            auto pday = (s.end()-3);
+            auto yday = (s.end()-2);
+            auto tday = (s.end()-1);
+
+            auto a = yday->amount/yday->volume;
+            if (a < pday->close || a < tday->close
+                    || yday->volume < pday->volume || yday->volume < tday->volume
+                    || yday->close < yday->open)
+                continue;
+            //if (yday->volume < pday->volume)
+            //    continue;
+            //if (yday->volume > tday->volume)
+            //    continue;
 
             sv.code = s.code;
-            sv.val = sv[1].amount / std::max(sv[0].amount,1.0f);
-
-            {
-                auto h = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
-                        return (l.amount/l.volume) < (r.amount/r.volume);
-                    });
-                auto p0 = (h->amount/h->volume);
-                sv.valx = (s.back().close - p0) / p0;
-            }
+            sv.val = yday->amount / (pday->amount + tday->amount);
+            //sv.val = sv[1].amount / std::max(sv[0].amount,1.0f);
 
             result.insert(sv);
         }
 
         for (auto & v : result) {
-            printf("%06d\t%.2f\t%.2f\t%d\t%.2f\n", v.code, v.val, v.valx);
+            printf("%06d\t%.2f\n", v.code, v.val);
         }
 
     } catch (std::exception const& e) {

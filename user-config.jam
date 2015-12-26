@@ -6,7 +6,7 @@ project user-config ;
 #use-project boost : /cygdrive/d/home/wood/workspace/boost_1_59_0 ; 
 
 ### gcc
-using gcc : : : <cxxflags>-std=c++11 ;
+using gcc : : : <cxxflags>-std=c++1y ;
 #    <compileflags>"-std=c++11"
 # using gcc : 4.8 : /opt/bin/g++ : <cxxflags>-std=c++11 ;
 #    <compileflags>"-std=c++11"

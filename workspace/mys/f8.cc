@@ -8,12 +8,16 @@
 #include <iterator>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/date_formatting.hpp>
 #include <boost/format.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/convert.hpp>
+#include <boost/convert/strtol.hpp>
+
+struct boost::cnv::by_default : public boost::cnv::strtol {};
+
 using namespace std;
 using boost::format;
 //namespace multi_index = boost::multi_index;
@@ -21,39 +25,38 @@ namespace gregorian = boost::gregorian;
 
 using namespace boost::multi_index;
 
-//#include <boost/convert.hpp> #include <boost/convert/strtol.hpp>
-//struct boost::cnv::by_default : public boost::cnv::strtol {};
-//template <int size_=12>
-//struct xstr
-//{
-//    typedef xstr              this_type;
-//    typedef char                  value_type;
-//    typedef value_type*             iterator;
-//    typedef value_type const* const_iterator;
-//
-//    xstr () { storage_[0] = 0; }
-//
-//    xstr (const_iterator beg, const_iterator end =0)
-//    {
-//        std::size_t const sz = end ? (end - beg) : strlen(beg);
-//        BOOST_ASSERT(sz < size_);
-//        memcpy(storage_, beg, sz); storage_[sz] = 0;
-//    }
-//
-//    char const*    c_str () const { return storage_; }
-//    const_iterator begin () const { return storage_; }
-//    const_iterator   end () const { return storage_ + strlen(storage_); }
-//    this_type& operator= (char const* str)
-//    {
-//        BOOST_ASSERT(strlen(str) < size_);
-//        strcpy(storage_, str);
-//        return *this;
-//    }
-//
-//    char storage_[size_]; //static size_t const size_ = 12;
-//};
-//template <int N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.c_str()) == 0; }
-//template <int N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.c_str()) == 0; }
+template <int size_=12>
+struct xstr
+{
+    typedef xstr              this_type;
+    typedef char                  value_type;
+    typedef value_type*             iterator;
+    typedef value_type const* const_iterator;
+
+    xstr () { storage_[0] = 0; }
+
+    xstr (const_iterator beg, const_iterator end =0)
+    {
+        std::size_t const sz = end ? (end - beg) : strlen(beg);
+        BOOST_ASSERT(sz < size_);
+        memcpy(storage_, beg, sz); storage_[sz] = 0;
+    }
+
+    char const*    c_str () const { return storage_; }
+    const_iterator begin () const { return storage_; }
+    const_iterator   end () const { return storage_ + strlen(storage_); }
+    this_type& operator= (char const* str)
+    {
+        BOOST_ASSERT(strlen(str) < size_);
+        strcpy(storage_, str);
+        return *this;
+    }
+
+    char storage_[size_]; //static size_t const size_ = 12;
+};
+
+template <int N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.c_str()) == 0; }
+template <int N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.c_str()) == 0; }
 
 //600570	617805120.00	617805120.00	0.00	0.00	0.35	0.00	24	1
 struct VDay
@@ -217,80 +220,89 @@ float Ma(I it)
 template <typename I> inline float Ma1(I it) { return Ma<1>(it); }
 template <typename I> inline float Ma3(I it) { return Ma<3>(it); }
 
+float calc(VStock const& s);
+
+struct SComp {
+    template <typename It> bool operator()(It l, It r) const { return l->volume > r->volume; }
+};
+
 int main(int argc, char* const argv[])
 {
-    try {
-        void Main(int argc, char* const argv[]);
-        Main(argc, argv);
-    } catch (std::exception const& e) {
-        clog << e.what();
-    }
-}
-
-void Main(int argc, char* const argv[])
-{
-//boost::multi_index::multi_index_container<SVal,indexed_by<ordered_non_unique<member<SVal,float,&SVal::val>, std::greater<float>>>> result;
     struct Av {
         float amount;
         float volume;
     };
-    typedef VStock::const_iterator c_iterator;
 
-    auto incr = [](c_iterator it, c_iterator end) {
-        --end;
-        it = std::min_element(it, end, [](auto& l, auto& r){ return Ma1(&l)<Ma1(&r); });
-        auto x = Ma1(it);
-        return (Ma1(end) - x)/x;
-    };
+    try {
+        //boost::multi_index::multi_index_container<SVal,indexed_by<ordered_non_unique<member<SVal,float,&SVal::val>, std::greater<float>>>> result;
 
-    auto isred = [](c_iterator it, c_iterator begin){
-        return it->close > it->open
-                && (it==begin || it->close > (it-1)->close);
-    };
+        auto stocks = Stocks::init(argc, argv); //(get_codes(argc, argv), get_date_range(argc, argv));
+        // stock/tdx/999999
 
-    auto greater = [](c_iterator j, c_iterator i){ return !(j->volume < i->volume); };
+        for (auto && stk : stocks) {
+            if (stk.empty() || stk.back().volume<1 || stk.size() < 5)
+                continue;
 
-    auto stocks = Stocks::init(argc, argv);
+            Av total = {};
+            Av grsum[2] = {};
+            Av grmx3[2] = {};
 
-    for (auto && stk : stocks) {
-        if (stk.empty() || stk.back().volume<1 || stk.size() < 5)
-            continue;
+            auto it = stk.begin();
+            decltype(it) grmx3_[2][4] = { {it,it,it,it}, {it,it,it,it} };
+            std::vector<float> va3;
 
-        std::vector<c_iterator> reds;
-        std::vector<c_iterator> gres;
-        Av a = {};
+            for (float pa = it->amount/it->volume; it != stk.end(); ++it) {
+                float a = it->amount/it->volume;
 
-        for (auto it=stk.begin(); it != stk.end(); ++it) {
-            if (isred(it,stk.begin())) {
-                a.volume += it->volume;
-                a.amount += it->amount;
-                reds.push_back(it);
-            } else {
-                gres.push_back(it);
+                total.amount += it->amount;
+                total.volume += it->volume;
+
+                auto & v = grmx3_[pa < a];
+                std::pop_heap(&v[0], &v[4], SComp());
+                v[3] = it;
+                std::push_heap(&v[0], &v[4], SComp());
+
+                auto & gr = grsum[pa < a];
+                gr.amount += it->amount;
+                gr.volume += it->volume;
+
+                if (it < (stk.end()-2)) {
+                    va3.push_back( Ma3(it) );
+                }
+
+                pa = a;
             }
+            for (int x=0; x < 2; ++x) {
+                auto& tmp = grmx3_[x];
+                auto& gr = grmx3[x];
+                for (int i=1; i<4; ++i) {
+                    gr.amount = tmp[i]->amount;
+                    gr.volume = tmp[i]->volume;
+                }
+            }
+            auto hi = std::max_element(va3.begin(), va3.end(), [](float l, float r){ return l<r; });
+            auto lo = std::min_element(hi, va3.end(), [](float l, float r){ return l<r; });
+            if (hi >= lo)
+                continue;
+            if (va3.end() - lo > 3)
+                continue;
+
+            auto hv = *hi, lv = *lo;
+            auto lastv = Ma1(stk.rbegin()); //last = stk.end()-1; // auto lasp = last-1; // if (Ma(last) < Ma(lasp)) continue;
+            auto firstv = Ma1(stk.begin());
+
+            printf("%06d", stk.code);
+            printf("\t%.2f\t%.2f", (hv - firstv)/std::max(lastv - firstv, 0.0001f), (lastv - firstv)/firstv );
+            //printf("\t%.2f\t%.2f\t%.2f", (lastv - hv)/hv, (lastv - lv)/lv, (lv - hv)/hv);
+            printf("\t%.2f\t%.2f\t%.2f", grmx3[1].amount/grmx3[0].amount, grmx3[1].amount/total.amount, grmx3[0].amount/total.amount);
+            //printf("\t%.2f\t%.2f\t%.2f", grsum[1].amount/grsum[0].amount, grsum[1].amount/total.amount, grsum[0].amount/total.amount);
+            //printf("\t%.2f\t%.2f\t%.2f", hv, lastv, firstv);
+            printf("\t%d\n", (int)stk.size());
         }
-        if (reds.size() < 2 || gres.size() < 2)
-            continue;
-        a.amount /= reds.size();
-        a.volume /= reds.size();
+        //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
 
-        std::nth_element(reds.begin(), reds.begin()+2, reds.end(), greater);
-        std::nth_element(gres.begin(), gres.begin()+2, gres.end(), greater);
-
-        auto r2v = (reds[0]->volume + reds[1]->volume)/2;
-        auto g2v = (gres[0]->volume + gres[1]->volume)/2;
-        //if ((g2v - a.volume)/a.volume > 0.5) continue;
-        printf("%06d", stk.code);
-        printf("\t%.2f", incr(stk.begin(),stk.end()));
-        printf("\t%.2f\t%.2f", (g2v-a.volume)/a.volume, (r2v-a.volume)/a.volume);
-        printf("\t%.2f", float(reds.size())/gres.size());
-        auto print_date = [](auto it) {
-            printf("\t%02d%02d", (int)it->date.month(), (int)it->date.day());
-        };
-        print_date(gres[0]); print_date(gres[1]);// print_date(gres[gres.size()-1]);
-        print_date(reds[0]); print_date(reds[1]);// print_date(reds[reds.size()-1]);
-        printf("\t%d\n", (int)stk.size());
+    } catch (std::exception const& e) {
+        clog << e.what();
     }
-    //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
 }
 

@@ -176,18 +176,18 @@ int main(int argc, char* const argv[])
 
 float calc(VStock const& s, Days const& ds)
 {
-	auto hp = std::max_element(ds.begin(), ds.end()
+	auto hi = std::max_element(ds.begin(), ds.end()
 		, [](VDay const& lhs, VDay const& rhs){
 			return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
 		});
-	auto lp = std::min_element(hp, ds.end()
+	auto lo = std::min_element(hi, ds.end()
 		, [](VDay const& lhs, VDay const& rhs){
 			return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
 		});
 
-    if (hp >= lp)
+    if (hi >= lo)
         return 13;
-    //float lx = lp->amount/lp->volume;
+    //float lx = lo->amount/lo->volume;
     //if ((ds.back().close - lx)/lx > 0.10) return 10;
 
     struct Sta {

@@ -10,6 +10,7 @@ use-project boost : $(BOOST_ROOT) ;
 
 project mys
     : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : default-build release
     ;
 
 exe f1 : f1.cc /boost//date_time : <link>static ;
@@ -17,6 +18,14 @@ exe f2 : f2.cc /boost//date_time : <link>static ;
 exe f3 : f3.cc /boost//date_time : <link>static ;
 exe f4 : f4.cc /boost//date_time : <link>static ;
 exe f5 : f5.cc /boost//date_time : <link>static ;
+exe f6 : f6.cc /boost//date_time : <link>static ;
+exe f7 : f7.cc /boost//date_time : <link>static ;
+exe f8 : f8.cc /boost//date_time : <link>static ;
+exe f9 : f9.cc /boost//date_time : <link>static ;
+exe zxg-diff : zxg-diff.cc : <link>static ;
 
-install $(HOME)/bin : f1 f2 f3 f4 f5 ;
+install $(HOME)/bin : f1 f2 f3 f4 f5 f6 f7 f8 zxg-diff f9 ;
+
+exe a : a.cc /boost//filesystem : <link>static ;
+install bin : a ;
 

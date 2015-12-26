@@ -1,3 +1,4 @@
+#include <string.h> // For strlen, strcmp, memcpy
 #include <string>
 #include <set>
 #include <vector>
@@ -10,12 +11,51 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/convert.hpp>
+#include <boost/convert/strtol.hpp>
+
+struct boost::cnv::by_default : public boost::cnv::strtol {};
+
 using namespace std;
 using boost::format;
 //namespace multi_index = boost::multi_index;
 namespace gregorian = boost::gregorian;
 
 using namespace boost::multi_index;
+
+template <int size_=12>
+struct xstr
+{
+    typedef xstr              this_type;
+    typedef char                  value_type;
+    typedef value_type*             iterator;
+    typedef value_type const* const_iterator;
+
+    xstr () { storage_[0] = 0; }
+
+    xstr (const_iterator beg, const_iterator end =0)
+    {
+        std::size_t const sz = end ? (end - beg) : strlen(beg);
+        BOOST_ASSERT(sz < size_);
+        memcpy(storage_, beg, sz); storage_[sz] = 0;
+    }
+
+    char const*    c_str () const { return storage_; }
+    const_iterator begin () const { return storage_; }
+    const_iterator   end () const { return storage_ + strlen(storage_); }
+    this_type& operator= (char const* str)
+    {
+        BOOST_ASSERT(strlen(str) < size_);
+        strcpy(storage_, str);
+        return *this;
+    }
+
+    char storage_[size_]; //static size_t const size_ = 12;
+};
+
+template <int N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.c_str()) == 0; }
+template <int N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.c_str()) == 0; }
 
 //600570	617805120.00	617805120.00	0.00	0.00	0.35	0.00	24	1
 struct VDay
@@ -145,7 +185,7 @@ struct Stocks : boost::multi_index::multi_index_container
 };
 
 template <typename Iter>
-float ma(Iter it, Iter end)
+float ma_price(Iter it, Iter end)
 {
     std::pair<float,float> a = {0.0f,0.0f};
     a = std::accumulate(it,end, a, [](decltype(a) const& x, VDay const& e){
@@ -153,6 +193,8 @@ float ma(Iter it, Iter end)
             });
     return a.first/a.second;
 }
+
+template <typename I> inline float Ma(I it) { return it->amount/it->volume; }
 
 float calc(VStock const& s);
 
@@ -162,10 +204,9 @@ int main(int argc, char* const argv[])
         float amount;
         float volume;
     };
-    struct SVal : std::array<Av,2> {
+    struct SVal : std::array<float,2> {
         int code;
         float val;
-        float valx;
     };
 
     try {
@@ -177,37 +218,39 @@ int main(int argc, char* const argv[])
         // stock/tdx/999999
 
         for (auto && s : ss) {
-            if (s.empty() || s.back().volume<1)
+            if (s.empty() || s.back().volume<1 || s.size() < 10)
                 continue;
-            // clog << ds.front() <<" "<< ds.back() <<"\n";
+
+            auto last = s.end()-1;
+            auto lasp = last-1; //if (Ma(last) < Ma(lasp)) continue;
+
             SVal sv = {};
 
-            auto it = s.begin();
-            float pa = it->amount/it->volume;
-            for (++it; it != s.end(); ++it) {
-                auto a = it->amount/it->volume;
-                auto& v = sv[pa < a];
-                v.amount += it->amount;
-                v.volume += it->volume;
-                pa = a;
-            }
-
-            sv.code = s.code;
-            sv.val = sv[1].amount / std::max(sv[0].amount,1.0f);
-
-            {
-                auto h = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
+            auto hi = std::max_element(s.begin(), s.end(), [](VDay const& l, VDay const& r){
                         return (l.amount/l.volume) < (r.amount/r.volume);
                     });
-                auto p0 = (h->amount/h->volume);
-                sv.valx = (s.back().close - p0) / p0;
-            }
+            auto lo = std::min_element(hi, s.end(), [](VDay const& l, VDay const& r){
+                        return (l.amount/l.volume) < (r.amount/r.volume);
+                    });
 
+            if (hi >= lo)
+                continue;
+
+            sv[0] = (Ma(lo) - Ma(hi)) / Ma(hi);
+            if (sv[0] >= 0)
+                continue;
+            sv[1] = (Ma(last) - Ma(hi)) / Ma(hi);
+            if (sv[1] >= 0)
+                continue;
+            //sv[1] = (Ma(last) - Ma(lo)) / Ma(lo);
+
+            sv.val = last->amount / lasp->amount;
+            sv.code = s.code;
             result.insert(sv);
         }
 
         for (auto & v : result) {
-            printf("%06d\t%.2f\t%.2f\t%d\t%.2f\n", v.code, v.val, v.valx);
+            printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]);
         }
 
     } catch (std::exception const& e) {
@@ -215,20 +258,4 @@ int main(int argc, char* const argv[])
     }
 }
 
-float calc(VStock const& s)
-{
-	//auto hp = std::max_element(s.begin(), s.end()
-	//	, [](VDay const& lhs, VDay const& rhs){
-	//		return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
-	//	});
-	//auto lp = std::min_element(hp, s.end()
-	//	, [](VDay const& lhs, VDay const& rhs){
-	//		return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
-	//	});
-
-    //if (hp >= lp) return 13;
-    //float lx = lp->amount/lp->volume;
-    //if ((s.back().close - lx)/lx > 0.10) return 10;
-    return 0;
-}
 
