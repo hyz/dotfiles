@@ -23,37 +23,33 @@ using namespace boost::multi_index;
 
 //#include <boost/convert.hpp> #include <boost/convert/strtol.hpp>
 //struct boost::cnv::by_default : public boost::cnv::strtol {};
-//template <int size_=12>
-//struct xstr
+//template <unsigned size_=16> struct xstr
 //{
 //    typedef xstr              this_type;
 //    typedef char                  value_type;
 //    typedef value_type*             iterator;
 //    typedef value_type const* const_iterator;
 //
-//    xstr () { storage_[0] = 0; }
-//
-//    xstr (const_iterator beg, const_iterator end =0)
-//    {
+//    xstr (const_iterator beg, const_iterator end =0) {
 //        std::size_t const sz = end ? (end - beg) : strlen(beg);
 //        BOOST_ASSERT(sz < size_);
-//        memcpy(storage_, beg, sz); storage_[sz] = 0;
+//        memcpy(buf, beg, sz); buf[sz] = 0;
 //    }
+//    xstr () { buf[0] = 0; }
 //
-//    char const*    c_str () const { return storage_; }
-//    const_iterator begin () const { return storage_; }
-//    const_iterator   end () const { return storage_ + strlen(storage_); }
-//    this_type& operator= (char const* str)
-//    {
+//    char const*    c_str () const { return buf; }
+//    const_iterator begin () const { return buf; }
+//    const_iterator   end () const { return buf + strlen(buf); }
+//    this_type& operator= (char const* str) {
 //        BOOST_ASSERT(strlen(str) < size_);
-//        strcpy(storage_, str);
+//        strcpy(buf, str);
 //        return *this;
 //    }
 //
-//    char storage_[size_]; //static size_t const size_ = 12;
+//    char buf[size_];
 //};
-//template <int N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.c_str()) == 0; }
-//template <int N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.c_str()) == 0; }
+//template <unsigned N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.buf) == 0; }
+//template <unsigned N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.buf) == 0; }
 
 //600570	617805120.00	617805120.00	0.00	0.00	0.35	0.00	24	1
 struct VDay
