@@ -22,9 +22,12 @@ exe f6 : f6.cc /boost//date_time : <link>static ;
 exe f7 : f7.cc /boost//date_time : <link>static ;
 exe f8 : f8.cc /boost//date_time : <link>static ;
 exe f9 : f9.cc /boost//date_time : <link>static ;
-exe zxg-diff : zxg-diff.cc : <link>static ;
+exe fx : fx.cc /boost//date_time : <link>static ;
 
-install $(HOME)/bin : f1 f2   f5 f6 f7 f8 zxg-diff f9 ;
+exe ls-dczxg : ls-dczxg.cc : <link>static ;
+exe diff-sc : diff-sc.cc : <link>static ;
+
+install $(HOME)/bin : f1 f2   f5 f6 f7 f8 ls-dczxg f9 diff-sc fx ;
 
 exe x1 : x1.cc /boost//filesystem : <link>static ;
 # exe x2 : x2.cc /boost//filesystem : <link>static ;

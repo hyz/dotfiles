@@ -112,7 +112,7 @@ int to_code(std::string const& s)
 
 //#include <iostream>
 
-int xsum(FILE* ifs, int code, gregorian::date const& date, FILE* fp)
+int Fn(FILE* ifs, int code, gregorian::date const& date, FILE* fp)
 {
     typedef char* iterator_type; // typedef std::string::const_iterator iterator_type;
 
@@ -211,6 +211,14 @@ int xsum(FILE* ifs, int code, gregorian::date const& date, FILE* fp)
             v += x;
         }
         fprintf(fp, "\t%lu", v);
+    } {
+        //std::nth_element(vols.begin(), vols.begin()+vols.size()/2, vols.end());
+        //vols.resize(vols.size()/2);
+        //unsigned long v = 0;
+        //for (int x : vols) {
+        //    v += x;
+        //}
+        //fprintf(fp, "\t%lu", v);
     } {
         Av s[2] = {};
         for (int i=0; i<2; ++i) {
@@ -324,7 +332,7 @@ int Main(int argc, char* const argv[])
         //std::cout << (cp / "LEAF").generic_string() <<'\t'<<code<<"\n";
 
         if (FILE* fp = fopen(cp.generic_string().c_str(), "r")) {
-            xsum(fp, code, date, stdout);
+            Fn(fp, code, date, stdout);
             fclose(fp);
         }
     }
