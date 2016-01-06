@@ -1,3 +1,4 @@
+
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -13,7 +14,6 @@
 //#include <boost/spirit/include/phoenix.hpp>
 //namespace phoenix = boost::phoenix;
 #include <boost/array.hpp>
-#include <boost/container/static_vector.hpp>
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/filesystem/path.hpp>
@@ -46,39 +46,40 @@ namespace boost { namespace spirit { namespace traits
     };
     //template <typename T, size_t N> struct is_container<array<T, N>, void> : mpl::false_ { };
 }}}
-//typedef gregorian::date::ymd_type ymd_type;
-//BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
+typedef gregorian::date::ymd_type ymd_type;
+BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
-int main(int argc, char* const argv[])
+struct Av
 {
-    try {
-        int Main(int argc, char* const argv[]);
-        return Main(argc, argv);
-    } catch (std::exception const& e) {
-        fprintf(stderr, "%s\n", e.what());
-    }
-    return 1;
-}
-
-struct Av {
-    float amount = 0;
-    float volume = 0;
-    Av& operator+=(Av const& lhs) {
-        amount += lhs.amount;
-        volume += lhs.volume;
-        return *this;
-    }
-    Av operator+(Av const& lhs) {
-        Av x = *this;
-        return (x+=lhs);
-    }
+    float amount;
+    float volume;
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (float,amount)(float,volume))
-struct RecBS : Av {
-    //unsigned sec;
+struct RecBS : Av
+{
+    unsigned sec;
     char bsflag;
 };
-BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
+BOOST_FUSION_ADAPT_STRUCT(Av, (float,amount)(float,volume))
+BOOST_FUSION_ADAPT_STRUCT(RecBS, (unsigned,sec)(float,amount)(char,bsflag)(float,volume))
+
+template <typename Iterator>
+struct BSParser : qi::grammar<Iterator, RecBS()/*, ascii::space_type*/> //092500,48.40,B,200
+{
+    BSParser() : BSParser::base_type(start) {
+        static const qi::int_parser<unsigned, 10, 2, 2> _2digit = {};
+        using qi::int_;
+        using qi::float_;
+        using ascii::char_;
+        //using qi::_val; using qi::_1;
+
+        seconds = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1];
+        start %= seconds >> ',' >> float_ >> ',' >> char_ >> ',' >> int_;
+    }
+
+    qi::rule<Iterator, int/*, ascii::space_type*/> seconds;
+    qi::rule<Iterator, RecBS()/*, ascii::space_type*/> start;
+    //struct BuySell_ : qi::symbols<char, bool> { BuySell_() { add ("B",true) ("S",false) ; } };
+};
 
 gregorian::date to_date(std::string const& s) // xdetail/20151221/SZ002280.csv
 {
@@ -86,17 +87,16 @@ gregorian::date to_date(std::string const& s) // xdetail/20151221/SZ002280.csv
     static const qi::int_parser<unsigned, 10, 2, 2> _2digit = {};
     //using boost::phoenix::ref; using qi::_1;
     using qi::omit;
-    using ascii::digit;
     using qi::lit;
     using ascii::char_;
 
-    unsigned y, m, d;
+    gregorian::date d; // ymd_type ymd = {}; // unsigned y, m, d;
     auto it = s.cbegin();
     return qi::parse(it, s.cend()
-            , omit[-lit('/') >> *(+(char_-'/') >> '/')]
+            , omit[*(*~char_("/\\") >> (lit('/')|'\\'))]
                   >> _4digit >> _2digit >> _2digit
-            , y, m, d)
-        ? gregorian::date(y,m,d) : gregorian::date();
+            , d)
+        ? d : gregorian::date();
 }
 int to_code(std::string const& s)
 {
@@ -105,12 +105,110 @@ int to_code(std::string const& s)
     using qi::lit;
 
     int y;
+
     auto it = s.cbegin();
     return qi::parse(it, s.cend(), lit('S') >> (lit('Z')|'H') >> _6digit >>'.'>>ascii::no_case["csv"], y)
         ? y : 0;
 }
 
-//#include <iostream>
+#include <iostream>
+
+int generate(std::istream& ifs, gregorian::date const& date, std::string const& fn)
+{
+    typedef std::string::const_iterator iterator_type;
+
+    static const qi::int_parser<unsigned, 10, 2, 2> _2digit = {};
+    qi::rule<iterator_type, int> rule_sec
+        = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1];
+    using qi::int_;
+    using qi::float_;
+    using ascii::char_;
+
+    struct BSum : array<Av,12>, Av {} buys ={}, sells ={};
+    float ochl[4] = {};
+
+    std::string str; // 092500,48.40,B,200
+    while (getline(ifs, str)) {
+        RecBS rec;
+        iterator_type iter = str.cbegin();
+        bool r = qi::parse(iter, str.cend()
+                , emit(int_) >> (',' >> float_ >> ',' >> char_ >> ',' >> int_)
+                , rec);
+        if (r /*&& iter == end*/) {
+            //std::cout << boost::fusion::tuple_open('[');
+            //std::cout << boost::fusion::tuple_close(']');
+            //std::cout << boost::fusion::tuple_delimiter(", ");
+            //std::cout << "got: " << boost::fusion::as_vector(rec) << std::endl;
+            if (ochl[0] < 0.0001)
+                ochl[0] = ochl[1] = ochl[2] = rec.amount;
+            ochl[3] = rec.amount;
+            if (rec.amount > ochl[1]) {
+                ochl[1] = rec.amount;
+            } else if (rec.amount < ochl[2]) {
+                ochl[2] = rec.amount;
+            }
+
+            rec.amount *= rec.volume;
+
+            auto& bs = (rec.bsflag=='B') ? buys : sells;
+            auto& w = bs[rec.sec < 3600*13 ? abs(rec.sec - 60*(60*9+30))/20%6 : 6+(abs(rec.sec - 3600*13)/20%6)];
+            w.amount += rec.amount;
+            w.volume += rec.volume;
+
+            bs.amount += rec.amount;
+            bs.volume += rec.volume;
+            //bs.push_back(rec);
+
+        } else {
+            std::cerr << "Parsing failed\n";
+            return 2;
+        }
+    }
+
+    gregorian::date::ymd_type ymd = date.year_month_day();
+
+    if (FILE* fp = fopen(fn.c_str(), "a")) {
+        fprintf(fp, "%u%02u%02u\t""%+.3f\t%+.3f\t%+.3f\t%+.3f""\t%+.3f\t%+.3f\t%+.3f\t%+.3f"
+                , unsigned(ymd.year), unsigned(ymd.month), unsigned(ymd.day)
+                , ochl[0], ochl[1], ochl[2], ochl[3]
+                , buys.amount, buys.volume
+                , sells.amount, sells.volume
+              );
+        for (int i = 0; i<12; ++i) {
+            fprintf(fp, "\t%+.3f\t%+.3f\t%+.3f\t%+.3f"
+                    , buys[i].amount , buys[i].volume
+                    , sells[i].amount , sells[i].volume
+                    );
+        }
+        fprintf(fp, "\n");
+        fclose(fp);
+    } else {
+        std::cerr << "fopen fail:" << fn <<'\n';
+        return 3;
+    }
+
+    return 0;
+    //printf("[  ]\t%.2f\t%+.3f\t%+.2f\t%.2f\t%.2f""\t%.2f\t%.2f\t%.2f""\t%.2f,\t%.2f,\t%.2f,\t%.2f""\n"
+    //        , (buys.amount / sells.amount)
+    //        , (buys.amount - sells.amount)/(buys.amount + sells.amount)
+    //        , (buys.amount - sells.amount)/10000
+    //        , (buys.amount + sells.amount)/10000
+    //        , (buys.volume + sells.volume)/100
+    //        //
+    //        , (sells.amount+buys.amount)/(sells.volume+buys.volume)
+    //        , buys.amount/buys.volume
+    //        , sells.amount/sells.volume
+    //        , ochl[0], ochl[1] , ochl[2], ochl[3]
+    //        );
+    //for (int i = 0; i<12; ++i) {
+    //    printf("[%02d]\t%.2f\t%+.2f\t%+.2f\t%.2f\n", i+1
+    //            , (buys[i].amount / sells[i].amount)
+    //            , (buys[i].amount - sells[i].amount)/(buys[i].amount + sells[i].amount)
+    //            , (buys[i].amount - sells[i].amount)/10000
+    //            , (buys[i].volume + sells[i].volume)/(buys.volume + sells.volume)
+    //            );
+    //}
+}
 
 struct XRec {
     gregorian::date date; typedef boost::fusion::vector<int, int, int> date_parts;
@@ -153,7 +251,7 @@ void print(std::istream& ifs, gregorian::date const& date0, gregorian::date cons
             //std::cout << boost::fusion::tuple_delimiter(", ");
             //std::cout << "got: " << boost::fusion::as_vector(xr) << std::endl;
 
-            int volume = xr.s[0].volume + xr.s[1].volume;
+            float volume = xr.s[0].volume + xr.s[1].volume;
             float amount = xr.s[0].amount + xr.s[1].amount;
 
             printf("[  ]\t%.2f\t%+.3f\t%+.2f\t%.2f\t%.2f""\t%.2f\t%.2f\t%.2f""\t%.2f,\t%.2f,\t%.2f,\t%.2f""\n"
@@ -178,151 +276,39 @@ void print(std::istream& ifs, gregorian::date const& date0, gregorian::date cons
             }
 
         } else {
-            fputs("Parsing failed\n", stderr);
+            std::cerr << "Parsing failed\n";
             break;
         }
     }
 }
 
-extern int Fn(FILE* ifs, int code, gregorian::date const& date, FILE* fp);
-int Main(int argc, char* const argv[])
+int main(int argc, char* const argv[])
 {
-    if (argc != 2) {
+    if (argc != 3) {
         return 1; //return print();
     }
-    if (!filesystem::is_directory(argv[1])/* || !filesystem::is_directory(argv[2])*/) {
-        fputs("!filesystem::is_directory\n",stderr);
+    if (!filesystem::is_directory(argv[1]) || !filesystem::is_directory(argv[2])) {
+        std::cerr << "!filesystem::is_directory\n";
         return 2;
     }
 
     gregorian::date date = to_date(argv[1]);
-    // std::cout << argv[1] <<" "<< date <<"\n";
-    //char* const ofn = argv[2]; //filesystem::path const odir(argv[2]);
+    std::cout << argv[1] <<" "<< date <<"\n";
 
+    filesystem::path odir(argv[2]);
     for (auto& x : filesystem::directory_iterator(argv[1])) {
-        auto& cp = x.path();
-        int code = to_code(cp.leaf().string());
-        if (!code || !filesystem::is_regular_file(cp))
+        auto& p = x.path();
+        int code = to_code(p.leaf().string());
+        if (!code || !filesystem::is_regular_file(p))
             continue;
-        //std::cout << (cp / "LEAF").generic_string() <<'\t'<<code<<"\n";
+        //std::cout << (p / "LEAF").generic_string() <<'\t'<<code<<"\n";
 
-        if (FILE* fp = fopen(cp.generic_string().c_str(), "r")) {
-            Fn(fp, code, date, stdout);
-            fclose(fp);
-        }
+        filesystem::ifstream ifs(p);
+        if (!ifs)
+            continue;
+        using boost::format;
+        generate(ifs, date, (odir / str(format("%06d") % code)).generic_string());
     }
-    return 0;
-}
-
-int Fn(FILE* ifs, int code, gregorian::date const& date, FILE* fp)
-{
-    typedef char* iterator_type; // typedef std::string::const_iterator iterator_type;
-
-    static const qi::int_parser<unsigned, 10, 2, 2> _2digit = {};
-    qi::rule<iterator_type, unsigned> rule_sec
-        = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1];
-    using qi::int_;
-    using qi::float_;
-    using ascii::char_;
-    qi::rule<iterator_type, RecBS> rule_recbs = (float_ >> ',' >> char_ >> ',' >> float_);
-
-    array<Av,20> avmax20[2] = {};
-    Av avbuysell[2] = {};
-    //array<Av,12> av12p[2] = {};
-    float ochl[4] = {};
-
-    struct Vols : std::vector<int>/*boost::container::static_vector<int,60*5>*/ {
-        unsigned minutex = std::numeric_limits<unsigned>::max();
-    } vols;
-    vols.reserve(60*5);
-
-    struct AVM1 : Av { unsigned minutex; } avminute1[2] = {};
-
-    char linebuf[128]; // std::string str; // 092500,48.40,B,200
-    while (fgets(linebuf, sizeof(linebuf), ifs)) {
-        RecBS rec = {};
-        unsigned sec = 0;
-        char* pos = linebuf; //str.cbegin();
-        if (qi::parse(pos, &linebuf[128], rule_sec >>','>> rule_recbs, sec, rec) /*&& pos == end*/) {
-            float val = rec.amount;
-            rec.amount = val * rec.volume;
-            bool bsflag = (rec.bsflag == 'B');
-
-            if (ochl[0] < 0.001)
-                ochl[0] = ochl[1] = ochl[2] = val;
-            if (val < ochl[1]) {
-                ochl[1] = val;
-            } else if (val > ochl[2]) {
-                ochl[2] = val;
-            }
-            ochl[3] = val;
-
-            {
-                auto& w = avbuysell[bsflag];
-                w.amount += rec.amount;
-                w.volume += rec.volume;
-            }{
-                //auto& bs12p = av12p[bsflag];
-                //auto& w = bs12p[sec < 3600*13 ? abs(sec - 60*(60*9+30))/20%6 : 6+(abs(sec - 3600*13)/20%6)];
-                //w.amount += rec.amount;
-                //w.volume += rec.volume;
-            }
-
-            unsigned minx = sec/60; //minute index
-
-            auto& m1 = avminute1[bsflag];
-            if (minx == m1.minutex) {
-                m1.amount += rec.amount;
-                m1.volume += rec.volume;
-
-            } else {
-                if (vols.minutex == m1.minutex) {
-                    vols.back() += m1.volume;
-                } else {
-                    vols.push_back(m1.volume);
-                    vols.minutex = m1.minutex;
-                }
-
-                auto& mx = avmax20[bsflag];
-
-                if (m1.volume > mx[0].volume) {
-                    Av* p = std::lower_bound(&mx[0], &mx[0] + mx.size()
-                            , m1, [](Av const& elem, Av const& i){return elem.volume<i.volume;});
-                    std::memmove(&mx[0], &mx[1], sizeof(mx[0])*(p - &mx[0]));
-                    *p = m1;
-                }
-                m1.minutex = minx;
-                m1.amount = rec.amount;
-                m1.volume = rec.volume;
-            }
-
-        } else {
-            fputs("Parsing failed\n",stderr);
-            return 2;
-        }
-    }
-
-    gregorian::date::ymd_type ymd = date.year_month_day();
-    fprintf(fp, "%06d\t%u%02u%02u", code, unsigned(ymd.year), unsigned(ymd.month), unsigned(ymd.day));
-
-    {
-        int m = int(vols.size()*0.3);
-        std::nth_element(vols.begin(), vols.begin()+m, vols.end());
-        unsigned long v = std::accumulate(vols.begin(),vols.begin()+m, 0lu);
-        fprintf(fp, "\t%lu", v);
-    } {
-        Av s[2] = {};
-        for (int i=0; i<2; ++i) {
-            s[i] = std::accumulate(avmax20[i].begin(),avmax20[i].end(), Av{}); //for (auto& v : avmax20[i]) { s[i] = v; }
-        }
-        fprintf(fp, "\t%.1f\t%.2f\t%.1f\t%.2f", s[1].volume, s[1].amount, s[0].volume, s[0].amount);
-    }
-
-    fprintf(fp, "\t%.1f\t%.2f\t%.1f\t%.2f"
-            , avbuysell[1].volume, avbuysell[1].amount, avbuysell[0].volume, avbuysell[0].amount);
-
-    fprintf(fp, "\t%.2f\t%.2f\t%.2f\t%.2f" , ochl[0], ochl[1], ochl[2], ochl[3]);
-    fprintf(fp, "\n");
 
     return 0;
 }

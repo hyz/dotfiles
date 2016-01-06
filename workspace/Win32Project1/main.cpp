@@ -346,9 +346,7 @@ BOOL myflt6(char const* Code, short, int Value[4] , short DataType, NTime, NTime
 BOOL myflt7(char const* Code, short, int Value[4] , short DataType, NTime, NTime, BYTE nTQ, unsigned long);
 BOOL myflt8(char const* Code, short, int Value[4] , short DataType, NTime, NTime, BYTE nTQ, unsigned long);
 BOOL myflt9(char const* Code, short, int Value[4] , short DataType, NTime, NTime, BYTE nTQ, unsigned long);
-BOOL dfcf_read_ZXG(char const* Code, short nSetCode
-		, int Value[4]
-		, short DataType, NTime, NTime, BYTE nTQ, unsigned long);  //选取区段
+
 
 GDef::GDef()
 {
@@ -367,7 +365,7 @@ GDef::GDef()
 	funcs_[7] = myflt7;
 	funcs_[8] = myflt8;
 	funcs_[9] = myflt9;
-	funcs_[22] = dfcf_read_ZXG; //dfcf::read_dfcf_ZXG;
+	//funcs_[22] = dfcf_read_ZXG; //dfcf::read_dfcf_ZXG;
 	funcs_[23] = help_info_dump; //log helper
 }
 GDef::~GDef()

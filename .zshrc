@@ -56,6 +56,8 @@ alias ll='ls -l'
 
 #
 #
+which wget >/dev/null || alias wget='curl -O'
+
 ###########################################################
 ### git clone git://github.com/zsh-users/zsh-completions.git
 #fpath=($HOME/zsh-completions/src $fpath)

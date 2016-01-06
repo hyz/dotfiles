@@ -6,7 +6,7 @@
 int main(int argc, char* const argv[])
 {
     static const char kZXG[] = "自选股"; //UTF-16//{ '\xea', '\x81', '\x09', '\x90', '\xa1', '\x80' }
-    auto print = [](int x){ printf("%06d\n", x); };
+    auto print = [](int x){ printf("%06d\n", x); }; //struct Vec : std::vector<int> { void operator()(int x) { this->push_back(x); } };
 
     char linebuf[1024*8-8];
     while (fgets(linebuf, sizeof(linebuf), stdin)) {
@@ -15,12 +15,15 @@ int main(int argc, char* const argv[])
         it = std::search(it, end, &kZXG[0], &kZXG[sizeof(kZXG)-1]);
         if (it < end) {
             it += sizeof(kZXG)-1;
-            if ( *it++ == '=' /*(it = std::find(it, end, '=')) < end*/) {
-                using namespace boost::spirit;
-                qi::phrase_parse(it, end, (ascii::digit >> '.' >> qi::int_[print]) % ',', ascii::space);
-
-                return 0; //break; // Only first group
-            }
+            using namespace boost::spirit;
+            if (!qi::phrase_parse(it, end , qi::lit('=') , ascii::space))
+                continue;
+            static const qi::int_parser<int,10,6,6> i6 = {};
+            qi::phrase_parse(it, end
+                    , ((ascii::digit >>'.'>> i6[print])
+                        | (+ascii::digit >>'.'>> +ascii::alnum)) % ','
+                    , ascii::space);
+            return 0; // Only first group
         }
     }
     return 1;

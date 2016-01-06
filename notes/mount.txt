@@ -6,3 +6,8 @@
 > mount -t ntfs-3g -o loop,ro,offset=65536 bootmgr.vhd /mnt
 > mount -t vfat -o loop,offset=65536,uid=1000,gid=1000 /esp/windows/boot/bootmgr.vhd mnt
 
+### cygwin
+> mount --help
+> mount
+> mount -o binary,posix=0,user D:/home /home # cygwin
+
