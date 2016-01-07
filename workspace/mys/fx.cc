@@ -287,6 +287,7 @@ void Main(int argc, char* const argv[])
     for (auto && sk : stocks) {
         if (sk.empty() || sk.back().volume<1 || sk.size() < 10)
             continue;
+        auto last = sk.cend()-1;
 
         float vol = Ma<5>(sk.end()-5, sk.end(), Av{}, [&vol](Av){}).volume/5;
         if (vol < 1)
@@ -298,9 +299,9 @@ void Main(int argc, char* const argv[])
         auto i3 = i2+1;
 
         printf("%06d", sk.code);
-        printf("\t%+.2f\t%+.2f\t%+.2f", Vx(i0->close,i1->close), Vx(i1->close,i2->close), Vx(i2->close,i3->close));
-        printf("\t%+.2f\t%+.2f\t%+.2f", Vx(vol,i1->volume), Vx(vol,i2->volume), Vx(vol,i3->volume));
-        printf("\t%.2f\t%.2f""\t%d\n", sk.back().close/sk.eov, sk.back().close*sk.gbActive/100000000, (int)sk.size());
+        printf("\t%.2f\t%.2f\t%.2f", Vx(i0->close,i1->close), Vx(i1->close,i2->close), Vx(i2->close,i3->close));
+        printf("\t%.2f\t%.2f\t%.2f", Vx(vol,i1->volume), Vx(vol,i2->volume), Vx(vol,i3->volume));
+        printf("\t%.2f\t%.2f""\t%d\n", last->close/sk.eov, last->close*sk.gbActive/100000000, (int)sk.size());
     }
     //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
 }

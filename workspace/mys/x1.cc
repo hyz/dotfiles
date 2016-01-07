@@ -28,6 +28,12 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 template <typename T,size_t N> using array = boost::array<T,N>;
 
+#define ERR_EXIT(...) err_exit(__VA_ARGS__,__LINE__)
+void err_exit(std::string msg, int lin_) {
+    fprintf(stderr, "%s :%d", msg.c_str(), lin_);
+    exit(lin_%100 ? lin_%100 : 100);
+}
+
 namespace boost { namespace spirit { namespace traits
 {
     template<>
@@ -80,21 +86,19 @@ struct RecBS : Av {
 };
 BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
-gregorian::date to_date(std::string const& s) // xdetail/20151221/SZ002280.csv
+gregorian::date to_date(std::string const& s) // ./tmp/20151221
 {
     static const qi::int_parser<unsigned, 10, 4, 4> _4digit = {};
     static const qi::int_parser<unsigned, 10, 2, 2> _2digit = {};
-    //using boost::phoenix::ref; using qi::_1;
     using qi::omit;
-    using ascii::digit;
     using qi::lit;
     using ascii::char_;
 
     unsigned y, m, d;
     auto it = s.cbegin();
     return qi::parse(it, s.cend()
-            , omit[-lit('/') >> *(+(char_-'/') >> '/')]
-                  >> _4digit >> _2digit >> _2digit
+            , -lit('/') >> *omit[+(char_-'/') >> '/']
+                 >> _4digit >> _2digit >> _2digit
             , y, m, d)
         ? gregorian::date(y,m,d) : gregorian::date();
 }
@@ -188,15 +192,17 @@ extern int Fn(FILE* ifs, int code, gregorian::date const& date, FILE* fp);
 int Main(int argc, char* const argv[])
 {
     if (argc != 2) {
-        return 1; //return print();
+        ERR_EXIT(argv[0]);
     }
     if (!filesystem::is_directory(argv[1])/* || !filesystem::is_directory(argv[2])*/) {
-        fputs("!filesystem::is_directory\n",stderr);
-        return 2;
+        ERR_EXIT("!filesystem::is_directory");
     }
 
     gregorian::date date = to_date(argv[1]);
-    // std::cout << argv[1] <<" "<< date <<"\n";
+    if (date.is_not_a_date()) {
+        ERR_EXIT("is_not_a_date");
+    }
+
     //char* const ofn = argv[2]; //filesystem::path const odir(argv[2]);
 
     for (auto& x : filesystem::directory_iterator(argv[1])) {
@@ -231,97 +237,88 @@ int Fn(FILE* ifs, int code, gregorian::date const& date, FILE* fp)
     //array<Av,12> av12p[2] = {};
     float ochl[4] = {};
 
-    struct Vols : std::vector<int>/*boost::container::static_vector<int,60*5>*/ {
-        unsigned minutex = std::numeric_limits<unsigned>::max();
-    } vols;
+    std::vector<Av> vols;
     vols.reserve(60*5);
-
-    struct AVM1 : Av { unsigned minutex; } avminute1[2] = {};
+    Av avminute1[2] = {};
+    unsigned minutex = std::numeric_limits<unsigned>::max();
 
     char linebuf[128]; // std::string str; // 092500,48.40,B,200
     while (fgets(linebuf, sizeof(linebuf), ifs)) {
         RecBS rec = {};
         unsigned sec = 0;
         char* pos = linebuf; //str.cbegin();
-        if (qi::parse(pos, &linebuf[128], rule_sec >>','>> rule_recbs, sec, rec) /*&& pos == end*/) {
-            float val = rec.amount;
-            rec.amount = val * rec.volume;
-            bool bsflag = (rec.bsflag == 'B');
-
-            if (ochl[0] < 0.001)
-                ochl[0] = ochl[1] = ochl[2] = val;
-            if (val < ochl[1]) {
-                ochl[1] = val;
-            } else if (val > ochl[2]) {
-                ochl[2] = val;
-            }
-            ochl[3] = val;
-
-            {
-                auto& w = avbuysell[bsflag];
-                w.amount += rec.amount;
-                w.volume += rec.volume;
-            }{
-                //auto& bs12p = av12p[bsflag];
-                //auto& w = bs12p[sec < 3600*13 ? abs(sec - 60*(60*9+30))/20%6 : 6+(abs(sec - 3600*13)/20%6)];
-                //w.amount += rec.amount;
-                //w.volume += rec.volume;
-            }
-
-            unsigned minx = sec/60; //minute index
-
-            auto& m1 = avminute1[bsflag];
-            if (minx == m1.minutex) {
-                m1.amount += rec.amount;
-                m1.volume += rec.volume;
-
-            } else {
-                if (vols.minutex == m1.minutex) {
-                    vols.back() += m1.volume;
-                } else {
-                    vols.push_back(m1.volume);
-                    vols.minutex = m1.minutex;
-                }
-
-                auto& mx = avmax20[bsflag];
-
-                if (m1.volume > mx[0].volume) {
-                    Av* p = std::lower_bound(&mx[0], &mx[0] + mx.size()
-                            , m1, [](Av const& elem, Av const& i){return elem.volume<i.volume;});
-                    std::memmove(&mx[0], &mx[1], sizeof(mx[0])*(p - &mx[0]));
-                    *p = m1;
-                }
-                m1.minutex = minx;
-                m1.amount = rec.amount;
-                m1.volume = rec.volume;
-            }
-
-        } else {
-            fputs("Parsing failed\n",stderr);
-            return 2;
+        if (!qi::parse(pos, &linebuf[128], rule_sec >>','>> rule_recbs, sec, rec) /*&& pos == end*/) {
+            ERR_EXIT("Parsing failed");
         }
+        float val = rec.amount;
+        rec.amount = val * rec.volume;
+        bool bsflag = (rec.bsflag == 'B');
+
+        if (ochl[0] < 0.001)
+            ochl[0] = ochl[1] = ochl[2] = ochl[3] = val;
+        ochl[1] = val;
+        if (val > ochl[2]) {
+            ochl[2] = val;
+        } else if (val < ochl[3]) {
+            ochl[3] = val;
+        }
+
+        {
+            auto& w = avbuysell[bsflag];
+            w.amount += rec.amount;
+            w.volume += rec.volume;
+        }{
+            //auto& bs12p = av12p[bsflag];
+            //auto& w = bs12p[sec < 3600*13 ? abs(sec - 60*(60*9+30))/20%6 : 6+(abs(sec - 3600*13)/20%6)];
+            //w.amount += rec.amount;
+            //w.volume += rec.volume;
+        }
+
+        unsigned minx = sec/60; //minute index
+
+        if (minx == minutex) {
+            auto& m = avminute1[bsflag];
+            m.amount += rec.amount;
+            m.volume += rec.volume;
+            continue;
+        }
+
+        vols.push_back(avminute1[0] + avminute1[1]);
+
+        for (int i=0; i<2; ++i) {
+            auto& mx = avmax20[i];
+            auto& m = avminute1[i];
+            if (m.volume > mx[0].volume) {
+                Av* p = std::lower_bound(&mx[0], &mx[0]+mx.size()
+                        , m, [](Av const& elem, Av const& i){return elem.volume<i.volume;});
+                std::memmove(&mx[0], &mx[1], sizeof(mx[0])*(p - &mx[0]));
+                *p = m;
+            }
+        }
+
+        avminute1[0] = avminute1[1] = Av{};
+        minutex = minx;
     }
 
     gregorian::date::ymd_type ymd = date.year_month_day();
-    fprintf(fp, "%06d\t%u%02u%02u", code, unsigned(ymd.year), unsigned(ymd.month), unsigned(ymd.day));
+    fprintf(fp, "%06d\t%d%02d%02d", code, int(ymd.year), int(ymd.month), int(ymd.day));
 
     {
+        auto cmpvol = [](auto& x, auto& y){ return x.volume<y.volume; };
         int m = int(vols.size()*0.3);
-        std::nth_element(vols.begin(), vols.begin()+m, vols.end());
-        unsigned long v = std::accumulate(vols.begin(),vols.begin()+m, 0lu);
-        fprintf(fp, "\t%lu", v);
-    } {
-        Av s[2] = {};
-        for (int i=0; i<2; ++i) {
-            s[i] = std::accumulate(avmax20[i].begin(),avmax20[i].end(), Av{}); //for (auto& v : avmax20[i]) { s[i] = v; }
-        }
-        fprintf(fp, "\t%.1f\t%.2f\t%.1f\t%.2f", s[1].volume, s[1].amount, s[0].volume, s[0].amount);
+        std::nth_element(vols.begin(), vols.begin()+m, vols.end(), cmpvol);
+        Av a = std::accumulate(vols.begin(),vols.begin()+m, Av{});
+        fprintf(fp, "\t%.2f", a.volume);
+    }
+    for (auto& v : avmax20) {
+        Av a = std::accumulate(v.begin(), v.end(), Av{});
+        fprintf(fp, "\t%.1f\t%.2f", a.volume, a.amount);
+    }
+    for (auto& a : avbuysell) {
+        fprintf(fp, "\t%.1f\t%.2f", a.volume, a.amount);
     }
 
-    fprintf(fp, "\t%.1f\t%.2f\t%.1f\t%.2f"
-            , avbuysell[1].volume, avbuysell[1].amount, avbuysell[0].volume, avbuysell[0].amount);
-
-    fprintf(fp, "\t%.2f\t%.2f\t%.2f\t%.2f" , ochl[0], ochl[1], ochl[2], ochl[3]);
+    fprintf(fp, "\t%.2f\t%.2f\t%.2f\t%.2f", ochl[0], ochl[1], ochl[2], ochl[3]);
     fprintf(fp, "\n");
 
     return 0;
