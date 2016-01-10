@@ -136,7 +136,7 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
     int run(int argc, char* const argv[]);
 
     void step1(int code, filesystem::path const& path, gregorian::date);
-    template <typename F> int step2(F reader);
+    template <typename F> int step2(F reader, int code);
 };
 
 int main(int argc, char* const argv[])
@@ -176,61 +176,100 @@ int Main::run(int argc, char* const argv[])
 void Main::step1(int code, filesystem::path const& path, gregorian::date)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
-        auto reader = [fp](std::vector<fusion::vector<Av,Av>>& vec) {
-            //using qi::long_; //using qi::_val; using qi::_1;
-            qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
-            qi::rule<char*, fusion::vector<Av,Av>(), ascii::space_type> R_ =  R_Av >> R_Av;
+        auto xcsv = [fp](bool& bsflag, Av& av) {
+            static const qi::int_parser<int, 10, 2, 2> _2digit = {};
+            qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
+            using qi::int_;
+            using qi::float_;
+            using ascii::char_;
 
-            char linebuf[1024*10];
+            char linebuf[256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
                     ERR_EXIT("fgets");
                 return 0;
             }
-            int code = 0;
+            int sec;
+            float price;
+            char c;
+            int vol;
+
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , qi::int_ >> *R_
-                        , ascii::space, code, vec) /*&& pos == end*/) {
+                        , rule_sec >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
+                ERR_EXIT("qi::parse %s", pos);
+            }
+            bsflag = (c == 'B');
+            av.volume = vol;
+            av.amount = int(price*100) * av.volume;
+            return sec/60;
+        };
+        auto xtxt = [fp](bool& bsflag, Av& av) {
+            //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
+            //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
+            using qi::int_;
+            using ascii::char_;
+
+            char linebuf[256];
+            if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                if (!feof(fp))
+                    ERR_EXIT("fgets");
+                return 0;
+            }
+            int sec;
+            int price;
+            int vol;
+
+            char* pos = linebuf; //str.cbegin();
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , int_ >> int_ >> int_, ascii::space, sec, price, vol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
-            return code;
+            bsflag = (vol > 0);
+            av.volume = abs(vol);
+            av.amount = price * av.volume;
+            return 60*(sec/10000) + sec/100;
         };
-        step2(reader);
+        if (path.extension() == ".txt")
+            step2(xtxt, code);
+        else
+            step2(xcsv, code);
         fclose(fp);
     }
 }
 
-template <typename F> int Main::step2(F read)
+template <typename F> int Main::step2(F read, int code)
 {
-    std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
-    vec.reserve(60*4+30);
-    while (int code = read(vec)) {
-        if (vec.size() > 60*3) {
-            Vols& vols = const_cast<Vols&>(*setdefault(code));
-            std::vector<long> v;
-            v.reserve(vec.size());
-            for (auto& a : vec) {
-                v.push_back(fusion::at_c<0>(a).volume + fusion::at_c<1>(a).volume);
-                vols.volume += v.back();
-            }
-            std::nth_element(v.begin(), v.begin()+90, v.end());
-            vols.push_back( std::accumulate(v.begin(), v.begin()+90, 1l) );
+    std::vector<array<Av,2>> vols;
+    vols.reserve(60*5);
+
+    array<Av,2> avminute1 = {};
+    bool bsflag = 0;
+    Av av;
+    unsigned minutex = read(bsflag, av);
+    avminute1[bsflag] = av;
+    while (unsigned minx = read(bsflag, av)) {
+        if (minutex != minx) {
+            vols.emplace_back( avminute1 );
+            avminute1 = array<Av,2>{};
+            minutex = minx;
         }
-        vec.clear();
+        avminute1[bsflag] += av;
     }
-    return int(size());
+    if (avminute1[0].volume || avminute1[0].volume)
+        vols.emplace_back( avminute1 );
+
+    fprintf(stdout, "%06d", code);
+    for (auto& bs : vols) {
+        for (auto& x : bs) {
+            fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount);
+        }
+    }
+    fprintf(stdout, "\n");
+
+    return int(vols.size());
 }
 
 Main::~Main()
-{
-    for (auto & vols : *this) {
-        fprintf(stdout, "%06d %lu %03ld", vols.code, vols.size(), std::accumulate(vols.begin(),vols.end(), 0l));
-        long vb = vols.volume / vols.size();
-        for (auto& v : vols) {
-            fprintf(stdout, " \t%03d", int(float(v)/vb*1000));
-        }
-        fprintf(stdout, "\n");
-    }
-}
+{}
 
