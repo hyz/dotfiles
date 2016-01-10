@@ -58,8 +58,8 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av {
-    long amount = 0;
     long volume = 0;
+    long amount = 0;
     Av& operator+=(Av const& lhs) {
         amount += lhs.amount;
         volume += lhs.volume;
@@ -70,7 +70,7 @@ struct Av {
         return (x+=lhs);
     }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,amount)(long,volume))
+BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 gregorian::date _date(std::string const& s) // ./20151221
@@ -113,20 +113,25 @@ static int _code(std::string const& s)
 //#include <boost/multi_index/ordered_index.hpp>
 using namespace boost::multi_index;
 
-struct Vols : std::vector<long>
+struct EDay : fusion::vector<Av,Av>, array<int,4>
+{};
+struct Elem : std::vector<EDay>
 {
     int code = 0;
     long volume = 0;
+    gregorian::date date0;
+    std::vector<gregorian::date> skips;
 };
 
-struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
+struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
               sequenced<>
-            , hashed_unique<member<Vols,int,&Vols::code>> >>
+            , hashed_unique<member<Elem,int,&Elem::code>> >>
 {
-    iterator setdefault(int code) {
+    iterator setdefault(int code, gregorian::date d) {
         auto & idc = this->get<1>();
-        Vols tmp;
+        Elem tmp = {};
         tmp.code = code;
+        tmp.date0 = d;
         return project<0>(idc.insert(tmp).first);
     }
 
@@ -135,8 +140,8 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
     ~Main();
     int run(int argc, char* const argv[]);
 
-    void step1(int code, filesystem::path const& path, gregorian::date);
-    template <typename F> int step2(F reader, int code);
+    void step1(gregorian::date, filesystem::path const& path);
+    template <typename F> int step2(F reader, gregorian::date);
 };
 
 int main(int argc, char* const argv[])
@@ -160,7 +165,7 @@ int Main::run(int argc, char* const argv[])
     if (!filesystem::is_directory(path)) {
         if (!filesystem::is_regular_file(path))
             ERR_EXIT("%s: is_directory|is_regular_file", argv[1]);
-        step1(_code(path.generic_string()), path, _date(path.generic_string()));
+        step1(_date(path.generic_string()), path);
         return 0;
     }
 
@@ -168,108 +173,97 @@ int Main::run(int argc, char* const argv[])
         if (!filesystem::is_regular_file(di.path()))
             continue;
         auto & p = di.path();
-        step1(_code(p.generic_string()), p, _date(p.generic_string()));
+        step1(_date(p.generic_string()), p);
     }
     return 0;
 }
 
-void Main::step1(int code, filesystem::path const& path, gregorian::date)
+void Main::step1(gregorian::date d, filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
-        auto xcsv = [fp](bool& bsflag, Av& av) {
-            static const qi::int_parser<int, 10, 2, 2> _2digit = {};
-            qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
-            using qi::int_;
-            using qi::float_;
-            using ascii::char_;
+        auto reader = [fp](std::vector<fusion::vector<Av,Av>>& vec) {
+            //using qi::long_; //using qi::_val; using qi::_1;
+            qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
+            qi::rule<char*, fusion::vector<Av,Av>(), ascii::space_type> R_ =  R_Av >> R_Av;
 
-            char linebuf[256];
+            char linebuf[1024*8]; //[(60*4+15)*16+256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
                     ERR_EXIT("fgets");
                 return 0;
             }
-            int sec;
-            float price;
-            char c;
-            int vol;
-
+            int code = 0;
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , rule_sec >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse %s", pos);
-            }
-            bsflag = (c == 'B');
-            av.volume = vol;
-            av.amount = int(price*100) * av.volume;
-            return sec/60;
-        };
-        auto xtxt = [fp](bool& bsflag, Av& av) {
-            //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
-            //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
-            using qi::int_;
-            using ascii::char_;
-
-            char linebuf[256];
-            if (!fgets(linebuf, sizeof(linebuf), fp)) {
-                if (!feof(fp))
-                    ERR_EXIT("fgets");
-                return 0;
-            }
-            int sec;
-            int price;
-            int vol;
-
-            char* pos = linebuf; //str.cbegin();
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> int_ >> int_, ascii::space, sec, price, vol) /*&& pos == end*/) {
+                        , qi::int_ >> *R_
+                        , ascii::space, code, vec) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
-            bsflag = (vol > 0);
-            av.volume = abs(vol);
-            av.amount = price * av.volume;
-            return 60*(sec/10000) + sec/100;
+            return code;
         };
-        if (path.extension() == ".txt")
-            step2(xtxt, code);
-        else
-            step2(xcsv, code);
+        step2(reader, d);
         fclose(fp);
     }
 }
 
-template <typename F> int Main::step2(F read, int code)
+template <typename F> int Main::step2(F read, gregorian::date d)
 {
-    std::vector<array<Av,2>> vols;
-    vols.reserve(60*5);
-
-    array<Av,2> avminute1 = {};
-    bool bsflag = 0;
-    Av av;
-    unsigned minutex = read(bsflag, av);
-    avminute1[bsflag] = av;
-    while (unsigned minx = read(bsflag, av)) {
-        if (minutex != minx) {
-            vols.emplace_back( avminute1 );
-            avminute1 = array<Av,2>{};
-            minutex = minx;
+    std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
+    vec.reserve(60*4+30);
+    while (int code = read(vec)) {
+        Elem& els = const_cast<Elem&>(*setdefault(code, d));
+        if (vec.size() > 60*3) {
+            EDay ed = {};
+            fusion::vector<Av,Av>& avs = ed;
+            array<int,4>& ochl = ed;
+            Av av = fusion::at_c<0>(vec.front()) + fusion::at_c<1>(vec.front());
+            ochl[0] = ochl[1] = ochl[2] = ochl[3] = av.amount/av.volume;
+            for (auto& fv : vec) {
+                auto& xs = fusion::at_c<0>(fv);
+                auto& xb = fusion::at_c<1>(fv);
+                fusion::at_c<0>(avs) += xs;
+                fusion::at_c<1>(avs) += xb;
+                Av av = xs + xb;
+                auto x = av.amount/av.volume;
+                ochl[1] = x;
+                if (x > ochl[2]) {
+                    ochl[2] = x;
+                } else if (x < ochl[3]) {
+                    ochl[3] = x;
+                }
+            }
+            els.push_back( ed );
+        } else {
+            els.skips.push_back(d);
         }
-        avminute1[bsflag] += av;
+        vec.clear();
     }
-    if (avminute1[0].volume || avminute1[0].volume)
-        vols.emplace_back( avminute1 );
-
-    fprintf(stdout, "%06d", code);
-    for (auto& bs : vols) {
-        for (auto& x : bs) {
-            fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount);
-        }
-    }
-    fprintf(stdout, "\n");
-
-    return int(vols.size());
+    return int(size());
 }
 
 Main::~Main()
-{}
+{
+    for (Elem const & sk : *this) {
+        fprintf(stdout, "%06d %lu %lu", sk.code, sk.skips.size(), sk.size());
+        for (EDay const & v : sk) {
+            fusion::vector<Av,Av> const& avs = v;
+            Av xs = fusion::at_c<0>(avs);
+            fprintf(stdout, "\t%lu %lu", xs.volume, xs.amount);
+            Av xb = fusion::at_c<1>(avs);
+            fprintf(stdout, "\t%lu %lu", xb.volume, xb.amount);
+
+            array<int,4> const& ochl = v;
+            fprintf(stdout, "\t%d %d %d %d", ochl[0], ochl[1], ochl[2], ochl[3]);
+        }
+
+        gregorian::date::ymd_type ymd = sk.date0.year_month_day();
+        fprintf(stdout, "\t%02d%02d", int(ymd.month), int(ymd.day));
+
+        for (auto& d : sk.skips) {
+            gregorian::date::ymd_type ymd = d.year_month_day();
+            fprintf(stdout, "\t%02d%02d", int(ymd.month), int(ymd.day));
+        }
+        fprintf(stdout, "\n");
+    }
+}
 

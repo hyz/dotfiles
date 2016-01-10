@@ -58,8 +58,8 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av {
-    long amount = 0;
     long volume = 0;
+    long amount = 0;
     Av& operator+=(Av const& lhs) {
         amount += lhs.amount;
         volume += lhs.volume;
@@ -70,7 +70,7 @@ struct Av {
         return (x+=lhs);
     }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,amount)(long,volume))
+BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 gregorian::date _date(std::string const& s) // ./20151221
@@ -113,19 +113,19 @@ static int _code(std::string const& s)
 //#include <boost/multi_index/ordered_index.hpp>
 using namespace boost::multi_index;
 
-struct Vols : std::vector<long>
+struct Elem : std::vector<long>
 {
     int code = 0;
     long volume = 0;
 };
 
-struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
+struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
               sequenced<>
-            , hashed_unique<member<Vols,int,&Vols::code>> >>
+            , hashed_unique<member<Elem,int,&Elem::code>> >>
 {
     iterator setdefault(int code) {
         auto & idc = this->get<1>();
-        Vols tmp;
+        Elem tmp = {};
         tmp.code = code;
         return project<0>(idc.insert(tmp).first);
     }
@@ -136,7 +136,7 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
     int run(int argc, char* const argv[]);
 
     void step1(int code, filesystem::path const& path, gregorian::date);
-    template <typename F> int step2(F reader);
+    template <typename F> int step2(F reader, gregorian::date);
 };
 
 int main(int argc, char* const argv[])
@@ -173,7 +173,7 @@ int Main::run(int argc, char* const argv[])
     return 0;
 }
 
-void Main::step1(int code, filesystem::path const& path, gregorian::date)
+void Main::step1(int code, filesystem::path const& path, gregorian::date d)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         auto reader = [fp](std::vector<fusion::vector<Av,Av>>& vec) {
@@ -181,7 +181,7 @@ void Main::step1(int code, filesystem::path const& path, gregorian::date)
             qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
             qi::rule<char*, fusion::vector<Av,Av>(), ascii::space_type> R_ =  R_Av >> R_Av;
 
-            char linebuf[1024*10];
+            char linebuf[1024*8]; //[(60*4+15)*16+256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
                     ERR_EXIT("fgets");
@@ -196,26 +196,26 @@ void Main::step1(int code, filesystem::path const& path, gregorian::date)
             }
             return code;
         };
-        step2(reader);
+        step2(reader, d);
         fclose(fp);
     }
 }
 
-template <typename F> int Main::step2(F read)
+template <typename F> int Main::step2(F read, gregorian::date d)
 {
     std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
     while (int code = read(vec)) {
+        Elem& els = const_cast<Elem&>(*setdefault(code));
         if (vec.size() > 60*3) {
-            Vols& vols = const_cast<Vols&>(*setdefault(code));
             std::vector<long> v;
             v.reserve(vec.size());
             for (auto& a : vec) {
                 v.push_back(fusion::at_c<0>(a).volume + fusion::at_c<1>(a).volume);
-                vols.volume += v.back();
+                els.volume += v.back();
             }
             std::nth_element(v.begin(), v.begin()+90, v.end());
-            vols.push_back( std::accumulate(v.begin(), v.begin()+90, 1l) );
+            els.push_back( std::accumulate(v.begin(), v.begin()+90, 1l) );
         }
         vec.clear();
     }
@@ -224,10 +224,10 @@ template <typename F> int Main::step2(F read)
 
 Main::~Main()
 {
-    for (auto & vols : *this) {
-        fprintf(stdout, "%06d %lu %03ld", vols.code, vols.size(), std::accumulate(vols.begin(),vols.end(), 0l));
-        long vb = vols.volume / vols.size();
-        for (auto& v : vols) {
+    for (Elem const & sk : *this) {
+        fprintf(stdout, "%06d %lu %03ld", sk.code, sk.size(), std::accumulate(sk.begin(),sk.end(), 0l));
+        long vb = sk.volume / sk.size();
+        for (auto & v : sk) {
             fprintf(stdout, " \t%03d", int(float(v)/vb*1000));
         }
         fprintf(stdout, "\n");

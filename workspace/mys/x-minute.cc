@@ -58,8 +58,8 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av {
-    long amount = 0;
     long volume = 0;
+    long amount = 0;
     Av& operator+=(Av const& lhs) {
         amount += lhs.amount;
         volume += lhs.volume;
@@ -70,7 +70,7 @@ struct Av {
         return (x+=lhs);
     }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,amount)(long,volume))
+BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 gregorian::date _date(std::string const& s) // ./20151221
@@ -262,7 +262,7 @@ template <typename F> int Main::step2(F read, int code)
     fprintf(stdout, "%06d", code);
     for (auto& bs : vols) {
         for (auto& x : bs) {
-            fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount);
+            fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount/100);
         }
     }
     fprintf(stdout, "\n");
