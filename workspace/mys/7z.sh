@@ -9,7 +9,7 @@ for x in 2016010{0..9}; do
         7z x -otmp/ $zf
     fi
 
-    if bin/x1 tmp/$x > xbs/$x ; then
+    if bin/x5 tmp/$x > xbs/$x ; then
         rm -rf tmp/$x
         echo "$x: OK"
     else

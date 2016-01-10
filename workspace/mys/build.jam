@@ -30,7 +30,8 @@ exe s-inters : inters.cc : <link>static ;
 
 install $(HOME)/bin : f1 f2   f5 f6 f7 f8 ls-dczxg f9 s-diff fx s-inters ;
 
+exe x5 : x5.cc /boost//filesystem : <link>static ;
 exe x1 : x1.cc /boost//filesystem : <link>static ;
-# exe x2 : x2.cc /boost//filesystem : <link>static ;
-install bin : x1 ;
+exe x2 : x2.cc /boost//filesystem : <link>static ;
+install bin : x5 x1 x2 ;
 
