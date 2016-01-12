@@ -160,15 +160,19 @@ int Main::run(int argc, char* const argv[])
     if (!filesystem::is_directory(path)) {
         if (!filesystem::is_regular_file(path))
             ERR_EXIT("%s: is_directory|is_regular_file", argv[1]);
-        step1(_code(path.generic_string()), path, _date(path.generic_string()));
+        if (argc != 3) {
+            ERR_EXIT("%s: argc>2", argv[0]);
+        }
+        step1(_code(path.generic_string()), path, _date(argv[2]));
         return 0;
     }
 
+    gregorian::date date = _date(path.generic_string());
     for (auto& di : filesystem::directory_iterator(path)) {
         if (!filesystem::is_regular_file(di.path()))
             continue;
         auto & p = di.path();
-        step1(_code(p.generic_string()), p, _date(p.generic_string()));
+        step1(_code(p.generic_string()), p, date);
     }
     return 0;
 }

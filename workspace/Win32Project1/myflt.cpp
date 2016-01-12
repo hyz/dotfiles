@@ -17,10 +17,47 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-BOOL myflt9(char const* Code, short nSetCode
+struct Excls : std::set<int>
+{
+    Excls(boost::filesystem::path fp) {
+        if (boost::filesystem::exists(fp)) {
+            boost::filesystem::ifstream ifs(fp);
+            std::string s;
+            while (getline(ifs, s)) {
+                this->insert(atoi(s.c_str()));
+            }
+        }
+    }
+};
+
+BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
+    static std::set<int> s;
+    if (s.empty()) {
+		s.insert(0);
+        std::ifstream ifs(str(boost::format("D:\\home\\wood\\_%02d") % args[1]));
+        std::string line;
+        while (getline(ifs, line)) {
+            s.insert(atoi(line.c_str()));
+        }
+    }
+
+    return s.find(atoi(Code)) != s.end();
+}
+
+BOOL myflt1(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    static Excls excls("D:\\home\\wood\\_excls");
+
+    int icode = atoi(Code);
+    if (excls.find(icode) != excls.end()) {
+        return 0;
+    }
+
 	STOCKINFO si = {};
 	REPORTDAT2 rp = {};
 	std::vector<HISDAT> his(args[1] ? args[1]*20 : 50);
@@ -48,6 +85,7 @@ BOOL myflt9(char const* Code, short nSetCode
             return 0;
         }
     }
+
 	using boost::format;
 	boost::filesystem::path fp = "D:\\home\\wood\\workspace\\mys";
 	fp /= str(format("%02d") % args[3]);
@@ -99,24 +137,7 @@ BOOL myflt9(char const* Code, short nSetCode
     return 0;
 }
 
-BOOL myflt0(char const* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-    static std::set<int> s;
-    if (s.empty()) {
-		s.insert(0);
-        std::ifstream ifs(str(boost::format("D:\\home\\wood\\%02d") % args[1]));
-        std::string line;
-        while (getline(ifs, line)) {
-            s.insert(atoi(line.c_str()));
-        }
-    }
-
-    return s.find(atoi(Code)) != s.end();
-}
-
-BOOL myflt1(char const* Code, short nSetCode
+BOOL myflt9(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -198,7 +219,7 @@ BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static std::ofstream ofs("D:\\home\\wood\\codes.sb", std::ios::trunc);
+    static std::ofstream ofs("D:\\home\\wood\\codes_", std::ios::trunc);
     ofs << Code <<'\t'<< nSetCode << '\n';
 	return 0;
 }

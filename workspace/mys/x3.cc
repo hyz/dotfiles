@@ -1,26 +1,37 @@
+#include <stdio.h>
+#include <array>
+#include <vector>
+#include <algorithm>
+#include <memory>
+#include <string>
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/qi_repeat.hpp>
+//#include <boost/spirit/include/phoenix.hpp>
+//#include <boost/spirit/include/phoenix_core.hpp>
+//#include <boost/spirit/include/phoenix_operator.hpp>
+//#include <boost/spirit/include/phoenix_object.hpp>
+//#include <boost/spirit/include/phoenix_core.hpp>
+//#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/include/vector.hpp>
 //#include <boost/fusion/include/io.hpp>
 //#include <boost/fusion/adapted/boost_array.hpp>
-//#include <boost/spirit/include/phoenix.hpp>
-//namespace phoenix = boost::phoenix;
-#include <boost/array.hpp>
-#include <boost/container/static_vector.hpp>
+//#include <boost/container/static_vector.hpp>
+#include <boost/function_output_iterator.hpp>
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/format.hpp>
-#include <string>
+//#include <boost/filesystem/fstream.hpp>
+//#include <boost/format.hpp>
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+//#include <boost/multi_index/random_access_index.hpp>
+//#include <boost/multi_index/ordered_index.hpp>
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
@@ -29,12 +40,13 @@ template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
     exit(127);
 }
 
+//namespace phoenix = boost::phoenix;
 namespace filesystem = boost::filesystem;
 namespace gregorian = boost::gregorian;
 namespace fusion = boost::fusion;
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
-template <typename T,size_t N> using array = boost::array<T,N>;
+template <typename T,size_t N> using array = std::array<T,N>;
 
 namespace boost { namespace spirit { namespace traits
 {
@@ -60,6 +72,7 @@ namespace boost { namespace spirit { namespace traits
 struct Av {
     long volume = 0;
     long amount = 0;
+
     Av& operator+=(Av const& lhs) {
         amount += lhs.amount;
         volume += lhs.volume;
@@ -68,6 +81,15 @@ struct Av {
     Av operator+(Av const& lhs) {
         Av x = *this;
         return (x+=lhs);
+    }
+    Av& operator-=(Av const& lhs) {
+        amount -= lhs.amount;
+        volume -= lhs.volume;
+        return *this;
+    }
+    Av operator-(Av const& lhs) {
+        Av x = *this;
+        return (x-=lhs);
     }
 };
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
@@ -105,18 +127,18 @@ static int _code(std::string const& s)
     return y;
 }
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-//#include <boost/multi_index/random_access_index.hpp>
-//#include <boost/multi_index/ordered_index.hpp>
 using namespace boost::multi_index;
 
-struct Elem : std::vector<long>
+struct Elem : array<std::vector<long>,2> //std::vector<long> vols[2];
 {
+    std::vector<long> vless;
     int code = 0;
     long volume = 0;
+    long amount = 0;
+
+    array<int,2> lohi = {{0,0}};
+
+    int n_day() const { return int(begin()->size()); }
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
@@ -135,8 +157,8 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     ~Main();
     int run(int argc, char* const argv[]);
 
-    void step1(int code, filesystem::path const& path, gregorian::date);
-    template <typename F> int step2(F reader, gregorian::date);
+    void prepare(gregorian::date, filesystem::path const& path);
+    template <typename F> int process(F reader, gregorian::date);
 };
 
 int main(int argc, char* const argv[])
@@ -152,30 +174,32 @@ int main(int argc, char* const argv[])
 
 int Main::run(int argc, char* const argv[])
 {
-    if (argc != 2) {
-        ERR_EXIT("%s: argc>1", argv[0]);
+    if (argc < 2) {
+        ERR_EXIT("%s argc: %d", argv[0], argc);
     }
-    filesystem::path path(argv[1]);
 
-    if (!filesystem::is_directory(path)) {
-        if (!filesystem::is_regular_file(path))
-            ERR_EXIT("%s: is_directory|is_regular_file", argv[1]);
-        step1(_code(path.generic_string()), path, _date(path.generic_string()));
+    if (!filesystem::is_directory(argv[1])) {
+        for (int i=1; i<argc; ++i) {
+            if (!filesystem::is_regular_file(argv[i]))
+                continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+            prepare(_date(argv[i]), argv[i]);
+        }
         return 0;
     }
 
-    for (auto& di : filesystem::directory_iterator(path)) {
+    for (auto& di : filesystem::directory_iterator(argv[1])) {
         if (!filesystem::is_regular_file(di.path()))
             continue;
         auto & p = di.path();
-        step1(_code(p.generic_string()), p, _date(p.generic_string()));
+        prepare(_date(p.generic_string()), p);
     }
     return 0;
 }
 
-void Main::step1(int code, filesystem::path const& path, gregorian::date d)
+void Main::prepare(gregorian::date d, filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         auto reader = [fp](std::vector<fusion::vector<Av,Av>>& vec) {
             //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
@@ -196,26 +220,52 @@ void Main::step1(int code, filesystem::path const& path, gregorian::date d)
             }
             return code;
         };
-        step2(reader, d);
-        fclose(fp);
+        process(reader, d);
     }
 }
 
-template <typename F> int Main::step2(F read, gregorian::date d)
+template <typename F> int Main::process(F read, gregorian::date d)
 {
     std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
     while (int code = read(vec)) {
-        Elem& els = const_cast<Elem&>(*setdefault(code));
         if (vec.size() > 60*3) {
-            std::vector<long> v;
-            v.reserve(vec.size());
+            Elem& vss = const_cast<Elem&>(*setdefault(code));
+
+            std::vector<long> vs[2];
+            std::vector<long> vl;
+            Av av = {};
+            vs[0].reserve(vec.size());
+            vs[1].reserve(vec.size());
+            vl.reserve(vec.size());
+
             for (auto& a : vec) {
-                v.push_back(fusion::at_c<0>(a).volume + fusion::at_c<1>(a).volume);
-                els.volume += v.back();
+                av += fusion::at_c<0>(a) + fusion::at_c<1>(a);
+
+                long sv = fusion::at_c<0>(a).volume;
+                long bv = fusion::at_c<1>(a).volume;
+                vss.volume += (sv + bv);
+
+                vs[0].push_back(sv);
+                vs[1].push_back(bv);
+                vl.push_back(sv + bv);
             }
-            std::nth_element(v.begin(), v.begin()+90, v.end());
-            els.push_back( std::accumulate(v.begin(), v.begin()+90, 1l) );
+
+            int x = int((av.amount*100) / av.volume);
+            if (vss.lohi[0] == 0) {
+                vss.lohi[0] = vss.lohi[1] = x;
+            } else if (x < vss.lohi[0]) {
+                vss.lohi[0] = x;
+            } else if (x > vss.lohi[1]) {
+                vss.lohi[1] = x;
+            }
+
+            for (int i=0; i < 2; ++i) {
+                std::nth_element(vs[i].begin(), vs[i].end()-15, vs[i].end());
+                vss[i].push_back( std::accumulate(vs[i].end()-15, vs[i].end(), 0l) );
+            }
+            std::nth_element(vl.begin(), vl.begin()+90, vl.end());
+            vss.vless.push_back( std::accumulate(vl.begin(), vl.begin()+90, 0l) );
         }
         vec.clear();
     }
@@ -224,12 +274,34 @@ template <typename F> int Main::step2(F read, gregorian::date d)
 
 Main::~Main()
 {
-    for (Elem const & sk : *this) {
-        fprintf(stdout, "%06d %lu %03ld", sk.code, sk.size(), std::accumulate(sk.begin(),sk.end(), 0l));
-        long vb = sk.volume / sk.size();
-        for (auto & v : sk) {
-            fprintf(stdout, " \t%03d", int(float(v)/vb*1000));
+    for (Elem const & vss : *this) {
+        fprintf(stdout, "%06d %u", vss.code, vss.n_day());
+        fprintf(stdout, " %03d", int((abs(vss.lohi[1] - vss.lohi[0])*1000)/vss.lohi[0]));
+
+        array<long,3> maxv[2] = {};
+        {
+            auto last_n = std::min(7, vss.n_day());
+            auto last_m = std::min(3, last_n);
+            for (int i=0; i < 2; ++i) {
+                //std::nth_element(vss[i].end()-last_n, vss[i].end()-last_m, vss[i].end());
+                //std::copy(vss[i].end()-last_m, vss[i].end(), maxv[i].begin());
+            }
         }
+
+        if (long fvb = vss.volume / vss.n_day()) {
+            auto & vl = vss.vless;
+            long sl = std::accumulate(vl.begin(),vl.end(),0l);
+            fprintf(stdout, "\t%03d", int((sl*1000)/fvb));
+            {
+                long vb = sl/vl.size();
+                long x = std::accumulate(vl.begin(),vl.end(),0l, [&vb](long o, long v){ return o+abs(v-vb); });
+                fprintf(stdout, " %03d", int((x*1000)/vl.size()/vb));
+            }
+            for (long v : vl)
+                fprintf(stdout, " %03d", int((v*1000)/fvb));
+        }
+
+        fprintf(stdout, "\t%04d %04d", vss.lohi[0], vss.lohi[1]);
         fprintf(stdout, "\n");
     }
 }

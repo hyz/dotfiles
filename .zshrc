@@ -135,6 +135,7 @@ fi
 export ANT_HOME=/usr/share/apache-ant
 export ANT_ROOT=/bin
 
+PATH=$PATH:bin:../bin
 export PATH
 
 # limit coredumpsize 0
