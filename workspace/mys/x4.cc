@@ -138,7 +138,7 @@ struct Elem //: array<std::vector<long>,2> //std::vector<long> vols[2];
     std::vector<fusion::vector<Av,Av>> vmass = {};
 
     fusion::vector<Av,Av> sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    array<int,2> lohi = {{0,0}};
+    array<int,2> lohi = {};
 
     int n_day() const { return int(vless.size()); }
 };
@@ -159,8 +159,8 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     ~Main();
     int run(int argc, char* const argv[]);
 
-    void prepare(gregorian::date, filesystem::path const& path);
-    template <typename F> int process(F reader, gregorian::date);
+    void process1(gregorian::date, filesystem::path const& path);
+    template <typename F> int proc1(F reader, gregorian::date);
 };
 
 int main(int argc, char* const argv[])
@@ -184,7 +184,7 @@ int Main::run(int argc, char* const argv[])
         for (int i=1; i<argc; ++i) {
             if (!filesystem::is_regular_file(argv[i]))
                 continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-            prepare(_date(argv[i]), argv[i]);
+            process1(_date(argv[i]), argv[i]);
         }
         return 0;
     }
@@ -193,12 +193,12 @@ int Main::run(int argc, char* const argv[])
         if (!filesystem::is_regular_file(di.path()))
             continue;
         auto & p = di.path();
-        prepare(_date(p.generic_string()), p);
+        process1(_date(p.generic_string()), p);
     }
     return 0;
 }
 
-void Main::prepare(gregorian::date d, filesystem::path const& path)
+void Main::process1(gregorian::date d, filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
@@ -222,11 +222,11 @@ void Main::prepare(gregorian::date d, filesystem::path const& path)
             }
             return code;
         };
-        process(reader, d);
+        proc1(reader, d);
     }
 }
 
-template <typename F> int Main::process(F read, gregorian::date d)
+template <typename F> int Main::proc1(F read, gregorian::date d)
 {
     std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
@@ -242,15 +242,25 @@ template <typename F> int Main::process(F read, gregorian::date d)
             auto av = std::accumulate(vec.begin(), vec.end(), fusion::vector<Av,Av>{}, plus);
             vss.sum = plus(vss.sum, av);
             vss.all.push_back(av);
+
             {
-                Av v = fusion::at_c<0>(av) + fusion::at_c<1>(av);
-                int x = int((v.amount*100) / v.volume);
+                auto less = [](auto&x, auto&y) {
+                    auto a = fusion::at_c<0>(x) + fusion::at_c<1>(x);
+                    auto b = fusion::at_c<1>(y) + fusion::at_c<0>(y);
+                    return (a.amount*100/a.volume) < (b.amount*100/b.volume);
+                };
+                auto p = std::minmax_element(vec.begin(), vec.end(), less);
+                Av a = fusion::at_c<0>(*p.first ) + fusion::at_c<1>(*p.first );
+                Av b = fusion::at_c<0>(*p.second) + fusion::at_c<1>(*p.second);
+                int x = int(a.amount*100 / a.volume);
+                int y = int(b.amount*100 / b.volume);
                 if (vss.lohi[0] == 0) {
-                    vss.lohi[0] = vss.lohi[1] = x;
+                    vss.lohi[0] = x;
+                    vss.lohi[1] = y;
                 } else if (x < vss.lohi[0]) {
                     vss.lohi[0] = x;
-                } else if (x > vss.lohi[1]) {
-                    vss.lohi[1] = x;
+                } else if (y > vss.lohi[1]) {
+                    vss.lohi[1] = y;
                 }
             }
 
@@ -266,32 +276,6 @@ template <typename F> int Main::process(F read, gregorian::date d)
             std::nth_element(vec.end()-80, vec.end()-20, vec.end(), fvcmp);
             auto vm = std::accumulate(vec.end()-20, vec.end(), fusion::vector<Av,Av>{}, plus);
             vss.vmass.push_back(vm);
-
-            //std::vector<long> vs[2];
-            //std::vector<long> vl;
-            //Av av = {};
-            //vs[0].reserve(vec.size());
-            //vs[1].reserve(vec.size());
-            //vl.reserve(vec.size());
-
-            //for (auto& a : vec) {
-            //    av += fusion::at_c<0>(a) + fusion::at_c<1>(a);
-            //    vss.av += av;
-
-            //    long sv = fusion::at_c<0>(a).volume;
-            //    long bv = fusion::at_c<1>(a).volume; // vss.volume += (sv + bv);
-
-            //    vs[0].push_back(sv);
-            //    vs[1].push_back(bv);
-            //    vl.push_back(sv + bv);
-            //}
-
-            //for (int i=0; i < 2; ++i) {
-            //    std::nth_element(vs[i].begin(), vs[i].end()-15, vs[i].end());
-            //    vss[i].push_back( std::accumulate(vs[i].end()-15, vs[i].end(), 0l) );
-            //}
-            //std::nth_element(vl.begin(), vl.begin()+90, vl.end());
-            //vss.vless.push_back( std::accumulate(vl.begin(), vl.begin()+90, 0l) );
         }
         vec.clear();
     }
@@ -306,29 +290,31 @@ Main::~Main()
     };
 
     for (Elem const & vss : *this) {
-        fprintf(stdout, "%06d %u", vss.code, vss.n_day());
-        fprintf(stdout, " %03d", int((abs(vss.lohi[1] - vss.lohi[0])*1000)/vss.lohi[0]));
+        fprintf(stdout, "%06d", vss.code);
 
-        Av bs = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
-
+        Av sv = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
         {
+            auto n = abs(vss.lohi[1] - vss.lohi[0]);
+            auto v = sv.amount*100/sv.volume;
+            fprintf(stdout, "\t%03d", int(n*1000/v));
+        } {
             auto& vl = vss.vless;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av sel = fusion::at_c<0>(v);
             Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/bs.volume), int(sel.volume*1000/bs.volume));
+            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
         } {
             auto& vl = vss.vmass;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av sel = fusion::at_c<0>(v);
             Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/bs.volume), int(sel.volume*1000/bs.volume));
+            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
         } {
             auto& vl = vss.all;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av sel = fusion::at_c<0>(v);
             Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/bs.volume), int(sel.volume*1000/bs.volume));
+            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
         }
 
 //        array<long,3> maxv[2] = {};
@@ -354,8 +340,8 @@ Main::~Main()
 //                fprintf(stdout, " %03d", int((v*1000)/fvb));
 //        }
 //
-        fprintf(stdout, "\t%04d %04d", vss.lohi[0], vss.lohi[1]);
-        fprintf(stdout, "%d\n", int(vss.vless.size()==vss.vmass.size() && vss.all.size()==vss.vless.size()));
+        fprintf(stdout, "\t%d %05d %05d", vss.n_day(), vss.lohi[0], vss.lohi[1]);
+        fprintf(stdout, "\t%d\n", int(vss.vless.size()==vss.vmass.size() && vss.all.size()==vss.vless.size()));
     }
 }
 
