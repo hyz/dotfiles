@@ -32,6 +32,7 @@ exe x5 : x5.cc /boost//filesystem : <link>static ;
 exe x-minute : x-minute.cc /boost//filesystem : <link>static ;
 exe x-day : x-day.cc /boost//filesystem : <link>static ;
 exe x3 : x3.cc /boost//filesystem : <link>static ;
+exe x4 : x4.cc /boost//filesystem : <link>static ;
 
 install bin : x5 x-minute x-day x3
     f1 f2   f5 f7 f8 ls-dczxg f9 s-diff s-inters f6 fx ;
