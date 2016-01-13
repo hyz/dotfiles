@@ -265,8 +265,8 @@ template <typename F> int Main::proc1(F read, gregorian::date d)
             }
 
             auto fvcmp = [](auto& x, auto& y){
-                return fusion::at_c<0>(x).volume + fusion::at_c<1>(x).volume
-                    < fusion::at_c<0>(y).volume + fusion::at_c<1>(y).volume;
+                using fusion::at_c;
+                return at_c<0>(x).volume+at_c<1>(x).volume < at_c<0>(y).volume+at_c<1>(y).volume;
             };
 
             std::nth_element(vec.begin(), vec.end()-80, vec.end(), fvcmp);
@@ -290,31 +290,29 @@ Main::~Main()
     };
 
     for (Elem const & vss : *this) {
-        fprintf(stdout, "%06d", vss.code);
+        printf("%06d", vss.code);
 
         Av sv = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
         {
-            auto n = abs(vss.lohi[1] - vss.lohi[0]);
-            auto v = sv.amount*100/sv.volume;
-            fprintf(stdout, "\t%03d", int(n*1000/v));
-        } {
-            auto& vl = vss.vless;
-            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
-            Av sel = fusion::at_c<0>(v);
-            Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
-        } {
-            auto& vl = vss.vmass;
-            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
-            Av sel = fusion::at_c<0>(v);
-            Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
+            auto& lh = vss.lohi;
+            printf(" %03d", abs(lh[1]-lh[0])*1000 / std::min(lh[0],lh[1]));
         } {
             auto& vl = vss.all;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
-            Av sel = fusion::at_c<0>(v);
+            Av buy = fusion::at_c<1>(v); //Av bs = buy + fusion::at_c<0>(v);
+            printf("\t%03d", int(buy.volume*1000/sv.volume));
+        } {
+            auto& vl = vss.vless;
+            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av buy = fusion::at_c<1>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(sel.volume*1000/sv.volume));
+            Av bs = buy + fusion::at_c<0>(v);
+            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(buy.volume*1000/bs.volume));
+        } {
+            auto& vl = vss.vmass;
+            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
+            Av buy = fusion::at_c<1>(v);
+            Av bs = buy + fusion::at_c<0>(v);
+            printf("\t%03d %03d", int(buy.volume*1000/sv.volume), int(buy.volume*1000/bs.volume));
         }
 
 //        array<long,3> maxv[2] = {};
