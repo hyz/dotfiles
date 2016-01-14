@@ -60,7 +60,7 @@ BOOL myflt1(char const* Code, short nSetCode
 
 	STOCKINFO si = {};
 	REPORTDAT2 rp = {};
-	std::vector<HISDAT> his(args[1] ? args[1]*20 : 50);
+	std::vector<HISDAT> his;
 
     {
         int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
@@ -71,14 +71,17 @@ BOOL myflt1(char const* Code, short nSetCode
         if (si.ActiveCapital < 1) {
             return 0;
         }
-    } {
+    }
+    if (!args[2]) {
+        his.resize(args[1] ? args[1]*20 : 50);
         int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
         if (n < 1)/*(n < (int)his.size())*/ {
             //LOG << Code << "PER_DAY error"<< n;
             return 0;
         }
         his.resize(n);
-    } if(false){
+    }
+    if(false){
         int n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &rp, 1, t0, t1, nTQ, 0);
         if (n < 0 || rp.Volume*100 < 1) {
             //LOG << Code << "REPORT_DAT2 error" << n << "Vol" << rp.Volume <<"Price"<< rp.Now << rp.Close;
@@ -122,7 +125,8 @@ BOOL myflt1(char const* Code, short nSetCode
         //float		J_mgsy;				//每股收益(折算成全年的)
         //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
 
-    } {
+    }
+    if (!his.empty()) {
         boost::filesystem::ofstream ofs(fp/Code, std::ios::trunc);
         for (auto it=his.begin(); it!=his.end(); ++it) {
             auto& a = *it;
