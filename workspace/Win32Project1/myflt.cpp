@@ -51,7 +51,7 @@ BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Excls excls("D:\\home\\wood\\_excls");
+    static Excls excls("D:\\home\\wood\\._sexcl");
 
     int icode = atoi(Code);
     if (excls.find(icode) != excls.end()) {
@@ -101,8 +101,8 @@ BOOL myflt1(char const* Code, short nSetCode
 		static boost::filesystem::ofstream ofs(fp/"lis", std::ios::trunc);
         ofs << Code
             //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
-            <<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
-            <<'\t'<< format("%.2f\t%.2f") % si.J_mgsy % si.J_mgsy2
+            <<'\t'<< format("%.0f\t%.0f\t%.0f\t%.0f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
+            <<'\t'<< format("%.0f\t%.0f") % (si.J_mgsy*100) % (100*si.J_mgsy2)
             //<<'\t'<< format("%.2f\t%.2f\t%.2f""\t""%.2f\t%.2f\t%.2f\t%.2f")
             //            % si.J_yysy % si.J_yycb % si.J_yyly
             //            % si.J_lyze % si.J_shly % si.J_jly % si.J_jyl

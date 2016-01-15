@@ -254,13 +254,14 @@ template <typename F> int Main::step2(F read, int code)
     avminute1[bsflag] = av;
     while (unsigned minx = read(bsflag, av)) {
         if (minutex != minx) {
-            vols.emplace_back( avminute1 );
+            if (avminute1[0].volume || avminute1[1].volume)
+                vols.emplace_back( avminute1 );
             avminute1 = array<Av,2>{};
             minutex = minx;
         }
         avminute1[bsflag] += av;
     }
-    if (avminute1[0].volume || avminute1[0].volume)
+    if (avminute1[0].volume || avminute1[1].volume)
         vols.emplace_back( avminute1 );
 
     fprintf(stdout, "%06d", code);

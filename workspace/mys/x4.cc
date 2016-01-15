@@ -133,11 +133,11 @@ using namespace boost::multi_index;
 struct SInfo
 {
     long gbx, gbtotal;
-    float eov;
-    //000001	11804054528.00	14308676608.00	0.00	0.00	1.65	0.00	1	0
-    //int_ >> long_ >>".00">> long_ >>".00" >> omit[float_>>float_] >> float_
+    int eov;
+    //000001	11804054528	14308676608	0	0	165	0	1	0
+    //int_ >> long_ >>long_ >> omit[long_]>>omit[long_] >> int_
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(float,eov))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
 struct Elem : SInfo
 {
@@ -151,7 +151,7 @@ struct Elem : SInfo
     fusion::vector<Av,Av> sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
     array<int,2> lohi = {};
 
-    int n_day() const { return int(vless.size()); }
+    int n_day() const { return int(all.size()); }
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
@@ -164,12 +164,13 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     struct init_;
 };
 
-struct Main::init_ : std::unordered_map<int,SInfo>
+struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 {
-    Main* m_;
+    Main* m_ = 0;
+    Elem tmp_ = {};
     init_(Main* p, int argc, char* const argv[]);
 
-    void init_sinf(char const* fn);
+    void loadsi(char const* fn);
     Elem* address(int code);
     void process1(gregorian::date, filesystem::path const& path);
     template <typename F> int proc1(F reader, gregorian::date);
@@ -186,37 +187,39 @@ int main(int argc, char* const argv[])
     return 1;
 }
 
-void Main::init_::init_sinf(char const* fn)
+void Main::init_::loadsi(char const* fn)
 {
     if (FILE* fp = fopen(fn, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
-        using qi::float_;
         qi::rule<char*, SInfo(), ascii::space_type> R_
-            = long_ >>".00">> long_ >>".00" >> qi::omit[float_>>float_] >> float_;
+            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
 
         char linebuf[1024];
-        while (!fgets(linebuf, sizeof(linebuf), fp)) {
+        while (fgets(linebuf, sizeof(linebuf), fp)) {
             int code;
-            SInfo a = {};
+            SInfo si = {};
             char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> R_ //long_ >>".00">> long_ >>".00" >> qi::omit[float_>>float_] >> float_
-                        , ascii::space, code, a)) {
+                        , int_ >> R_
+                        , ascii::space, code, si)) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
-            this->emplace(code, a);
+            if (si.gbx > 0)
+                this->emplace(code, si);
+            else
+                fprintf(stderr, "%d\n", code);
         }
-    }
+    } else
+        ERR_EXIT("fopen: %s", fn);
 }
 
 Elem* Main::init_::address(int code) //-> Main::iterator
 {
-    static Elem tmp = {};
-    tmp.code = code;
+    tmp_.code = code;
     auto & idc = m_->get<1>();
-    auto p = idc.insert(tmp);
+    auto p = idc.insert(tmp_);
     Elem& el = const_cast<Elem&>(*p.first);
     if (p.second) {
         auto it = this->find(code);
@@ -234,21 +237,19 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
-    init_sinf("D:/home/wood/._sinfo");
+    loadsi("/cygdrive/d/home/wood/._sinfo");
 
-    if (!filesystem::is_directory(argv[1])) {
-        for (int i=1; i<argc; ++i) {
-            if (!filesystem::is_regular_file(argv[i]))
-                continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-            process1(_date(argv[i]), argv[i]);
+    if (filesystem::is_directory(argv[1])) {
+        for (auto& di : filesystem::directory_iterator(argv[1])) {
+            if (!filesystem::is_regular_file(di.path()))
+                continue;
+            auto & p = di.path();
+            process1(_date(p.generic_string()), p);
         }
-    }
-
-    for (auto& di : filesystem::directory_iterator(argv[1])) {
-        if (!filesystem::is_regular_file(di.path()))
-            continue;
-        auto & p = di.path();
-        process1(_date(p.generic_string()), p);
+    } else for (int i=1; i<argc; ++i) {
+        if (!filesystem::is_regular_file(argv[i]))
+            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+        process1(_date(argv[i]), argv[i]);
     }
 }
 
@@ -282,14 +283,14 @@ void Main::init_::process1(gregorian::date d, filesystem::path const& path)
 
 template <typename F> int Main::init_::proc1(F read, gregorian::date d)
 {
+    auto plus = [](fusion::vector<Av,Av> const& a, fusion::vector<Av,Av> const& x) {
+        using fusion::at_c;
+        return fusion::make_vector(at_c<0>(a)+at_c<0>(x), at_c<1>(a)+at_c<1>(x));
+    };
     std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
     while (int code = read(vec)) {
         if (vec.size() > 60*3) {
-            auto plus = [](fusion::vector<Av,Av> const& x, fusion::vector<Av,Av> const& y) {
-                using fusion::at_c;
-                return fusion::make_vector(at_c<0>(x)+at_c<0>(y), at_c<1>(x)+at_c<1>(y));
-            };
             Elem* vss = this->address(code);
             if (!vss) {
                 fprintf(stderr, "%d address-fail\n", code);
@@ -357,35 +358,36 @@ int Main::run(int argc, char* const argv[])
 
     for (Elem const & vss : *this) {
         int n_day = vss.n_day();
-        Av sumv = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
+        Av total = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
 
-        printf("%06d %2d", vss.code, n_day);
+        printf("%06d", vss.code);
         {
-            long vola = sumv.volume/n_day;
+            long vola = total.volume/n_day;
             auto xps = [&vola](long a, fusion::vector<Av,Av> const& x){
                 return a + abs((fusion::at_c<0>(x).volume+fusion::at_c<1>(x).volume) - vola);
             };
             long vx = std::accumulate(vss.all.begin(), vss.all.end(), 0l, xps);
-            Av buy = fusion::at_c<1>(vss.sum); //Av bs = buy + fusion::at_c<0>(sumv);
-            printf("\t%3ld %3ld", 1000*vx/n_day/vola, 1000*buy.volume/sumv.volume);
+            Av buy = fusion::at_c<1>(vss.sum); //Av bs = buy + fusion::at_c<0>(total);
+            printf("\t%03ld %03ld %03ld"
+                    , 1000*vx/n_day/vola, 1000*total.volume/n_day/vss.gbx, 1000*buy.volume/total.volume);
         } {
             auto& vl = vss.vless;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av buy = fusion::at_c<1>(v);
             Av both = buy + fusion::at_c<0>(v);
-            printf("\t%3d %3d", int(buy.volume*1000/sumv.volume), int(buy.volume*1000/both.volume));
+            printf("\t%03d %03d", int(buy.volume*1000/total.volume), int(buy.volume*1000/both.volume));
         } {
             auto& vl = vss.vmass;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
             Av buy = fusion::at_c<1>(v);
             Av both = buy + fusion::at_c<0>(v);
-            printf("\t%3d %3d", int(buy.volume*1000/sumv.volume), int(buy.volume*1000/both.volume));
+            printf("\t%03d %03d", int(buy.volume*1000/total.volume), int(buy.volume*1000/both.volume));
         } {
             auto& lh = vss.lohi;
-            printf("\t%3d", abs(lh[1]-lh[0])*1000 / std::min(lh[0],lh[1]));
+            printf("\t%03d", abs(lh[1]-lh[0])*1000 / std::min(lh[0],lh[1]));
 
             Av buy = fusion::at_c<1>(vss.sum);
-            printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), sumv.amount*100/std::max(sumv.volume,1l));
+            printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), total.amount*100/std::max(total.volume,1l));
         }
 //        array<long,3> maxv[2] = {};
 //        {
@@ -410,8 +412,9 @@ int Main::run(int argc, char* const argv[])
 //                fprintf(stdout, " %3d", int((v*1000)/fvb));
 //        }
 //
-        fprintf(stdout, "\t%d\n", int(vss.vless.size()==vss.vmass.size() && vss.all.size()==vss.vless.size()));
+        fprintf(stdout, "\t%d\t%d\n", n_day, int(vss.vless.size()==vss.vmass.size() && vss.all.size()==vss.vless.size()));
     }
     return 0;
 }
+// 0c 0x 0换手 0买比 0买比1 0买比2 0买比3 0买比4 0振幅 0买价 0均价 days x
 
