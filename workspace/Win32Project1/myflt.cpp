@@ -8,7 +8,8 @@
 #include <fstream>
 #include <boost/config/warning_disable.hpp>
 //#include <boost/algorithm/string.hpp>
-#include <set>
+//#include <set>
+#include <unordered_set>
 //#include <iostream>
 //#include "log.h"
 #include "tdxif.h"
@@ -17,9 +18,10 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-struct Excls : std::set<int>
+struct codes_set : std::unordered_set<int>
 {
-    Excls(boost::filesystem::path fp) {
+    codes_set(boost::filesystem::path fp)
+    {
         if (boost::filesystem::exists(fp)) {
             boost::filesystem::ifstream ifs(fp);
             std::string s;
@@ -28,33 +30,27 @@ struct Excls : std::set<int>
             }
         }
     }
+    bool exist(int c) const { return find(c)!=end(); }
 };
 
 BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static std::set<int> s;
-    if (s.empty()) {
-		s.insert(0);
-        std::ifstream ifs(str(boost::format("D:\\home\\wood\\_%02d") % args[1]));
-        std::string line;
-        while (getline(ifs, line)) {
-            s.insert(atoi(line.c_str()));
-        }
-    }
-
-    return s.find(atoi(Code)) != s.end();
+    static codes_set excls("D:\\home\\wood\\._sexcl");
+    static codes_set s(str(boost::format("D:\\home\\wood\\_%02d") % args[1]));
+    int c = atoi(Code);
+    return (s.exist(c) && !excls.exist(c));
 }
 
 BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Excls excls("D:\\home\\wood\\._sexcl");
+    static codes_set excls("D:\\home\\wood\\._sexcl");
 
     int icode = atoi(Code);
-    if (excls.find(icode) != excls.end()) {
+    if (excls.exist(icode)) {
         return 0;
     }
 
@@ -99,15 +95,15 @@ BOOL myflt1(char const* Code, short nSetCode
 
     {
 		static boost::filesystem::ofstream ofs(fp/"lis", std::ios::trunc);
-        ofs << Code
+        ofs << Code<<' '<<nSetCode
             //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
-            <<'\t'<< format("%.0f\t%.0f\t%.0f\t%.0f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
-            <<'\t'<< format("%.0f\t%.0f") % (si.J_mgsy*100) % (100*si.J_mgsy2)
+            <<'\t'<< format("%.0f %.0f %.0f %.0f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
+            <<'\t'<< format("%.0f %.0f") % (si.J_mgsy*100) % (100*si.J_mgsy2)
             //<<'\t'<< format("%.2f\t%.2f\t%.2f""\t""%.2f\t%.2f\t%.2f\t%.2f")
             //            % si.J_yysy % si.J_yycb % si.J_yyly
             //            % si.J_lyze % si.J_shly % si.J_jly % si.J_jyl
             <<'\t'<< int(si.J_hy) // <<'\t'<< int(si.J_zjhhy *100)
-			<<'\t'<< nSetCode << '\n' << std::flush;
+			<<'\n'<< std::flush;
         //float       J_yysy;			//营业收入 # 营业收入(元)
         //float       J_yycb;			//营业成本
         //float       J_yyly;			//营业利润
@@ -132,8 +128,8 @@ BOOL myflt1(char const* Code, short nSetCode
             auto& a = *it;
             ofs //    << Code <<'\t'
                 << a.Time
-                <<'\t'<< format("%.2f\t%.2f") % a.a.Amount % a.fVolume
-                <<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f") % a.Open % a.High % a.Low % a.Close
+                <<'\t'<< format("%.0f %.0f")% a.fVolume % a.a.Amount 
+                <<'\t'<< format("%.0f %.0f %.0f %.0f") % (100*a.Open) % (100*a.Close) % (100*a.High) % (100*a.Low)
                 <<'\n';
         }
     }

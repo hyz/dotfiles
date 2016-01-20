@@ -8,16 +8,16 @@
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_repeat.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/vector.hpp>
+//#include <boost/fusion/include/io.hpp>
+//#include <boost/fusion/adapted/boost_array.hpp>
 //#include <boost/spirit/include/phoenix.hpp>
 //#include <boost/spirit/include/phoenix_core.hpp>
 //#include <boost/spirit/include/phoenix_operator.hpp>
 //#include <boost/spirit/include/phoenix_object.hpp>
 //#include <boost/spirit/include/phoenix_core.hpp>
 //#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/fusion/include/vector.hpp>
-//#include <boost/fusion/include/io.hpp>
-//#include <boost/fusion/adapted/boost_array.hpp>
 //#include <boost/container/static_vector.hpp>
 #include <boost/function_output_iterator.hpp>
 
@@ -96,6 +96,27 @@ struct Av {
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
+typedef unsigned code_t;
+inline code_t make_code(int szsh, int numb) { return ((szsh<<24)|numb); }
+inline int numb(code_t v_) { return v_&0x0ffffff; }
+inline int szsh(code_t v_) { return (v_>>24)&0xff; }
+static code_t _code(std::string const& s)
+{
+    static const qi::int_parser<int,10,6,6> _6digit = {};
+    using ascii::char_;
+    using qi::lit;
+    struct SZSH_ : qi::symbols<char, int> { SZSH_() { add ("SZ",0) ("SH",1); } } SZSH;
+
+    int x, y;
+    auto it = s.cbegin();
+    if (!qi::parse(it, s.cend()
+            , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
+                 >> SZSH >> _6digit // >>'.'>>ascii::no_case[lit("csv")|"txt"]
+            , x, y))
+        ERR_EXIT("%s: not-a-code", s.c_str());
+    return make_code(x,y);
+}
+
 gregorian::date _date(std::string const& s) // ./20151221
 {
     static const qi::int_parser<unsigned,10,4,4> _4digit = {};
@@ -111,21 +132,6 @@ gregorian::date _date(std::string const& s) // ./20151221
             , y, m, d))
         ERR_EXIT("%s: not-a-date", s.c_str());
     return gregorian::date(y,m,d);
-}
-static int _code(std::string const& s)
-{
-    static const qi::int_parser<int,10,6,6> _6digit = {};
-    using ascii::char_;
-    using qi::lit;
-
-    int y;
-    auto it = s.cbegin();
-    if (!qi::parse(it, s.cend()
-            , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
-                 >> lit('S') >> (lit('Z')|'H') >> _6digit >>'.'>>ascii::no_case[lit("csv")|"txt"]
-            , y))
-        ERR_EXIT("%s: not-a-code", s.c_str());
-    return y;
 }
 
 using namespace boost::multi_index;
@@ -161,6 +167,7 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     Main(int argc, char* const argv[]);
     int run(int argc, char* const argv[]);
 
+    gregorian::date date;
     struct init_;
 };
 
@@ -172,8 +179,8 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 
     void loadsi(char const* fn);
     Elem* address(int code);
-    void process1(gregorian::date, filesystem::path const& path);
-    template <typename F> int proc1(F reader, gregorian::date);
+    void process1(filesystem::path const& path);
+    template <typename F> int proc1(F reader);
 };
 
 int main(int argc, char* const argv[])
@@ -198,16 +205,16 @@ void Main::init_::loadsi(char const* fn)
 
         char linebuf[1024];
         while (fgets(linebuf, sizeof(linebuf), fp)) {
-            int code;
+            int szsh=0, code;
             SInfo si = {};
             char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> R_
-                        , ascii::space, code, si)) {
+                        , int_ >> int_ >> R_
+                        , ascii::space, code, szsh, si)) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
             if (si.gbx > 0)
-                this->emplace(code, si);
+                this->emplace(make_code(szsh,code), si);
             else
                 fprintf(stderr, "%d\n", code);
         }
@@ -244,16 +251,18 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
-            process1(_date(p.generic_string()), p);
+            process1( p);
+            m_->date = std::min(m_->date, _date(p.generic_string()));
         }
     } else for (int i=1; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        process1(_date(argv[i]), argv[i]);
+        process1( argv[i]);
+        m_->date = std::min(m_->date, _date(argv[i]));
     }
 }
 
-void Main::init_::process1(gregorian::date d, filesystem::path const& path)
+void Main::init_::process1(filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
@@ -266,22 +275,22 @@ void Main::init_::process1(gregorian::date d, filesystem::path const& path)
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
                     ERR_EXIT("fgets");
-                return 0;
+                return 0u;
             }
-            int code = 0;
+            int szsh=0, code = 0;
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , qi::int_ >> *R_
-                        , ascii::space, code, vec) /*&& pos == end*/) {
+                        , qi::int_ >> qi::int_ >> *R_
+                        , ascii::space, code, szsh, vec) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
-            return code;
+            return make_code(szsh,code);
         };
-        proc1(reader, d);
+        proc1(reader);
     }
 }
 
-template <typename F> int Main::init_::proc1(F read, gregorian::date d)
+template <typename F> int Main::init_::proc1(F read)
 {
     auto plus = [](fusion::vector<Av,Av> const& a, fusion::vector<Av,Av> const& x) {
         using fusion::at_c;
@@ -289,61 +298,65 @@ template <typename F> int Main::init_::proc1(F read, gregorian::date d)
     };
     std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
-    while (int code = read(vec)) {
-        if (vec.size() > 60*3) {
-            Elem* vss = this->address(code);
-            if (!vss) {
-                fprintf(stderr, "%d address-fail\n", code);
-                continue;
-            }
-
-            auto av = std::accumulate(vec.begin(), vec.end(), fusion::vector<Av,Av>{}, plus);
-            vss->sum = plus(vss->sum, av);
-            vss->all.push_back(av);
-
-            {
-                auto less = [](auto&x, auto&y) {
-                    auto a = fusion::at_c<0>(x) + fusion::at_c<1>(x);
-                    auto b = fusion::at_c<1>(y) + fusion::at_c<0>(y);
-                    return (a.amount*100/a.volume) < (b.amount*100/b.volume);
-                };
-                auto p = std::minmax_element(vec.begin(), vec.end(), less);
-                Av a = fusion::at_c<0>(*p.first ) + fusion::at_c<1>(*p.first );
-                Av b = fusion::at_c<0>(*p.second) + fusion::at_c<1>(*p.second);
-                int x = int(a.amount*100 / a.volume);
-                int y = int(b.amount*100 / b.volume);
-                if (vss->lohi[0] == 0) {
-                    vss->lohi[0] = x;
-                    vss->lohi[1] = y;
-                } else if (x < vss->lohi[0]) {
-                    vss->lohi[0] = x;
-                } else if (y > vss->lohi[1]) {
-                    vss->lohi[1] = y;
-                }
-            }
-
-            auto fvcmp = [](auto& x, auto& y){
-                using fusion::at_c;
-                return at_c<0>(x).volume+at_c<1>(x).volume < at_c<0>(y).volume+at_c<1>(y).volume;
-            };
-
-            std::nth_element(vec.begin(), vec.end()-80, vec.end(), fvcmp);
-            auto vl = std::accumulate(vec.begin(), vec.end()-80, fusion::vector<Av,Av>{}, plus);
-            vss->vless.push_back(vl);
-
-            std::nth_element(vec.end()-80, vec.end()-20, vec.end(), fvcmp);
-            auto vm = std::accumulate(vec.end()-20, vec.end(), fusion::vector<Av,Av>{}, plus);
-            vss->vmass.push_back(vm);
-
-            auto vk = std::accumulate(vec.end()-80, vec.end()-20, fusion::vector<Av,Av>{}, plus);
-            vss->voths.push_back(vk);
+    while (code_t code = read(vec)) {
+        if (vec.size() < 100)
+            continue;
+        Elem* vss = this->address(code);
+        if (!vss) {
+            fprintf(stderr, "%d address-fail\n", code);
+            continue;
         }
+
+        auto av = std::accumulate(vec.begin(), vec.end(), fusion::vector<Av,Av>{}, plus);
+        vss->sum = plus(vss->sum, av);
+        vss->all.push_back(av);
+
+        {
+            auto less = [](auto&x, auto&y) {
+                auto a = fusion::at_c<0>(x) + fusion::at_c<1>(x);
+                auto b = fusion::at_c<1>(y) + fusion::at_c<0>(y);
+                return (a.amount*100/a.volume) < (b.amount*100/b.volume);
+            };
+            auto p = std::minmax_element(vec.begin(), vec.end(), less);
+            Av a = fusion::at_c<0>(*p.first ) + fusion::at_c<1>(*p.first );
+            Av b = fusion::at_c<0>(*p.second) + fusion::at_c<1>(*p.second);
+            int x = int(a.amount*100 / a.volume);
+            int y = int(b.amount*100 / b.volume);
+            if (vss->lohi[0] == 0) {
+                vss->lohi[0] = x;
+                vss->lohi[1] = y;
+            } else if (x < vss->lohi[0]) {
+                vss->lohi[0] = x;
+            } else if (y > vss->lohi[1]) {
+                vss->lohi[1] = y;
+            }
+        }
+
+        auto fvcmp = [](auto& x, auto& y){
+            using fusion::at_c;
+            return at_c<0>(x).volume+at_c<1>(x).volume < at_c<0>(y).volume+at_c<1>(y).volume;
+        };
+
+        int n = int(3/10.0 * (float)vec.size());
+        int m = int(3/10.0 * float(vec.size()-n));
+
+        std::nth_element(vec.begin(), vec.end()-n, vec.end(), fvcmp);
+        auto vl = std::accumulate(vec.begin(), vec.end()-n, fusion::vector<Av,Av>{}, plus);
+        vss->vless.push_back(vl);
+
+        std::nth_element(vec.end()-n, vec.end()-m, vec.end(), fvcmp);
+        auto vm = std::accumulate(vec.end()-m, vec.end(), fusion::vector<Av,Av>{}, plus);
+        vss->vmass.push_back(vm);
+
+        auto vk = std::accumulate(vec.end()-n, vec.end()-m, fusion::vector<Av,Av>{}, plus);
+        vss->voths.push_back(vk);
         vec.clear();
     }
     return int(size());
 }
 
 Main::Main(int argc, char* const argv[])
+    : date(gregorian::day_clock::local_day())
 {
     init_ ini(this, argc, argv);
     (void)ini;
@@ -352,69 +365,66 @@ Main::Main(int argc, char* const argv[])
 int Main::run(int argc, char* const argv[])
 {
     auto plus = [](fusion::vector<Av,Av> const& x, fusion::vector<Av,Av> const& y) {
-        using fusion::at_c;
-        return fusion::make_vector(at_c<0>(x)+at_c<0>(y), at_c<1>(x)+at_c<1>(y));
+        using namespace fusion;
+        return make_vector(at_c<0>(x)+at_c<0>(y), at_c<1>(x)+at_c<1>(y));
     };
 
-    for (Elem const & vss : *this) {
-        int n_day = vss.n_day();
-        Av total = fusion::at_c<0>(vss.sum) + fusion::at_c<1>(vss.sum);
+    fusion::vector<Av,Av> _sum = {};
 
-        printf("%06d", vss.code);
+    for (Elem const & vss : *this) {
+        _sum = plus(_sum, vss.sum);
+        int n_day = vss.n_day();
+        Av buy = fusion::at_c<1>(vss.sum);
+        Av sell = fusion::at_c<0>(vss.sum);
+        Av total = buy + sell;
+
+//002783   428	332 000	520	520 797	520 644	4737	12718 12628	1
+        printf("%06d %5ld", numb(vss.code), (buy-sell).amount/100000);
         {
             long vola = total.volume/n_day;
             auto xps = [&vola](long a, fusion::vector<Av,Av> const& x){
-                return a + abs((fusion::at_c<0>(x).volume+fusion::at_c<1>(x).volume) - vola);
+                return a + labs((fusion::at_c<0>(x).volume+fusion::at_c<1>(x).volume) - vola);
             };
             long vx = std::accumulate(vss.all.begin(), vss.all.end(), 0l, xps);
-            Av buy = fusion::at_c<1>(vss.sum); //Av bs = buy + fusion::at_c<0>(total);
-            printf("\t%03ld %03ld %03ld"
-                    , 1000*vx/n_day/vola, 1000*total.volume/n_day/vss.gbx, 1000*buy.volume/total.volume);
+            printf("\t%03ld %04ld", 1000*vx/n_day/vola, 1000*total.volume/vss.gbx);
+            printf("\t%03ld", 1000*buy.volume/total.volume);
         } {
             auto& vl = vss.vless;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
-            Av buy = fusion::at_c<1>(v);
-            Av both = buy + fusion::at_c<0>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/total.volume), int(buy.volume*1000/both.volume));
+            Av buy_ = fusion::at_c<1>(v);
+            Av both = buy_ + fusion::at_c<0>(v);
+            printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
         } {
             auto& vl = vss.vmass;
             auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
-            Av buy = fusion::at_c<1>(v);
-            Av both = buy + fusion::at_c<0>(v);
-            printf("\t%03d %03d", int(buy.volume*1000/total.volume), int(buy.volume*1000/both.volume));
+            Av buy_ = fusion::at_c<1>(v);
+            Av both = buy_ + fusion::at_c<0>(v);
+            printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
         } {
             auto& lh = vss.lohi;
-            printf("\t%03d", abs(lh[1]-lh[0])*1000 / std::min(lh[0],lh[1]));
-
-            Av buy = fusion::at_c<1>(vss.sum);
+            printf("\t%03d", (lh[1]-lh[0])*100/lh[0]);
             printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), total.amount*100/std::max(total.volume,1l));
         }
-//        array<long,3> maxv[2] = {};
-//        {
-//            auto last_n = std::min(7, vss.n_day());
-//            auto last_m = std::min(3, last_n);
-//            for (int i=0; i < 2; ++i) {
-//                //std::nth_element(vss[i].end()-last_n, vss[i].end()-last_m, vss[i].end());
-//                //std::copy(vss[i].end()-last_m, vss[i].end(), maxv[i].begin());
-//            }
-//        }
-//
-//        if (long fvb = vss.av.volume / vss.n_day()) {
-//            auto & vl = vss.vless;
-//            long sl = std::accumulate(vl.begin(),vl.end(),0l);
-//            fprintf(stdout, "\t%3d", int((sl*1000)/fvb));
-//            {
-//                long vb = sl/vl.size();
-//                long x = std::accumulate(vl.begin(),vl.end(),0l, [&vb](long o, long v){ return o+abs(v-vb); });
-//                fprintf(stdout, " %3d", int((x*1000)/vl.size()/vb));
-//            }
-//            for (long v : vl)
-//                fprintf(stdout, " %3d", int((v*1000)/fvb));
-//        }
-//
-        fprintf(stdout, "\t%d\t%d\n", n_day, int(vss.vless.size()==vss.vmass.size() && vss.all.size()==vss.vless.size()));
+        fprintf(stdout, "\t%d\n", n_day);
     }
+    if (!empty()) {
+        constexpr int W_=10000;
+        constexpr int Y_=10000*10000;
+        Av buy = fusion::at_c<1>(_sum);
+        Av sell = fusion::at_c<0>(_sum);
+        Av total = buy + sell;
+        long a = (buy.amount-sell.amount);
+        long v = (buy.volume-sell.volume);
+        gregorian::date::ymd_type ymd = date.year_month_day();
+
+        fprintf(stderr,"%04d%02d%02d", int(ymd.year), int(ymd.month), int(ymd.day));
+        fprintf(stderr,"\t%8.2f %8.2f %03ld"
+                , total.amount/double(Y_), a/double(Y_), labs(a*100)/(total.amount/10));
+        fprintf(stderr,"\t%6.2f %6.2f %03ld"
+                , total.volume/double(Y_), v/double(Y_), labs(v*100)/(total.volume/10));
+        fprintf(stderr, "\n");
+    }
+
     return 0;
 }
-// 0c 0x 0换手 0买比 0买比1 0买比2 0买比3 0买比4 0振幅 0买价 0均价 days x
 

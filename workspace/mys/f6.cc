@@ -191,6 +191,7 @@ int Main::run(int argc, char* const argv[])
 void Main::prepare(gregorian::date d, filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         auto reader = [fp](std::vector<fusion::vector<Av,Av>>& vec) {
             //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
@@ -212,7 +213,6 @@ void Main::prepare(gregorian::date d, filesystem::path const& path)
             return code;
         };
         process(reader, d);
-        fclose(fp);
     }
 }
 

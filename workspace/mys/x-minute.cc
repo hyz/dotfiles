@@ -89,20 +89,28 @@ gregorian::date _date(std::string const& s) // ./20151221
         ERR_EXIT("%s: not-a-date", s.c_str());
     return gregorian::date(y,m,d);
 }
-static int _code(std::string const& s)
+struct Code
+{
+    Code(int tag, int numb) :val((tag<<24)|numb) {}
+    unsigned val;
+    int numb() const { return val&0x0ffffff; }
+    int tag() const { return (val>>24)&0xff; }
+};
+static Code _code(std::string const& s)
 {
     static const qi::int_parser<int,10,6,6> _6digit = {};
     using ascii::char_;
     using qi::lit;
+    struct SZSH_ : qi::symbols<char, int> { SZSH_() { add ("SZ",0) ("SH",1); } } SZSH;
 
-    int y;
+    int x, y;
     auto it = s.cbegin();
     if (!qi::parse(it, s.cend()
             , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
-                 >> lit('S') >> (lit('Z')|'H') >> _6digit >>'.'>>ascii::no_case[lit("csv")|"txt"]
-            , y))
+                 >> SZSH >> _6digit >>'.'>>ascii::no_case[lit("csv")|"txt"]
+            , x, y))
         ERR_EXIT("%s: not-a-code", s.c_str());
-    return y;
+    return Code(x,y);
 }
 
 #include <boost/multi_index_container.hpp>
@@ -132,11 +140,11 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
 
     Main(int argc, char* const argv[])
     {}
-    ~Main();
+    //~Main();
     int run(int argc, char* const argv[]);
 
-    void step1(int code, filesystem::path const& path, gregorian::date);
-    template <typename F> int step2(F reader, int code);
+    void step1(Code code, filesystem::path const& path, gregorian::date);
+    template <typename F> int step2(F reader, Code code);
 };
 
 int main(int argc, char* const argv[])
@@ -177,7 +185,7 @@ int Main::run(int argc, char* const argv[])
     return 0;
 }
 
-void Main::step1(int code, filesystem::path const& path, gregorian::date)
+void Main::step1(Code code, filesystem::path const& path, gregorian::date)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         auto xcsv = [fp](bool& bsflag, Av& av) {
@@ -242,7 +250,7 @@ void Main::step1(int code, filesystem::path const& path, gregorian::date)
     }
 }
 
-template <typename F> int Main::step2(F read, int code)
+template <typename F> int Main::step2(F read, Code code)
 {
     std::vector<array<Av,2>> vols;
     vols.reserve(60*5);
@@ -264,7 +272,7 @@ template <typename F> int Main::step2(F read, int code)
     if (avminute1[0].volume || avminute1[1].volume)
         vols.emplace_back( avminute1 );
 
-    fprintf(stdout, "%06d", code);
+    fprintf(stdout, "%06d %d", code.numb(), code.tag());
     for (auto& bs : vols) {
         for (auto& x : bs) {
             fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount/100);
@@ -274,7 +282,4 @@ template <typename F> int Main::step2(F read, int code)
 
     return int(vols.size());
 }
-
-Main::~Main()
-{}
 

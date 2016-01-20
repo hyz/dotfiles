@@ -73,7 +73,7 @@ typedef struct tag_NTime
     //}
 
 	friend std::ostream& operator<<(std::ostream& os, tag_NTime const& a) {
-		boost::format ft("%u-%02u-%02u");
+		boost::format ft("%u%02u%02u");
 		return os << ft % a.year % (int)a.month % (int)a.day;// % (int)a.hour % (int)a.minute % (int)a.second;
 	}
 	bool operator<(const tag_NTime& o) const {
