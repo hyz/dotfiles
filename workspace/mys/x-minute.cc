@@ -188,39 +188,12 @@ int Main::run(int argc, char* const argv[])
 void Main::step1(Code code, filesystem::path const& path, gregorian::date)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
-        auto xcsv = [fp](bool& bsflag, Av& av) {
-            static const qi::int_parser<int, 10, 2, 2> _2digit = {};
-            qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
-            using qi::int_;
-            using qi::float_;
-            using ascii::char_;
-
-            char linebuf[256];
-            if (!fgets(linebuf, sizeof(linebuf), fp)) {
-                if (!feof(fp))
-                    ERR_EXIT("fgets");
-                return 0;
-            }
-            int sec;
-            float price;
-            char c;
-            int vol;
-
-            char* pos = linebuf; //str.cbegin();
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , rule_sec >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse %s", pos);
-            }
-            bsflag = (c == 'B');
-            av.volume = vol;
-            av.amount = int(price*100) * av.volume;
-            return sec/60;
-        };
-        auto xtxt = [fp](bool& bsflag, Av& av) {
+        auto xcsv = [fp](int& sec, Av& av) {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
-            using ascii::char_;
+            using qi::float_;
+            using qi::char_;
 
             char linebuf[256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
@@ -228,19 +201,42 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
                     ERR_EXIT("fgets");
                 return 0;
             }
-            int sec;
+            float price;
+            int vol;
+            signed char c;
+
+            char* pos = linebuf; //str.cbegin();
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , int_ >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
+                ERR_EXIT("qi::parse %s", pos);
+            }
+            av.volume = vol;
+            av.amount = int(price*100) * av.volume;
+            return int('J') - c; //sec; //60*(sec/10000) + sec/100;
+        };
+        auto xtxt = [fp](int& sec, Av& av) {
+            //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
+            //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
+            using qi::int_;
+            using qi::char_;
+
+            char linebuf[256];
+            if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                if (!feof(fp))
+                    ERR_EXIT("fgets");
+                return 0;
+            }
             int price;
             int vol;
 
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> int_ >> int_, ascii::space, sec, price, vol) /*&& pos == end*/) {
+                        , int_ >> int_ >> int_, qi::space, sec, price, vol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
-            bsflag = (vol > 0);
             av.volume = abs(vol);
             av.amount = price * av.volume;
-            return 60*(sec/10000) + sec/100;
+            return vol;
         };
         if (path.extension() == ".txt")
             step2(xtxt, code);
@@ -252,31 +248,25 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
 
 template <typename F> int Main::step2(F read, Code code)
 {
-    std::vector<array<Av,2>> vols;
-    vols.reserve(60*5);
-
-    array<Av,2> avminute1 = {};
-    bool bsflag = 0;
+    std::vector<array<Av,2>> vols(60*4);
     Av av;
-    unsigned minutex = read(bsflag, av);
-    avminute1[bsflag] = av;
-    while (unsigned minx = read(bsflag, av)) {
-        if (minutex != minx) {
-            if (avminute1[0].volume || avminute1[1].volume)
-                vols.emplace_back( avminute1 );
-            avminute1 = array<Av,2>{};
-            minutex = minx;
-        }
-        avminute1[bsflag] += av;
+    int xt;
+    while (int bsf = read(xt, av)) {
+        int m = xt/10000*60 + xt/100%100; //*60 + xt%100;
+        int x = 0;
+        if (m < 60*9+30)
+            x = 0;
+        else if (m < 60*13)
+            x = std::min(60*2-1, (m-60*9-30));
+        else
+            x = std::min(60*4-1, (m-60*13+60*2));
+        vols[x][bsf>0] += av;
     }
-    if (avminute1[0].volume || avminute1[1].volume)
-        vols.emplace_back( avminute1 );
 
     fprintf(stdout, "%06d %d", code.numb(), code.tag());
-    for (auto& bs : vols) {
-        for (auto& x : bs) {
-            fprintf(stdout, "\t%ld\t%ld", x.volume, x.amount/100);
-        }
+    for (auto& v : vols) {
+        fprintf(stdout, "\t%ld %ld %ld %ld"
+                , v[0].volume, v[0].amount, v[1].volume, v[1].amount);
     }
     fprintf(stdout, "\n");
 

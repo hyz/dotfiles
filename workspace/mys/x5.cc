@@ -47,7 +47,7 @@ namespace filesystem = boost::filesystem;
 namespace gregorian = boost::gregorian;
 namespace fusion = boost::fusion;
 namespace qi = boost::spirit::qi;
-namespace ascii = boost::spirit::ascii;
+//namespace ascii = boost::spirit::ascii;
 template <typename T,size_t N> using array = std::array<T,N>;
 
 namespace boost { namespace spirit { namespace traits
@@ -95,6 +95,18 @@ struct Av {
     }
 };
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
+typedef fusion::vector<Av,Av> Avsb;
+
+static const auto Sum = [](Avsb const& avsb) {
+    return fusion::at_c<0>(avsb) + fusion::at_c<1>(avsb);
+};
+static const auto Plus = [](Avsb const& x, Avsb const& y) {
+    Av const a = fusion::at_c<0>(x) + fusion::at_c<0>(y);
+    Av const b = fusion::at_c<1>(x) + fusion::at_c<1>(y);
+    return fusion::make_vector(a, b);
+};
+static const auto First = [](Avsb const& x) { return fusion::at_c<0>(x); };
+static const auto Second = [](Avsb const& x) { return fusion::at_c<1>(x); };
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 typedef unsigned code_t;
@@ -104,7 +116,7 @@ inline int szsh(code_t v_) { return (v_>>24)&0xff; }
 static code_t _code(std::string const& s)
 {
     static const qi::int_parser<int,10,6,6> _6digit = {};
-    using ascii::char_;
+    using qi::char_;
     using qi::lit;
     struct SZSH_ : qi::symbols<char, int> { SZSH_() { add ("SZ",0) ("SH",1); } } SZSH;
 
@@ -112,7 +124,7 @@ static code_t _code(std::string const& s)
     auto it = s.cbegin();
     if (!qi::parse(it, s.cend()
             , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
-                 >> SZSH >> _6digit // >>'.'>>ascii::no_case[lit("csv")|"txt"]
+                 >> SZSH >> _6digit // >>'.'>>qi::no_case[lit("csv")|"txt"]
             , x, y))
         ERR_EXIT("%s: not-a-code", s.c_str());
     return make_code(x,y);
@@ -123,7 +135,7 @@ gregorian::date _date(std::string const& s) // ./20151221
     static const qi::int_parser<unsigned,10,4,4> _4digit = {};
     static const qi::int_parser<unsigned,10,2,2> _2digit = {};
     using qi::lit;
-    using ascii::char_;
+    using qi::char_;
 
     unsigned y, m, d;
     auto it = s.cbegin();
@@ -150,12 +162,12 @@ struct Elem : SInfo
 {
     int code = 0;
 
-    std::vector<fusion::vector<Av,Av>> all = {};
-    std::vector<fusion::vector<Av,Av>> vless = {};
-    std::vector<fusion::vector<Av,Av>> vmass = {};
-    std::vector<fusion::vector<Av,Av>> voths = {};
+    std::vector<Avsb> all = {};
+    std::vector<Avsb> vless = {};
+    std::vector<Avsb> vmass = {};
+    std::vector<Avsb> voths = {};
 
-    fusion::vector<Av,Av> sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
+    Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
     array<int,2> lohi = {};
 
     int n_day() const { return int(all.size()); }
@@ -201,7 +213,7 @@ void Main::init_::loadsi(char const* fn)
         std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
-        qi::rule<char*, SInfo(), ascii::space_type> R_
+        qi::rule<char*, SInfo(), qi::space_type> R_
             = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
 
         char linebuf[1024];
@@ -211,7 +223,7 @@ void Main::init_::loadsi(char const* fn)
             char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_ >> R_
-                        , ascii::space, code, szsh, si)) {
+                        , qi::space, code, szsh, si)) {
                 ERR_EXIT("qi::parse: %s", pos);
             }
             if (si.gbx > 0)
@@ -265,41 +277,69 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     process1(atoi(argv[2]), atoi(argv[3]));
 }
 
-void Main::init_::process1(int ib, int cnt) //(filesystem::path const& path)
+void Main::init_::process1(int xb, int xe) //(filesystem::path const& path)
 {
     /*if (FILE* fp = fopen(path.generic_string().c_str(), "r"))*/ {
         //std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
-        auto reader = [](std::vector<fusion::vector<Av,Av>>& vec) {
-            //using qi::long_; //using qi::_val; using qi::_1;
-            qi::rule<char*, Av(), ascii::space_type> R_Av = qi::long_ >> qi::long_;
-            qi::rule<char*, fusion::vector<Av,Av>(), ascii::space_type> R_ =  R_Av >> R_Av;
+        FILE* fp = stdin;
+        auto reader = [fp](std::vector<Avsb>& vec) {
+            vec.reserve(60*4); //using qi::long_; //using qi::_val; using qi::_1;
+            qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
+            qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
             char linebuf[1024*8]; //[(60*4+15)*16+256];
-            if (!fgets(linebuf, sizeof(linebuf), stdin)) {
-                if (!feof(stdin))
+            if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                if (!feof(fp))
                     ERR_EXIT("fgets");
                 return 0u;
             }
             int szsh=0, code = 0;
-            char* pos = linebuf; //str.cbegin();
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , qi::int_ >> qi::int_ >> *R_
-                        , ascii::space, code, szsh, vec) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse: %s", pos);
+            char *pos = linebuf, *end = &linebuf[sizeof(linebuf)];
+            if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
+                Avsb avsb;
+                while (qi::phrase_parse(pos,end, R_, qi::space, avsb)) {
+                    if (Sum(avsb).volume == 0) {
+                        fprintf(stderr, "%d: volume-1min=0\n", code);
+                        vec.clear();
+                        pos = end;
+                        break;
+                    }
+                    vec.push_back(avsb);
+                }
             }
+            if (pos != end)
+                ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
+            ////using qi::long_; //using qi::_val; using qi::_1;
+            //qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
+            //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
+
+            //char linebuf[1024*8]; //[(60*4+15)*16+256];
+            //if (!fgets(linebuf, sizeof(linebuf), stdin)) {
+            //    if (!feof(stdin))
+            //        ERR_EXIT("fgets");
+            //    return 0u;
+            //}
+            //int szsh=0, code = 0;
+            //char* pos = linebuf; //str.cbegin();
+            //if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+            //            , qi::int_ >> qi::int_ >> *R_
+            //            , qi::space, code, szsh, vec) /*&& pos == end*/) {
+            //    ERR_EXIT("qi::parse: %s", pos);
+            //}
+            //return make_code(szsh,code);
         };
-        proc1(reader, ib, cnt);
+        proc1(reader, xb, xe);
     }
 }
 
 template <typename F> void Main::init_::proc1(F read, unsigned ib, int cnt)
 {
-    auto plus = [](fusion::vector<Av,Av> const& a, fusion::vector<Av,Av> const& x) {
+    auto plus = [](Avsb const& a, Avsb const& x) {
         using fusion::at_c;
         return fusion::make_vector(at_c<0>(a)+at_c<0>(x), at_c<1>(a)+at_c<1>(x));
     };
-    std::vector<fusion::vector<Av,Av>> vec; // std::vector<array<Av,2>> vec;
+    std::vector<Avsb> vec; // std::vector<array<Av,2>> vec;
     vec.reserve(60*4+30);
     while (code_t code = read(vec)) {
         if (vec.size() < ib+cnt)
@@ -311,7 +351,7 @@ template <typename F> void Main::init_::proc1(F read, unsigned ib, int cnt)
         }
         auto rng = boost::make_iterator_range(vec.begin()+ib, vec.begin()+(ib+cnt));
 
-        auto av = std::accumulate(std::begin(rng), std::end(rng), fusion::vector<Av,Av>{}, plus);
+        auto av = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, plus);
         vss->sum = plus(vss->sum, av);
         vss->all.push_back(av);
 
@@ -345,14 +385,14 @@ template <typename F> void Main::init_::proc1(F read, unsigned ib, int cnt)
         int m = int(3/10.0 * float(boost::size(rng)-n));
 
         std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
-        auto vl = std::accumulate(std::begin(rng), std::end(rng)-n, fusion::vector<Av,Av>{}, plus);
+        auto vl = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, plus);
         vss->vless.push_back(vl);
 
         std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
-        auto vm = std::accumulate(std::end(rng)-m, std::end(rng), fusion::vector<Av,Av>{}, plus);
+        auto vm = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, plus);
         vss->vmass.push_back(vm);
 
-        auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, fusion::vector<Av,Av>{}, plus);
+        auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, plus);
         vss->voths.push_back(vk);
         vec.clear();
     }
@@ -367,12 +407,12 @@ Main::Main(int argc, char* const argv[])
 
 int Main::run(int argc, char* const argv[])
 {
-    auto plus = [](fusion::vector<Av,Av> const& x, fusion::vector<Av,Av> const& y) {
+    auto plus = [](Avsb const& x, Avsb const& y) {
         using namespace fusion;
         return make_vector(at_c<0>(x)+at_c<0>(y), at_c<1>(x)+at_c<1>(y));
     };
 
-    fusion::vector<Av,Av> _sum = {};
+    Avsb _sum = {};
 
     for (Elem const & vss : *this) {
         _sum = plus(_sum, vss.sum);
@@ -385,7 +425,7 @@ int Main::run(int argc, char* const argv[])
         printf("%06d %5ld", numb(vss.code), (buy-sell).amount/100000);
         {
             long vola = total.volume/n_day;
-            auto xps = [&vola](long a, fusion::vector<Av,Av> const& x){
+            auto xps = [&vola](long a, Avsb const& x){
                 return a + labs((fusion::at_c<0>(x).volume+fusion::at_c<1>(x).volume) - vola);
             };
             long vx = std::accumulate(vss.all.begin(), vss.all.end(), 0l, xps);
@@ -393,13 +433,13 @@ int Main::run(int argc, char* const argv[])
             printf("\t%03ld", 1000*buy.volume/total.volume);
         } {
             auto& vl = vss.vless;
-            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
+            auto v = std::accumulate(vl.begin(), vl.end(), Avsb{}, plus);
             Av buy_ = fusion::at_c<1>(v);
             Av both = buy_ + fusion::at_c<0>(v);
             printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
         } {
             auto& vl = vss.vmass;
-            auto v = std::accumulate(vl.begin(), vl.end(), fusion::vector<Av,Av>{}, plus);
+            auto v = std::accumulate(vl.begin(), vl.end(), Avsb{}, plus);
             Av buy_ = fusion::at_c<1>(v);
             Av both = buy_ + fusion::at_c<0>(v);
             printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
