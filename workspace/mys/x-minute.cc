@@ -248,19 +248,22 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
 
 template <typename F> int Main::step2(F read, Code code)
 {
-    std::vector<array<Av,2>> vols(60*4);
-    Av av;
-    int xt;
-    while (int bsf = read(xt, av)) {
-        int m = xt/10000*60 + xt/100%100; //*60 + xt%100;
+    static const auto index = [](int xt) {
         int x = 0;
+        int m = xt/100*60 + xt%100; //*60 + xt%100;
         if (m < 60*9+30)
             x = 0;
         else if (m < 60*13)
             x = std::min(60*2-1, (m-60*9-30));
         else
             x = std::min(60*4-1, (m-60*13+60*2));
-        vols[x][bsf>0] += av;
+        return x;
+    };
+    std::vector<array<Av,2>> vols(60*4);
+    Av av;
+    int xt;
+    while (int bsf = read(xt, av)) {
+        vols[index(xt/100)][bsf>0] += av;
     }
 
     fprintf(stdout, "%06d %d", code.numb(), code.tag());

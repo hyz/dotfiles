@@ -20,6 +20,7 @@
 //#include <boost/spirit/include/phoenix_operator.hpp>
 //#include <boost/container/static_vector.hpp>
 #include <boost/function_output_iterator.hpp>
+#include <boost/range/iterator_range.hpp>
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/filesystem/path.hpp>
@@ -202,7 +203,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     void loadsi(char const* fn);
     Elem* address(int code);
     void process1(filesystem::path const& path);
-    template <typename F> int proc1(F reader);
+    template <typename F> void proc1 (F read, int, int);
 };
 
 int main(int argc, char* const argv[])
@@ -318,11 +319,11 @@ void Main::init_::process1(filesystem::path const& path)
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
         };
-        proc1(reader);
+        proc1(reader, 0,0);
     }
 }
 
-template <typename F> int Main::init_::proc1(F read)
+template <typename F> void Main::init_::proc1(F read, int, int)
 {
     std::vector<Avsb> vec;
     while (code_t code = read(vec, 0)) {
@@ -333,8 +334,9 @@ template <typename F> int Main::init_::proc1(F read)
             fprintf(stderr, "%d address-fail\n", code);
             continue;
         }
+        auto& rng = vec;
 
-        auto avsb = std::accumulate(vec.begin(), vec.end(), Avsb{}, Plus);
+        auto avsb = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
         vss->sum = Plus(vss->sum, avsb);
         vss->all.push_back(avsb);
 
@@ -344,7 +346,7 @@ template <typename F> int Main::init_::proc1(F read)
                 auto b = Sum(y);
                 return (a.amount*100/a.volume) < (b.amount*100/b.volume);
             };
-            auto p = std::minmax_element(vec.begin(), vec.end(), cheap);
+            auto p = std::minmax_element(std::begin(rng), std::end(rng), cheap);
             Av a = Sum(*p.first );
             Av b = Sum(*p.second);
             int x = int(a.amount*100 / a.volume);
@@ -363,23 +365,22 @@ template <typename F> int Main::init_::proc1(F read)
             return Sum(x).volume < Sum(y).volume;
         };
 
-        int n = int(3/10.0 * (float)vec.size());
-        int m = int(3/10.0 * float(vec.size()-n));
+        int n = int(3/10.0 * (float)boost::size(rng));
+        int m = int(3/10.0 * float(boost::size(rng)-n));
 
-        std::nth_element(vec.begin(), vec.end()-n, vec.end(), fvcmp);
-        auto vl = std::accumulate(vec.begin(), vec.end()-n, Avsb{}, Plus);
+        std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
+        auto vl = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
         vss->vless.push_back(vl);
 
-        std::nth_element(vec.end()-n, vec.end()-m, vec.end(), fvcmp);
-        auto vm = std::accumulate(vec.end()-m, vec.end(), Avsb{}, Plus);
+        std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
+        auto vm = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
         vss->vmass.push_back(vm);
 
-        auto vk = std::accumulate(vec.end()-n, vec.end()-m, Avsb{}, Plus);
+        auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
         vss->voths.push_back(vk);
 
         vec.clear();
     }
-    return int(size());
 }
 
 Main::Main(int argc, char* const argv[])
