@@ -141,7 +141,7 @@ BOOL myflt9(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-        return 0;
+    return 0;
 }
 
 
@@ -149,6 +149,13 @@ BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
+	STOCKINFO si = {};
+    int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
+    if (n > 0) {
+        static boost::filesystem::path fp = "D:\\home\\wood\\._sname";
+        static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
+        ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
+    }
     return 0;
 }
 
