@@ -297,15 +297,6 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
         if (m < 60*13)
             m += 90-1;
         return std::min(std::max(m-60*11, 0), 60*4-1);
-        //int m = xt/100*60 + xt%100; //*60 + xt%100;
-        //int x = 0;
-        //if (m < 60*9+30)
-        //    x = 0;
-        //else if (m < 60*13)
-        //    x = std::min(60*2-1, (m-60*9-30));
-        //else
-        //    x = std::min(60*4-1, (m-60*13+60*2));
-        //return x;
     };
     prep(argv[1], index(atoi(erase(argv[2],':'))), index(atoi(erase(argv[3],':'))));
 }
@@ -404,11 +395,6 @@ template <typename F> void Main::init_::proc1(F read)
         Av b = buy - First(avsb);
         printf("\t%6ld %03ld", b.amount/100/10000, buy.volume*1000/sum.volume);
     };
-//000807 0
-//  475000 284723400 261800 158638900 //192100 115993500 390500 236369600
-//           92900 56113600 373860 226382760 //0 0 0 0	0 0 0 0 //0 0 559850 339828950
-//000807	 -2084 321	   856 517	273  21236   92.34	 7.41 -4.77  579	330.34 -75.12  607	云铝股份
-//-606000 -1000  339828950 559850
     static const auto PVal = [](auto& rng) {
         auto Cx = [](long a, long b) { return double(b-a)/a*100; };
         Avsb const& first = *std::begin(rng);

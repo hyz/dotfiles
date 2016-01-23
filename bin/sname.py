@@ -12,7 +12,7 @@ def addname(Fn, Sf):
     names = {}
     with open(Sf, encoding='gbk') as sf:
         for x in sf:
-            v = x.strip().split()
+            v = x.strip().split(None,2)
             names[v[0]] = v[-1]
     lines = []
     with open(Fn) as f:

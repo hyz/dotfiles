@@ -256,26 +256,11 @@ template <typename F> int Main::step2(F read, Code code)
         if (m < 60*13)
             m += 90-1;
         return std::min(std::max(m-60*11, 0), 60*4-1);
-        //int x = -1;
-        //if (m < 60*11)
-        //    x = 0;
-        //else if (m < 60*13)
-        //    x = std::min(60*2-1, (m-(60*9+30)));
-        //else
-        //    x = std::min(60*2-1, (m-60*13)) + 60*2;
-        //return x;
     };
     std::vector<array<Av,2>> vols(60*4);
     Av av;
     int xt;
-//000807 0
-//475000 284723400 261800 158638900 //192100 115993500 390500 236369600
-//           92900 56113600 373860 226382760 //0 0 0 0	0 0 0 0 //0 0 559850 339828950
-//-606000 -1000  339828950 559850
-//000807	 -2084 321	   856 517	273  21236   92.34	 7.41 -4.77  579	330.34 -75.12  607	云铝股份
     while (int bsf = read(xt, av)) {
-        //if (code.numb()==807 && xt >= 145656 && av.volume == 3000) code.tag(); // Debug
-        //int i = index(xt/100); auto& a = vols[i]; a[bsf>0] += av;
         vols[index(xt/100)][bsf>0] += av;
     }
 
