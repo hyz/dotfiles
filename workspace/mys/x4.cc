@@ -290,6 +290,7 @@ void Main::init_::process1(filesystem::path const& path)
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         auto reader = [fp](std::vector<Avsb>& vec, int* nonx) {
+            vec.clear();
             vec.reserve(60*4); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
@@ -378,8 +379,6 @@ template <typename F> void Main::init_::proc1(F read, int, int)
 
         auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
         vss->voths.push_back(vk);
-
-        vec.clear();
     }
 }
 

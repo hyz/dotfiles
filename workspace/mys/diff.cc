@@ -1,17 +1,18 @@
 #include <stdio.h>
+#include <string.h>
 #include <algorithm>
-#include <set>
+#include <map>
 #include <boost/function_output_iterator.hpp>
 //#include <string>
 //#include <iostream>
 
-static std::set<int> read_ints(char const* fn)
+static std::map<int,char*> read_ints(char const* fn)
 {
-    std::set<int> ints;
+    std::map<int,char*> ints;
     if (FILE* fp = fopen(fn, "r")) {
         char linebuf[1024*8];
         while (fgets(linebuf, sizeof(linebuf), fp)) {
-            ints.insert(atoi(linebuf));
+            ints.emplace(atoi(linebuf), strdup(linebuf));
         }
         fclose(fp);
     }
@@ -21,13 +22,14 @@ static std::set<int> read_ints(char const* fn)
 int main(int argc, char* const argv[])
 {
     try {
-        auto print = [](int x){ printf("%06d\n", x); };
+        auto comp = [](auto& x,auto& y){ return x.first<y.first; };
+        auto print = [](auto& x){ fputs(x.second, stdout); };
 
         if (argc == 3) {
-            std::set<int> s0 = read_ints(argv[1]);
-            std::set<int> s1 = read_ints(argv[2]);
+            auto s0 = read_ints(argv[1]);
+            auto s1 = read_ints(argv[2]);
             std::set_difference(s0.begin(), s0.end(), s1.begin(), s1.end()
-                , boost::make_function_output_iterator(print));
+                , boost::make_function_output_iterator(print), comp);
             return 0;
         }
     } catch (std::exception const& e) {

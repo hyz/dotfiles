@@ -202,7 +202,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 
     void loadsi(char const* fn);
     Elem* address(int code);
-    void prep(int xbeg, int xend); //(filesystem::path const& path);
+    void prep(char* fn, int xbeg, int xend); //(filesystem::path const& path);
     template <typename F> void proc1 (F read);
 };
 
@@ -264,7 +264,7 @@ Elem* Main::init_::address(int code) //-> Main::iterator
 Main::init_::init_(Main* p, int argc, char* const argv[])
     : m_(p)
 {
-    if (argc < 3) {
+    if (argc < 4) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
     loadsi("/cygdrive/d/home/wood/._sinfo");
@@ -294,26 +294,32 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     };
     static const auto index = [](int xt) {
         int m = xt/100*60 + xt%100; //*60 + xt%100;
-        int x = 0;
-        if (m < 60*9+30)
-            x = 0;
-        else if (m < 60*13)
-            x = std::min(60*2-1, (m-60*9-30));
-        else
-            x = std::min(60*4-1, (m-60*13+60*2));
-        return x;
+        if (m < 60*13)
+            m += 90-1;
+        return std::min(std::max(m-60*11, 0), 60*4-1);
+        //int m = xt/100*60 + xt%100; //*60 + xt%100;
+        //int x = 0;
+        //if (m < 60*9+30)
+        //    x = 0;
+        //else if (m < 60*13)
+        //    x = std::min(60*2-1, (m-60*9-30));
+        //else
+        //    x = std::min(60*4-1, (m-60*13+60*2));
+        //return x;
     };
-    prep(index(atoi(erase(argv[1],':'))), index(atoi(erase(argv[2],':'))));
+    prep(argv[1], index(atoi(erase(argv[2],':'))), index(atoi(erase(argv[3],':'))));
 }
 
-void Main::init_::prep(int xbeg, int xend) //(filesystem::path const& path)
+void Main::init_::prep(char* fn, int xbeg, int xend)
 {
     ERR_MSG("info: %d,%d\n", xbeg, xend);
-    if (FILE* fp = stdin)/*if (FILE* fp = fopen(path.generic_string().c_str(), "r"))*/ {
-        //std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+    if (FILE* fp = fopen(fn, "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
         typedef boost::iterator_range<std::vector<Avsb>::iterator> rng_t;
         auto reader = [fp,xbeg,xend](rng_t& rng, std::vector<Avsb>& vec, int* nonx) {
+            vec.clear();
             vec.reserve(60*4); //using qi::long_; //using qi::_val; using qi::_1;
+
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
@@ -371,21 +377,45 @@ void Main::init_::prep(int xbeg, int xend) //(filesystem::path const& path)
     }
 }
 
+static auto Lohi = [](auto& rng) {
+    auto cheap = [](auto&x, auto&y) {
+        Av a = Sum(x);
+        Av b = Sum(y);
+        return (a.amount/a.volume) < (b.amount/b.volume);
+    };
+    auto p = std::minmax_element(std::begin(rng), std::end(rng), cheap);
+    Av a = Sum(*p.first );
+    Av b = Sum(*p.second);
+    return array<int,2>{{int(a.amount/a.volume), int(b.amount/b.volume)}};
+};
+
+inline int Price(Avsb const& x) {
+    Av v = Sum(x);
+    if (!v.volume)
+        return 1;
+    return int(v.amount/v.volume);
+};
+
 template <typename F> void Main::init_::proc1(F read)
 {
-    static const auto Print = [](auto& rng, auto& avsb) {
-        auto Vx = [](Avsb const& x) { Av v = Sum(x); return int(v.amount/std::max(v.volume,1l)); };
-        auto Px = [](long a, long b) { return double(b-a)/a; };
-
-        Avsb& first = *std::begin(rng);
-        Avsb& last = *(std::end(rng)-1);
-
-        printf("\t%4.2f %4d %4d", Px(Vx(first),Vx(last))*100, Vx(first), Vx(last));
-
-        Av sell = First(avsb);
+    static const auto Pvol = [](Avsb const& avsb) {
+        Av sum = Sum(avsb);
         Av buy = Second(avsb);
-        Av sum = sell + buy;
-        printf("\t%8.2f %03ld", (buy-sell).amount/100.0/10000, buy.amount*1000/sum.amount);
+        Av b = buy - First(avsb);
+        printf("\t%6ld %03ld", b.amount/100/10000, buy.volume*1000/sum.volume);
+    };
+//000807 0
+//  475000 284723400 261800 158638900 //192100 115993500 390500 236369600
+//           92900 56113600 373860 226382760 //0 0 0 0	0 0 0 0 //0 0 559850 339828950
+//000807	 -2084 321	   856 517	273  21236   92.34	 7.41 -4.77  579	330.34 -75.12  607	云铝股份
+//-606000 -1000  339828950 559850
+    static const auto PVal = [](auto& rng) {
+        auto Cx = [](long a, long b) { return double(b-a)/a*100; };
+        Avsb const& first = *std::begin(rng);
+        Avsb const& last = *std::prev(std::end(rng));
+        auto lh = Lohi(rng);
+        printf("\t%5.2f %5.2f %4d", Cx(lh[0],lh[1]), Cx(Price(first),Price(last)), Price(last));
+        //printf("\t%ld %ld %ld %ld", Cx(lh[0],lh[1]), Cx(Price(first),Price(last)), Price(last));
     };
     std::vector<Avsb> vec;
     boost::iterator_range<std::vector<Avsb>::iterator> rng;
@@ -399,14 +429,14 @@ template <typename F> void Main::init_::proc1(F read)
         }
 
         Avsb avsb0 = std::accumulate(std::begin(vec), std::end(vec), Avsb{}, Plus);
+        Av sum0 = Sum(avsb0);
         Avsb avsb1 = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
-        Av s0 = Sum(avsb0);
-        Av s1 = Sum(avsb1);
-
+        Av sum1 = Sum(avsb1);
         printf("%06d", numb(code));
-        Print(rng, avsb1);
-        Print(vec, avsb0);
-        printf("\t%03ld %03ld", s1.amount*1000/s0.amount, s0.volume*1000/vss->gbx);
+        Pvol(avsb1) ; Pvol(avsb0);
+        printf("\t%03ld %6ld %7.2f", sum1.amount*1000/sum0.amount, sum0.amount/100/10000
+                , vss->gbx/100.0*Price(avsb0)/100000000);
+        PVal(rng); PVal(vec);
         printf("\n");
 
 #if 0
@@ -458,8 +488,8 @@ template <typename F> void Main::init_::proc1(F read)
 
         auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
         vss->voths.push_back(vk);
-#endif
         vec.clear();
+#endif
     }
 }
 
