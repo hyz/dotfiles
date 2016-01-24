@@ -163,8 +163,6 @@ struct SInfo
 {
     long gbx, gbtotal;
     int eov;
-    //000001	11804054528	14308676608	0	0	165	0	1	0
-    //int_ >> long_ >>long_ >> omit[long_]>>omit[long_] >> int_
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
@@ -220,7 +218,7 @@ int main(int argc, char* const argv[])
 void Main::init_::loadsi(char const* fn)
 {
     if (FILE* fp = fopen(fn, "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
         qi::rule<char*, SInfo(), qi::space_type> R_
@@ -288,10 +286,9 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
 void Main::init_::process1(filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         auto reader = [fp](std::vector<Avsb>& vec, int* nonx) {
-            vec.clear();
-            vec.reserve(60*4); //using qi::long_; //using qi::_val; using qi::_1;
+            vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
@@ -324,10 +321,13 @@ void Main::init_::process1(filesystem::path const& path)
     }
 }
 
+struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
+
 template <typename F> void Main::init_::proc1(F read, int, int)
 {
     std::vector<Avsb> vec;
     while (code_t code = read(vec, 0)) {
+        std::unique_ptr<decltype(vec),XClear> xclear(&vec);
         if (vec.size() < 100)
             continue;
         Elem* vss = this->address(code);

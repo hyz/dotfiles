@@ -220,7 +220,7 @@ int main(int argc, char* const argv[])
 void Main::init_::loadsi(char const* fn)
 {
     if (FILE* fp = fopen(fn, "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
         qi::rule<char*, SInfo(), qi::space_type> R_
@@ -293,10 +293,10 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
         return s0;
     };
     static const auto index = [](int xt) {
-        int m = xt/100*60 + xt%100; //*60 + xt%100;
-        if (m < 60*13)
-            m += 90-1;
-        return std::min(std::max(m-60*11, 0), 60*4-1);
+        int m = xt/100*60 + xt%100;
+        return (m < 60*13-30)
+            ? std::min(std::max(m-(60*9+30), 0), 60*2)
+            : 60*2+1+std::min(std::max(m-60*13, 0), 60*4);
     };
     prep(argv[1], index(atoi(erase(argv[2],':'))), index(atoi(erase(argv[3],':'))));
 }
@@ -305,16 +305,15 @@ void Main::init_::prep(char* fn, int xbeg, int xend)
 {
     ERR_MSG("info: %d,%d\n", xbeg, xend);
     if (FILE* fp = fopen(fn, "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         typedef boost::iterator_range<std::vector<Avsb>::iterator> rng_t;
         auto reader = [fp,xbeg,xend](rng_t& rng, std::vector<Avsb>& vec, int* nonx) {
-            vec.clear();
-            vec.reserve(60*4); //using qi::long_; //using qi::_val; using qi::_1;
+            vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
 
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
-            char linebuf[1024*16]; //[(60*4+15)*16+256];
+            char linebuf[(60*4+8)*64];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
                     ERR_EXIT("fgets");
@@ -341,28 +340,9 @@ void Main::init_::prep(char* fn, int xbeg, int xend)
                     ++i;
                 }
                 rng = boost::make_iterator_range(vec.begin()+xb, vec.begin()+xe);
-                //if (nonx && *nonx) ERR_MSG("%d %d: volume=0\n", code, nonx);
             } else
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
-            ////using qi::long_; //using qi::_val; using qi::_1;
-            //qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
-            //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
-
-            //char linebuf[1024*8]; //[(60*4+15)*16+256];
-            //if (!fgets(linebuf, sizeof(linebuf), stdin)) {
-            //    if (!feof(stdin))
-            //        ERR_EXIT("fgets");
-            //    return 0u;
-            //}
-            //int szsh=0, code = 0;
-            //char* pos = linebuf; //str.cbegin();
-            //if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-            //            , qi::int_ >> qi::int_ >> *R_
-            //            , qi::space, code, szsh, vec) /*&& pos == end*/) {
-            //    ERR_EXIT("qi::parse: %s", pos);
-            //}
-            //return make_code(szsh,code);
         };
         proc1(reader);
     }
@@ -374,10 +354,10 @@ static auto Lohi = [](auto& rng) {
         Av b = Sum(y);
         return (a.amount/a.volume) < (b.amount/b.volume);
     };
-    auto p = std::minmax_element(std::begin(rng), std::end(rng), cheap);
-    Av a = Sum(*p.first );
-    Av b = Sum(*p.second);
-    return array<int,2>{{int(a.amount/a.volume), int(b.amount/b.volume)}};
+    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
+    //Av a = Sum(*p.first );
+    //Av b = Sum(*p.second);
+    //return array<int,2>{{int(a.amount/a.volume), int(b.amount/b.volume)}};
 };
 
 inline int Price(Avsb const& x) {
@@ -387,25 +367,33 @@ inline int Price(Avsb const& x) {
     return int(v.amount/v.volume);
 };
 
+struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
+
 template <typename F> void Main::init_::proc1(F read)
 {
-    static const auto Pvol = [](Avsb const& avsb) {
+    static const auto Pvol = [](auto& avsb, auto& rng) {
+        auto Chr = [](auto& rng) {
+            auto v = Lohi(rng);
+            auto it = (v.first < v.second) ? v.first : v.second;
+            auto last = std::prev(std::end(rng));
+            return (Price(*last)-Price(*it))*1000/Price(*it);
+        };
         Av sum = Sum(avsb);
         Av buy = Second(avsb);
         Av b = buy - First(avsb);
-        printf("\t%6ld %03ld", b.amount/100/10000, buy.volume*1000/sum.volume);
+        printf("\t%6ld %03ld % .3d", b.amount/100/10000, buy.amount*1000/sum.amount, Chr(rng));
     };
-    static const auto PVal = [](auto& rng) {
-        auto Cx = [](long a, long b) { return double(b-a)/a*100; };
-        Avsb const& first = *std::begin(rng);
-        Avsb const& last = *std::prev(std::end(rng));
-        auto lh = Lohi(rng);
-        printf("\t%5.2f %5.2f %4d", Cx(lh[0],lh[1]), Cx(Price(first),Price(last)), Price(last));
-        //printf("\t%ld %ld %ld %ld", Cx(lh[0],lh[1]), Cx(Price(first),Price(last)), Price(last));
-    };
+    //static const auto PVal = [](auto& rng) {
+    //    auto Chr = [](long a, long b) { return double(b-a)/a*100; };
+    //    Avsb const& first = *std::begin(rng);
+    //    Avsb const& last = *std::prev(std::end(rng));
+    //    printf("\t%5.2f %4d", Chr(Price(first),Price(last)), Price(last));
+    //    //printf("\t%ld %ld %ld %ld", Chr(lh[0],lh[1]), Chr(Price(first),Price(last)), Price(last));
+    //};
     std::vector<Avsb> vec;
     boost::iterator_range<std::vector<Avsb>::iterator> rng;
     while (code_t code = read(rng, vec, 0)) {
+        std::unique_ptr<decltype(vec),XClear> xclear(&vec);
         if (vec.size() < 100 || boost::size(rng)<10)
             continue;
         Elem* vss = this->address(code);
@@ -419,10 +407,12 @@ template <typename F> void Main::init_::proc1(F read)
         Avsb avsb1 = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
         Av sum1 = Sum(avsb1);
         printf("%06d", numb(code));
-        Pvol(avsb1) ; Pvol(avsb0);
-        printf("\t%03ld %6ld %7.2f", sum1.amount*1000/sum0.amount, sum0.amount/100/10000
-                , vss->gbx/100.0*Price(avsb0)/100000000);
-        PVal(rng); PVal(vec);
+        Pvol(avsb1, rng) ; Pvol(avsb0, vec);
+        long lsz = vss->gbx*Price(avsb0);
+        printf("\t%03ld %6ld %03ld %7.2f"
+                , sum1.amount*1000/sum0.amount, sum0.amount/100/10000
+                , sum0.amount*1000/lsz, lsz/100.0/100000000);
+        //PVal(rng); PVal(vec);
         printf("\n");
 
 #if 0

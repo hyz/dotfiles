@@ -1,0 +1,35 @@
+
+Nexus 5:
+    *#*#4636#*#*
+    # http://www.zhihu.com/question/21747704
+    Qualcomm WTR1605L LTE/HSPA+/CDMA2K/TDSCDMA/EDGE/GPS
+    # http://www.inexus.co/article-1428-1.html
+
+Nexus 6p # http://www.zhihu.com/topic/20029246
+    # https://support.google.com/nexus
+    NetworkPhone is carrier-unlocked and works on major carrier networks. Check with your service provider for more information.
+    North America:
+        GSM/EDGE: 850/900/1800/1900MHz
+        UMTS/WCDMA: B1/2/4/5/8CDMA: BC0/1/10
+        LTE (FDD): B2/3/4/5/7/12/13/17/25/26/29/30
+        LTE (TDD): B41
+    CA DL: B2-B2, B2-B4, B2-B5, B2-B12, B2-B13, B2-B17, B2-B29, B4-B4, B4-B5, B4-B13, B4-B17, B4-B29, B41-B41
+    Rest of world:
+        GSM/EDGE: 850/900/1800/1900MHz
+        UMTS/WCDMA: B1/2/4/5/6/8/9/19
+        TD-SCDMA: 34/39CDMA: BC0/1
+        LTE (FDD): B1/2/3/4/5/7/8/9/17/19/20/28
+        LTE (TDD): B38/B39/40/41
+
+国内三家运营商4G网络制式分别如下：
+    # http://bbs.gfan.com/android-7983200-1-1.html
+    # http://bbs.gfan.com/android-7301523-1-1.html
+
+    联通4G：TD-LTE、FDD-LTE
+    电信4G：TD-LTE、FDD-LTE
+    移动4G：TD-LTE
+
+    移动的网络制式是GSM、TD-SCDMA、TD-LTE
+    联通的网络制式是GSM、WCDMA、FDD-LTE与TD-LTE融合
+    电信的网络制式是CDMA、CDMA2000、TD-LTE和FDD-LTE融合
+

@@ -252,12 +252,12 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
 template <typename F> int Main::step2(F read, Code code)
 {
     static const auto index = [](int xt) {
-        int m = xt/100*60 + xt%100; //*60 + xt%100;
-        if (m < 60*13)
-            m += 90-1;
-        return std::min(std::max(m-60*11, 0), 60*4-1);
+        int m = xt/100*60 + xt%100;
+        return (m < 60*13-30)
+            ? std::min(std::max(m-(60*9+30), 0), 60*2)
+            : 60*2+1 + std::min(std::max(m-60*13, 0), 60*4);
     };
-    std::vector<array<Av,2>> vols(60*4);
+    std::vector<array<Av,2>> vols(60*4+2);
     Av av;
     int xt;
     while (int bsf = read(xt, av)) {
