@@ -319,11 +319,11 @@ void Main::init_::prep(char* fn, int xbeg, int xend)
                     ERR_EXIT("fgets");
                 return 0u;
             }
-            int i=0, xb=0, xe=0;
             int szsh=0, code = 0;
             char*const end = &linebuf[sizeof(linebuf)];
             char* pos = linebuf;
             if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
+                int i=0, xb=0, xe=0;
                 Avsb avsb;
                 while (qi::phrase_parse(pos,end, R_Av>>R_Av, qi::space, avsb)) {
                     if (Sum(avsb).volume == 0) {
@@ -334,9 +334,9 @@ void Main::init_::prep(char* fn, int xbeg, int xend)
                         vec.push_back(avsb);
                     }
                     if (i == xbeg)
-                        xb =xe= vec.size();
-                    if (i == xend)
-                        xe = vec.size()+1;
+                        xb =xe= vec.size()-1;
+                    else if (i == xend)
+                        xe = vec.size();
                     ++i;
                 }
                 rng = boost::make_iterator_range(vec.begin()+xb, vec.begin()+xe);
