@@ -117,6 +117,22 @@ static const auto Plus = [](Avsb const& x, Avsb const& y) {
 auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
 auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
 
+static auto Lohi = [](auto& rng) {
+    auto cheap = [](auto&x, auto&y) {
+        Av a = Sum(x);
+        Av b = Sum(y);
+        return (a.amount/a.volume) < (b.amount/b.volume);
+    };
+    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
+};
+
+inline int Price(Av const& v) {
+    if (!v.volume)
+        return 1;
+    return int(v.amount/v.volume);
+};
+inline int Price(Avsb const& x) { return Price(Sum(x)); };
+
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 typedef unsigned code_t;
@@ -200,7 +216,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 
     void loadsi(char const* fn);
     Elem* address(int code);
-    void process1(filesystem::path const& path);
+    void prep(filesystem::path const& path);
     template <typename F> void proc1 (F read, int, int);
 };
 
@@ -232,7 +248,7 @@ void Main::init_::loadsi(char const* fn)
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_ >> R_
                         , qi::space, code, szsh, si)) {
-                ERR_EXIT("qi::parse: %s", pos);
+                ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.gbx > 0)
                 this->emplace(make_code(szsh,code), si);
@@ -272,18 +288,18 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
-            process1( p);
+            prep( p);
             m_->date = std::min(m_->date, _date(p.generic_string()));
         }
     } else for (int i=1; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        process1( argv[i]);
+        prep( argv[i]);
         m_->date = std::min(m_->date, _date(argv[i]));
     }
 }
 
-void Main::init_::process1(filesystem::path const& path)
+void Main::init_::prep(filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
@@ -391,6 +407,9 @@ Main::Main(int argc, char* const argv[])
 
 int Main::run(int argc, char* const argv[])
 {
+    constexpr int Wn=10000;
+    constexpr int Yi=Wn * Wn;
+
     Avsb _sum = {};
 
     for (Elem const & vss : *this) {
@@ -399,16 +418,25 @@ int Main::run(int argc, char* const argv[])
         Av sell = First(vss.sum);
         Av buy = Second(vss.sum);
         Av total = buy + sell;
+        Av b = buy - sell;
 
-        printf("%06d %9.2f", numb(vss.code), (buy-sell).amount/10000.0);
+        printf("%06d", numb(vss.code));
         {
+            long lsz = vss.gbx*Price(total);
+            printf("\t%7.2f", double(lsz)/Yi);
+            printf("\t% 6.2f %5.2f %03ld", b.amount/double(Yi), buy.amount/double(Yi), 1000*buy.amount/total.amount);
+        } {
+            auto& lh = vss.lohi;
+            printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
+
             long vola = total.volume/n_day;
-            auto xps = [&vola](long a, Avsb const& x){
+            auto exval = [&vola](long a, Avsb const& x){
                 return a + labs(Sum(x).volume - vola);
             };
-            long vx = std::accumulate(vss.all.begin(), vss.all.end(), 0l, xps);
-            printf("\t%03ld %04ld", 1000*vx/n_day/vola, 1000*total.volume/vss.gbx);
-            printf("\t%03ld", 1000*buy.volume/total.volume);
+            long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval);
+            printf("\t%03ld", 1000*ex/n_day/vola);
+
+            printf("\t%03ld", 1000*total.volume/vss.gbx);
         } {
             auto& vl = vss.vless;
             auto v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
@@ -421,28 +449,21 @@ int Main::run(int argc, char* const argv[])
             Av buy_ = Second(v);
             Av both = Sum(v);
             printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
-        } {
-            auto& lh = vss.lohi;
-            printf("\t%03d", (lh[1]-lh[0])*100/lh[0]);
-            printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), total.amount*100/std::max(total.volume,1l));
         }
-        fprintf(stdout, "\t%d\n", n_day);
+        printf("\t%d\n", n_day);
     }
     if (!empty()) {
-        constexpr int W_=10000;
-        constexpr int Y_=10000*10000;
         Av buy = Second(_sum);
         Av sell = First(_sum);
-        Av total = Sum(_sum);
-        long a = (buy.amount-sell.amount);
-        long v = (buy.volume-sell.volume);
+        Av total = buy + sell;
+        Av b = buy - sell;
         gregorian::date::ymd_type ymd = date.year_month_day();
 
         fprintf(stderr,"%04d%02d%02d", int(ymd.year), int(ymd.month), int(ymd.day));
         fprintf(stderr,"\t%8.2f %8.2f %03ld"
-                , total.amount/double(Y_), a/double(Y_), labs(a*100)/(total.amount/10));
+                , total.amount/double(Yi), b.amount/double(Yi), labs(b.amount)*100/(total.amount/10));
         fprintf(stderr,"\t%6.2f %6.2f %03ld"
-                , total.volume/double(Y_), v/double(Y_), labs(v*100)/(total.volume/10));
+                , total.volume/double(Yi), b.volume/double(Yi), labs(b.volume)*100/(total.volume/10));
         fprintf(stderr, "\n");
     }
 

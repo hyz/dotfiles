@@ -117,6 +117,22 @@ static const auto Plus = [](Avsb const& x, Avsb const& y) {
 auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
 auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
 
+static auto Lohi = [](auto& rng) {
+    auto cheap = [](auto&x, auto&y) {
+        Av a = Sum(x);
+        Av b = Sum(y);
+        return (a.amount/a.volume) < (b.amount/b.volume);
+    };
+    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
+};
+
+inline int Price(Av const& v) {
+    if (!v.volume)
+        return 1;
+    return int(v.amount/v.volume);
+};
+inline int Price(Avsb const& x) { return Price(Sum(x)); };
+
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 typedef unsigned code_t;
@@ -163,8 +179,6 @@ struct SInfo
 {
     long gbx, gbtotal;
     int eov;
-    //000001	11804054528	14308676608	0	0	165	0	1	0
-    //int_ >> long_ >>long_ >> omit[long_]>>omit[long_] >> int_
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
@@ -234,7 +248,7 @@ void Main::init_::loadsi(char const* fn)
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_ >> R_
                         , qi::space, code, szsh, si)) {
-                ERR_EXIT("qi::parse: %s", pos);
+                ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.gbx > 0)
                 this->emplace(make_code(szsh,code), si);
@@ -348,25 +362,6 @@ void Main::init_::prep(char* fn, int xbeg, int xend)
     }
 }
 
-static auto Lohi = [](auto& rng) {
-    auto cheap = [](auto&x, auto&y) {
-        Av a = Sum(x);
-        Av b = Sum(y);
-        return (a.amount/a.volume) < (b.amount/b.volume);
-    };
-    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
-    //Av a = Sum(*p.first );
-    //Av b = Sum(*p.second);
-    //return array<int,2>{{int(a.amount/a.volume), int(b.amount/b.volume)}};
-};
-
-inline int Price(Avsb const& x) {
-    Av v = Sum(x);
-    if (!v.volume)
-        return 1;
-    return int(v.amount/v.volume);
-};
-
 struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 
 template <typename F> void Main::init_::proc1(F read)
@@ -383,13 +378,7 @@ template <typename F> void Main::init_::proc1(F read)
         Av b = buy - First(avsb);
         printf("\t%6ld %03ld % .3d", b.amount/100/10000, buy.amount*1000/sum.amount, Chr(rng));
     };
-    //static const auto PVal = [](auto& rng) {
-    //    auto Chr = [](long a, long b) { return double(b-a)/a*100; };
-    //    Avsb const& first = *std::begin(rng);
-    //    Avsb const& last = *std::prev(std::end(rng));
-    //    printf("\t%5.2f %4d", Chr(Price(first),Price(last)), Price(last));
-    //    //printf("\t%ld %ld %ld %ld", Chr(lh[0],lh[1]), Chr(Price(first),Price(last)), Price(last));
-    //};
+    Avsb avsb[2] = {};
     std::vector<Avsb> vec;
     boost::iterator_range<std::vector<Avsb>::iterator> rng;
     while (code_t code = read(rng, vec, 0)) {
@@ -402,18 +391,34 @@ template <typename F> void Main::init_::proc1(F read)
             continue;
         }
 
-        Avsb avsb0 = std::accumulate(std::begin(vec), std::end(vec), Avsb{}, Plus);
+        Avsb avsb0 = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
+        avsb[0] = Plus(avsb[0], avsb0);
         Av sum0 = Sum(avsb0);
-        Avsb avsb1 = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
+        Avsb avsb1 = std::accumulate(std::begin(vec), std::end(vec), Avsb{}, Plus);
+        avsb[1] = Plus(avsb[1], avsb1);
         Av sum1 = Sum(avsb1);
+
         printf("%06d", numb(code));
-        Pvol(avsb1, rng) ; Pvol(avsb0, vec);
-        long lsz = vss->gbx*Price(avsb0);
+        Pvol(avsb0, rng) ; Pvol(avsb1, vec);
+        long lsz = vss->gbx*Price(avsb1);
         printf("\t%03ld %6ld %03ld %7.2f"
-                , sum1.amount*1000/sum0.amount, sum0.amount/100/10000
-                , sum0.amount*1000/lsz, lsz/100.0/100000000);
-        //PVal(rng); PVal(vec);
+                , sum0.amount*1000/sum1.amount, sum1.amount/100/10000
+                , sum1.amount*1000/lsz, lsz/100.0/100000000);
         printf("\n");
+    }
+    //gregorian::date::ymd_type ymd = date.year_month_day();
+    //fprintf(stderr,"%04d%02d%02d", int(ymd.year), int(ymd.month), int(ymd.day));
+    for (auto& _sum : avsb) {
+        constexpr long Y=100l*10000*10000; //constexpr int W_=10000;
+        Av buy = Second(_sum);
+        Av sell = First(_sum);
+        Av total = buy + sell;
+        Av b = buy - sell;
+        fprintf(stderr,"\t%8.2f %8.2f %03ld"
+                , total.amount/double(Y), b.amount/double(Y), labs(b.amount*100)/(total.amount/10));
+        //fprintf(stderr,"\t%6.2f %6.2f %03ld" , total.volume/double(Y_), b.volume/double(Y_), labs(b.volume*100)/(total.volume/10));
+    }
+    fprintf(stderr, "\n");
 
 #if 0
         Elem* vss = this->address(code);
@@ -466,7 +471,6 @@ template <typename F> void Main::init_::proc1(F read)
         vss->voths.push_back(vk);
         vec.clear();
 #endif
-    }
 }
 
 Main::Main(int argc, char* const argv[])
@@ -492,11 +496,11 @@ int Main::run(int argc, char* const argv[])
         printf("%06d %9.2f", numb(vss.code), (buy-sell).amount/10000.0);
         {
             long vola = total.volume/n_day;
-            auto xps = [&vola](long a, Avsb const& x){
+            auto exval = [&vola](long a, Avsb const& x){
                 return a + labs(Sum(x).volume - vola);
             };
-            long vx = std::accumulate(vss.all.begin(), vss.all.end(), 0l, xps);
-            printf("\t%03ld %04ld", 1000*vx/n_day/vola, 1000*total.volume/vss.gbx);
+            long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval);
+            printf("\t%03ld %04ld", 1000*ex/n_day/vola, 1000*total.volume/vss.gbx);
             printf("\t%03ld", 1000*buy.volume/total.volume);
         } {
             auto& vl = vss.vless;

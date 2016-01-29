@@ -14,6 +14,7 @@
 //namespace phoenix = boost::phoenix;
 #include <boost/array.hpp>
 #include <boost/container/static_vector.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/filesystem/path.hpp>
@@ -143,7 +144,7 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
     //~Main();
     int run(int argc, char* const argv[]);
 
-    void step1(Code code, filesystem::path const& path, gregorian::date);
+    void step1(Code code, std::string const& path, gregorian::date);
     template <typename F> int step2(F reader, Code code);
 };
 
@@ -171,7 +172,8 @@ int Main::run(int argc, char* const argv[])
         if (argc != 3) {
             ERR_EXIT("%s: argc>2", argv[0]);
         }
-        step1(_code(path.generic_string()), path, _date(argv[2]));
+        auto && p = path.generic_string();
+        step1(_code(p), p, _date(argv[2]));
         return 0;
     }
 
@@ -179,17 +181,18 @@ int Main::run(int argc, char* const argv[])
     for (auto& di : filesystem::directory_iterator(path)) {
         if (!filesystem::is_regular_file(di.path()))
             continue;
-        auto & p = di.path();
-        step1(_code(p.generic_string()), p, date);
+        auto && p = di.path().generic_string();
+        step1(_code(p), p, date);
     }
     return 0;
 }
 
-void Main::step1(Code code, filesystem::path const& path, gregorian::date)
+void Main::step1(Code code, std::string const& path, gregorian::date)
 {
     //if (code.numb()!=807) return; // Debug
-    if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
-        auto xcsv = [fp](int& sec, Av& av) {
+    if (FILE* fp = fopen(path.c_str(), "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+        auto xcsv = [fp,&path](int& sec, Av& av) {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
@@ -209,14 +212,14 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse %s", pos);
+                ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
             if (vol == 0) {ERR_EXIT("vol: %s", pos);}
             av.volume = vol;
             av.amount = price*100l * av.volume;
             return int('J') - c; //sec; //60*(sec/10000) + sec/100;
         };
-        auto xtxt = [fp](int& sec, Av& av) {
+        auto xtxt = [fp,&path](int& sec, Av& av) {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
@@ -234,18 +237,17 @@ void Main::step1(Code code, filesystem::path const& path, gregorian::date)
             char* pos = linebuf; //str.cbegin();
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_ >> int_, qi::space, sec, price, vol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse: %s", pos);
+                ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
             if (vol == 0) {ERR_EXIT("vol: %s", pos);}
             av.volume = abs(vol);
             av.amount = long(price) * av.volume;
             return vol;
         };
-        if (path.extension() == ".txt")
+        if (boost::algorithm::iends_with(path, ".txt")) // if (path.extension() == ".txt")
             step2(xtxt, code);
         else
             step2(xcsv, code);
-        fclose(fp);
     }
 }
 
