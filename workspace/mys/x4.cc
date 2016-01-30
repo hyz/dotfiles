@@ -57,6 +57,8 @@ namespace qi = boost::spirit::qi;
 //namespace ascii = boost::spirit::ascii;
 template <typename T,size_t N> using array = std::array<T,N>;
 
+using namespace boost::multi_index;
+
 namespace boost { namespace spirit { namespace traits
 {
     template<>
@@ -172,8 +174,6 @@ gregorian::date _date(std::string const& s) // ./20151221
         ERR_EXIT("%s: not-a-date", s.c_str());
     return gregorian::date(y,m,d);
 }
-
-using namespace boost::multi_index;
 
 struct SInfo
 {
