@@ -128,8 +128,8 @@ gregorian::date _date(std::string const& s) // ./20151221
     unsigned y, m, d;
     auto it = s.cbegin();
     if (!qi::parse(it, s.cend()
-            , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
-                 >> _4digit >> _2digit >> _2digit
+            , -lit('/') >> *(qi::omit[+(char_-'/')] >> '/')
+                 >> _4digit >> _2digit >> _2digit // >> '/' >> qi::omit[+(char_-'/')]
             , y, m, d))
         ERR_EXIT("%s: not-a-date", s.c_str());
     return gregorian::date(y,m,d);
@@ -217,18 +217,20 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     loadsi("/cygdrive/d/home/wood/._sinfo");
 
     if (filesystem::is_directory(argv[1])) {
+        m_->date = _date(argv[1]); //std::min(m_->date, _date(p));
         for (auto& di : filesystem::directory_iterator(argv[1])) {
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto && p = di.path().generic_string();
             prep( p, _code(p) );
-            m_->date = std::min(m_->date, _date(p));
         }
-    } else for (int i=1; i<argc; ++i) {
-        if (!filesystem::is_regular_file(argv[i]))
-            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        prep( argv[i], _code(argv[i]) );
-        m_->date = std::min(m_->date, _date(argv[i]));
+    } else {
+        m_->date = _date(argv[1]);
+        for (int i=2; i<argc; ++i) {
+            if (!filesystem::is_regular_file(argv[i]))
+                continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+            prep( argv[i], _code(argv[i]) );
+        }
     }
 }
 
@@ -300,11 +302,13 @@ void Main::init_::prep(std::string const& path, code_t code)
                     av.amount += pv.price*pv.volume;
                     av.volume += pv.volume;
                 } else {
-                    auto& e = vec[index(xt0)];// += Pa{av.amount/av.volume, av.amount/100};
-                    e.amount = av.amount/100;
-                    e.price = av.amount/av.volume;
-                    price = pv.price;
+                    if (av.volume) {
+                        auto& e = vec[index(xt0)];
+                        e.amount = av.amount/100;
+                        e.price = av.amount/av.volume;
+                    }
                     xt0 = xt;
+                    price = pv.price;
                     av.amount = pv.price*pv.volume;
                     av.volume = pv.volume;
                 }
@@ -322,58 +326,111 @@ void Main::init_::prep(std::string const& path, code_t code)
 struct XClear { template<typename T> void operator()(T*v)const{ *v=T{}; } };
 
 template <typename I, typename F>
-void walk(I b, I e, F&& fn)
+void walk(I b, I end, F&& fn)
 {
+    auto beg = b;
     auto p = b;
     ++b;
-    for (; b!=e && b->price <= p->price; ++b)
-        p = b;
-    auto beg = p;
-    for (; b!=e && b->price >= p->price; ++b)
-        p = b;
-    if (b != beg)
-        fn(beg.base(), b.base());
-    walk(b, e, fn);
+    for (; b!=end && b->price <= p->price; ++b)
+        if (b->amount)
+            p = b;
+
+    if (b != end) {
+        auto dnp = std::make_pair(beg, p+1);
+
+        beg = p;
+        for (; b!=end && b->price >= p->price; ++b)
+            p = b;
+
+        fn(dnp, std::make_pair(beg, b));
+
+        if (b != end)
+            walk(p, end, fn);
+    }
 }
 
 void Main::init_::fun(std::vector<Pa> vpa, code_t code)
 {
-    typedef std::vector<Pa>::iterator iterator;
-
-    std::vector<std::pair<iterator,iterator>> ps;
-
-    struct gt0 {
-        bool operator()(Pa const& pa)const{ return pa.amount>0; }
+    const auto Idx = [&vpa](auto it) {
+        int x = it-vpa.begin();
+        int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
+        return y/60*100 + y%60;
     };
-    using boost::make_filter_iterator;
-    walk(make_filter_iterator<gt0>(vpa.begin(),vpa.end()), make_filter_iterator<gt0>(vpa.end(),vpa.end())
-            , [&ps](iterator b, iterator end){ ps.emplace_back(b,end); });
+    const auto rindex = [](int x) {
+        int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
+        return y/60*100 + y %60;
+    };
 
-    auto lt = [](auto&p1, auto&p2) {
+    typedef std::vector<Pa>::iterator iterator;
+    // 600712  161     5.43    002     68 936,4,017 1048,13,018 1354,16,060 1447,5,018 953,30,048
+
+    std::vector<std::pair<iterator,iterator>> ps;//, gs;
+
+    auto psx = [&ps,&Idx](auto&& p0, auto&&p1) {
+#ifndef NDEBUG
+        printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second));
+#endif
+        if (ps.empty())
+            ps.push_back(p1);
+        else {
+            auto last = std::prev(ps.end());
+            int x = p0.first->price - std::prev(p0.second)->price;
+            int y = std::prev(p1.second)->price - last->first->price;
+            int z = std::prev(p1.second)->price - p0.first->price;
+            if ((3*x < z)&&(10*x < y || 10*x < z || 15*x < y+z)) {
+                last->second = p1.second;
+#ifndef NDEBUG
+                printf("M %d-%d %d %d %d\n", Idx(last->first), Idx(last->second), x, y, z);
+#endif
+            } else {
+                ps.push_back(p1);
+            }
+        }
+    };
+
+    //struct gt0 {
+    //    bool operator()(Pa const& pa)const{ return pa.amount>0; }
+    //} gt0_;
+    //typedef boost::filter_iterator<gt0,iterator> f_iter; // using boost::make_filter_iterator;
+    //walk(f_iter(gt0_,vpa.begin(),vpa.end()), f_iter(gt0_,vpa.end(),vpa.end()), psx);
+    walk(vpa.begin(),vpa.end(), psx);
+
+    if (ps.empty())
+        return;
+
+    auto it = ps.begin() + ps.size() - std::min(5lu,ps.size());
+
+    auto lt1 = [](auto&p1, auto&p2) {
         return (std::prev(p1.second)->price - p1.first->price)
              < (std::prev(p2.second)->price - p2.first->price);
     };
+    std::nth_element(ps.begin(), it, ps.end(), lt1);
 
-    auto it = ps.begin() + ps.size()/5;
-    std::nth_element(ps.begin(), it, ps.end(), lt);
-
-    auto echo = [](iterator it, iterator end) {
-        constexpr int W=10000;
-        auto Chr = [](int b, int d) { return (d-b)*1000/b; };
-        auto cr = Chr(it->price, std::prev(end)->price);
-        auto amount = std::accumulate(it,end, 0l, [](long x, auto& y) { return x+y.amount; });
-        int m = int(end - it);
-        printf("\t%03d" "\t%.2f" "\t%03d" "\t%d"
-                , cr , 1000.0*amount/(100*W)/cr , cr/m, m);
+    auto add = [](Pa& pa, iterator it, iterator end) {
+        auto Chr = [](int b, int d) { return 1000*(d-b)/b; };
+        pa.price += Chr(it->price, std::prev(end)->price);
+        pa.amount = std::accumulate(it,end, pa.amount, [](long x, auto& y) { return x+y.amount; });
     };
 
+    Pa pa = {};
+    int m = 0;
     printf("%06d", numb(code));
-    for (; it != ps.end(); ++it) {
-        echo(it->first, it->second);
+    for (auto i=it; i != ps.end(); ++i) {
+        m += int(i->second - i->first);
+        add(pa, i->first, i->second);
     }
+
+    constexpr int W=10000;
+    printf("\t%03d" "\t%.2f" "\t%03d" "\t%d"
+            , pa.price, 10.0*pa.amount/(100*W)/pa.price , pa.price/m, m);
+
+    for (auto i=it; i != ps.end(); ++i)
+        printf(" %d,%d,%03d"
+            , rindex(i->first - vpa.begin()), int(i->second - i->first)
+            , (std::prev(i->second)->price - i->first->price)*1000/i->first->price
+            );
     printf("\n");
 }
-
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
 {
