@@ -236,6 +236,9 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
 
 void Main::init_::prep(std::string const& path, code_t code)
 {
+#ifndef NDEBUG
+    printf("%06d %s\n", numb(code), path.c_str());
+#endif
     if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         auto xcsv = [fp,&path](Pv& pv, int& sec) {
@@ -328,7 +331,9 @@ struct XClear { template<typename T> void operator()(T*v)const{ *v=T{}; } };
 template <typename I, typename F>
 void walk(I b, I end, F&& fn)
 {
-    auto beg = b;
+    auto beg =b= std::find_if(b, end, [](auto&x){return x.amount;});
+    if (b == end)
+        return;
     auto p = b;
     ++b;
     for (; b!=end && b->price <= p->price; ++b)
@@ -338,7 +343,8 @@ void walk(I b, I end, F&& fn)
     if (b != end) {
         auto dnp = std::make_pair(beg, p+1);
 
-        beg = p;
+        beg = p = b;
+        ++b;
         for (; b!=end && b->price >= p->price; ++b)
             p = b;
 
@@ -347,6 +353,13 @@ void walk(I b, I end, F&& fn)
         if (b != end)
             walk(p, end, fn);
     }
+}
+
+auto find_last(auto& r) {
+    auto it = std::find_if(r.rbegin(), r.rend(), [](auto&x){return x.amount;});
+    if (it==r.rend())
+        ERR_EXIT("find-last");
+    return it.base();
 }
 
 void Main::init_::fun(std::vector<Pa> vpa, code_t code)
@@ -367,6 +380,7 @@ void Main::init_::fun(std::vector<Pa> vpa, code_t code)
     std::vector<std::pair<iterator,iterator>> ps;//, gs;
 
     auto psx = [&ps,&Idx](auto&& p0, auto&&p1) {
+        //BOOST_ASSERT(p0.first);
 #ifndef NDEBUG
         printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second));
 #endif
@@ -388,11 +402,6 @@ void Main::init_::fun(std::vector<Pa> vpa, code_t code)
         }
     };
 
-    //struct gt0 {
-    //    bool operator()(Pa const& pa)const{ return pa.amount>0; }
-    //} gt0_;
-    //typedef boost::filter_iterator<gt0,iterator> f_iter; // using boost::make_filter_iterator;
-    //walk(f_iter(gt0_,vpa.begin(),vpa.end()), f_iter(gt0_,vpa.end(),vpa.end()), psx);
     walk(vpa.begin(),vpa.end(), psx);
 
     if (ps.empty())
@@ -421,12 +430,13 @@ void Main::init_::fun(std::vector<Pa> vpa, code_t code)
     }
 
     constexpr int W=10000;
-    printf("\t%03d" "\t%.2f" "\t%03d" "\t%d"
+    printf("\t%03d\t%.2f\t%03d\t%d"
             , pa.price, 10.0*pa.amount/(100*W)/pa.price , pa.price/m, m);
 
     for (auto i=it; i != ps.end(); ++i)
+        if (i->first->price)
         printf(" %d,%d,%03d"
-            , rindex(i->first - vpa.begin()), int(i->second - i->first)
+            , Idx(i->first), int(i->second - i->first)
             , (std::prev(i->second)->price - i->first->price)*1000/i->first->price
             );
     printf("\n");
