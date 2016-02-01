@@ -276,7 +276,7 @@ void Main::init_::prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/
                 Av av0, av1; //Avsb avsb;
                 while (qi::phrase_parse(pos,end, R_Av>>R_Av, qi::space, av0, av1)) {
                     Av av = av0 + av1;
-                    vec.push_back( {int(av.amount/av.volume), av.amount} );
+                    vec.push_back( {int(av.amount*100/std::max(av.volume,1l)), av.amount} );
                 }
             } else
                 ERR_EXIT("qi:parse: %s", pos);
@@ -332,11 +332,6 @@ void walk(I b, I end, F&& fn)
         _walkimpl(b,end, fn);
 }
 
-static const auto r_index = [](int x) {
-    int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
-    return y/60*100 + y %60;
-};
-
 void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 {
     //Elem* vss = this->address(code);
@@ -345,9 +340,9 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
     //    return;
     //}
 
-    const auto Idx = [&vpa](auto it) {
+    const auto Minx = [&vpa](auto it) {
         int x = it-vpa.begin();
-        int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
+        int y = 60*9+30 + (x <= 60*2 ? x : x-1+90);
         return y/60*100 + y%60;
     };
 
@@ -355,9 +350,9 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 
     std::vector<std::pair<iterator,iterator>> ps, gs;
 
-    auto psx = [&gs,&ps,&Idx](auto&& p0, auto&&p1) {
+    auto psx = [&gs,&ps,&Minx](auto&& p0, auto&&p1) {
         //BOOST_ASSERT(p0.first);
-        //printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second)); //Debug
+        //printf("R %d-%d,%d-%d\n", Minx(p0.first), Minx(p0.second), Minx(p1.first), Minx(p1.second)); //Debug
         if (ps.empty()) {
             //gs.push_back(p0);
             ps.push_back(p1);
@@ -366,9 +361,9 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
             int x = p0.first->price - p0.second->price;
             int y = p1.second->price - p1.first->price;
             int z = last->second->price - last->first->price;
-            if ((2*x < y)&&(2*x < z)&&(5*x < y+z)) {
+            if ((2*x < y)&&(2*x < z)&&(5*x < y+z)&&(p0.second-p0.first < 5)) {
                 last->second = p1.second;
-                //printf("M %d-%d %d %d %d\n", Idx(last->first), Idx(last->second), x, y, z); //Debug
+                //printf("M %d-%d %d %d %d\n", Minx(last->first), Minx(last->second), x, y, z); //Debug
             } else {
                 ps.push_back(p1);
             }
@@ -396,19 +391,21 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
     long amount0 = std::accumulate(vpa.begin(),vpa.end(), 0l, [](long x, auto&y){return x+y.amount;});
     long amount=0;
     int m=0, chr=0;
-    printf("%06d", numb(code));
     for (auto i=it; i != ps.end(); ++i) {
         m += int(i->second - i->first)+1;
         Add(amount, chr, i->first, i->second);
     }
-
+    if (chr == 0)
+        return;
     constexpr int W=10000;
-    printf("\t%4.2f %4.2f %03ld\t%2d %3d\t%4.2f"
-            , double(amount0)/W/W, double(amount)/W/W, 1000*amount/amount0, m, chr, 10.0*amount/(100*W)/chr);
+
+    printf("%06d", numb(code));
+    printf("\t%4.2f %4.2f %03ld\t%2d %3d\t%4ld"
+            , double(amount0)/W/W, double(amount)/W/W, 1000*amount/amount0, m, chr, amount/chr/W);
 
     //auto Pos = [&vpa](auto&p1, auto&p2) { return (p1.first < p2.first); };
     //std::sort(it,ps.end(), Pos);
-    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Idx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
+    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Minx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
     printf("\n");
 }
 

@@ -217,7 +217,7 @@ void Main::step1(code_t code, std::string const& path, gregorian::date)
                         , int_ >> float_ >> char_ >> int_, ',', sec, fprice, c, vol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
-            sec = sec/10000*60 + sec/100%100 + sec%100;
+            sec = sec/10000*3600 + sec/100%100*60 + sec%100;
             price = int(fprice*100);
             return int('J') - c; //sec; //60*(sec/10000) + sec/100;
         };
@@ -239,7 +239,7 @@ void Main::step1(code_t code, std::string const& path, gregorian::date)
                         , int_ >> int_ >> int_, qi::space, sec, price, svol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
-            sec = sec/10000*60 + sec/100%100 + sec%100;
+            sec = sec/10000*3600 + sec/100%100*60 + sec%100;
             vol = abs(svol);
             return svol;
         };
@@ -254,17 +254,16 @@ void Main::step1(code_t code, std::string const& path, gregorian::date)
 
 template <typename F> int Main::step2(F read, code_t code, array<int,2>&oc, array<int,2>&lh)
 {
-    static const auto index = [](int m) {
+    static const auto Idx = [](int m) {
         return (m < 60*12+30)
             ? std::min(std::max(m-(60*9+30), 0), 60*2)
-            : 60*2+1 + std::min(std::max(m-60*13, 0), 60*4);
+            : std::min(std::max(m-(60*13  ), 0), 60*2) + (60*2+1);
     };
     std::vector<array<Av,2>> vols(60*4+2);
-    // int oc[2] = {}, lh[2] = {};
     int xt, price, vol;
     while (int bsf = read(xt, price, vol)) {
-        Av& av = vols[index(xt/60)][bsf>0]; // += av; //vols[index(xt/100)][bsf>0] += av;
-        av.amount += price*vol;
+        Av& av = vols[Idx(xt/60)][bsf>0]; // += av; //vols[Idx(xt/100)][bsf>0] += av;
+        av.amount += price*vol/100;
         av.volume += vol;
 
         //if (oc[0] == 0)

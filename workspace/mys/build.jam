@@ -34,7 +34,6 @@ exe x3 : x3.cc /boost//filesystem : <link>static ;
 exe x4 : x4.cc /boost//filesystem : <link>static ;
 exe x5 : x5.cc /boost//filesystem : <link>static ;
 exe jx : jx.cc /boost//filesystem : <link>static ;
-exe j1 : j1.cc /boost//filesystem : <link>static ;
 
 install bin : x5 x-minute x-day x3 x4 x5
     f1 f2   f5 f8 ls-dczxg f9 s-diff s-inters f6 fx f7

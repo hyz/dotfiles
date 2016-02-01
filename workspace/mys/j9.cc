@@ -364,16 +364,11 @@ void walk(I b, I end, F&& fn)
         _walkimpl(b,end, fn);
 }
 
-static const auto r_index = [](int x) {
-    int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
-    return y/60*100 + y %60;
-};
-
 void Main::init_::fun(std::vector<Pa> vpa, code_t code)
 {
     const auto Minx = [&vpa](auto it) {
         int x = it-vpa.begin();
-        int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
+        int y = 60*9+30 + (x <= 60*2 ? x : x-1+90);
         return y/60*100 + y%60;
     };
 
