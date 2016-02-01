@@ -236,9 +236,7 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
 
 void Main::init_::prep(std::string const& path, code_t code)
 {
-#ifndef NDEBUG
-    printf("%06d %s\n", numb(code), path.c_str());
-#endif
+    //printf("%06d %s\n", numb(code), path.c_str()); //Debug
     if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         auto xcsv = [fp,&path](Pv& pv, int& sec) {
@@ -297,21 +295,21 @@ void Main::init_::prep(std::string const& path, code_t code)
             std::vector<Pa> vec(60*4+2);
             Av av = {};
             Pv pv;
-            int price = 0;
+            //int price = 0;
             int xt0=0, xt;
             while ( read1(pv, xt)) {
                 xt /= 100;
-                if (pv.price == price || xt == xt0) {
+                if (/*pv.price == price ||*/ xt == xt0) {
                     av.amount += pv.price*pv.volume;
                     av.volume += pv.volume;
                 } else {
                     if (av.volume) {
                         auto& e = vec[index(xt0)];
-                        e.amount = av.amount/100;
                         e.price = av.amount/av.volume;
+                        e.amount = av.amount/100;
                     }
                     xt0 = xt;
-                    price = pv.price;
+                    //price = pv.price;
                     av.amount = pv.price*pv.volume;
                     av.volume = pv.volume;
                 }
@@ -329,38 +327,47 @@ void Main::init_::prep(std::string const& path, code_t code)
 struct XClear { template<typename T> void operator()(T*v)const{ *v=T{}; } };
 
 template <typename I, typename F>
-void walk(I b, I end, F&& fn)
+void walk_(I b, I end, F&& fn)
 {
-    auto beg =b= std::find_if(b, end, [](auto&x){return x.amount;});
-    if (b == end)
-        return;
     auto p = b;
     ++b;
+    auto beg = p;
     for (; b!=end && b->price <= p->price; ++b)
-        if (b->amount)
+        if (b->price)
             p = b;
 
     if (b != end) {
-        auto dnp = std::make_pair(beg, p+1);
+        auto dnp = std::make_pair(beg, p);
 
-        beg = p = b;
-        ++b;
-        for (; b!=end && b->price >= p->price; ++b)
-            p = b;
+        beg = p; //++b; //if ( (b = skipz(b+1, end)) == end) return;
+        for (; b!=end && (b->price >= p->price || !b->price); ++b)
+            if (b->price)
+                p = b;
 
-        fn(dnp, std::make_pair(beg, b));
+        fn(dnp, std::make_pair(beg, p));
 
         if (b != end)
             walk(p, end, fn);
     }
 }
-
-auto find_last(auto& r) {
-    auto it = std::find_if(r.rbegin(), r.rend(), [](auto&x){return x.amount;});
-    if (it==r.rend())
-        ERR_EXIT("find-last");
-    return it.base();
+template <typename I, typename F>
+void walk(I b, I end, F&& fn)
+{
+    //static const auto skipz = [](auto it, auto end) {
+    //    while (it != end && !it->amount)
+    //        ++it;
+    //    return it;
+    //};
+    while (b != end && !b->amount)
+        ++b;
+    if (b != end)
+        walk_(b,end, fn);
 }
+
+static const auto r_index = [](int x) {
+    int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
+    return y/60*100 + y %60;
+};
 
 void Main::init_::fun(std::vector<Pa> vpa, code_t code)
 {
@@ -369,78 +376,67 @@ void Main::init_::fun(std::vector<Pa> vpa, code_t code)
         int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
         return y/60*100 + y%60;
     };
-    const auto rindex = [](int x) {
-        int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
-        return y/60*100 + y %60;
-    };
+//000504	079	17.56	000	226 1454,3,000 1450,2,000 1443,2,001 931,214,053 1436,5,025
 
     typedef std::vector<Pa>::iterator iterator;
-    // 600712  161     5.43    002     68 936,4,017 1048,13,018 1354,16,060 1447,5,018 953,30,048
 
-    std::vector<std::pair<iterator,iterator>> ps;//, gs;
+    std::vector<std::pair<iterator,iterator>> ps, gs;
 
-    auto psx = [&ps,&Idx](auto&& p0, auto&&p1) {
+    auto psx = [&gs,&ps,&Idx](auto&& p0, auto&&p1) {
         //BOOST_ASSERT(p0.first);
-#ifndef NDEBUG
-        printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second));
-#endif
-        if (ps.empty())
+        //printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second)); //Debug
+        if (ps.empty()) {
+            //gs.push_back(p0);
             ps.push_back(p1);
-        else {
+        } else {
             auto last = std::prev(ps.end());
-            int x = p0.first->price - std::prev(p0.second)->price;
-            int y = std::prev(p1.second)->price - last->first->price;
-            int z = std::prev(p1.second)->price - p0.first->price;
-            if ((3*x < z)&&(10*x < y || 10*x < z || 15*x < y+z)) {
+            int x = p0.first->price - p0.second->price;
+            int y = p1.second->price - p0.first->price;
+            int z = last->second->price - last->first->price;
+            if ((3*x < y)&&(3*x < z)) {
                 last->second = p1.second;
-#ifndef NDEBUG
-                printf("M %d-%d %d %d %d\n", Idx(last->first), Idx(last->second), x, y, z);
-#endif
+                //printf("M %d-%d %d %d %d\n", Idx(last->first), Idx(last->second), x, y, z); //Debug
             } else {
                 ps.push_back(p1);
             }
+            //gs.push_back(p1);
         }
     };
-
     walk(vpa.begin(),vpa.end(), psx);
-
     if (ps.empty())
         return;
 
     auto it = ps.begin() + ps.size() - std::min(5lu,ps.size());
 
     auto lt1 = [](auto&p1, auto&p2) {
-        return (std::prev(p1.second)->price - p1.first->price)
-             < (std::prev(p2.second)->price - p2.first->price);
+        return (p1.second->price - p1.first->price)
+             < (p2.second->price - p2.first->price);
     };
     std::nth_element(ps.begin(), it, ps.end(), lt1);
 
-    auto add = [](Pa& pa, iterator it, iterator end) {
+    auto Add = [](long&amount, int&chr, iterator it, iterator last) {
         auto Chr = [](int b, int d) { return 1000*(d-b)/b; };
-        pa.price += Chr(it->price, std::prev(end)->price);
-        pa.amount = std::accumulate(it,end, pa.amount, [](long x, auto& y) { return x+y.amount; });
+        chr += Chr(it->price, last->price);
+        amount += std::accumulate(it,last+1, 0l, [](long x, auto& y) { return x+y.amount; });
     };
 
-    Pa pa = {};
-    int m = 0;
+    long amount0 = std::accumulate(vpa.begin(),vpa.end(), 0l, [](long x, auto&y){return x+y.amount;});
+    long amount2=0;
+    int m=0, chr=0;
     printf("%06d", numb(code));
     for (auto i=it; i != ps.end(); ++i) {
-        m += int(i->second - i->first);
-        add(pa, i->first, i->second);
+        m += int(i->second - i->first)+1;
+        Add(amount2, chr, i->first, i->second);
     }
 
     constexpr int W=10000;
-    printf("\t%03d\t%.2f\t%03d\t%d"
-            , pa.price, 10.0*pa.amount/(100*W)/pa.price , pa.price/m, m);
+    printf("\t%.2f\t%2d\t%5.2f\t%03d\t%03d"
+            , double(amount0)/W/W, m, 10.0*amount2/(100*W)/chr, chr, chr/m);
 
-    for (auto i=it; i != ps.end(); ++i)
-        if (i->first->price)
-        printf(" %d,%d,%03d"
-            , Idx(i->first), int(i->second - i->first)
-            , (std::prev(i->second)->price - i->first->price)*1000/i->first->price
-            );
+    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Idx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
     printf("\n");
 }
+
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
 {
