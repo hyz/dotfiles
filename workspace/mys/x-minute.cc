@@ -58,6 +58,8 @@ namespace boost { namespace spirit { namespace traits
 //typedef gregorian::date::ymd_type ymd_type;
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
+struct Oclh { array<int,2> oc = {}, lh = {}; };
+
 struct Av {
     long volume = 0;
     long amount = 0;
@@ -71,7 +73,11 @@ struct Av {
         return (x+=lhs);
     }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
+//BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
+struct Pv {
+    int price = 0;
+    int volume = 0;
+};
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 gregorian::date _date(std::string const& s) // ./20151221
@@ -90,17 +96,15 @@ gregorian::date _date(std::string const& s) // ./20151221
         ERR_EXIT("%s: not-a-date", s.c_str());
     return gregorian::date(y,m,d);
 }
-struct Code
-{
-    Code(int tag, int numb) :val((tag<<24)|numb) {}
-    unsigned val;
-    int numb() const { return val&0x0ffffff; }
-    int tag() const { return (val>>24)&0xff; }
-};
-static Code _code(std::string const& s)
+
+typedef unsigned code_t;
+inline code_t make_code(int szsh, int numb) { return ((szsh<<24)|numb); }
+inline int numb(code_t v_) { return v_&0x0ffffff; }
+inline int szsh(code_t v_) { return (v_>>24)&0xff; }
+static code_t _code(std::string const& s)
 {
     static const qi::int_parser<int,10,6,6> _6digit = {};
-    using ascii::char_;
+    using qi::char_;
     using qi::lit;
     struct SZSH_ : qi::symbols<char, int> { SZSH_() { add ("SZ",0) ("SH",1); } } SZSH;
 
@@ -108,10 +112,10 @@ static Code _code(std::string const& s)
     auto it = s.cbegin();
     if (!qi::parse(it, s.cend()
             , -lit('/') >> *qi::omit[+(char_-'/') >> '/']
-                 >> SZSH >> _6digit >>'.'>>ascii::no_case[lit("csv")|"txt"]
+                 >> SZSH >> _6digit // >>'.'>>qi::no_case[lit("csv")|"txt"]
             , x, y))
         ERR_EXIT("%s: not-a-code", s.c_str());
-    return Code(x,y);
+    return make_code(x,y);
 }
 
 #include <boost/multi_index_container.hpp>
@@ -144,8 +148,8 @@ struct Main : boost::multi_index::multi_index_container< Vols, indexed_by <
     //~Main();
     int run(int argc, char* const argv[]);
 
-    void step1(Code code, std::string const& path, gregorian::date);
-    template <typename F> int step2(F reader, Code code);
+    void step1(code_t code, std::string const& path, gregorian::date);
+    template <typename F> int step2(F read, code_t code, array<int,2>&oc, array<int,2>&lh);
 };
 
 int main(int argc, char* const argv[])
@@ -187,12 +191,12 @@ int Main::run(int argc, char* const argv[])
     return 0;
 }
 
-void Main::step1(Code code, std::string const& path, gregorian::date)
+void Main::step1(code_t code, std::string const& path, gregorian::date)
 {
     //if (code.numb()!=807) return; // Debug
     if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        auto xcsv = [fp,&path](int& sec, Av& av) {
+        auto xcsv = [fp,&path](int& sec, int& price, int& vol) {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
@@ -205,21 +209,19 @@ void Main::step1(Code code, std::string const& path, gregorian::date)
                     ERR_EXIT("fgets");
                 return 0;
             }
-            float price;
-            int vol;
+            float fprice;
             signed char c;
 
-            char* pos = linebuf; //str.cbegin();
+            char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> float_ >> char_ >> int_, ',', sec, price, c, vol) /*&& pos == end*/) {
+                        , int_ >> float_ >> char_ >> int_, ',', sec, fprice, c, vol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
-            if (vol == 0) {ERR_EXIT("vol: %s", pos);}
-            av.volume = vol;
-            av.amount = price*100l * av.volume;
+            sec = sec/10000*60 + sec/100%100 + sec%100;
+            price = int(fprice*100);
             return int('J') - c; //sec; //60*(sec/10000) + sec/100;
         };
-        auto xtxt = [fp,&path](int& sec, Av& av) {
+        auto xtxt = [fp,&path](int& sec, int& price, int& vol) {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
@@ -231,42 +233,50 @@ void Main::step1(Code code, std::string const& path, gregorian::date)
                     ERR_EXIT("fgets");
                 return 0;
             }
-            int price;
-            int vol;
-
-            char* pos = linebuf; //str.cbegin();
+            int svol;
+            char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> int_ >> int_, qi::space, sec, price, vol) /*&& pos == end*/) {
+                        , int_ >> int_ >> int_, qi::space, sec, price, svol) /*&& pos == end*/) {
                 ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
             }
-            if (vol == 0) {ERR_EXIT("vol: %s", pos);}
-            av.volume = abs(vol);
-            av.amount = long(price) * av.volume;
-            return vol;
+            sec = sec/10000*60 + sec/100%100 + sec%100;
+            vol = abs(svol);
+            return svol;
         };
+        //std::unordered_map<int,Oclh> oclh;
+        Oclh oclh = {};
         if (boost::algorithm::iends_with(path, ".txt")) // if (path.extension() == ".txt")
-            step2(xtxt, code);
+            step2(xtxt, code, oclh.oc, oclh.lh);
         else
-            step2(xcsv, code);
+            step2(xcsv, code, oclh.oc, oclh.lh);
     }
 }
 
-template <typename F> int Main::step2(F read, Code code)
+template <typename F> int Main::step2(F read, code_t code, array<int,2>&oc, array<int,2>&lh)
 {
-    static const auto index = [](int xt) {
-        int m = xt/100*60 + xt%100;
-        return (m < 60*13-30)
+    static const auto index = [](int m) {
+        return (m < 60*12+30)
             ? std::min(std::max(m-(60*9+30), 0), 60*2)
             : 60*2+1 + std::min(std::max(m-60*13, 0), 60*4);
     };
     std::vector<array<Av,2>> vols(60*4+2);
-    Av av;
-    int xt;
-    while (int bsf = read(xt, av)) {
-        vols[index(xt/100)][bsf>0] += av;
+    // int oc[2] = {}, lh[2] = {};
+    int xt, price, vol;
+    while (int bsf = read(xt, price, vol)) {
+        Av& av = vols[index(xt/60)][bsf>0]; // += av; //vols[index(xt/100)][bsf>0] += av;
+        av.amount += price*vol;
+        av.volume += vol;
+
+        //if (oc[0] == 0)
+        //    oc[0] = oc[1] = lh[0] = lh[1] = price;
+        //oc[1] = price;
+        //if (price < lh[0])
+        //    lh[0] = price;
+        //else if (price > lh[1])
+        //    lh[1] = price;
     }
 
-    fprintf(stdout, "%06d %d", code.numb(), code.tag());
+    fprintf(stdout, "%06d %d", numb(code), szsh(code));
     for (auto& v : vols) {
         fprintf(stdout, "\t%ld %ld %ld %ld"
                 , v[0].volume, v[0].amount, v[1].volume, v[1].amount);

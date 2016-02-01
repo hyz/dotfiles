@@ -217,7 +217,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     void loadsi(char const* fn);
     Elem* address(int code);
     void prep(filesystem::path const& path);
-    template <typename F> void proc1 (F read, int, int);
+    template <typename F> void fun (F read, int, int);
 };
 
 int main(int argc, char* const argv[])
@@ -333,13 +333,13 @@ void Main::init_::prep(filesystem::path const& path)
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
         };
-        proc1(reader, 0,0);
+        fun(reader, 0,0);
     }
 }
 
 struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 
-template <typename F> void Main::init_::proc1(F read, int, int)
+template <typename F> void Main::init_::fun(F read, int, int)
 {
     std::vector<Avsb> vec;
     while (code_t code = read(vec, 0)) {

@@ -83,24 +83,17 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av {
-    long volume = 0;
     long amount = 0;
-    Av& operator+=(Av const& lhs) {
-        amount += lhs.amount;
-        volume += lhs.volume;
-        return *this;
-    }
-    Av operator+(Av const& lhs) const {
-        Av x = *this;
-        return (x+=lhs);
-    }
+    long volume = 0;
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
-
+struct Pv {
+    int price = 0;
+    int volume = 0;
+};
 struct Pa // : std::pair<int,long>
 {
-    int price ;// = 0;
-    long amount ;// = 0;
+    int price = 0;
+    long amount = 0;
 };
 //BOOST_FUSION_ADAPT_STRUCT(Pa, (int,price)(long,amount))
 
@@ -172,8 +165,8 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     init_(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* fn);
-    void prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/);
-    void fun(code_t code, std::vector<Pa>& v);
+    void prep(std::string const& path, code_t code);
+    void fun(std::vector<Pa> v, code_t code);
 };
 
 int main(int argc, char* const argv[])
@@ -224,75 +217,114 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     loadsi("/cygdrive/d/home/wood/._sinfo");
 
     if (filesystem::is_directory(argv[1])) {
+        m_->date = _date(argv[1]); //std::min(m_->date, _date(p));
         for (auto& di : filesystem::directory_iterator(argv[1])) {
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto && p = di.path().generic_string();
-            prep( _date(p.c_str())/*_code(p)*/, p.c_str() );
+            prep( p, _code(p) );
         }
     } else {
-        for (int i=1; i<argc; ++i) {
+        m_->date = _date(argv[1]);
+        for (int i=2; i<argc; ++i) {
             if (!filesystem::is_regular_file(argv[i]))
-                continue;
-            prep( _date(argv[i])/*_code(argv[i])*/, argv[i] );
+                continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+            prep( argv[i], _code(argv[i]) );
         }
     }
 }
 
-typedef fusion::vector<Av,Av> Avsb;
-auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
-auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
-Avsb operator+(Avsb const& x, Avsb const& y) {
-    return fusion::make_vector(First(x)+First(y), Second(x)+Second(y));
-}
-//static const auto Plus = [](Avsb const& x, Avsb const& y) {
-//    return fusion::make_vector(First(x)+First(y), Second(x)+Second(y));
-//};
-
-struct XClear { template<typename T> void operator()(T*v)const{ v->clear(); } };
-
-void Main::init_::prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/)
+void Main::init_::prep(std::string const& path, code_t code)
 {
-    //ERR_MSG("info: %d,%d\n", xbeg, xend);
-    if (FILE* fp = fopen(fn, "r")) {
+    //printf("%06d %s\n", numb(code), path.c_str()); //Debug
+    if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        //typedef boost::iterator_range<std::vector<Avsb>::iterator> rng_t;
-        auto read = [fp](std::vector<Pa>& vec) {
-            vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
+        auto xcsv = [fp,&path](Pv& pv, int& sec) {
+            using qi::int_;
+            using qi::float_;
+            using qi::char_;
 
-            qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
-            //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
-
-            char linebuf[(60*4+8)*64];
+            char linebuf[256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
-                    ERR_EXIT("fgets");
-                return 0u;
+                    ERR_EXIT("%s", path.c_str());
+                return 0;
             }
-            int szsh=0, code = 0;
-            char*const end = &linebuf[sizeof(linebuf)];
-            char* pos = linebuf;
-            if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
-                Av av0, av1; //Avsb avsb;
-                while (qi::phrase_parse(pos,end, R_Av>>R_Av, qi::space, av0, av1)) {
-                    Av av = av0 + av1;
-                    vec.push_back( {int(av.amount/av.volume), av.amount} );
+            float price;
+            int vol;
+            signed char c;
+
+            char *pos = linebuf, *const end = &linebuf[sizeof(linebuf)];
+            if (!qi::phrase_parse(pos, end, int_ >> float_ >> char_ >> int_, ','
+                        , sec, price, c, vol)) {
+                ERR_EXIT("%s %s", path.c_str(), pos);
+            }
+            pv.price = int(price*100);
+            pv.volume = vol;
+            return int('J') - c;
+        };
+        auto xtxt = [fp,&path](Pv& pv, int& sec) {
+            using qi::int_;
+            using qi::char_;
+
+            char linebuf[256];
+            if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                if (!feof(fp))
+                    ERR_EXIT("%s", path.c_str());
+                return 0;
+            }
+            int price;
+            int vol;
+
+            char *pos = linebuf, *const end = &linebuf[sizeof(linebuf)];
+            if (!qi::phrase_parse(pos, end, int_ >> int_ >> int_, qi::space
+                        , sec, price, vol)) {
+                ERR_EXIT("%s %s", path.c_str(), pos);
+            }
+            pv.price = price;
+            pv.volume = abs(vol);
+            return vol;
+        };
+        auto readv = [](auto read1) {
+            static const auto index = [](int xt) {
+                int m = xt/100*60 + xt%100;
+                return (m < 60*13-30)
+                    ? std::min(std::max(m-(60*9+30), 0), 60*2)
+                    : 60*2+1+std::min(std::max(m-60*13, 0), 60*4);
+            };
+            std::vector<Pa> vec(60*4+2);
+            Av av = {};
+            Pv pv;
+            //int price = 0;
+            int xt0=0, xt;
+            while ( read1(pv, xt)) {
+                xt /= 100;
+                if (/*pv.price == price ||*/ xt == xt0) {
+                    av.amount += pv.price*pv.volume;
+                    av.volume += pv.volume;
+                } else {
+                    if (av.volume) {
+                        auto& e = vec[index(xt0)];
+                        e.price = av.amount/av.volume;
+                        e.amount = av.amount/100;
+                    }
+                    xt0 = xt;
+                    //price = pv.price;
+                    av.amount = pv.price*pv.volume;
+                    av.volume = pv.volume;
                 }
-            } else
-                ERR_EXIT("qi:parse: %s", pos);
-            return make_code(szsh,code);
+            }
+            return  std::move(vec);
         };
 
-        std::vector<Pa> vec;
-        while (code_t code = read(vec)) {
-            std::unique_ptr<decltype(vec),XClear> xclear(&vec);
-            if (vec.size() != 60*4+2) {
-                ERR_EXIT("%d :size-error", numb(code));
-            }
-            this->fun(code, vec);
-        }
+        if (boost::algorithm::iends_with(path, ".txt"))
+            fun(readv(xtxt), code);
+        else
+            fun(readv(xcsv), code);
     }
 }
+
+struct XClear { template<typename T> void operator()(T*v)const{ *v=T{}; } };
 
 template <typename I, typename F>
 void _walkimpl(I b, I end, F&& fn)
@@ -337,15 +369,9 @@ static const auto r_index = [](int x) {
     return y/60*100 + y %60;
 };
 
-void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
+void Main::init_::fun(std::vector<Pa> vpa, code_t code)
 {
-    //Elem* vss = this->address(code);
-    //if (!vss) {
-    //    fprintf(stderr, "%d :address-fail\n", numb(code));
-    //    return;
-    //}
-
-    const auto Idx = [&vpa](auto it) {
+    const auto Minx = [&vpa](auto it) {
         int x = it-vpa.begin();
         int y = (x <= 60*2 ? 60*9+30 : 60*11-1)+x;
         return y/60*100 + y%60;
@@ -355,9 +381,9 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 
     std::vector<std::pair<iterator,iterator>> ps, gs;
 
-    auto psx = [&gs,&ps,&Idx](auto&& p0, auto&&p1) {
+    auto psx = [&gs,&ps,&Minx](auto&& p0, auto&&p1) {
         //BOOST_ASSERT(p0.first);
-        //printf("R %d-%d,%d-%d\n", Idx(p0.first), Idx(p0.second), Idx(p1.first), Idx(p1.second)); //Debug
+        //printf("R %d-%d,%d-%d\n", Minx(p0.first), Minx(p0.second), Minx(p1.first), Minx(p1.second)); //Debug
         if (ps.empty()) {
             //gs.push_back(p0);
             ps.push_back(p1);
@@ -368,7 +394,7 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
             int z = last->second->price - last->first->price;
             if ((2*x < y)&&(2*x < z)&&(5*x < y+z)) {
                 last->second = p1.second;
-                //printf("M %d-%d %d %d %d\n", Idx(last->first), Idx(last->second), x, y, z); //Debug
+                //printf("M %d-%d %d %d %d\n", Minx(last->first), Minx(last->second), x, y, z); //Debug
             } else {
                 ps.push_back(p1);
             }
@@ -379,7 +405,7 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
     if (ps.empty())
         return;
 
-    auto it = ps.begin() + ps.size() - std::min(6lu,ps.size());
+    auto it = ps.begin() + ps.size() - std::min(5lu,ps.size());
 
     auto lt1 = [](auto&p1, auto&p2) {
         return (p1.second->price - p1.first->price)
@@ -394,21 +420,19 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
     };
 
     long amount0 = std::accumulate(vpa.begin(),vpa.end(), 0l, [](long x, auto&y){return x+y.amount;});
-    long amount=0;
+    long amount2=0;
     int m=0, chr=0;
     printf("%06d", numb(code));
     for (auto i=it; i != ps.end(); ++i) {
         m += int(i->second - i->first)+1;
-        Add(amount, chr, i->first, i->second);
+        Add(amount2, chr, i->first, i->second);
     }
 
     constexpr int W=10000;
-    printf("\t%4.2f %4.2f %03ld\t%2d %3d\t%4.2f"
-            , double(amount0)/W/W, double(amount)/W/W, 1000*amount/amount0, m, chr, 10.0*amount/(100*W)/chr);
+    printf("\t%.2f\t%2d\t%5.2f\t%03d\t%03d"
+            , double(amount0)/W/W, m, 10.0*amount2/(100*W)/chr, chr, chr/m);
 
-    //auto Pos = [&vpa](auto&p1, auto&p2) { return (p1.first < p2.first); };
-    //std::sort(it,ps.end(), Pos);
-    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Idx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
+    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Minx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
     printf("\n");
 }
 
