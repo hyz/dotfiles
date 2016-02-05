@@ -58,13 +58,6 @@ namespace boost { namespace spirit { namespace traits
 //typedef gregorian::date::ymd_type ymd_type;
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
-struct Xline {
-    long amount[2];
-    unsigned volume;
-    short val[2];;
-    unsigned short tp[2];;
-};
-
 struct Xrec {
     int sec, price, vol;
 };

@@ -159,7 +159,7 @@ BOOL myflt2(char const* Code, short nSetCode
     return 0;
 }
 
-BOOL myflt3(char const* Code, short nSetCode // 扫描复牌
+BOOL myflt3(char const* Code, short nSetCode // 复牌
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -208,11 +208,38 @@ BOOL myflt4(char const* Code, short nSetCode
 	return int(lasp->Close*1.1 * 100 + 0.5) > int(last->Close * 100);
 }
 
+static float tvolume(boost::gregorian::date const& date)
+{
+	using namespace boost::posix_time;
+
+	auto lt = second_clock::local_time();
+	if (lt.date() != date)
+		return 1;
+
+	auto tod = lt.time_of_day();
+    if (tod < hours(12))
+        tod += hours(1) + minutes(30);
+    return float(tod.total_seconds() - 3600*11) / 3600*4;
+}
+
 BOOL myflt5(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-	return 0;
+	std::vector<HISDAT> his(5);
+	int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+	if (n < (int)his.size())
+		return 0;
+	auto last = his.end() - 1;
+	auto lasp = last - 1;
+
+    float afvol = 0;
+    for (auto it=his.begin(); it != last; ++it)
+        afvol += it->fVolume;
+    afvol /= (his.size()-1);
+    float fvol = last->fVolume/tvolume(last->Time.date());
+
+    return last->Close/lasp->Close > (1-0.02) && fvol/afvol < (1+0.1);
 }
 
 BOOL myflt6(char const* Code, short nSetCode

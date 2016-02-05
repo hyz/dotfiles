@@ -131,7 +131,7 @@ static auto Lohi = [](auto& rng) {
 inline int Price(Av const& v) {
     if (!v.volume)
         return 1;
-    return int(v.amount/v.volume);
+    return int(v.amount*100/v.volume);
 };
 inline int Price(Avsb const& x) { return Price(Sum(x)); };
 
@@ -192,7 +192,7 @@ struct Elem : SInfo
     std::vector<Avsb> voths = {};
 
     Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    array<int,2> lohi = {};
+    array<int,2> lohi; // = {};
 
     int n_day() const { return int(all.size()); }
 };
@@ -303,7 +303,7 @@ void Main::init_::prep(filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        auto reader = [fp](std::vector<Avsb>& vec, int* nonx) {
+        auto reader = [fp](std::vector<Avsb>& vec, int lohi[2]) {
             vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
@@ -320,13 +320,25 @@ void Main::init_::prep(filesystem::path const& path)
             if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
                 Avsb avsb;
                 while (qi::phrase_parse(pos,end, R_Av>>R_Av, qi::space, avsb)) {
-                    if (Sum(avsb).volume == 0) {
-                        if(nonx) ++*nonx;
-                    } else {
-                        First(avsb).amount /= 100;
-                        Second(avsb).amount /= 100;
-                        vec.push_back(avsb);
+                    Av av = First(avsb) + Second(avsb);
+                    if (av.volume == 0) {
+                        continue;
                     }
+
+                    int x = av.amount/av.volume;
+                    if (vec.empty()) {
+                        lohi[0] = lohi[1] = x;
+                    } else { 
+                        if (x < lohi[0]) {
+                            lohi[0] = x;
+                        } else if (x > lohi[1]) {
+                            lohi[1] = x;
+                        }
+                    }
+
+                    First(avsb).amount; // /= 100;
+                    Second(avsb).amount; // /= 100;
+                    vec.push_back(avsb);
                 }
                 //if (nonx && *nonx) ERR_MSG("%d %d: volume=0\n", code, nonx);
             } else
@@ -342,7 +354,8 @@ struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 template <typename F> void Main::init_::fun(F read, int, int)
 {
     std::vector<Avsb> vec;
-    while (code_t code = read(vec, 0)) {
+    array<int,2> lohi;
+    while (code_t code = read(vec, &lohi[0])) {
         std::unique_ptr<decltype(vec),XClear> xclear(&vec);
         if (vec.size() < 100)
             continue;
@@ -351,32 +364,12 @@ template <typename F> void Main::init_::fun(F read, int, int)
             fprintf(stderr, "%d address-fail\n", code);
             continue;
         }
+        vss->lohi = lohi;
         auto& rng = vec;
 
         auto avsb = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
         vss->sum = Plus(vss->sum, avsb);
         vss->all.push_back(avsb);
-
-        {
-            auto cheap = [](auto&x, auto&y) {
-                auto a = Sum(x);
-                auto b = Sum(y);
-                return (a.amount*100/a.volume) < (b.amount*100/b.volume);
-            };
-            auto p = std::minmax_element(std::begin(rng), std::end(rng), cheap);
-            Av a = Sum(*p.first );
-            Av b = Sum(*p.second);
-            int x = int(a.amount*100 / a.volume);
-            int y = int(b.amount*100 / b.volume);
-            if (vss->lohi[0] == 0) {
-                vss->lohi[0] = x;
-                vss->lohi[1] = y;
-            } else if (x < vss->lohi[0]) {
-                vss->lohi[0] = x;
-            } else if (y > vss->lohi[1]) {
-                vss->lohi[1] = y;
-            }
-        }
 
         auto fvcmp = [](auto& x, auto& y){
             return Sum(x).volume < Sum(y).volume;
@@ -422,13 +415,22 @@ int Main::run(int argc, char* const argv[])
 
         printf("%06d", numb(vss.code));
         {
-            long lsz = vss.gbx*Price(total);
-            printf("\t%7.2f", double(lsz)/Yi);
-            printf("\t% 6.2f %5.2f %03ld", b.amount/double(Yi), buy.amount/double(Yi), 1000*buy.amount/total.amount);
-        } {
-            auto& lh = vss.lohi;
-            printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
+            long lsz = vss.gbx*Price(total)/100;
+            printf("\t%6.2f %5.2f %03ld", double(lsz)/Yi, total.amount/double(Yi), 1000*total.amount/lsz);
 
+            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+        } {
+            auto& vl = vss.vless;
+            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
+            Av b = Second(v) - First(v);
+            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+        } {
+            auto& vl = vss.vmass;
+            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
+            Av b = Second(v) - First(v);
+            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+        } {
+            // printf("\t%03ld", 1000*total.volume/vss.gbx);
             long vola = total.volume/n_day;
             auto exval = [&vola](long a, Avsb const& x){
                 return a + labs(Sum(x).volume - vola);
@@ -436,19 +438,7 @@ int Main::run(int argc, char* const argv[])
             long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval);
             printf("\t%03ld", 1000*ex/n_day/vola);
 
-            printf("\t%03ld", 1000*total.volume/vss.gbx);
-        } {
-            auto& vl = vss.vless;
-            auto v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
-            Av buy_ = Second(v);
-            Av both = Sum(v);
-            printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
-        } {
-            auto& vl = vss.vmass;
-            auto v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
-            Av buy_ = Second(v);
-            Av both = Sum(v);
-            printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
+            //auto& lh = vss.lohi; printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
         }
         printf("\t%d\n", n_day);
     }

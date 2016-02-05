@@ -513,10 +513,10 @@ int Main::run(int argc, char* const argv[])
             Av buy_ = Second(v);
             Av both = Sum(v);
             printf("\t%03d %03d", int(buy_.volume*1000/total.volume), int(buy_.volume*1000/both.volume));
-        } {
-            auto& lh = vss.lohi;
-            printf("\t%03d", (lh[1]-lh[0])*100/lh[0]);
-            printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), total.amount*100/std::max(total.volume,1l));
+        //} {
+        //    auto& lh = vss.lohi;
+        //    printf("\t%03d", (lh[1]-lh[0])*100/lh[0]);
+        //    printf("\t%ld %ld", buy.amount*100/std::max(buy.volume,1l), total.amount*100/std::max(total.volume,1l));
         }
         fprintf(stdout, "\t%d\n", n_day);
     }
