@@ -1,260 +1,327 @@
+#include <string.h> // For strlen, strcmp, memcpy
 #include <string>
 #include <set>
 #include <vector>
+#include <array>
 #include <sstream>
 #include <fstream>
+#include <iterator>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/qi_repeat.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/vector.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/format.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/date_time/date_formatting.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-using namespace std;
-using boost::format;
-//namespace multi_index = boost::multi_index;
+#include <boost/multi_index/sequenced_index.hpp>
+//#include <boost/multi_index/hashed_index.hpp>
+#include <boost/function_output_iterator.hpp>
+#include <boost/static_assert.hpp>
+
 namespace gregorian = boost::gregorian;
+namespace fusion = boost::fusion;
+namespace qi = boost::spirit::qi;
+namespace ascii = boost::spirit::ascii;
+
 using namespace boost::multi_index;
 
-//600570	617805120.00	617805120.00	0.00	0.00	0.35	0.00	24	1
-struct VStock
+#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
 {
-    int code;
-    float gbActive, gbTotal;
+    fprintf(stderr, fmt, lin_, a...);
+    exit(127);
+}
+//#include <boost/convert.hpp> #include <boost/convert/strtol.hpp>
+//struct boost::cnv::by_default : public boost::cnv::strtol {};
+//template <unsigned size_=16> struct xstr
+//{
+//    typedef xstr              this_type;
+//    typedef char                  value_type;
+//    typedef value_type*             iterator;
+//    typedef value_type const* const_iterator;
+//
+//    xstr (const_iterator beg, const_iterator end =0) {
+//        std::size_t const sz = end ? (end - beg) : strlen(beg);
+//        BOOST_ASSERT(sz < size_);
+//        memcpy(buf, beg, sz); buf[sz] = 0;
+//    }
+//    xstr () { buf[0] = 0; }
+//
+//    char const*    c_str () const { return buf; }
+//    const_iterator begin () const { return buf; }
+//    const_iterator   end () const { return buf + strlen(buf); }
+//    this_type& operator= (char const* str) {
+//        BOOST_ASSERT(strlen(str) < size_);
+//        strcpy(buf, str);
+//        return *this;
+//    }
+//
+//    char buf[size_];
+//};
+//template <unsigned N> inline bool operator==(char const* s1, xstr<N> const& s2) { return strcmp(s1, s2.buf) == 0; }
+//template <unsigned N> inline bool operator==(xstr<N> const& s1, char const* s2) { return strcmp(s2, s1.buf) == 0; }
 
-    friend std::ostream& operator<<(std::ostream& out, VStock const& a)
+namespace boost { namespace spirit { namespace traits
+{
+    template<>
+    struct transform_attribute<gregorian::date, fusion::vector<int,int,int>, qi::domain>
     {
-        return out << a.code << std::fixed << std::setprecision(2)
-            <<'\t'<< a.gbActive
-            <<'\t'<< a.gbTotal
-            ;
-    }
+        typedef fusion::vector<int,int,int> type; //typedef type ymd_type;
 
-    friend std::istream& operator>>(std::istream& in, VStock & a) {
-        float tmp;
-        int i;
-        return in >> a.code >> a.gbActive >> a.gbTotal
-            >> tmp >> tmp
-            >> tmp >> tmp >> i >> i
-            ;
+        static void post(gregorian::date& d, type const& v) {
+            d = gregorian::date(fusion::at_c<0>(v), fusion::at_c<1>(v), fusion::at_c<2>(v));
+        }
+        static type pre(gregorian::date&) { return type(); }
+        static void fail(gregorian::date&) {}
+    };
+    //template <typename T, size_t N> struct is_container<array<T, N>, void> : mpl::false_ { };
+}}}
+//typedef gregorian::date::ymd_type ymd_type;
+//BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
+
+struct Av
+{
+    float volume = 0;
+    float amount = 0;
+
+    Av& operator+=(Av const& lhs) {
+        amount += lhs.amount;
+        volume += lhs.volume;
+        return *this;
+    }
+    Av operator+(Av const& lhs) {
+        Av x = *this;
+        return (x+=lhs);
+    }
+    Av& operator-=(Av const& lhs) {
+        amount -= lhs.amount;
+        volume -= lhs.volume;
+        return *this;
+    }
+    Av operator-(Av const& lhs) {
+        Av x = *this;
+        return (x-=lhs);
     }
 };
+BOOST_FUSION_ADAPT_STRUCT(Av, (float,volume)(float,amount))
 
-struct VDay
+//600570	617805120.00	617805120.00	0.00	0.00	0.35	0.00	24	1
+struct VDay : Av
 {
-    gregorian::date date;
-    float amount;
-    float volume;
+    //gregorian::date date; // float volume, amount;
     float open, high, low, close;
 
-    friend std::ostream& operator<<(std::ostream& out, VDay const& a)
-    {
-        return out << a.date << std::fixed << std::setprecision(2)
-            <<'\t'<< a.amount 
-            <<'\t'<< a.volume
-            <<'\t'<< a.open
-            <<'\t'<< a.high
-            <<'\t'<< a.low
-            <<'\t'<< a.close
-            ;
-    }
-
-    friend std::istream& operator>>(std::istream& in, VDay & a) {
-        std::string tmp;
-        in >> tmp;
-        a.date = boost::gregorian::from_simple_string(tmp); //auto x = a.date.year_month_day();
-        return in >> a.amount >> a.volume
-            >> a.open >> a.high >> a.low >> a.close
-            ;
-    }
+    //    a.date = boost::gregorian::from_simple_string(tmp); //auto x = a.date.year_month_day();
+    //    return in >> a.amount >> a.volume
+    //        >> a.open >> a.high >> a.low >> a.close
 };
+BOOST_FUSION_ADAPT_STRUCT(VDay, (float,amount)(float,volume) (float,open)(float,high)(float,low)(float,close))
 
-struct Days : std::vector<VDay>
+struct Elem
 {
-    Days(int c, std::pair<gregorian::date,gregorian::date> dr)
-    {
-        using namespace boost;
-        std::ifstream ifs(str(format("D:\\home\\wood\\stock\\tdx\\%06d") % c));
-        std::string line;
-        while(getline(ifs, line)) {
-            VDay a;
-            std::istringstream iss(line);
-            iss >> a;
+    std::vector<VDay> days;
+    int code;
+    float gbActive, gbTotal, eov;
 
-            if (a.date < dr.first)
-                continue;
-            if (a.date > dr.second)
+    float volume = 0;
+    float amount = 0;
+    //    return in >> a.code >> a.gbActive >> a.gbTotal
+    //        >> tmp >> tmp >> a.eov >> tmp >> i >> i
+
+    void init_days(std::array<gregorian::date,2> dr);
+};
+BOOST_FUSION_ADAPT_STRUCT(Elem, (int,code)(float,gbActive)(float,gbTotal)(float,eov))
+
+void Elem::init_days(std::array<gregorian::date,2> dr)
+{ // using namespace boost;
+    char fn[12];
+    snprintf(fn,sizeof(fn), "%06d", this->code);
+
+    if (FILE* fp = fopen(fn, "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+        static const qi::int_parser<int,10,4,4> _4digit = {};
+        static const qi::int_parser<int,10,2,2> _2digit = {};
+        qi::rule<char*, fusion::vector<int,int,int>()> Rdate = _4digit >> _2digit >> _2digit;
+
+        char linebuf[1024*4];
+        while (fgets(linebuf, sizeof(linebuf), fp)) {
+            char* pos = linebuf;
+
+            gregorian::date date;
+            if (!qi::parse(pos, &linebuf[sizeof(linebuf)], Rdate, date))
+                ERR_EXIT("qi::parse: %s", pos);
+            if (date > dr[1])
                 break;
-
-            this->push_back(a);
-        }
-    }
-};
-
-struct Stocks : boost::multi_index::multi_index_container
-                <VStock,indexed_by<ordered_unique<member<VStock,int,&VStock::code>>>>
-{
-    Stocks() { init(std::set<int>()); }
-    Stocks(std::set<int> const& s) { init(s); }
-    void init(std::set<int> const& s)
-    {
-        std::ifstream ifs("D:\\home\\wood\\stock\\tdx\\lis");
-        std::string line;
-        while(getline(ifs, line)) {
-            VStock a;
-            std::istringstream iss(line);
-            iss >> a;
-            if (!s.empty() && s.find(a.code) == s.end())
+            if (date < dr[0])
                 continue;
-            this->insert(a);
+
+            VDay vd = {};
+            using qi::float_;
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , float_>>float_>>float_>>float_>>float_>>float_, ascii::space, vd))
+                ERR_EXIT("qi::parse: %s", pos);
+            this->amount += vd.amount;
+            this->volume += vd.volume;
+            days.push_back(vd);
         }
+    }
+}
+
+struct SLis : boost::multi_index::multi_index_container< Elem, indexed_by<
+              sequenced<>
+              , ordered_unique<member<Elem,int,&Elem::code>> >>
+{
+    SLis(int argc, char* const argv[])
+    {
+        std::set<int> ics = get_codes(argc, argv);
+        std::array<gregorian::date,2> dp = get_date_range(argc, argv);
+        //clog << dp[0] <<" "<< dp[1] <<"\n";
+
+        if (FILE* fp = fopen("lis", "r")) {
+            std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+            char linebuf[1024*4];
+            while (fgets(linebuf, sizeof(linebuf), fp)) {
+                char* pos = linebuf;
+                int c = atoi(linebuf);
+                if (ics.find(c) == ics.end())
+                    continue;
+                Elem el = {};
+                using qi::float_;
+                if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                            , qi::int_ >> float_ >> float_ >> qi::omit[float_ >> float_] >> float_
+                            , ascii::space, el))
+                    ERR_EXIT("qi::parse: %s", pos);
+                el.init_days(dp);
+                this->push_back( std::move(el) );
+            }
+        }
+    }
+
+    static std::array<gregorian::date,2> get_date_range(int argc, char* const argv[])
+    {
+        std::array<gregorian::date,2> dr{gregorian::date(2000,1,1), gregorian::day_clock::local_day()};
+        if (argc >= 4) {
+            dr[0] = gregorian::from_simple_string(argv[2]);
+            dr[1] = gregorian::from_simple_string(argv[3]);
+        } else if (argc >= 3) {
+            dr[0] = gregorian::from_simple_string(argv[2]);
+        }
+        return dr;
+    }
+
+    static std::set<int> read_ints(char const* fn)
+    {
+        std::set<int> ints;
+        if (FILE* fp = fopen(fn, "r")) {
+            std::unique_ptr<FILE,decltype(&fclose)> auto_c(fp, fclose);
+            char linebuf[1024*8];
+            while (fgets(linebuf, sizeof(linebuf), fp)) {
+                ints.insert( atoi(linebuf) );
+            }
+        }
+        return std::move(ints);
+    }
+    static std::set<int> get_codes(int argc, char* const argv[])
+    {
+        if (argc >= 2) {
+            const char* fn = argv[1];
+            if (strcmp(fn, "-") == 0)
+                fn = "input.lis";
+            return read_ints(fn);
+            //std::set<int> ret;
+            //std::set<int> s0 = read_ints(fn);
+            //std::set<int> s1 = read_ints("../cyb.lis");
+            //std::set_difference(s0.begin(), s0.end(), s1.begin(), s1.end()
+            //        , std::inserter(ret,ret.end()));
+        }
+        return std::set<int>();
     }
 };
 
-template <typename Iter>
-float ma(Iter it, Iter end)
+// boost::make_function_output_iterator(print));
+template <unsigned N, typename I, typename A, typename Op>
+auto Ma(I it, I end, A a, Op && op) -> A
 {
-    std::pair<float,float> a = {0.0f,0.0f};
-    a = std::accumulate(it,end, a, [](decltype(a) const& x, VDay const& e){
-                return x; //std::make_pair(x.first + e.a.Amount, x.second + e.fVolume);
-            });
-    return a.first/a.second;
-}
-
-std::pair<gregorian::date,gregorian::date> get_date_range(int argc, char* const argv[])
-{
-    auto dr = std::make_pair(gregorian::date(2000,1,1), gregorian::day_clock::local_day());
-    if (argc >= 3) {
-        dr.first = gregorian::from_simple_string(argv[1]);
-        dr.second = gregorian::from_simple_string(argv[2]);
-    } else if (argc >= 2) {
-        dr.first = gregorian::from_simple_string(argv[1]);
+    std::array<I,N> ar = {};
+    unsigned x = 0;
+    for (; x < N && it != end; ++x) {
+        a += *it;
+        ar[x] = it;
+        ++it;
     }
-    return dr;
+    if (x == N)
+        op(a);
+    for (; it != end; ++it) {
+        unsigned i = x++ % N;
+        a -= *ar[i];
+        a += *it;
+        ar[i] = it;
+        op(a);
+    }
+    return a;
 }
 
-std::set<int> get_codes(int argc, char* const argv[])
-{
-    return std::set<int>();
-}
-
-float calc(VStock const& s, Days const& ds);
+//template <typename I> inline float Ma3(I it) { return Ma<3>(it); }
+template <typename I> inline float Mv(I it) { return it->amount/it->volume; }
+inline float Vx(float x, float y) { return (y-x)/x * 100; }
 
 int main(int argc, char* const argv[])
 {
-    struct SRank {
-        int code;
-        float rank;
-    };
-
     try {
-        boost::multi_index::multi_index_container<SRank,indexed_by<ordered_unique<member<SRank,float,&SRank::rank>>>>
-            result;
-
-        Stocks ss(get_codes(argc, argv));
-        std::pair<gregorian::date,gregorian::date> dp = get_date_range(argc, argv);
-        clog << dp.first <<" "<< dp.second <<"\n";// << ss.front() <<" "<< ss.back() <<"\n";
-
-        for (auto && s : ss) {
-            Days ds(s.code, dp);
-            if (ds.empty())
-                continue;
-            // clog << ds.front() <<" "<< ds.back() <<"\n";
-            result.insert(SRank{s.code, calc(s, ds)});
-        }
-
-        int n=40;
-        for (auto i=result.begin(); i != result.end(); ++i) {
-            std::cout << i->code <<' '<< i->rank << '\n';
-            if (--n == 0)
-                break;
-        }
-
+        void Main(int argc, char* const argv[]);
+        Main(argc, argv);
     } catch (std::exception const& e) {
-        clog << e.what();
+        fprintf(stderr, "%s", e.what());
     }
+    return 0;
 }
 
-float calc(VStock const& s, Days const& ds)
+void Main(int argc, char* const argv[])
 {
-	auto hi = std::max_element(ds.begin(), ds.end()
-		, [](VDay const& lhs, VDay const& rhs){
-			return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
-		});
-	auto lo = std::min_element(hi, ds.end()
-		, [](VDay const& lhs, VDay const& rhs){
-			return (lhs.amount/lhs.volume) < (rhs.amount/rhs.volume);
-		});
+//boost::multi_index::multi_index_container<SVal,indexed_by<ordered_non_unique<member<SVal,float,&SVal::val>, std::greater<float>>>> result;
+    //struct Av { float amount; float volume; };
+    //typedef Elem::const_iterator c_iterator;
 
-    if (hi >= lo)
-        return 13;
-    //float lx = lo->amount/lo->volume;
-    //if ((ds.back().close - lx)/lx > 0.10) return 10;
+    //auto valr = [](c_iterator it, c_iterator end) {
+    //    --end;
+    //    it = std::min_element(it, end, [](auto& l, auto& r){ return Mv(&l)<Mv(&r); });
+    //    auto x = Mv(it);
+    //    return (Mv(end) - x)/x;
+    //};
+    //auto isred = [](c_iterator it, c_iterator begin){
+    //    return it->close > it->open
+    //            && (it==begin || it->close > (it-1)->close);
+    //};
+    //auto greater = [](c_iterator j, c_iterator i){ return !(j->volume < i->volume); };
+    //auto print_date = [](auto it) {
+    //    printf("\t%02d%02d", (int)it->date.month(), (int)it->date.day());
+    //};
 
-    struct Sta {
-        float px;
-        struct AV {
-            float amount;
-            float volume;
-        } up, dn;
-    } a = {};
+    SLis slis(argc, argv);
 
-    a.px = ds.front().amount/ds.front().volume;
-    a = std::accumulate(ds.begin(),ds.end(), a, [](Sta x, VDay const& e){
-                float px = e.amount/e.volume;
-                if (px < x.px) {
-                    x.dn.amount += e.amount;
-                    x.dn.volume += e.volume;
-                } else {
-                    x.up.amount += e.amount;
-                    x.up.volume += e.volume;
-                }
-                x.px = px;
-                return x;
-            });
+    for (auto && sk : slis) {
+        auto & days = sk.days;
+        if (days.empty() || days.back().volume<1 || days.size() < 10)
+            continue;
+        auto last = days.cend()-1;
 
-    return a.dn.amount/a.up.amount;
+        float vol = Ma<5>(days.end()-5, days.end(), Av{}, [&vol](Av){}).volume/5;
+        if (vol < 1)
+            continue;
 
-	//int n;
+        auto i0 = days.end() - 4;
+        auto i1 = i0+1;
+        auto i2 = i1+1;
+        auto i3 = i2+1;
 
-	////REPORTDAT2 smx = {};
-	////n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &smx, 1, t0, t1, nTQ, 0);
-	////if (n < 0 || smx.Volume*100 < 1) {
-	////	LOG << Code << "Ig" << "Vol" << smx.Volume <<"Price"<< smx.Now << smx.Close;
-	////	return FALSE;
-	////}
-	//std::vector<HISDAT> his(30);
-	//n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-	//if (n < (int)his.size()) {
-	//	LOG << Code << "Few"<< n;
-	//	return FALSE;
-	//}
-    //n = (boost::gregorian::day_clock::local_day() - his.back().Time.date()).days();
-	//if (n > 3 || his.back().fVolume < 1) {
-    //    LOG << Code << boost::gregorian::day_clock::local_day() << his.back().Time << n << "StopEx";
-    //    return 0;
-    //}
-
-	//STOCKINFO sinf = {};
-	//if ( (n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &sinf, 1, t0, t1, nTQ, 0)) < 0)
-	//	return 0;
-	//if ((his.back().Close * sinf.ActiveCapital)/100000000 > 400)
-	//	return 0;
-	//if (his.back().fVolume / sinf.ActiveCapital < 3.5*tvolume(his.back().Time))
-	//	return 0;
-
-	//auto beg = his.rbegin() + args[3];
-    //float a = ma(beg, beg+3, Code);
-    //for (int i=1; i < (args[2] ? args[2] : 6); ++i) {
-    //    float x = ma(beg+i, beg+i+3, Code);
-	//	if (args[1]) {
-	//		if (x > a && (x - a) > 0.05)
-	//			return 0;
-	//	} else {
-	//		if (x < a && (a - x) > 0.05)
-	//			return 0;
-	//	}
-    //    a = x;
-	//}
-    //return 1;
+        printf("%06d", sk.code);
+        printf("\t%.2f\t%.2f\t%.2f", Vx(i0->close,i1->close), Vx(i1->close,i2->close), Vx(i2->close,i3->close));
+        printf("\t%.2f\t%.2f\t%.2f", Vx(vol,i1->volume), Vx(vol,i2->volume), Vx(vol,i3->volume));
+        printf("\t%.2f\t%.2f""\t%d\n", last->close/sk.eov, last->close*sk.gbActive/100000000, (int)days.size());
+    }
+    //for (auto & v : result) { printf("%06d\t%.2f\t%.2f\t%.2f\n", v.code, v.val, v[0], v[1]); }
 }
 

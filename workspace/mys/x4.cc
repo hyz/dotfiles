@@ -420,15 +420,15 @@ int Main::run(int argc, char* const argv[])
 
             printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
         } {
-            auto& vl = vss.vless;
-            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
-            Av b = Second(v) - First(v);
-            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
-        } {
             auto& vl = vss.vmass;
             auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
             Av b = Second(v) - First(v);
-            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+            printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+        } {
+            auto& vl = vss.vless;
+            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
+            Av b = Second(v) - First(v);
+            printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
         } {
             // printf("\t%03ld", 1000*total.volume/vss.gbx);
             long vola = total.volume/n_day;

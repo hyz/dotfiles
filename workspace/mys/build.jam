@@ -21,15 +21,16 @@ exe f5 : f5.cc /boost//date_time : <link>static ;
 exe f6 : f6.cc /boost//date_time /boost//filesystem : <link>static ;
 exe f8 : f8.cc /boost//date_time : <link>static ;
 exe f9 : f9.cc /boost//date_time : <link>static ;
-exe fx : fx.cc /boost//date_time /boost//filesystem : <link>static ;
 exe f7 : f7.cc /boost//date_time /boost//system : <link>static ;
+
+exe fx : fx.cc /boost//date_time /boost//filesystem : <link>static ;
 
 exe ls-dczxg : ls-dczxg.cc : <link>static ;
 exe s-diff : diff.cc : <link>static ;
 exe s-inters : inters.cc : <link>static ;
 
 exe x-minute : x-minute.cc /boost//filesystem : <link>static ;
-exe x-day : x-day.cc /boost//filesystem : <link>static ;
+#exe x-day : x-day.cc /boost//filesystem : <link>static ;
 exe x3 : x3.cc /boost//filesystem : <link>static ;
 exe x4 : x4.cc /boost//filesystem : <link>static ;
 exe x5 : x5.cc /boost//filesystem : <link>static ;
