@@ -182,19 +182,39 @@ struct SInfo
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
-struct Elem : SInfo
+struct Datas
+{
+    Avsb sums = {}, vless = {} , vmass = {} , voths = {};
+    //std::vector<Avsb> vless = {};
+    //std::vector<Avsb> vmass = {};
+    //std::vector<Avsb> voths = {};
+    //std::vector<Avsb> days = {};
+
+    array<int,2> lohi= {}, oc= {};
+
+    Datas& sum(Datas const& l) {
+        sums = Plus(sums, l.sums);
+        vless = Plus(vless, l.sums);
+        vmass = Plus(vmass, l.sums);
+        voths = Plus(voths, l.sums);
+            if (lohi[0] < l.lohi[0])
+                lohi[0] = l.lohi[0];
+            if (lohi[1] > l.lohi[1])
+                lohi[1] = l.lohi[1];
+            oc[1] = l.oc[1];
+
+        return *this;
+    }
+};
+
+struct Elem : SInfo, std::vector<Datas>, Datas
 {
     int code = 0;
 
-    std::vector<Avsb> all = {};
-    std::vector<Avsb> vless = {};
-    std::vector<Avsb> vmass = {};
-    std::vector<Avsb> voths = {};
+    //Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
+    //array<int,2> lohi= {}, oc= {};
 
-    Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    array<int,2> lohi; // = {};
-
-    int n_day() const { return int(all.size()); }
+    int n_day() const { return int(this->size()); }
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
@@ -215,7 +235,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     init_(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* fn);
-    Elem* address(int code);
+    Elem* add(int code, Datas const& d);
     void prep(filesystem::path const& path);
     template <typename F> void fun (F read, int, int);
 };
@@ -259,19 +279,27 @@ void Main::init_::loadsi(char const* fn)
         ERR_EXIT("fopen: %s", fn);
 }
 
-Elem* Main::init_::address(int code) //-> Main::iterator
+Elem* Main::init_::add(int code, Datas const& d)
 {
-    tmp_.code = code;
     auto & idc = m_->get<1>();
-    auto p = idc.insert(tmp_);
-    Elem& el = const_cast<Elem&>(*p.first);
-    if (p.second) {
-        auto it = this->find(code);
-        if (it == this->end())
+    auto it = idc.find(code);
+    if (it == idc.end()) {
+        auto si = this->find(code);
+        if (si == this->end())
             return 0;
-        SInfo& si = el;
-        si = it->second;
+        Elem el = {};
+        static_cast<SInfo&>(el) = si->second;
+        static_cast<Datas&>(el) = d;
+        el.push_back(d);
+        el.code = code;
+        auto p = m_->push_back(el);
+        if (!p.second)
+            ERR_EXIT("%d", numb(code));
+        return const_cast<Elem*>(p.first.operator->());
     }
+    Elem& el = const_cast<Elem&>(*it);
+    static_cast<Datas&>(el).sum( d );
+    el.push_back(d);
     return &el;
 }
 
@@ -353,23 +381,19 @@ struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 
 template <typename F> void Main::init_::fun(F read, int, int)
 {
-    std::vector<Avsb> vec;
-    array<int,2> lohi;
-    while (code_t code = read(vec, &lohi[0])) {
+    Datas o = {};
+    std::vector<Avsb> vec; // array<int,2> lohi;
+    while (code_t code = read(vec, &o.lohi[0])) {
         std::unique_ptr<decltype(vec),XClear> xclear(&vec);
         if (vec.size() < 100)
             continue;
-        Elem* vss = this->address(code);
-        if (!vss) {
-            fprintf(stderr, "%d address-fail\n", code);
-            continue;
-        }
-        vss->lohi = lohi;
+        o.oc[0] = Price(vec.front());
+        o.oc[1] = Price(vec.back());
         auto& rng = vec;
 
-        auto avsb = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
-        vss->sum = Plus(vss->sum, avsb);
-        vss->all.push_back(avsb);
+        o.sums = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
+        //vss->sums = Plus(vss->sum, avsb);
+        //vss->days.push_back(avsb);
 
         auto fvcmp = [](auto& x, auto& y){
             return Sum(x).volume < Sum(y).volume;
@@ -379,15 +403,21 @@ template <typename F> void Main::init_::fun(F read, int, int)
         int m = int(3/10.0 * float(boost::size(rng)-n));
 
         std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
-        auto vl = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
-        vss->vless.push_back(vl);
+        o.vless = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
+        //vss->vless.push_back(vl);
+        //vss->vless = Plus(vss->vless, o.vless);
 
         std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
-        auto vm = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
-        vss->vmass.push_back(vm);
+        o.vmass = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
+        //vss->vmass.push_back(vm);
 
-        auto vk = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
-        vss->voths.push_back(vk);
+        o.voths = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
+        //vss->voths.push_back(vk);
+
+        if (!this->add(code, o)) {
+            ERR_MSG("%d :add-fail\n", numb(code));
+            //continue;
+        }
     }
 }
 
@@ -405,40 +435,38 @@ int Main::run(int argc, char* const argv[])
 
     Avsb _sum = {};
 
-    for (Elem const & vss : *this) {
-        _sum = Plus(_sum, vss.sum);
-        int n_day = vss.n_day();
-        Av sell = First(vss.sum);
-        Av buy = Second(vss.sum);
+    for (Elem const & el : *this) {
+        _sum = Plus(_sum, el.sums);
+        int n_day = el.n_day();
+        Av sell = First(el.sums);
+        Av buy = Second(el.sums);
         Av total = buy + sell;
         Av b = buy - sell;
 
-        printf("%06d", numb(vss.code));
+        printf("%06d", numb(el.code));
         {
-            long lsz = vss.gbx*Price(total)/100;
+            long lsz = el.gbx*Price(total)/100;
             printf("\t%6.2f %5.2f %03ld", double(lsz)/Yi, total.amount/double(Yi), 1000*total.amount/lsz);
 
             printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
         } {
-            auto& vl = vss.vmass;
-            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
+            auto& v = el.vmass;
             Av b = Second(v) - First(v);
             printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
-        } {
-            auto& vl = vss.vless;
-            auto&& v = std::accumulate(vl.begin(), vl.end(), Avsb{}, Plus);
-            Av b = Second(v) - First(v);
-            printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
-        } {
-            // printf("\t%03ld", 1000*total.volume/vss.gbx);
-            long vola = total.volume/n_day;
-            auto exval = [&vola](long a, Avsb const& x){
-                return a + labs(Sum(x).volume - vola);
-            };
-            long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval);
-            printf("\t%03ld", 1000*ex/n_day/vola);
+        //} {
+        //    auto& v = el.vless;
+        //    Av b = Second(v) - First(v);
+        //    printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+        //} {
+        //    // printf("\t%03ld", 1000*total.volume/el.gbx);
+        //    long vola = total.volume/n_day;
+        //    auto exval = [&vola](long a, Avsb const& x){
+        //        return a + labs(Sum(x).volume - vola);
+        //    };
+        //    long ex = std::accumulate(el.begin(), el.end(), 0l, exval);
+        //    printf("\t%03ld", 1000*ex/n_day/vola);
 
-            //auto& lh = vss.lohi; printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
+        //    //auto& lh = el.lohi; printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
         }
         printf("\t%d\n", n_day);
     }
