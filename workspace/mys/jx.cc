@@ -332,6 +332,7 @@ void walk(I b, I end, F&& fn)
         _walkimpl(b,end, fn);
 }
 
+
 void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 {
     //Elem* vss = this->address(code);
@@ -348,39 +349,47 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 
     typedef std::vector<Pa>::iterator iterator;
 
-    std::vector<std::pair<iterator,iterator>> ps, gs;
+    array<std::vector<std::pair<iterator,iterator>>,2> pv;
 
-    auto psx = [&gs,&ps,&Minx](auto&& p0, auto&&p1) {
-        //BOOST_ASSERT(p0.first);
-        //printf("R %d-%d,%d-%d\n", Minx(p0.first), Minx(p0.second), Minx(p1.first), Minx(p1.second)); //Debug
-        if (ps.empty()) {
-            //gs.push_back(p0);
-            ps.push_back(p1);
-        } else {
-            auto last = std::prev(ps.end());
-            int x = p0.first->price - p0.second->price;
-            int y = p1.second->price - p1.first->price;
-            int z = last->second->price - last->first->price;
-            if ((2*x < y)&&(2*x < z)&&(5*x < y+z)&&(p0.second-p0.first < 5)) {
-                last->second = p1.second;
-                //printf("M %d-%d %d %d %d\n", Minx(last->first), Minx(last->second), x, y, z); //Debug
-            } else {
-                ps.push_back(p1);
+    auto psx = [&pv](auto&&la0, auto&&la1) {
+        auto conc = [&pv]() {
+            auto prev = pv[1].rbegin()+1; //std::prev(pv[1].end());
+            auto& la0 = pv[0].back();
+            auto& la1 = pv[1].back();
+
+            int x = la0.first->price - la0.second->price;
+            int y = la1.second->price - la1.first->price;
+            int z = prev->second->price - prev->first->price;
+            if ((2*x < y)&&(2*x < z)&&(5*x < y+z)&&(la0.second-la0.first < 5)) {
+                prev->second = la1.second;
+                pv[0].pop_back();
+                pv[1].pop_back();
+                //printf("M %d-%d %d %d %d\n", Minx(prev->first), Minx(prev->second), x, y, z); //Debug
             }
-            //gs.push_back(p1);
+        };
+        //BOOST_ASSERT(la0.first);
+        //printf("R %d-%d,%d-%d\n", Minx(la0.first), Minx(la0.second), Minx(la1.first), Minx(la1.second)); //Debug
+        if (pv[1].empty() || &pv[1].front() == &pv[1].back()) {
+            pv[0].push_back(la0);
+            pv[1].push_back(la1);
+        } else {
+            pv[0].push_back(la0);
+            pv[1].push_back(la1);
+            conc();
         }
     };
     walk(vpa.begin(),vpa.end(), psx);
-    if (ps.empty())
+    if (pv[1].empty())
         return;
+    auto& pv1 = pv[1];
 
-    auto it = ps.begin() + ps.size() - std::min(6lu,ps.size());
+    auto it = pv1.begin() + pv1.size() - std::min(6lu,pv1.size());
 
     auto lt1 = [](auto&p1, auto&p2) {
         return (p1.second->price - p1.first->price)
              < (p2.second->price - p2.first->price);
     };
-    std::nth_element(ps.begin(), it, ps.end(), lt1);
+    std::nth_element(pv1.begin(), it, pv1.end(), lt1);
 
     auto Add = [](long&amount, int&chr, iterator it, iterator last) {
         auto Chr = [](int b, int d) { return 1000*(d-b)/b; };
@@ -391,7 +400,7 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
     long amount0 = std::accumulate(vpa.begin(),vpa.end(), 0l, [](long x, auto&y){return x+y.amount;});
     long amount=0;
     int m=0, chr=0;
-    for (auto i=it; i != ps.end(); ++i) {
+    for (auto i=it; i != pv1.end(); ++i) {
         m += int(i->second - i->first)+1;
         Add(amount, chr, i->first, i->second);
     }
@@ -404,8 +413,8 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
             , double(amount0)/W/W, double(amount)/W/W, 1000*amount/amount0, m, chr, amount/chr/W);
 
     //auto Pos = [&vpa](auto&p1, auto&p2) { return (p1.first < p2.first); };
-    //std::sort(it,ps.end(), Pos);
-    //for (auto i=it; i != ps.end(); ++i) printf(" %d,%d,%03d" , Minx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
+    //std::sort(it,pv1.end(), Pos);
+    //for (auto i=it; i != pv1.end(); ++i) printf(" %d,%d,%03d" , Minx(i->first), int(i->second - i->first)+1 , (i->second->price - i->first->price)*1000/i->first->price);
     printf("\n");
 }
 

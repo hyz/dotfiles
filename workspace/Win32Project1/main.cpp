@@ -181,7 +181,7 @@ PLUGIN_API BOOL InputInfoThenCalc2(char* Code, short nSetCode
 static void test_hisdat(char const* Code, short nSetCode, short DataType, BYTE nTQ, const char* sdt="")
 {
     //static std::set<int> s;
-    std::vector<HISDAT> his(150);
+    std::vector<HISDAT> his(60*5);
 
     LOG << Code << nSetCode << "--- --- ---" << sdt;
 
@@ -350,7 +350,7 @@ BOOL myflt9(char const* Code, short, int Value[4] , short DataType, NTime, NTime
 
 GDef::GDef()
 {
-	logging::logfile( fopen("D:/home/wood/stock/tdx.log", "w") );
+	logging::logfile( fopen("D:/home/wood/_tdx.log", "w") );
     LOG << "INIT";
 
 	for (auto& f : funcs_)

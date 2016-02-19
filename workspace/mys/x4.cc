@@ -261,16 +261,18 @@ void Main::init_::loadsi(char const* fn)
 
 Elem* Main::init_::address(int code) //-> Main::iterator
 {
-    tmp_.code = code;
+    auto itr = find(code);
+    if (itr == end()) {
+        return 0;
+    }
     auto & idc = m_->get<1>();
+
+    tmp_.code = code;
     auto p = idc.insert(tmp_);
     Elem& el = const_cast<Elem&>(*p.first);
     if (p.second) {
-        auto it = this->find(code);
-        if (it == this->end())
-            return 0;
         SInfo& si = el;
-        si = it->second;
+        si = itr->second;
     }
     return &el;
 }

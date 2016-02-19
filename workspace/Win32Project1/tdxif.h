@@ -52,9 +52,31 @@ PLUGIN_API BOOL	 InputInfoThenCalc1(char* Code,short nSetCode,int Value[4],short
 //选取区段计算
 PLUGIN_API BOOL	 InputInfoThenCalc2(char* Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
 
+#include <unordered_set>
+
+//struct codes_set : std::unordered_set<int>
+//{
+//    codes_set(boost::filesystem::path fp);
+//    bool exist(int c) const { return find(c)!=end(); }
+//};
+//
+//codes_set::codes_set(boost::filesystem::path fp)
+//{
+//    if (boost::filesystem::exists(fp)) {
+//        boost::filesystem::ifstream ifs(fp);
+//        std::string s;
+//        while (getline(ifs, s)) {
+//            this->insert(atoi(s.c_str()));
+//        }
+//    }
+//}
+
 struct GDef
 {
 	template <typename ...T> static long tdx_read(const char* c, T&&... a) { return (*ref().tdx_read_)(const_cast<char*>(c), a...); }
+	template <typename ...T> static long read(HISDAT* buf, unsigned bufsiz, int w, const char* c, short szsh, T&&... a) {
+        return (*ref().tdx_read_)(const_cast<char*>(c), szsh, w, buf, bufsiz, a...);
+    }
 
 	static GDef& ref();
 

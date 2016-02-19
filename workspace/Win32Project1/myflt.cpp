@@ -9,7 +9,6 @@
 #include <boost/config/warning_disable.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <set>
-#include <unordered_set>
 //#include <iostream>
 //#include "log.h"
 #include "tdxif.h"
@@ -137,6 +136,124 @@ BOOL myflt1(char const* Code, short nSetCode
     return 0;
 }
 
+inline unsigned make_code(int szsh, int numb) { return ((szsh << 24) | numb); }
+inline int numb(unsigned v_) { return v_ & 0x0ffffff; }
+inline int szsh(unsigned v_) { return (v_ >> 24) & 0xff; }
+
+struct Print1
+{
+    std::vector<HISDAT> sh_;
+    FILE* fp_;
+
+    template <typename ...A> Print1(int args[4], A... a)
+    {
+        rd_(sh_, "999999", 1, a...);
+        auto fn = "D:\\home\\wood\\workspace\\mys\\TDX.1";
+        fp_ = fopen(fn, "w");
+    }
+
+    ~Print1() {
+        if (fp_)
+            fclose(fp_);
+    }
+
+    template <typename ...A> void operator()(char const* Code, short nSetCode, A&&... a) {
+        std::vector<HISDAT> ls;
+        if (fp_ && rd_(ls, Code, nSetCode, a...) > 0) {
+            fprintf(fp_, "%s %d", Code, nSetCode);
+            auto it = ls.begin();
+            auto i0 = sh_.begin();
+            for (; i0 != sh_.end(); ++i0) {
+                if (i0->Time.minute < it->Time.minute) {
+                    fprintf(fp_, "\t0 0 0 0 0 0");
+                    continue;
+                }
+                fprintf(fp_, "\t%.0f %.0f %.0f %.0f %.0f %.0f"
+                        , it->fVolume, it->a.Amount
+                        , (100*it->Open), (100*it->Close), (100*it->High), (100*it->Low) );
+                ++it;
+            }
+			fprintf(fp_, "\n");
+        }
+    }
+
+    template<typename ...A> int rd_(std::vector<HISDAT>& ls, A&&... a)
+    {
+        ls.resize(30*10); //((args[2] ? args[2] : 9)*30);
+        int n = GDef::read(&ls[0], ls.size(), PER_MIN1, a...);
+        if (n < 1) {
+            ls.resize(0);
+            return 0;
+        }
+        ls.resize(n);
+        if (&ls == &sh_) {
+            auto& back = ls.back();
+            int i = 0;
+            while (i < n && ls[i].Time.day != back.Time.day) {
+                ++i;
+            }
+            if (i > 0) {
+                ::memmove(&ls[0], &ls[i], (n-i)*sizeof(ls[0]));
+                ls.resize(n-i);
+            }
+            return n;
+        } else if (!sh_.empty()) {
+            auto& back = sh_.back();
+            while (n > 0 && ls[n-1].Time.day != back.Time.day) {
+                --n;
+            }
+            int i = 0;
+            while (i < n && ls[i].Time.day != back.Time.day) {
+                ++i;
+            }
+            if (i > 0) {
+                ::memmove(&ls[0], &ls[i], (n-i)*sizeof(ls[0]));
+                ls.resize(n-i);
+            }
+            return n;
+        }
+        ls.resize(0);
+        return 0;
+    }
+};
+
+BOOL myflt2(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    static codes_set excls("D:\\home\\wood\\._sexcl");
+    int icode = atoi(Code);
+    if (excls.exist(icode))
+        return 0;
+
+    static Print1 print(args, t0, t1, nTQ, 0);
+    print(Code, nSetCode, t0, t1, nTQ, 0);
+
+    //if (args[1]==0)
+    //    args[1] = PER_MIN1;
+    //static bool once = 0;
+
+    //if (!once && icode != 999999) {
+    //    once = 1;
+    //    std::vector<HISDAT> his;
+    //    his.resize((args[2] ? args[2] : 9)*30);
+    //    int n = GDef::tdx_read("999999", 1, args[1], &his[0], his.size(), t0, t1, nTQ, 0);
+    //    if (n > 1)/*(n < (int)his.size())*/ {
+    //        his.resize(n);
+    //        print(make_code(nSetCode, icode), his);
+    //    }
+    //}
+
+    return 0;
+}
+
+BOOL myflt3(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+	return 0;
+}
+
 BOOL myflt9(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
@@ -145,7 +262,7 @@ BOOL myflt9(char const* Code, short nSetCode
 }
 
 
-BOOL myflt2(char const* Code, short nSetCode
+BOOL myflt4(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -159,7 +276,7 @@ BOOL myflt2(char const* Code, short nSetCode
     return 0;
 }
 
-BOOL myflt3(char const* Code, short nSetCode // 复牌
+BOOL myflt5(char const* Code, short nSetCode // 复牌
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -191,7 +308,7 @@ BOOL myflt3(char const* Code, short nSetCode // 复牌
 	////return rbeg->Time.date().day_of_year() - rnext->Time.date().day_of_year() > 3;
 }
 
-BOOL myflt4(char const* Code, short nSetCode
+BOOL myflt6(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -222,7 +339,7 @@ static float tvolume(boost::gregorian::date const& date)
     return float(tod.total_seconds() - 3600*11) / 3600*4;
 }
 
-BOOL myflt5(char const* Code, short nSetCode
+BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
@@ -240,22 +357,6 @@ BOOL myflt5(char const* Code, short nSetCode
     float fvol = last->fVolume/tvolume(last->Time.date());
 
     return last->Close/lasp->Close > (1-0.02) && fvol/afvol < (1+0.1);
-}
-
-BOOL myflt6(char const* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-	return 0;
-}
-
-BOOL myflt7(char const* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-    static std::ofstream ofs("D:\\home\\wood\\codes_", std::ios::trunc);
-    ofs << Code <<'\t'<< nSetCode << '\n';
-	return 0;
 }
 
 BOOL myflt8(char const* Code, short nSetCode
