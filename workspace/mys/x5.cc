@@ -106,18 +106,16 @@ struct Av {
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 
 typedef fusion::vector<Av,Av> Avsb;
+auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
+auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
 
-static const auto Sum = [](Avsb const& avsb) {
-    return fusion::at_c<0>(avsb) + fusion::at_c<1>(avsb);
-};
+static const auto Sum = [](Avsb const& avsb) { return fusion::at_c<0>(avsb) + fusion::at_c<1>(avsb); };
 static const auto Plus = [](Avsb const& x, Avsb const& y) {
     Av const a = fusion::at_c<0>(x) + fusion::at_c<0>(y);
     Av const b = fusion::at_c<1>(x) + fusion::at_c<1>(y);
     return fusion::make_vector(a, b);
 };
 //[](auto&& x) -> decltype(fusion::at_c<0>(x))& { return fusion::at_c<0>(x); };
-auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
-auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
 
 static auto Lohi = [](auto& rng) {
     auto cheap = [](auto&x, auto&y) {

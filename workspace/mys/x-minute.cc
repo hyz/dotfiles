@@ -29,6 +29,12 @@ template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
+#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
+template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
+{
+    fprintf(stderr, fmt, lin_, a...);
+    //fflush(stderr);
+}
 
 namespace filesystem = boost::filesystem;
 namespace gregorian = boost::gregorian;
@@ -213,47 +219,53 @@ void Main::step1(code_t code, std::string const& path, gregorian::date)
             using qi::int_;
             using qi::float_;
             using qi::char_;
+            for (;;) {
+                char linebuf[256];
+                if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                    if (!feof(fp))
+                        ERR_EXIT("fgets");
+                    break;
+                }
+                float fprice;
+                int sec;
+                signed char c;
 
-            char linebuf[256];
-            if (!fgets(linebuf, sizeof(linebuf), fp)) {
-                if (!feof(fp))
-                    ERR_EXIT("fgets");
-                return 0;
+                char* pos = linebuf;
+                if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                            , int_ >> float_ >> char_ >> int_, ',', sec, fprice, c, xr.vol) /*&& pos == end*/) {
+                    ERR_MSG("qi::parse %s %s", path.c_str(), pos);
+                    continue;
+                }
+                xr.sec = sec/10000*3600 + sec/100%100*60 + sec%100;
+                xr.price = int(fprice*100);
+                return int('J') - c; //sec; //60*(sec/10000) + sec/100;
             }
-            float fprice;
-            signed char c;
-            int sec;
-
-            char* pos = linebuf;
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> float_ >> char_ >> int_, ',', sec, fprice, c, xr.vol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
-            }
-            xr.sec = sec/10000*3600 + sec/100%100*60 + sec%100;
-            xr.price = int(fprice*100);
-            return int('J') - c; //sec; //60*(sec/10000) + sec/100;
+            return 0;
         };
         auto xtxt = [fp,&path](Xrec& xr)/*(int& sec, int& price, int& vol)*/ {
             //static const qi::int_parser<int, 10, 2, 2> _2digit = {};
             //qi::rule<char*, int> rule_sec = _2digit[qi::_val=3600*qi::_1] >> _2digit[qi::_val+=60*qi::_1] >> _2digit[qi::_val+=qi::_1] ;
             using qi::int_;
             using qi::char_;
-
-            char linebuf[256];
-            if (!fgets(linebuf, sizeof(linebuf), fp)) {
-                if (!feof(fp))
-                    ERR_EXIT("fgets");
-                return 0;
+            for (;;) {
+                char linebuf[256];
+                if (!fgets(linebuf, sizeof(linebuf), fp)) {
+                    if (!feof(fp))
+                        ERR_EXIT("fgets");
+                    break; //return 0;
+                }
+                int sec, svol;
+                char* pos = linebuf;
+                if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                            , int_ >> int_ >> int_, qi::space, sec, xr.price, svol) /*&& pos == end*/) {
+                    ERR_MSG("qi::parse %s %s", path.c_str(), pos);
+                    continue;
+                }
+                xr.sec = sec/10000*3600 + sec/100%100*60 + sec%100;
+                xr.vol = abs(svol);
+                return svol;
             }
-            int sec, svol;
-            char* pos = linebuf;
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> int_ >> int_, qi::space, sec, xr.price, svol) /*&& pos == end*/) {
-                ERR_EXIT("qi::parse %s %s", path.c_str(), pos);
-            }
-            xr.sec = sec/10000*3600 + sec/100%100*60 + sec%100;
-            xr.vol = abs(svol);
-            return svol;
+            return 0;
         };
         //std::unordered_map<int,Oclh> oclh;
         Oclh oclh = {};

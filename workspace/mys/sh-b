@@ -1,0 +1,6 @@
+
+for b in `/bin/ls 00b` ; do
+    printf "%12s\t" $b
+    echo "`bin/s-inters 00b/$b <$1 |awk '{x+=$5} END {printf "% .2f", x}'`"
+done
+

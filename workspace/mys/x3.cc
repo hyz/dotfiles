@@ -58,6 +58,8 @@ namespace qi = boost::spirit::qi;
 //namespace ascii = boost::spirit::ascii;
 template <typename T,size_t N> using array = std::array<T,N>;
 
+using namespace boost::multi_index;
+
 namespace boost { namespace spirit { namespace traits
 {
     template<>
@@ -172,8 +174,6 @@ gregorian::date _date(std::string const& s) // ./20151221
     return gregorian::date(y,m,d);
 }
 
-using namespace boost::multi_index;
-
 struct SInfo
 {
     long gbx, gbtotal;
@@ -260,16 +260,18 @@ void Main::init_::loadsi(char const* fn)
 
 Elem* Main::init_::address(int code) //-> Main::iterator
 {
-    tmp_.code = code;
+    auto itr = find(code);
+    if (itr == end()) {
+        return 0;
+    }
     auto & idc = m_->get<1>();
+
+    tmp_.code = code;
     auto p = idc.insert(tmp_);
     Elem& el = const_cast<Elem&>(*p.first);
     if (p.second) {
-        auto it = this->find(code);
-        if (it == this->end())
-            return 0;
         SInfo& si = el;
-        si = it->second;
+        si = itr->second;
     }
     return &el;
 }
