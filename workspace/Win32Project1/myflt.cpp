@@ -145,8 +145,7 @@ template <int Size=10> struct Print2
     std::vector<HISDAT> sh_;
     FILE* fp_ = 0;
 
-    Print2(int args[4], BYTE nTQ)
-    {
+    Print2(int args[4], BYTE nTQ) {
         sh_.resize(Size +args[1]);
         if (rd_(sh_, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
             char fn[128];
@@ -172,8 +171,7 @@ template <int Size=10> struct Print2
         }
     }
 
-    template<typename ...A> int rd_(std::vector<HISDAT>& ls, A&&... a)
-    {
+    template<typename ...A> int rd_(std::vector<HISDAT>& ls, A&&... a) {
         int n = GDef::read(&ls[0], ls.size(), PER_DAY, a...);
         return n;
     }
