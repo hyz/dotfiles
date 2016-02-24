@@ -5,6 +5,7 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <boost/signals2/detail/null_output_iterator.hpp>
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_repeat.hpp>
@@ -173,6 +174,38 @@ gregorian::date _date(std::string const& s) // ./20151221
     return gregorian::date(y,m,d);
 }
 
+template <typename It, typename Iter> // boost::make_function_output_iterator
+auto Ma(unsigned n, It it, It end, Iter iter) // -> array<decltype(*it),2>
+{
+    decltype(*it) a{};
+    std::vector<It> ar(n);
+    unsigned x=0;
+    for (; x < ar.size() && it != end; ++x, ++it) {
+        a += *it;
+        ar[x] = it;
+    }
+    auto b = a/ar.size();
+    array<decltype(*it),2> ret={{b,b}};
+
+    if (x == ar.size()) {
+        *iter++ = b;
+
+        for (; it != end; ++it) {
+            unsigned i = x++ % n;
+            a -= *ar[i];
+            a += *it;
+            ar[i] = it;
+            *iter++ = b = a/n;
+            if (b < ret[0]) {
+                ret[0] = b;
+            } else if (b > ret[1]) {
+                ret[1] = b;
+            }
+        }
+    }
+    return ret;
+}
+
 struct SInfo
 {
     long gbx, gbtotal;
@@ -180,13 +213,13 @@ struct SInfo
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
-struct Summary
+struct Summary : AV , array<int,2>
 {
-    Av av = {}; //Avsb sums = {}, vless = {} , vmass = {} , voths = {};
-    array<int,2> lohi= {}, oc= {};
+    array<int,2> lohi= {}; //, oc= {};
+    //Avsb sums = {}, vless = {} , vmass = {} , voths = {};
 };
 
-struct Elem : SInfo, std::vector<Summary>, Summary
+struct Elem : SInfo, Summary, std::vector<Summary>
 {
     int code = 0;
 
@@ -194,17 +227,19 @@ struct Elem : SInfo, std::vector<Summary>, Summary
     //array<int,2> lohi= {}, oc= {};
 
     int n_day() const { return int(this->size()); }
+    void extend(Elem const& o) {}
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
               sequenced<>
             , hashed_unique<member<Elem,int,&Elem::code>> >>
 {
+    struct init_;
+
     Main(int argc, char* const argv[]);
     int run(int argc, char* const argv[]);
 
     gregorian::date date;
-    struct init_;
 };
 
 struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
@@ -214,7 +249,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     init_(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* fn);
-    Elem* add(int code, Summary const& d);
+    Elem* add(int code, Elem&& d);
     void prep(filesystem::path const& path);
     template <typename F> void fun (F read, int, int);
 };
@@ -258,7 +293,7 @@ void Main::init_::loadsi(char const* fn)
         ERR_EXIT("fopen: %s", fn);
 }
 
-Elem* Main::init_::add(int code, Summary const& d)
+Elem* Main::init_::add(int code, Elem&& el)
 {
     auto & idc = m_->get<1>();
     auto it = idc.find(code);
@@ -266,20 +301,16 @@ Elem* Main::init_::add(int code, Summary const& d)
         auto si = this->find(code);
         if (si == this->end())
             return 0;
-        Elem el = {};
         static_cast<SInfo&>(el) = si->second;
-        static_cast<Summary&>(el) = d;
-        el.push_back(d);
         el.code = code;
-        auto p = m_->push_back(el);
+        auto p = m_->push_back( std::move(el) );
         if (!p.second)
             ERR_EXIT("%d", numb(code));
-        return const_cast<Elem*>(p.first.operator->());
+        return &const_cast<Elem&>(*p.first);
     }
-    Elem& el = const_cast<Elem&>(*it);
-    static_cast<Summary&>(el).sum( d );
-    el.push_back(d);
-    return &el;
+    Elem& o = const_cast<Elem&>(*it);
+    o.extend(el);
+    return &o;
 }
 
 Main::init_::init_(Main* p, int argc, char* const argv[])
@@ -296,13 +327,13 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
                 continue;
             auto & p = di.path();
             prep( p);
-            m_->date = std::min(m_->date, _date(p.generic_string()));
+            //m_->date = std::min(m_->date, _date(p.generic_string()));
         }
     } else for (int i=1; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
         prep( argv[i]);
-        m_->date = std::min(m_->date, _date(argv[i]));
+        //m_->date = std::min(m_->date, _date(argv[i]));
     }
 }
 
@@ -310,8 +341,8 @@ void Main::init_::prep(filesystem::path const& path)
 {
     if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        auto reader = [fp](std::vector<Avsb>& vec, int lohi[2]) {
-            vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
+        auto reader = [fp](std::vector<Summary>& vec, Summary& sa) {
+            // vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
@@ -325,29 +356,26 @@ void Main::init_::prep(filesystem::path const& path)
             char*const end = &linebuf[sizeof(linebuf)];
             char* pos = linebuf;
             if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
-                Avsb avsb;
-                while (qi::phrase_parse(pos,end, R_Av>>R_Av, qi::space, avsb)) {
-                    Av av = First(avsb) + Second(avsb);
-                    if (av.volume == 0) {
-                        continue;
-                    }
+                Summary sm = {};
+                Av & av = sm;
 
-                    int x = av.amount/av.volume;
-                    if (vec.empty()) {
-                        lohi[0] = lohi[1] = x;
-                    } else { 
-                        if (x < lohi[0]) {
-                            lohi[0] = x;
-                        } else if (x > lohi[1]) {
-                            lohi[1] = x;
+                using qi::int_;
+                while (qi::phrase_parse(pos,end, R_Av>>int_>>int_>>int_>>int_, qi::space
+                            , av, sm[0], sm[1], sm.lohi[0], sm.lohi[1])) {
+                    if (av.volume) {
+                        if (vec.empty()) {
+                            sa = sm;
+                        } else { 
+                            if (sa.lohi[0] > sm.lohi[0])
+                                sa.lohi[0] = sm.lohi[0];
+                            if (sa.lohi[1] < sm.lohi[1])
+                                sa.lohi[1] = sm.lohi[1];
+                            sa[1] = sm[1];
+                            static_cast<Av&>(sa) += av;
                         }
+                        vec.push_back(sm);
                     }
-
-                    First(avsb).amount; // /= 100;
-                    Second(avsb).amount; // /= 100;
-                    vec.push_back(avsb);
                 }
-                //if (nonx && *nonx) ERR_MSG("%d %d: volume=0\n", code, nonx);
             } else
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
@@ -360,42 +388,36 @@ struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 
 template <typename F> void Main::init_::fun(F read, int, int)
 {
-    Summary o = {};
-    std::vector<Avsb> vec; // array<int,2> lohi;
-    while (code_t code = read(vec, &o.lohi[0])) {
+    Elem el = {}; //Summary sa = {};
+    while (code_t code = read(el, el)) {
         std::unique_ptr<decltype(vec),XClear> xclear(&vec);
-        if (vec.size() < 100)
+        if (vec.size() < 3) {
+            ERR_MSG("%d :size<3\n", numb(code));
             continue;
-        o.oc[0] = Price(vec.front());
-        o.oc[1] = Price(vec.back());
-        auto& rng = vec;
+        }
+        //std::vector<Summary>& rng = el; // array<int,2> lohi;
 
-        o.sums = std::accumulate(std::begin(rng), std::end(rng), Avsb{}, Plus);
-        //vss->sums = Plus(vss->sum, avsb);
-        //vss->days.push_back(avsb);
+        //auto fvcmp = [](auto& x, auto& y){
+        //    return Sum(x).volume < Sum(y).volume;
+        //};
 
-        auto fvcmp = [](auto& x, auto& y){
-            return Sum(x).volume < Sum(y).volume;
-        };
+        //int n = int(3/10.0 * (float)boost::size(rng));
+        //int m = int(3/10.0 * float(boost::size(rng)-n));
 
-        int n = int(3/10.0 * (float)boost::size(rng));
-        int m = int(3/10.0 * float(boost::size(rng)-n));
-
-        std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
-        o.vless = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
+        //std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
+        //o.vless = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
         //vss->vless.push_back(vl);
         //vss->vless = Plus(vss->vless, o.vless);
 
-        std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
-        o.vmass = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
+        //std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
+        //o.vmass = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
         //vss->vmass.push_back(vm);
 
-        o.voths = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
+        //o.voths = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
         //vss->voths.push_back(vk);
 
-        if (!this->add(code, o)) {
+        if (!this->add(code, std::move(el))) {
             ERR_MSG("%d :add-fail\n", numb(code));
-            //continue;
         }
     }
 }
@@ -412,58 +434,33 @@ int Main::run(int argc, char* const argv[])
     constexpr int Wn=10000;
     constexpr int Yi=Wn * Wn;
 
-    Avsb _sum = {};
-
     for (Elem const & el : *this) {
-        _sum = Plus(_sum, el.sums);
-        int n_day = el.n_day();
-        Av sell = First(el.sums);
-        Av buy = Second(el.sums);
-        Av total = buy + sell;
-        Av b = buy - sell;
+        Av last = el.back();
+        long volx = 0;
+        long vola = (av.volume+last.volume)/el.size();
+
+        Av av = std::accumulate(el.rbegin()+1, el.rend(), Av{});
+        for (auto& x : el) {
+            volx += ::labs(x.volume - vola);
+        }
+        volx /= el.size();
+
+        auto vlh = Ma(2, el.rbegin()+1, el.rend(), boost::signals2::detail::null_output_iterator());
+                //, boost::make_function_output_iterator( [&last](Av const& a) { if (a.volume < last->volume) last->volume; } )
 
         printf("%06d", numb(el.code));
         {
             long lsz = el.gbx*Price(total)/100;
-            printf("\t%6.2f %5.2f %03ld", double(lsz)/Yi, total.amount/double(Yi), 1000*total.amount/lsz);
-
-            printf("\t% 6.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
+            printf("\t%6.2f %5.2f %03ld", lsz/double(Yi), last.amount/double(Yi), 1000*last.amount/lsz);
         } {
-            auto& v = el.vmass;
-            Av b = Second(v) - First(v);
-            printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
-        //} {
-        //    auto& v = el.vless;
-        //    Av b = Second(v) - First(v);
-        //    printf("\t% 5.2f % 04ld", b.amount/double(Yi), 1000*b.amount/total.amount);
-        //} {
-        //    // printf("\t%03ld", 1000*total.volume/el.gbx);
-        //    long vola = total.volume/n_day;
-        //    auto exval = [&vola](long a, Avsb const& x){
-        //        return a + labs(Sum(x).volume - vola);
-        //    };
-        //    long ex = std::accumulate(el.begin(), el.end(), 0l, exval);
-        //    printf("\t%03ld", 1000*ex/n_day/vola);
-
-        //    //auto& lh = el.lohi; printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
+            printf("\t%.3ld %.3ld", 100*last.volume/vlh[0], 100*vlh[1]/last.volume);
+            printf("\t%.3ld", 1000*volx/vola);
+        } {
+            auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
+            printf("\t% .4d %.3d", Chr(el.lohi[0],el.lohi[1]), Chr(el[0],el[1]));
         }
-        printf("\t%d\n", n_day);
+        printf("\t%d\n", el.size());
     }
-    if (!empty()) {
-        Av buy = Second(_sum);
-        Av sell = First(_sum);
-        Av total = buy + sell;
-        Av b = buy - sell;
-        gregorian::date::ymd_type ymd = date.year_month_day();
-
-        fprintf(stderr,"%04d%02d%02d", int(ymd.year), int(ymd.month), int(ymd.day));
-        fprintf(stderr,"\t%8.2f %8.2f %03ld"
-                , total.amount/double(Yi), b.amount/double(Yi), labs(b.amount)*100/(total.amount/10));
-        fprintf(stderr,"\t%6.2f %6.2f %03ld"
-                , total.volume/double(Yi), b.volume/double(Yi), labs(b.volume)*100/(total.volume/10));
-        fprintf(stderr, "\n");
-    }
-
     return 0;
 }
 

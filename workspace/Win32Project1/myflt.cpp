@@ -165,7 +165,7 @@ template <int Size=10> struct Print2
             for (auto it = ls.begin(); it != ls.end(); ++it) {
                 fprintf(fp_, "\t%.0f %.0f %.0f %.0f %.0f %.0f"
                         , it->fVolume, it->a.Amount
-                        , (100*it->Open), (100*it->Close), (100*it->High), (100*it->Low) );
+                        , (100*it->Open), (100*it->Close), (100*it->Low), (100*it->High) );
             }
 			fprintf(fp_, "\n");
         }
