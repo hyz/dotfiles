@@ -190,7 +190,7 @@ struct Elem : SInfo
     std::vector<Avsb> voths = {};
 
     Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    array<int,2> lohi; // = {};
+    array<int,2> lohi, oc; // = {};
 
     int n_day() const { return int(all.size()); }
 };
@@ -434,11 +434,9 @@ int Main::run(int argc, char* const argv[])
         } {
             // printf("\t%03ld", 1000*total.volume/vss.gbx);
             long vola = total.volume/n_day;
-            auto exval = [&vola](long a, Avsb const& x){
-                return a + labs(Sum(x).volume - vola);
-            };
-            long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval);
-            printf("\t%03ld", 1000*ex/n_day/vola);
+            auto exval = [&vola](long a, Avsb const& x){ return a + labs(Sum(x).volume - vola); };
+            long ex = std::accumulate(vss.all.begin(), vss.all.end(), 0l, exval)/n_day;
+            printf("\t%.3ld", 1000*ex/vola);
 
             //auto& lh = vss.lohi; printf("\t%03d", (lh[1]-lh[0])*1000/lh[0]);
         }

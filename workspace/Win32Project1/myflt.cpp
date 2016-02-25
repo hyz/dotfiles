@@ -36,20 +36,20 @@ BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls("D:\\home\\wood\\._sexcl");
+    static codes_set excls_("D:\\home\\wood\\._sexcl");
     static codes_set s(str(boost::format("D:\\home\\wood\\_%02d") % args[1]));
     int c = atoi(Code);
-    return (s.exist(c) && !excls.exist(c));
+    return (s.exist(c) && !excls_.exist(c));
 }
 
 BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls("D:\\home\\wood\\._sexcl");
+    static codes_set excls_("D:\\home\\wood\\._sexcl");
 
     int icode = atoi(Code);
-    if (excls.exist(icode)) {
+    if (excls_.exist(icode)) {
         return 0;
     }
 
@@ -140,27 +140,39 @@ inline unsigned make_code(int szsh, int numb) { return ((szsh << 24) | numb); }
 inline int numb(unsigned v_) { return v_ & 0x0ffffff; }
 inline int szsh(unsigned v_) { return (v_ >> 24) & 0xff; }
 
-template <int Size=10> struct Print2
+struct Dump2
 {
     std::vector<HISDAT> sh_;
     FILE* fp_ = 0;
+    codes_set excls_;
 
-    Print2(int args[4], BYTE nTQ) {
-        sh_.resize(Size +args[1]);
-        if (rd_(sh_, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
+    Dump2(int args[4], BYTE nTQ) : excls_("D:\\home\\wood\\._sexcl")
+    {
+        sh_.resize(args[1]>0 ? args[1] : 15);
+		if (GDef::read(&sh_[0], sh_.size(), PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
             char fn[128];
-            sprintf(fn,"D:\\home\\wood\\workspace\\mys\\TDX.%lu", sh_.size());
+			auto & t0 = sh_.front().Time;
+			auto & t1 = sh_.back().Time;
+            sprintf(fn,"D:\\home\\wood\\workspace\\mys\\fx\\%02d%02d-%02d%02d", t0.month,t0.day, t1.month,t1.day);
             fp_ = fopen(fn, "w");
         }
     }
-    ~Print2() {
+    ~Dump2() {
         if (fp_)
             fclose(fp_);
     }
 
-    void operator()(char const* Code, short nSetCode, BYTE nTQ) {
-        std::vector<HISDAT> ls(sh_.size());
-        if (fp_ && rd_(ls, Code, nSetCode, sh_.front().Time, sh_.back().Time, nTQ, 0) == (int)sh_.size()) {
+    void operator()(char const* Code, short nSetCode, BYTE nTQ)
+    {
+        if (!fp_ || excls_.exist(atoi(Code)))
+            return;
+		std::vector<HISDAT> ls(sh_.size());
+        int n;
+		if ((n = GDef::read(&ls[0], ls.size(), PER_DAY, Code, nSetCode, NTime{}, NTime{}, nTQ, 0)) > 3) {
+            if (ls.back().fVolume < 1)
+                return;
+            ls.resize(n);
+            //if (ls.front().Time.day != sh_.front().Time.day || ls.back().Time.day != sh_.back().Time.day || ls.back().fVolume < 1) return;
             fprintf(fp_, "%s %d", Code, nSetCode);
             for (auto it = ls.begin(); it != ls.end(); ++it) {
                 fprintf(fp_, "\t%.0f %.0f %.0f %.0f %.0f %.0f"
@@ -170,26 +182,23 @@ template <int Size=10> struct Print2
 			fprintf(fp_, "\n");
         }
     }
-
-    template<typename ...A> int rd_(std::vector<HISDAT>& ls, A&&... a) {
-        int n = GDef::read(&ls[0], ls.size(), PER_DAY, a...);
-        return n;
-    }
 };
 
-struct Print3
+struct Dump3
 {
     std::vector<HISDAT> sh_;
     FILE* fp_ = 0;
 
-    template <typename ...A> Print3(int args[4], A... a)
+    template <typename ...A> Dump3(int args[4], A... a)
     {
         rd_(sh_, "999999", 1, a...);
-        auto fn = "D:\\home\\wood\\workspace\\mys\\TDX.ms";
+        auto& t = sh_.front().Time;
+        char fn[128];// = "D:\\home\\wood\\workspace\\mys\\fx\\mins";
+        sprintf(fn,"D:\\home\\wood\\workspace\\mys\\fx\\%02d%02d", t.month, t.day);
         fp_ = fopen(fn, "w");
     }
 
-    ~Print3() {
+    ~Dump3() {
         if (fp_)
             fclose(fp_);
     }
@@ -258,12 +267,7 @@ BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls("D:\\home\\wood\\._sexcl");
-    int icode = atoi(Code);
-    if (excls.exist(icode))
-        return 0;
-
-    static Print2<> print(args, nTQ);
+    static Dump2 print(args, nTQ);
     print(Code, nSetCode, nTQ);
 	return 0;
 }
@@ -272,12 +276,12 @@ BOOL myflt3(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls("D:\\home\\wood\\._sexcl");
+    static codes_set excls_("D:\\home\\wood\\._sexcl");
     int icode = atoi(Code);
-    if (excls.exist(icode))
+    if (excls_.exist(icode))
         return 0;
 
-    static Print3 print(args, t0, t1, nTQ, 0);
+    static Dump3 print(args, t0, t1, nTQ, 0);
     print(Code, nSetCode, t0, t1, nTQ, 0);
 
     //if (args[1]==0)
