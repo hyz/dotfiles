@@ -34,11 +34,12 @@ exe x-minute : x-minute.cc /boost//filesystem : <link>static ;
 exe x3 : x3.cc /boost//filesystem : <link>static ;
 exe x4 : x4.cc /boost//filesystem : <link>static ;
 exe x5 : x5.cc /boost//filesystem : <link>static ;
+exe x6 : x6.cc /boost//filesystem : <link>static ;
 exe jx : jx.cc /boost//filesystem : <link>static ;
 
 install bin : x-minute ls-dczxg s-diff s-inters # f1 f2 f5 f8 f9 f6 fx f7
     jx
-    x3 x4 x5
+    x3 x4 x5 x6
     fx
     ;
 

@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <array>
 #include <vector>
@@ -253,7 +254,7 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
 struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 {
     Main* m_ = 0;
-    Elem tmp_ = {};
+    int igntail_ = 0;
     init_(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* fn);
@@ -329,15 +330,19 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     }
     loadsi("/cygdrive/d/home/wood/._sinfo");
 
-    if (filesystem::is_directory(argv[1])) {
-        for (auto& di : filesystem::directory_iterator(argv[1])) {
+    while ( getopt(argc, argv, "b:") != -1) {
+        igntail_ = atoi(optarg);
+    }
+
+    if (filesystem::is_directory(argv[optind])) {
+        for (auto& di : filesystem::directory_iterator(argv[optind])) {
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
             prep( p.generic_string().c_str() );
             //m_->date = std::min(m_->date, _date(p.generic_string()));
         }
-    } else for (int i=1; i<argc; ++i) {
+    } else for (int i=optind; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
         prep( argv[i] );
@@ -402,6 +407,7 @@ template <typename F> void Main::init_::fun(F read)
             ERR_MSG("%d :size<3\n", numb(code));
             continue;
         }
+        el.resize(el.size() - igntail_);
         if (!this->add(code, std::move(el))) {
             ERR_MSG("%d :add-fail\n", numb(code));
         }
