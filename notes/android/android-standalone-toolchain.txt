@@ -4,6 +4,8 @@
   --toolchain=arm-linux-androideabi-4.9 \
   --install-dir=/opt/android-ndk/standalone/toolchain/android-12
 
+### http://developer.android.com/ndk/guides/standalone_toolchain.html
+
 === https://github.com/MysticTreeGames/Boost-for-Android.git
 
 /opt/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-9 --install-dir=$HOME/android/standalone/toolchain
