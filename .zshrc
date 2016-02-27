@@ -98,7 +98,7 @@ if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_ROOT=/usr/bin
 
-SDK_ROOT=/opt/android/sdk
+SDK_ROOT=/opt/android-sdk
 if [[ -d "$SDK_ROOT" ]] ; then
     ANDROID_SDK_ROOT=$SDK_ROOT
     ANDROID_HOME=$SDK_ROOT
@@ -107,12 +107,12 @@ if [[ -d "$SDK_ROOT" ]] ; then
     PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
 fi
 
-NDK_ROOT=/opt/android/ndk
+NDK_ROOT=/opt/android-ndk
 if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
 
-    PATH=$PATH:$NDK_ROOT
+    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/standalone/toolchain/android-12/bin
 fi
 
 # Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x

@@ -1,5 +1,6 @@
 
-path-constant TOOLCHAIN : /opt/android-ndk/standalone/toolchain/android-12 ; # /home/wood/android/standalone/toolchain ;
+path-constant NDK : /opt/android-ndk ;
+path-constant TOOLCHAIN : $(NDK)/standalone/toolchain/android-12 ;
 path-constant BIN : $(TOOLCHAIN)/bin ;
 path-constant SYSROOT : $(TOOLCHAIN)/sysroot ;
 
@@ -21,6 +22,7 @@ using gcc : android12 : arm-linux-androideabi-g++
     <compileflags>-msoft-float
     <compileflags>-mthumb
     <compileflags>-Os
+    <compileflags>-O2
     <compileflags>-fomit-frame-pointer
     <compileflags>-fno-strict-aliasing
     <compileflags>-finline-limit=64
@@ -28,11 +30,10 @@ using gcc : android12 : arm-linux-androideabi-g++
     <compileflags>-DANDROID
     <compileflags>-D__ANDROID__
     <compileflags>-DNDEBUG
-    <compileflags>-O2
-    <compileflags>-g
-    #<compileflags>-I$(AndroidNDKRoot)/platforms/android-9/arch-arm/usr/include
-    #<compileflags>-I$(AndroidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.6/include
-    #<compileflags>-I$(AndroidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi/include
+    #<compileflags>-g
+        #<compileflags>-I$(NDK)/platforms/android-12/arch-arm/usr/include
+        #<compileflags>-I$(NDK)/sources/cxx-stl/gnu-libstdc++/4.9/include
+        #<compileflags>-I$(NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include
     # @Moss - Above are the 'oficial' android flags
     <compileflags>--sysroot=$(SYSROOT)
     <architecture>arm
@@ -42,6 +43,7 @@ using gcc : android12 : arm-linux-androideabi-g++
     <cxxflags>-D__arm__
     <cxxflags>-D_REENTRANT
     <cxxflags>-D_GLIBCXX__PTHREADS
+    <cxxflags>-std=c++1y
     ;
 
 # ./bjam --build-type=complete --layout=tagged
