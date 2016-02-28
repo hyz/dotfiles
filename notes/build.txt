@@ -1,0 +1,8 @@
+
+### https://github.com/getlantern/lantern/wiki/Installation:-server
+$ #sudo pacman -S go docker npm gulp pkg-config
+$ git clone --depth=1 https://github.com/getlantern/lantern
+$ cd lantern
+$ HEADLESS=true make linux-amd64
+$ ./lantern_linux_amd64 --addr 0.0.0.0:8787
+

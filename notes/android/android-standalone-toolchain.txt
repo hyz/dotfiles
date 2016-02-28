@@ -1,8 +1,10 @@
 /opt/android-ndk/build/tools/make-standalone-toolchain.sh \
   --arch=arm \
   --platform=android-12 \
-  --toolchain=arm-linux-androideabi-4.8 \
+  --toolchain=arm-linux-androideabi-4.9 \
   --install-dir=/opt/android-ndk/standalone/toolchain/android-12
+
+### http://developer.android.com/ndk/guides/standalone_toolchain.html
 
 === https://github.com/MysticTreeGames/Boost-for-Android.git
 
@@ -12,11 +14,11 @@ $NDK/build/tools/make-standalone-toolchain.sh \
     --platform=android-9 --toolchain=arm-linux-androideabi-4.6 \
     --install-dir=`pwd`/android-toolchain-arm
 
-$ /opt/ndk/r10/build/tools/make-standalone-toolchain.sh \
+$ /opt/android-ndk/r10/build/tools/make-standalone-toolchain.sh \
   --arch=arm \
   --platform=android-12 \
   --toolchain=arm-linux-androideabi-4.8 \
-  --install-dir=/opt/ndk/standalone/toolchain/android-12
+  --install-dir=/opt/android-ndk/standalone/toolchain/android-12
 
 ### ### ###
 
@@ -60,7 +62,7 @@ http://stackoverflow.com/questions/14036311/official-boost-library-support-for-a
 # librt.a
 lib rt : empty.c : <link>static ;
 
-cp -t /opt/ndk/standalone/toolchain/android-12/sysroot/usr/lib ...
+cp -t /opt/android-ndk/standalone/toolchain/android-12/sysroot/usr/lib ...librt.a
 
 ===
 

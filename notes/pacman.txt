@@ -5,3 +5,11 @@ pacman -Qdt #
 
 pacman -S --clean
 
+### proxy .1
+export http_proxy='http://127.0.0.1:8787'
+
+### proxy .2, using wget
+#/etc/pacman.conf
+    #XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
+#/etc/wgetrc
+
