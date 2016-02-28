@@ -24,7 +24,7 @@ set complete+=k
 " set fileencodings=UTF-8,latin1,UTF-16BE,UTF-16,latin1,gb2312,gb18030,big5,euc-jp,euc-kr,iso8859-1
 set fileencodings=UTF-8
 set fileformats=unix,dos,mac
-set path=.,..,*/,*/*/,~/include,/usr/include,/usr/include/*/
+set path=.,..,*/,*/*/,include,../include,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
 " gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
 

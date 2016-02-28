@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <array>
 #include <vector>
@@ -103,6 +104,15 @@ struct Av {
         Av x = *this;
         return (x-=lhs);
     }
+    Av& operator/=(int x) {
+        volume /= x;
+        amount /= x;
+        return *this;
+    }
+    Av operator/(int x) const {
+        Av tmp = *this;
+        return (tmp /= x);
+    }
 };
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 
@@ -174,10 +184,10 @@ gregorian::date _date(std::string const& s) // ./20151221
     return gregorian::date(y,m,d);
 }
 
-template <typename It, typename Iter> // boost::make_function_output_iterator
-auto Ma(unsigned n, It it, It end, Iter iter) // -> array<decltype(*it),2>
+template <typename It, typename Iter, typename Cmp> // boost::make_function_output_iterator
+auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*it),2>
 {
-    decltype(*it) a{};
+    typename It::value_type a{}; // decltype(*it) a{};
     std::vector<It> ar(n);
     unsigned x=0;
     for (; x < ar.size() && it != end; ++x, ++it) {
@@ -185,7 +195,7 @@ auto Ma(unsigned n, It it, It end, Iter iter) // -> array<decltype(*it),2>
         ar[x] = it;
     }
     auto b = a/ar.size();
-    array<decltype(*it),2> ret={{b,b}};
+    array<decltype(b),2> ret={{b,b}};
 
     if (x == ar.size()) {
         *iter++ = b;
@@ -196,9 +206,9 @@ auto Ma(unsigned n, It it, It end, Iter iter) // -> array<decltype(*it),2>
             a += *it;
             ar[i] = it;
             *iter++ = b = a/n;
-            if (b < ret[0]) {
+            if (cmp(b, ret[0])) {
                 ret[0] = b;
-            } else if (b > ret[1]) {
+            } else if (!cmp(b, ret[1])) {
                 ret[1] = b;
             }
         }
@@ -213,9 +223,9 @@ struct SInfo
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
-struct Summary : AV , array<int,2>
+struct Summary : Av
 {
-    array<int,2> lohi= {}; //, oc= {};
+    array<int,2> oc, lohi= {}; //, oc= {};
     //Avsb sums = {}, vless = {} , vmass = {} , voths = {};
 };
 
@@ -223,11 +233,17 @@ struct Elem : SInfo, Summary, std::vector<Summary>
 {
     int code = 0;
 
-    //Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    //array<int,2> lohi= {}, oc= {};
-
-    int n_day() const { return int(this->size()); }
-    void extend(Elem const& o) {}
+    Elem* extend(Elem const& el)
+    {
+        if (this->lohi[0] > el.lohi[0])
+            this->lohi[0] = el.lohi[0];
+        if (this->lohi[1] < el.lohi[1])
+            this->lohi[1] = el.lohi[1];
+        this->oc[1] = el.oc[1];
+        static_cast<Av&>(*this) += el;
+        this->insert(this->end(), el.begin(), el.end());
+        return this;
+    }
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
@@ -245,13 +261,13 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
 struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 {
     Main* m_ = 0;
-    Elem tmp_ = {};
+    int igntail_ = 0;
     init_(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* fn);
     Elem* add(int code, Elem&& d);
-    void prep(filesystem::path const& path);
-    template <typename F> void fun (F read, int, int);
+    void prep(char const* path);
+    template <typename F> void fun(F read);
 };
 
 int main(int argc, char* const argv[])
@@ -308,9 +324,8 @@ Elem* Main::init_::add(int code, Elem&& el)
             ERR_EXIT("%d", numb(code));
         return &const_cast<Elem&>(*p.first);
     }
-    Elem& o = const_cast<Elem&>(*it);
-    o.extend(el);
-    return &o;
+
+    return const_cast<Elem&>(*it).extend(el);
 }
 
 Main::init_::init_(Main* p, int argc, char* const argv[])
@@ -321,25 +336,29 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     }
     loadsi("/cygdrive/d/home/wood/._sinfo");
 
-    if (filesystem::is_directory(argv[1])) {
-        for (auto& di : filesystem::directory_iterator(argv[1])) {
+    while ( getopt(argc, argv, "b:") != -1) {
+        igntail_ = atoi(optarg);
+    }
+
+    if (filesystem::is_directory(argv[optind])) {
+        for (auto& di : filesystem::directory_iterator(argv[optind])) {
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
-            prep( p);
+            prep( p.generic_string().c_str() );
             //m_->date = std::min(m_->date, _date(p.generic_string()));
         }
-    } else for (int i=1; i<argc; ++i) {
+    } else for (int i=optind; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        prep( argv[i]);
+        prep( argv[i] );
         //m_->date = std::min(m_->date, _date(argv[i]));
     }
 }
 
-void Main::init_::prep(filesystem::path const& path)
+void Main::init_::prep(char const* path)
 {
-    if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
+    if (FILE* fp = fopen(path, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         auto reader = [fp](std::vector<Summary>& vec, Summary& sa) {
             // vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
@@ -361,7 +380,7 @@ void Main::init_::prep(filesystem::path const& path)
 
                 using qi::int_;
                 while (qi::phrase_parse(pos,end, R_Av>>int_>>int_>>int_>>int_, qi::space
-                            , av, sm[0], sm[1], sm.lohi[0], sm.lohi[1])) {
+                            , av, sm.oc[0], sm.oc[1], sm.lohi[0], sm.lohi[1])) {
                     if (av.volume) {
                         if (vec.empty()) {
                             sa = sm;
@@ -370,7 +389,7 @@ void Main::init_::prep(filesystem::path const& path)
                                 sa.lohi[0] = sm.lohi[0];
                             if (sa.lohi[1] < sm.lohi[1])
                                 sa.lohi[1] = sm.lohi[1];
-                            sa[1] = sm[1];
+                            sa.oc[1] = sm.oc[1];
                             static_cast<Av&>(sa) += av;
                         }
                         vec.push_back(sm);
@@ -380,42 +399,21 @@ void Main::init_::prep(filesystem::path const& path)
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
         };
-        fun(reader, 0,0);
+        fun(reader);
     }
 }
 
 struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
 
-template <typename F> void Main::init_::fun(F read, int, int)
+template <typename F> void Main::init_::fun(F read)
 {
     Elem el = {}; //Summary sa = {};
     while (code_t code = read(el, el)) {
-        std::unique_ptr<decltype(vec),XClear> xclear(&vec);
-        if (vec.size() < 3) {
+        if (el.size() < 3) {
             ERR_MSG("%d :size<3\n", numb(code));
             continue;
         }
-        //std::vector<Summary>& rng = el; // array<int,2> lohi;
-
-        //auto fvcmp = [](auto& x, auto& y){
-        //    return Sum(x).volume < Sum(y).volume;
-        //};
-
-        //int n = int(3/10.0 * (float)boost::size(rng));
-        //int m = int(3/10.0 * float(boost::size(rng)-n));
-
-        //std::nth_element(std::begin(rng), std::end(rng)-n, std::end(rng), fvcmp);
-        //o.vless = std::accumulate(std::begin(rng), std::end(rng)-n, Avsb{}, Plus);
-        //vss->vless.push_back(vl);
-        //vss->vless = Plus(vss->vless, o.vless);
-
-        //std::nth_element(std::end(rng)-n, std::end(rng)-m, std::end(rng), fvcmp);
-        //o.vmass = std::accumulate(std::end(rng)-m, std::end(rng), Avsb{}, Plus);
-        //vss->vmass.push_back(vm);
-
-        //o.voths = std::accumulate(std::end(rng)-n, std::end(rng)-m, Avsb{}, Plus);
-        //vss->voths.push_back(vk);
-
+        el.resize(el.size() - igntail_);
         if (!this->add(code, std::move(el))) {
             ERR_MSG("%d :add-fail\n", numb(code));
         }
@@ -435,31 +433,35 @@ int Main::run(int argc, char* const argv[])
     constexpr int Yi=Wn * Wn;
 
     for (Elem const & el : *this) {
-        Av last = el.back();
-        long volx = 0;
-        long vola = (av.volume+last.volume)/el.size();
-
         Av av = std::accumulate(el.rbegin()+1, el.rend(), Av{});
+        auto last = el.end()-1;
+        auto lasp = last-1;;
+        long volx = 0;
+        long vola = (av.volume+last->volume)/el.size();
+
         for (auto& x : el) {
             volx += ::labs(x.volume - vola);
         }
         volx /= el.size();
 
-        auto vlh = Ma(2, el.rbegin()+1, el.rend(), boost::signals2::detail::null_output_iterator());
+        auto vlh = Ma(2, el.rbegin()+1, el.rend(), boost::signals2::detail::null_output_iterator()
+                , [](Av const& l, Av const& r){ return l.volume<r.volume; });
                 //, boost::make_function_output_iterator( [&last](Av const& a) { if (a.volume < last->volume) last->volume; } )
 
         printf("%06d", numb(el.code));
         {
-            long lsz = el.gbx*Price(total)/100;
-            printf("\t%6.2f %5.2f %03ld", lsz/double(Yi), last.amount/double(Yi), 1000*last.amount/lsz);
+            long lsz = el.gbx*el.oc[1]/100;
+            printf("\t%6.2f %5.2f %.3ld", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz);
+            printf(" %.3ld", 1000*volx/vola);
         } {
-            printf("\t%.3ld %.3ld", 100*last.volume/vlh[0], 100*vlh[1]/last.volume);
-            printf("\t%.3ld", 1000*volx/vola);
+            printf("\t%.3ld %.3ld %.3ld %.3ld"
+                    , 100*lasp->volume/last->volume
+                    , 100*vlh[0].volume/last->volume, 100*vola/last->volume, 100*vlh[1].volume/last->volume);
         } {
             auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
-            printf("\t% .4d %.3d", Chr(el.lohi[0],el.lohi[1]), Chr(el[0],el[1]));
+            printf("\t% .3d % .3d %.3d", Chr(lasp->oc[1],last->oc[1]), Chr(el.oc[0],el.oc[1]), Chr(el.lohi[0],el.lohi[1]));
         }
-        printf("\t%d\n", el.size());
+        printf("\t%d\n", (int)el.size());
     }
     return 0;
 }
