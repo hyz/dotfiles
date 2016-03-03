@@ -10,7 +10,7 @@ ssh-keygen -p -f ~/.ssh/id_dsa
 
 ##
 ssh -p 22 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
-ssh-copy-id "-p 22 wood@58.6x.x.x"
+ssh-copy-id -i .ssh/id_rsa.pub -p 22 wood@107.182.x.x
 
 ###http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
 #Port Forwarding Using SSH Tunnel

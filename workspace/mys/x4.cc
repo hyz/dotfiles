@@ -212,7 +212,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
     Elem tmp_ = {};
     init_(Main* p, int argc, char* const argv[]);
 
-    void loadsi(char const* fn);
+    void loadsi(char const* dir, char const* fn);
     Elem* address(int code);
     void prep(filesystem::path const& path);
     template <typename F> void fun (F read, int, int);
@@ -229,9 +229,11 @@ int main(int argc, char* const argv[])
     return 1;
 }
 
-void Main::init_::loadsi(char const* fn)
+void Main::init_::loadsi(char const* dir, char const* fn)
 {
-    if (FILE* fp = fopen(fn, "r")) {
+    char ph[128];
+    snprintf(ph,sizeof(ph), "%s/%s", dir, fn);
+    if (FILE* fp = fopen(ph, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
@@ -281,7 +283,7 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
-    loadsi("/cygdrive/d/home/wood/._sinfo");
+    loadsi(getenv("HOME"), "._sinfo");
 
     if (filesystem::is_directory(argv[1])) {
         for (auto& di : filesystem::directory_iterator(argv[1])) {

@@ -1,0 +1,54 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+    <script type="text/javascript">
+        function findBrowse() {
+            var userAgent = navigator.userAgent;
+            var ie = (userAgent.indexOf('MSIE') != -1);
+            var netscape = (userAgent.indexOf('Mozilla') != -1);
+            var opera = (userAgent.indexOf('Opera') != -1);
+            var version = navigator.appVersion;
+            if (opera) {
+                document.write("Opera code will execute");
+            } else if (ie) {
+                document.write("Internet Explorer based coding will execute");
+            } else if (netscape) {
+                document.write("Netscape Navigator coding will execute");
+            }
+            else {
+                document.write("Other Browser");
+            }
+            document.write("<br/>");
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div>
+
+        <input id="btnFindBrowser" type="button" onclick="findBrowse()" value="Find Browser" />
+
+    </div>
+
+</body>
+
+</html>
+
+     <script type="text/javascript">
+        var appname = navigator.appName;
+        document.write("Application Name : " + appname + "<br/>");
+        var appversion = navigator.appVersion;
+        document.write("Application version : " + appversion + "<br/>");
+        var platform = navigator.platform;
+        document.write("Platform for which the browser was compiled : " + platform + "<br/>");
+        var cookieEnabled = navigator.cookieEnabled
+        if (cookieEnabled) {
+            document.write("Cookie Enabled <br/>");
+        } else {
+            document.write("Cookie not enabled");
+        }
+    </script>
+

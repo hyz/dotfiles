@@ -1,0 +1,155 @@
+<html><head> <meta charset="UTF-8"/>
+<script type="text/javascript"> 
+
+myLog = function() {
+    if (!myLog._div) { myLog.createDiv(); }
+
+    var logEntry = document.createElement('span');
+    for (var i=0; i < arguments.length; i++) {
+    	logEntry.innerHTML += myLog.toJson(arguments[i]) + '<br />';
+    }
+    logEntry.innerHTML += '<br />';
+
+    myLog._div.appendChild(logEntry);
+}
+myLog.createDiv = function() {
+    myLog._div = document.body.appendChild(document.createElement('div'));
+    var props = {
+    	position:'absolute', top:'10px', right:'10px', background:'#333', border:'5px solid #333', 
+    	color: 'white', width: '400px', height: '300px', overflow: 'auto', fontFamily: 'courier new',
+    	fontSize: '11px', whiteSpace: 'nowrap'
+    }
+    for (var key in props) { myLog._div.style[key] = props[key]; }
+}
+myLog.toJson = function(obj) {
+    if (typeof window.uneval == 'function') { return uneval(obj); }
+    if (typeof obj == 'object') {
+    	if (!obj) { return 'null'; }
+    	var list = [];
+    	if (obj instanceof Array) {
+    		for (var i=0;i < obj.length;i++) { list.push(this.toJson(obj[i])); }
+    		return '[' + list.join(',') + ']';
+    	} else {
+    		for (var prop in obj) { list.push('"' + prop + '":' + this.toJson(obj[prop])); }
+    		return '{' + list.join(',') + '}';
+    	}
+    } else if (typeof obj == 'string') {
+    	return '"' + obj.replace(/(["'])/g, '\\$1') + '"';
+    } else {
+    	return new String(obj);
+    }
+}
+</script> </head> <body>
+
+<form name="frm"> 
+<select name="s1" onChange="address(this)"><option value="0">请选择</option></select> 
+<select name="s2" onChange="address(this)"><option value="0">请选择</option></select> 
+<select name="s3" onChange="address(this)"><option value="0">请选择</option></select> 
+</form> 
+
+</body></html>
+
+<script type="text/javascript"> 
+if (!Object.keys) {
+  Object.keys = function(obj) {
+    var keys = [];
+
+    for (var i in obj) {
+      if (obj.hasOwnProperty(i)) {
+        keys.push(i);
+      }
+    }
+
+    return keys;
+  };
+}
+
+myLog('1');
+
+var names1 = {
+    1:"广东", 2:"湖南", 99:"name-lev1"
+};
+var names2 = {
+    1:"广州", 2:"深圳", 11:"株洲", 99:"name-lev2"
+};
+var names3 = {
+    1:"福田", 2:"罗湖", 3:"南山"
+  , 11:"佛山", 12:"白云", 13:"gz3"
+  , 99:"lev3.1"
+  , 88:"lev3.2"
+};
+var names = [names1, names2, names3];
+
+myLog('2');
+
+var atree = {
+      1 : {
+          1: [11,12,13],
+          2: [1,2,3]
+      }
+    , 2 : {
+          11: [88,99]
+      }
+    , 99 : {
+          99: [99,88]
+      }
+};
+var levs = [atree];
+myLog('3');
+
+function make_options(sel, vals, names)
+{
+    for (var i=0; i<vals.length; ++i) {
+        var val = vals[i];
+        sel.options.add(new Option(names[val], val));
+    }
+}
+myLog('4');
+
+function address(thiz)
+{
+    var sels = document.frm.getElementsByTagName('select');
+    var levx = 0;
+    while (levx < sels.length && sels[levx]!=thiz)
+        ++levx;
+
+    if (levx == sels.length-1) {
+        var a = sels[0].value;
+        var b = sels[1].value;
+        var c = sels[2].value;
+        if (a && b && c)
+            alert(a +"+"+ b +"+"+ c +" "+ names[0][a]+"-"+names[1][b]+"-"+names[2][c]);
+        return;
+    }
+
+    if (!levs[levx]) {
+        return;
+    }
+
+    for (var i=levx; i < sels.length-1; ++i) {
+        var cur = sels[i];
+        var nxt = sels[i+1];
+
+        nxt.value = 0;
+        for (var j=nxt.options.length; j>1; --j)
+            nxt.options.remove(j-1);
+
+        if (cur.value > 0) {
+            var vals = levs[i][cur.value];
+            levs.splice(i+1,levs.length, vals)
+
+            if ( isNaN(vals.length) )
+                vals = Object.keys(vals);
+            if (vals.length > 0) {
+                make_options(nxt, vals, names[i+1]);
+                nxt.value = vals[0];
+            }
+        }
+    }
+}
+myLog('5');
+
+//address(document.frm.s1); //make_options(document.frm.s1, levs[0], names[0])
+make_options(document.frm.s1, Object.keys(levs[0]), names[0])
+myLog('end');
+</script> 
