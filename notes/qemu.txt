@@ -1,0 +1,7 @@
+qemu-system-x86_64 -enable-kvm -hda /dev/sda9 -m 1024M -net user -net nic,model=rtl8139
+
+-cdrom /mnt/WindowsXP.SP2.iso
+-soundhw ac97 -net nic,model=virtio -net user
+
+qemu-system-i386 -enable-kvm -boot c -drive file=/blah/winxp.img,media=disk,if=virtio,cache=none -m 1500 -localtime -usb -usbdevice tablet -sdl -vga std -no-frame -name xp -net user,smb=/blah/shared -net nic,model=rtl8139 -daemonize
+
