@@ -1,0 +1,15 @@
+qemu-system-x86_64 -enable-kvm -m 1024M \
+    -net user,smb=/home/wood/smb \
+    -net nic,model=rtl8139 \
+    -fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
+    -hda /dev/sda9 
+
+# -redir tcp:3389::3389
+# -drive file=/path/to/primary/disk.img,index=0,media=disk,if=virtio
+# -drive file=/path/to/installer.iso,index=2,media=cdrom
+# -drive file=/path/to/virtio.iso,index=3,media=cdrom 
+#
+#$ qemu-system-i386 -m 512 -vga std -drive file=windows_disk_image,if=ide -drive file=fake.qcow2,if=virtio -cdrom virtio-win-0.1-81.iso
+#
+# -cpu host
+#
