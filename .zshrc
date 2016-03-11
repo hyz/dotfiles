@@ -76,7 +76,12 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     /bin/ls -1d /cygdrive/[cde]/*/GNU/GnuPG | while read x ; do
         PATH=$PATH:$x
     done
-    export GNUPGHOME=`cygpath -w $HOME/.gnupg`
+    for x in $HOME/.gnupg /cygdrive/{e,f,g}/.gnupg ; do
+        if [ -d "$x" ] ; then
+            export GNUPGHOME=`cygpath -w "$x"`
+            break
+        fi
+    done
 
     WindowsDir=`cygpath "$WINDIR"`
     PATH=$PATH:$WindowsDir/system32:$WindowsDir
