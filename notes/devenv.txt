@@ -1,0 +1,1 @@
+ctags --c++-kinds=+px `find * -type f -name "*.[hc]*" |grep -v win32`
