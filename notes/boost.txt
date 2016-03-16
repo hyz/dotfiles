@@ -13,3 +13,6 @@ cmd.exe
 
 # D:\workspace\boost_1_59_0\stage\lib
 
+###
+> bootstrap.bat gcc
+
