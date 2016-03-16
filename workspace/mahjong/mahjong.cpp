@@ -39,13 +39,13 @@ struct hand : std::array<std::array<int8_t,9>,4>
     //static bool parse_file(hand& mj, FILE* fp);
 };
 
-struct mahjong : std::array<hand,4>
+struct Mahjong : std::array<hand,4>
 {
     enum { Nplayer = 4 }; //enum { East = 0, South, West, North };
     std::deque<int> wall_;
     std::vector<int> discard_;
     int8_t pos_first_hand_ = -1;
-    struct init;
+    struct Init;
 
     void distribute(int pos, int nc=13);
     void prepare(int pos) {
@@ -63,11 +63,11 @@ struct mahjong : std::array<hand,4>
     void gan(int pos);
 };
 
-struct mahjong::init : std::array<std::vector<int>,4>
+struct Mahjong::Init : std::array<std::vector<int>,4>
 {
-    mahjong* thiz;
+    Mahjong* thiz;
     int n_ = 0;
-    init(mahjong* p) : thiz(p) {}
+    Init(Mahjong* p) : thiz(p) {}
 
     void wall(int x, std::vector<int> v) {
         ENSURE(x<4, "wall");
@@ -76,14 +76,14 @@ struct mahjong::init : std::array<std::vector<int>,4>
             done();
     }
     void done() {
-        for (int x=0; x<4; --x) {
+        for (int x=0; x<4; ++x) {
             auto& v = (*this)[x];
             thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
         }
     }
 };
 
-void mahjong::distribute(int pos, int nc)
+void Mahjong::distribute(int pos, int nc)
 {
     pos_first_hand_ = pos;
     nc *= Nplayer;
@@ -103,7 +103,7 @@ void mahjong::distribute(int pos, int nc)
     ENSURE(pos%Nplayer==pos_first_hand_, "distribute pos");
 }
 
-void mahjong::take(int pos)
+void Mahjong::take(int pos)
 {
     hand& h = (*this)[pos%Nplayer];
     int code = wall_.front();
@@ -192,13 +192,16 @@ struct Main
     SDL_Renderer* renderer_;
 
     SDL_Texture* texture_;
-    std::array<std::array<SDL_Texture*,9>,4> textures;
+    std::array<std::array<SDL_Texture*,9>,4> textures_;
+
+    Mahjong m_;
+    struct Test;
 
     ~Main();
     Main(int argc, char* const argv[]);
     int loop(int argc, char* const argv[]);
 
-    void draw(mahjong const&);
+    void draw();
 
     void drawTilesRow(SDL_Texture* tils, int w, int h, int y)
     {
@@ -229,6 +232,33 @@ struct Main
         return tex;
     }
 };
+struct Main::Test
+{
+    Main* thiz;
+    Test(Main* p) : thiz(p) {}
+
+    void shuffle() {
+        std::vector<int> tils; //(4*9*3 + 4*7);
+        for (int y=0; y<3; ++y) {
+            for (int x=0; x<9; ++x) {
+                for (int i=0; i<4; ++i) {
+                    tils.push_back( (y<<4) | x );
+                }
+            }
+        }
+        for (int x=0; x<7; ++x) {
+            for (int i=0; i<4; ++i) {
+                tils.push_back( (3<<4) | x );
+            }
+        }
+        std::random_shuffle(tils.begin(), tils.end());
+
+        Mahjong::Init init(&thiz->m_);
+        for (int i=0; i<4; ++i) {
+            init.wall(std::rand()%4 ,std::vector<int>(tils.begin(), tils.begin() + (tils.size()/4)*i));
+        }
+    }
+};
 
 Main::~Main()
 {
@@ -236,7 +266,6 @@ Main::~Main()
 }
 Main::Main(int argc, char* const argv[])
 {
-    //ENSURE(argc>1, "argc");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
     }
@@ -261,7 +290,7 @@ Main::Main(int argc, char* const argv[])
                 break;
             char fn[512];
             snprintf(fn,sizeof(fn), "%s/%s", img_dir_, imgs[x][y]);
-            textures[x][y] = CreateTextureFromImageFile(fn);
+            textures_[x][y] = CreateTextureFromImageFile(fn);
         }
     }
 
@@ -275,19 +304,35 @@ Main::Main(int argc, char* const argv[])
     //texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 640, 480);
 }
 
-void Main::draw(mahjong const& mj)
+void Main::draw()
 {
-    ;
+    auto& w = m_.wall_;
+    if (w.empty())
+        return;
+    SDL_Rect dstRect = {};
+    SDL_QueryTexture(textures_[0][0], 0, 0, &dstRect.w, &dstRect.h);
+
+    int n = w.size()/4/2;
+    for (int j=0; j<2; ++j) {
+        dstRect.y = (dstRect.h+1)*j;
+        for (int i=0; i < n; ++i) {
+            int code = w[n*j+i];
+            int y = (code >> 4) & 0x0f;
+            int x = (code) & 0x0f;
+            dstRect.x = (dstRect.w+1) * i;
+            SDL_RenderCopy(renderer_, textures_[y][x], 0, &dstRect);
+        }
+    }
 }
+//gSurface = SDL_CreateRGBSurface(0, 640, 480, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+//SDL_FillRect(gSurface, &{64,48,64,48}, 0xff);
 
 int Main::loop(int argc, char* const argv[])
 {
-    SDL_Texture* tils = CreateTextureFromImageFile(argv[1]);
-    //gSurface = SDL_CreateRGBSurface(0, 640, 480, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-    //SDL_FillRect(gSurface, &{64,48,64,48}, 0xff);
+    Test test(this); //ENSURE(argc>1, "argc"); SDL_Texture* tils = CreateTextureFromImageFile(argv[1]);
 
     while (1) {
-        drawTiles(tils);
+        draw();
         SDL_RenderPresent(renderer_);
         SDL_Delay(10); 
 
@@ -298,6 +343,9 @@ int Main::loop(int argc, char* const argv[])
                     switch (int sym = event.key.keysym.sym) {
                         case SDLK_ESCAPE: // If escape is pressed, return (and thus, quit)
                             return 0;
+                        case SDLK_1: // If escape is pressed, return (and thus, quit)
+                            test.shuffle();
+                            break;
                         default: ;//;drawrect(gSurface, {64,48,64,48}, 0x88ff|((sym*3)<<16)&0xffffff);
                     }
                     break;
