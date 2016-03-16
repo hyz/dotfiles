@@ -202,25 +202,7 @@ struct Main
     int loop(int argc, char* const argv[]);
 
     void draw();
-
-    void drawTilesRow(SDL_Texture* tils, int w, int h, int y)
-    {
-        int w0, h0;
-        SDL_QueryTexture(tils, 0, 0, &w0, &h0);
-
-        SDL_Rect srcRect = {0,y,w,h};
-        while (srcRect.x + w < w0) {
-            SDL_RenderCopy(renderer_, tils, &srcRect, &srcRect);
-            srcRect.x += w;
-        }
-    }
-
-    void drawTiles(SDL_Texture* tils)
-    {
-        drawTilesRow(tils, TILE_WIDTH, TILE_HEIGHT_COMPUTER, 0);
-        //SDL_UpdateTexture(texture_, NULL, gSurface->pixels, gSurface->pitch);
-        //SDL_RenderCopy(renderer_, texture_, NULL, NULL);
-    }
+    void draw_wall();
 
     SDL_Texture *CreateTextureFromImageFile(const char *filename)
     {
@@ -232,6 +214,7 @@ struct Main
         return tex;
     }
 };
+
 struct Main::Test
 {
     Main* thiz;
@@ -294,8 +277,8 @@ Main::Main(int argc, char* const argv[])
         }
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-    SDL_RenderSetLogicalSize(renderer_, 1024, 768);
+    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+    //SDL_RenderSetLogicalSize(renderer_, 1024, 768);
 
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
     SDL_RenderClear(renderer_);
@@ -306,17 +289,29 @@ Main::Main(int argc, char* const argv[])
 
 void Main::draw()
 {
+}
+
+void Main::draw_wall()
+{
     auto& w = m_.wall_;
     if (w.empty())
         return;
+    int nor = w.size()/4/2;
     SDL_Rect dstRect = {};
-    SDL_QueryTexture(textures_[0][0], 0, 0, &dstRect.w, &dstRect.h);
+    {
+        int w0, h0, w, h;
+        SDL_GetRendererOutputSize(renderer_, &w0, &h0); // SDL_GetWindowSize(window_, &w0, &h0);
+        w0 -= 16;
+        SDL_QueryTexture(textures_[0][0], 0, 0, &w, &h);
+        double ratio = double(w0)/(w*nor);
+        dstRect.w = w * ratio;
+        dstRect.h = h * ratio;
+    }
 
-    int n = w.size()/4/2;
     for (int j=0; j<2; ++j) {
         dstRect.y = (dstRect.h+1)*j;
-        for (int i=0; i < n; ++i) {
-            int code = w[n*j+i];
+        for (int i=0; i < nor; ++i) {
+            int code = w[nor*j+i];
             int y = (code >> 4) & 0x0f;
             int x = (code) & 0x0f;
             dstRect.x = (dstRect.w+1) * i;
@@ -332,7 +327,7 @@ int Main::loop(int argc, char* const argv[])
     Test test(this); //ENSURE(argc>1, "argc"); SDL_Texture* tils = CreateTextureFromImageFile(argv[1]);
 
     while (1) {
-        draw();
+        draw_wall();
         SDL_RenderPresent(renderer_);
         SDL_Delay(10); 
 
