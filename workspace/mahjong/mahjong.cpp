@@ -1,9 +1,16 @@
 #include <stdlib.h>
 #include <memory>
+#include <array>
+#include <vector>
+#include <deque>
+#include <algorithm>
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
+// 万 筒 索 字
+// 东 南 西 北 中 发 白
+// 顺 刻 将
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
@@ -19,11 +26,92 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
 }
 #define ENSURE(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
 
-// Screen surface
-SDL_Window *gWindow; //SDL_Surface *gScreen;
-SDL_Surface *gSurface;
-SDL_Renderer* gRenderer;
-SDL_Texture* gTexture;
+// 万 筒 索 字
+// 东 南 西 北 中 发 白
+// 顺 刻 将
+struct hand : std::array<std::array<int8_t,9>,4>
+{
+    std::array<int8_t,4> nc;
+
+    hand() : std::array<std::array<int8_t,9>,4>({}) {}
+    //int8_t pair_idx = -1;
+    //static char* parse(std::array<int8_t,9>& mj, char const* beg, char const* end);
+    //static bool parse_file(hand& mj, FILE* fp);
+};
+
+struct mahjong : std::array<hand,4>
+{
+    enum { Nplayer = 4 }; //enum { East = 0, South, West, North };
+    std::deque<int> wall_;
+    std::vector<int> discard_;
+    int8_t pos_first_hand_ = -1;
+    struct init;
+
+    void distribute(int pos, int nc=13);
+    void prepare(int pos) {
+        hand& h = (*this)[pos%Nplayer];
+        for (int i=0; i < 4; ++i) {
+            auto& a = h[i];
+            h.nc[i] = std::accumulate(a.begin(), a.end(), 0);
+        }
+    }
+
+    void take(int pos);
+    void discard(int pos);
+    void hu(int pos);
+    void pen(int pos);
+    void gan(int pos);
+};
+
+struct mahjong::init : std::array<std::vector<int>,4>
+{
+    mahjong* thiz;
+    int n_ = 0;
+    init(mahjong* p) : thiz(p) {}
+
+    void wall(int x, std::vector<int> v) {
+        ENSURE(x<4, "wall");
+        (*this)[x] = std::move(v);
+        if (++n_ == 4)
+            done();
+    }
+    void done() {
+        for (int x=0; x<4; --x) {
+            auto& v = (*this)[x];
+            thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
+        }
+    }
+};
+
+void mahjong::distribute(int pos, int nc)
+{
+    pos_first_hand_ = pos;
+    nc *= Nplayer;
+    while (nc > Nplayer) {
+        for (int n=0; n < 4; ++n)
+            take(pos);
+        ++pos;
+        nc -= 4;
+    }
+    ENSURE(pos%Nplayer==pos_first_hand_, "distribute pos");
+    while (nc > 0) {
+        take(pos);
+        prepare(pos);
+        ++pos;
+        nc -= 1;
+    }
+    ENSURE(pos%Nplayer==pos_first_hand_, "distribute pos");
+}
+
+void mahjong::take(int pos)
+{
+    hand& h = (*this)[pos%Nplayer];
+    int code = wall_.front();
+    int x = (code >> 4) & 0x0f;
+    int y = code & 0x0f;
+    h[x][y]++;
+    wall_.pop_front();
+}
 
 #define TILE_WIDTH                42
 #define TILE_HEIGHT_CONCEALED     76
@@ -70,12 +158,12 @@ SDL_Texture* gTexture;
 //
 //   // Draw the tile to the screen
 //   if (size >= 1) {
-//       SDL_RenderCopy(gRenderer, m_imgTiles, &dstrect2, &dstrect);
+//       SDL_RenderCopy(renderer_, m_imgTiles, &dstrect2, &dstrect);
 //      //SDL_BlitSurface(m_imgTiles, &dstrect2, gpScreen, &dstrect);
 //   } else {
 //      dstrect.w = dstrect.w * 7 / 10;
 //      dstrect.h = dstrect.h * 7 / 10;
-//      SDL_RenderCopy(gRenderer, m_imgTiles, &dstrect2, &dstrect);
+//      SDL_RenderCopy(renderer_, m_imgTiles, &dstrect2, &dstrect);
 //      //UTIL_ScaleBlit(m_imgTiles, &dstrect2, gpScreen, &dstrect);
 //   }
 //}
@@ -98,65 +186,109 @@ SDL_Texture* gTexture;
 //   }
 //}
 
-void drawTilesRow(SDL_Texture* tils, int w, int h, int y)
+struct Main
 {
-    int w0, h0;
-    SDL_QueryTexture(tils, 0, 0, &w0, &h0);
+    SDL_Window *window_; // SDL_Surface *gSurface;
+    SDL_Renderer* renderer_;
 
-    SDL_Rect srcRect = {0,y,w,h};
-    while (srcRect.x + w < w0) {
-        SDL_RenderCopy(gRenderer, tils, &srcRect, &srcRect);
-        srcRect.x += w;
+    SDL_Texture* texture_;
+    std::array<std::array<SDL_Texture*,9>,4> textures;
+
+    ~Main();
+    Main(int argc, char* const argv[]);
+    int loop(int argc, char* const argv[]);
+
+    void draw(mahjong const&);
+
+    void drawTilesRow(SDL_Texture* tils, int w, int h, int y)
+    {
+        int w0, h0;
+        SDL_QueryTexture(tils, 0, 0, &w0, &h0);
+
+        SDL_Rect srcRect = {0,y,w,h};
+        while (srcRect.x + w < w0) {
+            SDL_RenderCopy(renderer_, tils, &srcRect, &srcRect);
+            srcRect.x += w;
+        }
     }
-}
 
-void drawTiles(SDL_Texture* tils)
-{
-    drawTilesRow(tils, TILE_WIDTH, TILE_HEIGHT_COMPUTER, 0);
-    //SDL_UpdateTexture(gTexture, NULL, gSurface->pixels, gSurface->pitch);
-    //SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
-}
+    void drawTiles(SDL_Texture* tils)
+    {
+        drawTilesRow(tils, TILE_WIDTH, TILE_HEIGHT_COMPUTER, 0);
+        //SDL_UpdateTexture(texture_, NULL, gSurface->pixels, gSurface->pitch);
+        //SDL_RenderCopy(renderer_, texture_, NULL, NULL);
+    }
 
-SDL_Texture *CreateTextureFromImageFile(const char *filename)
-{
-    SDL_Surface *pic = IMG_Load(filename);
-    ENSURE(pic, "IMG_Load: %s", SDL_GetError());
-    //std::unique_ptr<SDL_Surface,decltype(& SDL_FreeSurface)> xfree(pic, SDL_FreeSurface);
-    SDL_Texture *tex = SDL_CreateTextureFromSurface(gRenderer, pic);
-    SDL_FreeSurface(pic);
-    return tex;
-}
+    SDL_Texture *CreateTextureFromImageFile(const char *filename)
+    {
+        SDL_Surface *pic = IMG_Load(filename);
+        ENSURE(pic, "IMG_Load: %s", SDL_GetError());
+        //std::unique_ptr<SDL_Surface,decltype(& SDL_FreeSurface)> xfree(pic, SDL_FreeSurface);
+        SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, pic);
+        SDL_FreeSurface(pic);
+        return tex;
+    }
+};
 
-int main(int argc, char *argv[])
+Main::~Main()
 {
+    SDL_Quit();
+}
+Main::Main(int argc, char* const argv[])
+{
+    //ENSURE(argc>1, "argc");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
     }
-    atexit(SDL_Quit);
-
-    gWindow = SDL_CreateWindow("Mahjong"
+    window_ = SDL_CreateWindow("Mahjong"
             , SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 0, 0
             , SDL_WINDOW_FULLSCREEN_DESKTOP/*SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL*/);
-    ENSURE(gWindow, "SDL_CreateWindow: %s", SDL_GetError());
-    gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_PRESENTVSYNC);
-    ENSURE(gRenderer, "SDL_CreateRenderer: %s", SDL_GetError());
+    ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
+    renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
+    ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
+
+    char const* img_dir_ = "images/tiles";
+    char const* imgs[4][9] = {
+        {"character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png"},
+        {"ball_1.png","ball_2.png","ball_3.png","ball_4.png","ball_5.png","ball_6.png","ball_7.png","ball_8.png","ball_9.png" },
+        {"bamboo_1.png","bamboo_2.png","bamboo_3.png","bamboo_4.png","bamboo_5.png","bamboo_6.png","bamboo_7.png","bamboo_8.png","bamboo_9.png"},
+        {"wind_east.png","wind_south.png","wind_west.png","wind_north.png","dragon_red.png","dragon_green.png","dragon_white.png", nullptr}
+    };
+    //{"flower_bamboo.png","flower_chrysanthemum.png","flower_orchid.png","flower_plum.png","season_fall.png","season_spring.png","season_summer.png","season_winter.png"};
+    for (int x=0; x<4; ++x) {
+        for (int y=0; y<9; ++y) {
+            if (!imgs[x][y])
+                break;
+            char fn[512];
+            snprintf(fn,sizeof(fn), "%s/%s", img_dir_, imgs[x][y]);
+            textures[x][y] = CreateTextureFromImageFile(fn);
+        }
+    }
+
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-    SDL_RenderSetLogicalSize(gRenderer, 640, 480);
+    SDL_RenderSetLogicalSize(renderer_, 1024, 768);
 
-    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-    SDL_RenderClear(gRenderer);
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
+    SDL_RenderClear(renderer_);
 
-    gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
-    //gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 640, 480);
+    texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 1024, 768);
+    //texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 640, 480);
+}
 
-    ENSURE(argc>1, "argc");
+void Main::draw(mahjong const& mj)
+{
+    ;
+}
+
+int Main::loop(int argc, char* const argv[])
+{
     SDL_Texture* tils = CreateTextureFromImageFile(argv[1]);
     //gSurface = SDL_CreateRGBSurface(0, 640, 480, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     //SDL_FillRect(gSurface, &{64,48,64,48}, 0xff);
 
     while (1) {
         drawTiles(tils);
-        SDL_RenderPresent(gRenderer);
+        SDL_RenderPresent(renderer_);
         SDL_Delay(10); 
 
         SDL_Event event;
@@ -174,6 +306,13 @@ int main(int argc, char *argv[])
             }
         }
     }
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    Main app(argc, argv);
+    app.loop(argc, argv);
     return 0;
 }
 
