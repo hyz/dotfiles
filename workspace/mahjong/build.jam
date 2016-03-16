@@ -1,0 +1,23 @@
+#import boost ; 
+#boost.use-project 1.59 ; 
+
+import os ;
+path-constant HOME : [ os.environ HOME ] ;
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+
+local sdl_cflags = "-I/usr/include/SDL2 -D_REENTRANT" ;
+local sdl_libs = "-L/usr/lib/i386-linux-gnu -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf" ;
+
+use-project boost : $(BOOST_ROOT) ; 
+# /boost//headers
+
+project mahjong
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    #: default-build release
+    ;
+
+exe a : mahjong.cpp : <cflags>$(sdl_cflags) <linkflags>$(sdl_libs) : <link>static ;
+
+install bin : a
+    ;
+

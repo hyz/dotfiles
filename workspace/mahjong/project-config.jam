@@ -1,0 +1,9 @@
+
+using gcc : : : <cxxflags>-std=c++1y ;
+
+# ./bjam --build-type=complete --layout=tagged
+#  variant=debug|release            Select the build variant
+#  link=static|shared                    Whether to build static or shared libraries
+#  threading=single|multi            Whether to build single or multithreaded binaries
+#  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
+
