@@ -242,7 +242,7 @@ struct Main
 
     SDL_Texture* texture_;
     SDL_Texture* facing_[4];
-    std::array<std::array<SDL_Texture*,9>,4> textures_; // = {};
+    std::array<std::array<SDL_Texture*,9>,4> tile_textures_; // = {};
 
     Mahjong m_;
     SDL_Rect squa_ = {}, rect_ = {};
@@ -275,11 +275,17 @@ struct Main
         tiles_total_ = m_.wall_.size();
         int nor = tiles_total_/4/2;
         int w, h;
-        SDL_QueryTexture(textures_[0][0], 0, 0, &w, &h);
+        SDL_QueryTexture(tile_textures_[0][0], 0, 0, &w, &h);
         float ratio = float(squa_.w)/(w*nor+h*4);
         rect_.w = w*ratio;
         rect_.h = h*ratio;
     }
+    SDL_Texture* tiletex(int cx) const {
+        cx &= 0x3f;
+        int w = cx/9;
+        int v = cx%9;
+        return this->tile_textures_[w][v];
+    };
 };
 
 struct Main::UInput
@@ -304,7 +310,7 @@ struct Main::UInput
     void shuffle() {
         std::vector<int> tils; //(4*9*3 + 4*7);
         {
-            auto* it = &thiz->textures_[0][0];
+            auto* it = &thiz->tile_textures_[0][0];
             for (int x = 0; *it; ++x, ++it) {
                 for (int y=0; y<4; ++y)
                     tils.push_back( (y<<6) | x );
@@ -330,7 +336,7 @@ Main::~Main()
 {
     SDL_Quit();
 }
-Main::Main(int argc, char* const argv[]) : textures_({})
+Main::Main(int argc, char* const argv[]) : tile_textures_({})
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
@@ -341,6 +347,7 @@ Main::Main(int argc, char* const argv[]) : textures_({})
     ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
     ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
 
     char const* imgs[4][9] = {
         {"character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png"},
@@ -357,7 +364,7 @@ Main::Main(int argc, char* const argv[]) : textures_({})
                 break;
             char fn[512];
             snprintf(fn,sizeof(fn), "%s/%s", img_dir_, imgs[x][y]);
-            textures_[x][y] = create_texture(fn);
+            tile_textures_[x][y] = create_texture(fn);
         }
     }
 
@@ -377,8 +384,9 @@ Main::Main(int argc, char* const argv[]) : textures_({})
 
     //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
     texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h);
-    for (int i=0; i<4; ++i)
-        facing_[i] = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h/2);
+    SDL_SetTextureBlendMode(texture_, SDL_BLENDMODE_BLEND);
+    //for (int i=0; i<4; ++i)
+    //    facing_[i] = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h/2);
 }
 
 void Main::draw_discard()
@@ -394,52 +402,40 @@ void Main::draw_hand(SDL_Texture* texture, Hand const& hand)
     std::vector<int> tils;
     hand.copy( std::back_inserter(tils) );
 
-    //SDL_SetRenderTarget(renderer_, texture);
-    //std::unique_ptr<SDL_Renderer,decltype(renderTarget0)> usrt(renderer_, renderTarget0);
+    SDL_SetRenderTarget(renderer_, texture);
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0);
+    SDL_RenderClear(renderer_);
+
     draw_hand_tiles(texture, tils);
 
-    //SDL_SetRenderTarget(renderer_, 0);
-    //SDL_RenderCopy(renderer_, texture, 0, &dr);
+    SDL_SetRenderTarget(renderer_, 0);
+    SDL_RenderCopy(renderer_, texture, 0, &squa_);
+
+    //SDL_Rect dr = squa_;
+    //dr.x += dr.w;
+    SDL_RenderCopyEx(renderer_, texture, 0, &squa_,  90, 0, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, texture, 0, &squa_, -90, 0, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, texture, 0, &squa_, 180, 0, SDL_FLIP_NONE);
 }
 
 void Main::draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils)
 {
-    auto tiletex = [this](int cx) {
-        cx &= 0x3f;
-        int w = cx/9;
-        int v = cx%9;
-        return this->textures_[w][v];
-    };
-    SDL_Point pc = center_point(squa_);
+    SDL_Rect rect = {};
+    SDL_GetRendererOutputSize(renderer_, &rect.w, &rect.h);
+    SDL_Point pc = center_point(rect);
 
     SDL_Rect dr = rect_;
     int step = rect_.w+1;
-    dr.y = pc.y + last_y(squa_.h/2, step) - rect_.h;
-    dr.x = pc.x - nth_y(tils.size()/2, squa_.w/2, step);
+    dr.y = pc.y + last_y(rect.h/2, step) - rect_.w;
+    dr.x = pc.x - nth_y(tils.size()/2, rect.w/2, step) +1;
     for (int cx : tils) {
         SDL_RenderCopy(renderer_, tiletex(cx), 0, &dr);
         dr.x += step;
     }
-
-    //SDL_RenderCopyEx(renderer_, facing_[i], 0, &dr, 90, &cr, SDL_FLIP_NONE);
-    //            SDL_RenderCopy(renderer, texture, NULL, NULL);
-    //            SDL_RenderPresent(renderer);
-    //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-    //SDL_RenderClear(renderer);
-    //SDL_RenderDrawRect(renderer,&r);
-    //SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
-    //SDL_RenderFillRect(renderer, &r);
 }
 
 void Main::draw_wall()
 {
-    auto tiletex = [this](int cx) {
-        cx &= 0x3f;
-        int w = cx/9;
-        int v = cx%9;
-        return this->textures_[w][v];
-    };
-
     int fr0 = 0;
     int nor = tiles_total_/4/2;
     SDL_Point pc = center_point(squa_);
@@ -471,8 +467,6 @@ void Main::draw_background()
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
     SDL_RenderFillRect(renderer_, &squa_);
 
-    SDL_SetRenderDrawColor(renderer_, 16, 16, 16, 255);
-
     //std::array<int,2> px = center_row(squa_.w, rect_.w +1);
     //std::array<int,2> py = center_row(squa_.h, rect_.w +1);
     ////std::array<int,2> py = first_row<1>(squa_.h, rect_.w);
@@ -483,6 +477,8 @@ void Main::draw_background()
     //SDL_RenderDrawLine(renderer_, py[1], 0, py[1], squa_.w);
 
     SDL_Point pc = center_point(squa_);
+
+    SDL_SetRenderDrawColor(renderer_, 16, 16, 16, 255);
     SDL_RenderDrawLine(renderer_, pc.x, squa_.y, pc.x, squa_.y+squa_.h);
     SDL_RenderDrawLine(renderer_, squa_.x, pc.y, squa_.x+squa_.w, pc.y);
 
@@ -496,6 +492,7 @@ void Main::draw_background()
         SDL_RenderDrawLine(renderer_, pc.x+s, squa_.y, pc.x+s, squa_.y+squa_.h);
         s += rect_.w+1;
     }
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
 }
 
 void Main::draw()
@@ -508,7 +505,7 @@ void Main::draw()
     draw_wall();
 
     for (unsigned i=0; i<m_.size(); ++i) {
-        draw_hand(facing_[i], m_[i]);
+        draw_hand(texture_, m_[i]);
     }
 
     draw_discard();
@@ -521,14 +518,14 @@ void Main::draw_rotate_test()
     SDL_Rect dr = rect_;
     dr.x = pc.x + rect_.w;
     dr.y = pc.y + rect_.w;
-    SDL_RenderCopy(renderer_, textures_[0][0], 0, &dr);
+    SDL_RenderCopy(renderer_, tile_textures_[0][0], 0, &dr);
     dr.x = pc.x + rect_.w*3;
     dr.y = pc.y + rect_.w*3;
-    SDL_RenderCopyEx(renderer_, textures_[0][0], 0, &dr, 90, 0, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, tile_textures_[0][0], 0, &dr, 90, 0, SDL_FLIP_NONE);
     dr.x = pc.x + rect_.w*6;
     dr.y = pc.y + rect_.w*6;
     SDL_Point cr = {}; //{dr.w/2, dr.h/2};
-    SDL_RenderCopyEx(renderer_, textures_[0][0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, tile_textures_[0][0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
 }
 
 int Main::loop(int argc, char* const argv[])
