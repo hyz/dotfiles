@@ -11,10 +11,6 @@
 #include "plog/Log.h"
 #include "plog/Appenders/ColorConsoleAppender.h"
 
-// 万 筒 索 字
-// 东 南 西 北 中 发 白
-// 顺 刻 将
-
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
 {
@@ -102,7 +98,8 @@ struct Mahjong : std::array<Hand,4>
     void deal(int pos, int nc=13);
     void prepare(int pos) {
         //Hand& h = at(pos); //(*this)[pos%Nplayer];
-        //h.nc = h.sums();
+        //std::array<int8_t,4> sums = hand.sums();
+        //int nc = std::accumulate(sums.begin(), sums.end(), 0);
     }
 
     void fetch(int pos);
@@ -257,7 +254,7 @@ struct Main
     void draw_rotate_test();
     void draw_discard();
     void draw_background();
-    void draw_hand(SDL_Texture*, Hand const&);
+    void draw_hands();
     void draw_wall();
 
     void draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils);
@@ -349,6 +346,9 @@ Main::Main(int argc, char* const argv[]) : tile_textures_({})
     ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
 
+    // 万 筒 索 字
+    // 东 南 西 北 中 发 白
+    // 顺 刻 将
     char const* imgs[4][9] = {
         {"character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png"},
         {"ball_1.png","ball_2.png","ball_3.png","ball_4.png","ball_5.png","ball_6.png","ball_7.png","ball_8.png","ball_9.png" },
@@ -395,27 +395,23 @@ void Main::draw_discard()
 
 auto renderTarget0 = [](SDL_Renderer* r){ SDL_SetRenderTarget(r,NULL); };
 
-void Main::draw_hand(SDL_Texture* texture, Hand const& hand)
+void Main::draw_hands()
 {
-    //std::array<int8_t,4> sums = hand.sums();
-    //int nc = std::accumulate(sums.begin(), sums.end(), 0);
-    std::vector<int> tils;
-    hand.copy( std::back_inserter(tils) );
-
-    SDL_SetRenderTarget(renderer_, texture);
+    SDL_SetRenderTarget(renderer_, texture_);
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0);
-    SDL_RenderClear(renderer_);
+    for (unsigned i=0; i<m_.size(); ++i) {
+        std::vector<int> tils;
+        m_[i].copy( std::back_inserter(tils) );
 
-    draw_hand_tiles(texture, tils);
+        SDL_RenderClear(renderer_);
+        draw_hand_tiles(texture_, tils);
 
+        SDL_SetRenderTarget(renderer_, 0);
+        //SDL_RenderCopy(renderer_, texture_, 0, &squa_);
+        SDL_RenderCopyEx(renderer_, texture_, 0, &squa_,   90*i, 0, SDL_FLIP_NONE);
+        SDL_SetRenderTarget(renderer_, texture_);
+    }
     SDL_SetRenderTarget(renderer_, 0);
-    SDL_RenderCopy(renderer_, texture, 0, &squa_);
-
-    //SDL_Rect dr = squa_;
-    //dr.x += dr.w;
-    SDL_RenderCopyEx(renderer_, texture, 0, &squa_,  90, 0, SDL_FLIP_NONE);
-    SDL_RenderCopyEx(renderer_, texture, 0, &squa_, -90, 0, SDL_FLIP_NONE);
-    SDL_RenderCopyEx(renderer_, texture, 0, &squa_, 180, 0, SDL_FLIP_NONE);
 }
 
 void Main::draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils)
@@ -504,9 +500,7 @@ void Main::draw()
 
     draw_wall();
 
-    for (unsigned i=0; i<m_.size(); ++i) {
-        draw_hand(texture_, m_[i]);
-    }
+    draw_hands();
 
     draw_discard();
     //draw_rotate_test();
