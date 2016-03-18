@@ -29,6 +29,8 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
 }
 #define ENSURE(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
 
+inline SDL_Point center(const SDL_Rect& a) { return SDL_Point{a.x+a.w/2, a.y+a.h/2}; }
+
 // 万 筒 索 字
 // 东 南 西 北 中 发 白
 // 顺 刻 将
@@ -201,7 +203,7 @@ struct Main
     std::array<std::array<SDL_Texture*,9>,4> textures_; // = {};
 
     Mahjong m_;
-    SDL_Rect rect0_ = {}, rect_ = {};
+    SDL_Rect squa_ = {}, rect_ = {};
     struct Test;
 
     ~Main();
@@ -227,7 +229,7 @@ struct Main
         int nor = m_.wall_.size()/4/2;
         int w, h;
         SDL_QueryTexture(textures_[0][0], 0, 0, &w, &h);
-        float ratio = float(rect0_.w)/(w*nor+h*4);
+        float ratio = float(squa_.w)/(w*nor+h*4);
         rect_.w = w*ratio;
         rect_.h = h*ratio;
     }
@@ -316,15 +318,15 @@ Main::Main(int argc, char* const argv[]) : textures_({})
     SDL_SetRenderDrawColor(renderer_, 5, 5, 5, 255);
     SDL_RenderClear(renderer_);
     {
-        //SDL_RendererGetViewport(renderer_, &rect0_);
-        SDL_GetRendererOutputSize(renderer_, &rect0_.w, &rect0_.h); // SDL_GetWindowSize(window_, &w0, &h0);
-        int sz0 = std::min(rect0_.w,rect0_.h);
-        rect0_.x = (rect0_.w - sz0)/2;
-        rect0_.y = (rect0_.h - sz0)/2;
-        rect0_.w = rect0_.h = sz0;
+        //SDL_RendererGetViewport(renderer_, &squa_);
+        SDL_GetRendererOutputSize(renderer_, &squa_.w, &squa_.h); // SDL_GetWindowSize(window_, &w0, &h0);
+        int sz0 = std::min(squa_.w,squa_.h);
+        squa_.x = (squa_.w - sz0)/2;
+        squa_.y = (squa_.h - sz0)/2;
+        squa_.w = squa_.h = sz0;
 
         SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-        SDL_RenderFillRect(renderer_, &rect0_);
+        SDL_RenderFillRect(renderer_, &squa_);
     }
 
     texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 1024, 768);
@@ -336,8 +338,8 @@ void Main::draw_wall()
     int nor = m_.wall_.size()/4/2;
     SDL_Rect dr = rect_;
     for (int j=0; j<2; ++j) {
-        dr.x = rect0_.x + rect_.h*2;
-        dr.y = rect0_.y + rect0_.h - (rect_.h+1) * (j+1);
+        dr.x = squa_.x + rect_.h*2;
+        dr.y = squa_.y + squa_.h - (rect_.h+1) * (j+1);
         for (int i=0; i < nor; ++i) {
             int c = m_.wall_[nor*j+i] & 0x3f;
             int y = c/9;
@@ -354,31 +356,31 @@ void Main::draw_wall()
 
 void Main::draw_rotate_test()
 {
+    SDL_Point c = center(squa_);
     SDL_Rect dr = rect_;
-    dr.x = rect0_.x + rect_.w;
-    dr.y = rect0_.y + rect_.w;
+    dr.x = c.x + rect_.w;
+    dr.y = c.y + rect_.w;
     SDL_RenderCopy(renderer_, textures_[0][0], 0, &dr);
-    dr.x = rect0_.x + rect_.w*3;
-    dr.y = rect0_.y + rect_.w*3;
+    dr.x = c.x + rect_.w*3;
+    dr.y = c.y + rect_.w*3;
     SDL_RenderCopyEx(renderer_, textures_[0][0], 0, &dr, 90, 0, SDL_FLIP_NONE);
-    dr.x = rect0_.x + rect_.w*6;
-    dr.y = rect0_.y + rect_.w*6;
-    SDL_Point c = {}; //{dr.w/2, dr.h/2};
-    SDL_RenderCopyEx(renderer_, textures_[0][0], 0, &dr, 90, &c, SDL_FLIP_NONE);
+    dr.x = c.x + rect_.w*6;
+    dr.y = c.y + rect_.w*6;
+    SDL_Point cr = {}; //{dr.w/2, dr.h/2};
+    SDL_RenderCopyEx(renderer_, textures_[0][0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
 }
 
 void Main::draw_lines()
 {
     SDL_SetRenderDrawColor(renderer_, 10, 10, 10, 255);
-    int y = rect0_.y;
-    while (y <= rect0_.y+rect0_.h) {
-        SDL_RenderDrawLine(renderer_, rect0_.x, y, rect0_.x+rect0_.w, y);
-        y += rect_.w;
-    }
-    int x = rect0_.x;
-    while (x <= rect0_.x+rect0_.w) {
-        SDL_RenderDrawLine(renderer_, x, rect0_.y, x, rect0_.y+rect0_.h);
-        x += rect_.w;
+    SDL_Point c = center(squa_);
+    int s = rect_.w;
+    while (c.y - s > squa_.y) {
+        SDL_RenderDrawLine(renderer_, squa_.x, c.y-s, squa_.x+squa_.w, c.y-s);
+        SDL_RenderDrawLine(renderer_, squa_.x, c.y+s, squa_.x+squa_.w, c.y+s);
+        SDL_RenderDrawLine(renderer_, c.x-s, squa_.y, c.x-s, squa_.y+squa_.h);
+        SDL_RenderDrawLine(renderer_, c.x+s, squa_.y, c.x+s, squa_.y+squa_.h);
+        s += rect_.w;
     }
 }
 
