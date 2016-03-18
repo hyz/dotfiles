@@ -8,6 +8,9 @@
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
+#include "plog/Log.h"
+#include "plog/Appenders/ColorConsoleAppender.h"
+
 // 万 筒 索 字
 // 东 南 西 北 中 发 白
 // 顺 刻 将
@@ -77,15 +80,12 @@ struct Mahjong::Init : std::array<std::vector<int>,4>
         ENSURE(x<4, "wall");
         (*this)[x] = std::move(v);
         if (++n_ == 4) {
-            done();
+            for (int x=0; x<4; ++x) {
+                auto& v = (*this)[x];
+                thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
+            }
         }
-        return n_;
-    }
-    void done() {
-        for (int x=0; x<4; ++x) {
-            auto& v = (*this)[x];
-            thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
-        }
+        return (4-n_);
     }
 };
 
@@ -198,7 +198,7 @@ struct Main
     SDL_Renderer* renderer_;
 
     SDL_Texture* texture_;
-    std::array<std::array<SDL_Texture*,9>,4> textures_;
+    std::array<std::array<SDL_Texture*,9>,4> textures_; // = {};
 
     Mahjong m_;
     SDL_Rect rect0_ = {}, rect_ = {};
@@ -207,9 +207,10 @@ struct Main
     ~Main();
     Main(int argc, char* const argv[]);
     int loop(int argc, char* const argv[]);
+    int input(Test*);
 
     void draw();
-    void draw_test();
+    void draw_rotate_test();
     void draw_lines();
     void draw_wall();
 
@@ -239,24 +240,37 @@ struct Main::Test
 
     void shuffle() {
         std::vector<int> tils; //(4*9*3 + 4*7);
-        for (int y=0; y<3; ++y) {
-            for (int x=0; x<9; ++x) {
-                for (int i=0; i<4; ++i) {
-                    tils.push_back( (y<<4) | x );
-                }
+        {
+            auto* it = &thiz->textures_[0][0];
+            for (int x = 0; *it++; ++x) {
+                for (int y=0; y<4; ++y)
+                    tils.push_back( (y<<6) | x );
             }
         }
-        for (int x=0; x<7; ++x) {
-            for (int i=0; i<4; ++i) {
-                tils.push_back( (3<<4) | x );
-            }
-        }
+        //for (int y=0; y<3; ++y) {
+        //    for (int x=0; x<9; ++x) {
+        //        for (int i=0; i<4; ++i) {
+        //            tils.push_back( (y<<4) | x );
+        //        }
+        //    }
+        //}
+        //for (int x=0; x<7; ++x) {
+        //    for (int i=0; i<4; ++i) {
+        //        tils.push_back( (3<<4) | x );
+        //    }
+        //}
+
         std::random_shuffle(tils.begin(), tils.end());
+        std::vector<int> ridx = {0,1,2,3};
+        std::random_shuffle(ridx.begin(), ridx.end());
+        //LOG_DEBUG << tils.size() <<' '<< tils.size()/4;
 
         Mahjong::Init init(&thiz->m_);
-        for (int i=0; i<4; ++i) {
-            if (init.wall(std::rand()%4 ,std::vector<int>(tils.begin(), tils.begin() + (tils.size()/4)*i)) == 4)
+        for (int n=tils.size()/4, i=0; i<4; ++i) {
+            auto it = tils.begin() + n*i;
+            if (init.wall(ridx.back(), std::vector<int>(it, it+n)) == 0)
                 thiz->init1();
+            ridx.pop_back();
         }
     }
 };
@@ -265,7 +279,7 @@ Main::~Main()
 {
     SDL_Quit();
 }
-Main::Main(int argc, char* const argv[])
+Main::Main(int argc, char* const argv[]) : textures_({})
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
@@ -277,7 +291,6 @@ Main::Main(int argc, char* const argv[])
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
     ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
 
-    char const* img_dir_ = "images/tiles";
     char const* imgs[4][9] = {
         {"character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png"},
         {"ball_1.png","ball_2.png","ball_3.png","ball_4.png","ball_5.png","ball_6.png","ball_7.png","ball_8.png","ball_9.png" },
@@ -285,6 +298,8 @@ Main::Main(int argc, char* const argv[])
         {"wind_east.png","wind_south.png","wind_west.png","wind_north.png","dragon_red.png","dragon_green.png","dragon_white.png", nullptr}
     };
     //{"flower_bamboo.png","flower_chrysanthemum.png","flower_orchid.png","flower_plum.png","season_fall.png","season_spring.png","season_summer.png","season_winter.png"};
+    char const* img_dir_ = "images/tiles";
+
     for (int x=0; x<4; ++x) {
         for (int y=0; y<9; ++y) {
             if (!imgs[x][y])
@@ -324,9 +339,11 @@ void Main::draw_wall()
         dr.x = rect0_.x + rect_.h*2;
         dr.y = rect0_.y + rect0_.h - (rect_.h+1) * (j+1);
         for (int i=0; i < nor; ++i) {
-            int code = m_.wall_[nor*j+i];
-            int y = (code >> 4) & 0x0f;
-            int x = (code) & 0x0f;
+            int c = m_.wall_[nor*j+i] & 0x3f;
+            int y = c/9;
+            int x = c%9;
+            //int y = (c >> 4) & 0x0f;
+            //int x = (c) & 0x0f;
             SDL_RenderCopy(renderer_, textures_[y][x], 0, &dr);
             dr.x += dr.w+1;
         }
@@ -335,11 +352,7 @@ void Main::draw_wall()
 //gSurface = SDL_CreateRGBSurface(0, 640, 480, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 //SDL_FillRect(gSurface, &{64,48,64,48}, 0xff);
 
-void Main::draw()
-{
-}
-
-void Main::draw_test()
+void Main::draw_rotate_test()
 {
     SDL_Rect dr = rect_;
     dr.x = rect0_.x + rect_.w;
@@ -369,44 +382,60 @@ void Main::draw_lines()
     }
 }
 
+void Main::draw()
+{
+    if (rect_.w < 1)
+        return;
+
+    draw_lines();
+    draw_wall();
+    draw_rotate_test();
+}
+
+int Main::input(Test* test)
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_KEYUP:
+                switch (int sym = event.key.keysym.sym) {
+                    (void)sym;
+                    case SDLK_ESCAPE: // If escape is pressed, return (and thus, quit)
+                        return 0;
+                    case SDLK_1: // If escape is pressed, return (and thus, quit)
+                        if (rect_.w == 0)
+                            test->shuffle();
+                        break;
+                    default: ;//;drawrect(gSurface, {64,48,64,48}, 0x88ff|((sym*3)<<16)&0xffffff);
+                }
+                break;
+            case SDL_QUIT:
+                return(0);
+        }
+    }
+    return 1;
+}
+
 int Main::loop(int argc, char* const argv[])
 {
     Test test(this); //ENSURE(argc>1, "argc"); SDL_Texture* tils = create_texture(argv[1]);
 
     while (1) {
-        if (rect_.w > 0) {
-            draw_lines();
-            draw_wall();
-            draw_test();
-            draw();
-        }
+        draw();
         SDL_RenderPresent(renderer_);
-        SDL_Delay(10); 
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_KEYUP:
-                    switch (int sym = event.key.keysym.sym) {
-                        (void)sym;
-                        case SDLK_ESCAPE: // If escape is pressed, return (and thus, quit)
-                            return 0;
-                        case SDLK_1: // If escape is pressed, return (and thus, quit)
-                            test.shuffle();
-                            break;
-                        default: ;//;drawrect(gSurface, {64,48,64,48}, 0x88ff|((sym*3)<<16)&0xffffff);
-                    }
-                    break;
-                case SDL_QUIT:
-                    return(0);
-            }
-        }
+        if ((argc = input(&test)) < 1)
+            return argc;
+
+        SDL_Delay(10); 
     }
     return 0;
 }
 
 int main(int argc, char *argv[])
 {
+    static plog::ColorConsoleAppender<plog::TxtFormatter> loga;
+    plog::init(plog::verbose, &loga);
     Main app(argc, argv);
     app.loop(argc, argv);
     return 0;

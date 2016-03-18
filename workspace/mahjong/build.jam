@@ -12,7 +12,9 @@ use-project boost : $(BOOST_ROOT) ;
 # /boost//headers
 
 project mahjong
-    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : requirements
+        <include>$(BOOST_ROOT) <include>../plog/include
+        # <define>PLUGIN_EXPORTS=1
     #: default-build release
     ;
 
