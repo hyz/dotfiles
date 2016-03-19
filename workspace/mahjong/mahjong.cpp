@@ -334,18 +334,29 @@ Main::~Main()
 {
     SDL_Quit();
 }
+
 Main::Main(int argc, char* const argv[]) : tile_textures_({})
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
     }
-    window_ = SDL_CreateWindow("Mahjong"
-            , SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 0, 0
-            , SDL_WINDOW_FULLSCREEN_DESKTOP/*SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL*/);
+    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
+    SDL_GetCurrentDisplayMode(0, &dm);
+    {
+        //SDL_GetRendererOutputSize(renderer_, &squa_.w, &squa_.h); // SDL_GetWindowSize(window_, &w0, &h0); //SDL_RendererGetViewport(renderer_, &squa_);
+        int sz0 = std::min(dm.w,dm.h);
+        squa_.x = 0;//(squa_.w - sz0)/2;
+        squa_.y = 0;//(squa_.h - sz0)/2;
+        squa_.w = squa_.h = sz0;
+    }
+    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, dm.w,dm.h, 0);//SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+
     ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
     ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
+    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+    //SDL_RenderSetLogicalSize(renderer_, 1024, 768);
 
     // 万 筒 索 字
     // 东 南 西 北 中 发 白
@@ -367,20 +378,6 @@ Main::Main(int argc, char* const argv[]) : tile_textures_({})
             snprintf(fn,sizeof(fn), "%s/%s", img_dir_, imgs[x][y]);
             tile_textures_[x][y] = create_texture(fn);
         }
-    }
-
-    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-    //SDL_RenderSetLogicalSize(renderer_, 1024, 768);
-
-    {
-        SDL_GetRendererOutputSize(renderer_, &squa_.w, &squa_.h); // SDL_GetWindowSize(window_, &w0, &h0); //SDL_RendererGetViewport(renderer_, &squa_);
-        int sz0 = std::min(squa_.w,squa_.h);
-        squa_.x = (squa_.w - sz0)/2;
-        squa_.y = (squa_.h - sz0)/2;
-        squa_.w = squa_.h = sz0;
-            //SDL_DisplayMode DM;
-            //SDL_GetCurrentDisplayMode(0, &DM);
-            //DM.w; DM.h;
     }
 
     //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
