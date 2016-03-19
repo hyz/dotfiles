@@ -87,7 +87,8 @@ struct Hand : std::array<std::array<int8_t,9>,4>
 
 struct Mahjong : std::array<Hand,4>
 {
-    enum { Nplayer = 4 }; //enum { East = 0, South, West, North };
+    enum { Nplayer = 4, Ntiles=(9*3+7)*4 }; //enum { East = 0, South, West, North };
+    //int8_t wall_[Ntiles]; short end_, beg_;
     std::deque<int> wall_;
     std::vector<int> discard_;
     int8_t first_hand_pos_ = -1;
@@ -242,7 +243,7 @@ struct Main
     std::array<std::array<SDL_Texture*,9>,4> tile_textures_; // = {};
 
     Mahjong m_;
-    SDL_Rect squa_ = {}, rect_ = {};
+    SDL_Rect squa_ = {}, rect_ = {}, rect_hv_;
     short tiles_total_ = 0;
     struct UInput;
 
@@ -273,7 +274,7 @@ struct Main
         int nor = tiles_total_/4/2;
         int w, h;
         SDL_QueryTexture(tile_textures_[0][0], 0, 0, &w, &h);
-        float ratio = float(squa_.w)/(w*nor+h*4);
+        float ratio = float(squa_.w)/((w+1)*nor+(h+1)*6+w*2);
         rect_.w = w*ratio;
         rect_.h = h*ratio;
     }
@@ -424,6 +425,10 @@ void Main::draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils)
     int step = rect_.w+1;
     dr.y = pc.y + last_y(rect.h/2, step) - rect_.w;
     dr.x = pc.x - nth_y(tils.size()/2, rect.w/2, step) +1;
+    rect_hv_.x = dr.x;
+    rect_hv_.y = dr.y;
+    rect_hv_.w = (rect_.w+1) * tils.size();
+    rect_hv_.h = rect_.h;
     for (int cx : tils) {
         SDL_RenderCopy(renderer_, tiletex(cx), 0, &dr);
         dr.x += step;
