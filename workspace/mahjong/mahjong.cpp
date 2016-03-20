@@ -8,8 +8,8 @@
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
-#include "plog/Log.h"
-#include "plog/Appenders/ColorConsoleAppender.h"
+//#include "plog/Log.h"
+//#include "plog/Appenders/ColorConsoleAppender.h"
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
@@ -23,12 +23,6 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
     fprintf(stderr, fmt, lin_, a...); //fflush(stderr);
 }
 #define ENSURE(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
-
-struct Grid {
-    int w_, h_;
-    SDL_Point center_point();
-    SDL_Rect center_rect(int w);
-};
 
 inline SDL_Point center_point(const SDL_Rect& a) { return SDL_Point{a.x+a.w/2, a.y+a.h/2}; }
 
@@ -240,11 +234,12 @@ struct Main
 
     SDL_Texture* texture_;
     SDL_Texture* facing_[4];
-    std::array<std::array<SDL_Texture*,9>,4> tile_textures_; // = {};
+    std::vector<SDL_Texture*> tile_textures_; //std::array<std::array<SDL_Texture*,9>,4> tile_textures_; // = {};
 
     Mahjong m_;
     SDL_Rect squa_ = {}, rect_ = {}, rect_hv_;
     short tiles_total_ = 0;
+    struct Grid;
     struct UInput;
 
     ~Main();
@@ -273,18 +268,24 @@ struct Main
         tiles_total_ = m_.wall_.size();
         int nor = tiles_total_/4/2;
         int w, h;
-        SDL_QueryTexture(tile_textures_[0][0], 0, 0, &w, &h);
+        SDL_QueryTexture(tile_textures_[0], 0, 0, &w, &h);
         float ratio = float(squa_.w)/((w+1)*nor+(h+1)*6+w*2);
         rect_.w = w*ratio;
         rect_.h = h*ratio;
     }
     SDL_Texture* tiletex(int cx) const {
-        cx &= 0x3f;
-        int w = cx/9;
-        int v = cx%9;
-        return this->tile_textures_[w][v];
+        return tile_textures_[cx & 0x3f];
+        //cx &= 0x3f;
+        //int w = cx/9; //int v = cx%9;
+        //return this->tile_textures_[w][v];
     };
 };
+
+struct Main::Grid
+{
+    int w_,h_;
+};
+
 
 struct Main::UInput
 {
@@ -307,12 +308,9 @@ struct Main::UInput
 
     void shuffle() {
         std::vector<int> tils; //(4*9*3 + 4*7);
-        {
-            auto* it = &thiz->tile_textures_[0][0];
-            for (int x = 0; *it; ++x, ++it) {
-                for (int y=0; y<4; ++y)
-                    tils.push_back( (y<<6) | x );
-            }
+        for (int x=0, n=thiz->tile_textures_.size(); x<n; ++x) {
+            for (int y=0; y<4; ++y)
+                tils.push_back( (y<<6) | x );
         }
 
         //=std::random_shuffle(tils.begin(), tils.end());
@@ -335,21 +333,36 @@ Main::~Main()
     SDL_Quit();
 }
 
-Main::Main(int argc, char* const argv[]) : tile_textures_({})
+Main::Main(int argc, char* const argv[]) //: tile_textures_({})
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
         ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
     }
-    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
-    SDL_GetCurrentDisplayMode(0, &dm);
-    {
-        //SDL_GetRendererOutputSize(renderer_, &squa_.w, &squa_.h); // SDL_GetWindowSize(window_, &w0, &h0); //SDL_RendererGetViewport(renderer_, &squa_);
-        int sz0 = std::min(dm.w,dm.h);
-        squa_.x = 0;//(squa_.w - sz0)/2;
-        squa_.y = 0;//(squa_.h - sz0)/2;
-        squa_.w = squa_.h = sz0;
+
+    // 万 筒 索 字
+    // 东 南 西 北 中 发 白
+    // 顺 刻 将
+    char const* img_tiles[] = {
+        "character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png",
+        "ball_1.png","ball_2.png","ball_3.png","ball_4.png","ball_5.png","ball_6.png","ball_7.png","ball_8.png","ball_9.png" ,
+        "bamboo_1.png","bamboo_2.png","bamboo_3.png","bamboo_4.png","bamboo_5.png","bamboo_6.png","bamboo_7.png","bamboo_8.png","bamboo_9.png",
+        "wind_east.png","wind_south.png","wind_west.png","wind_north.png","dragon_red.png","dragon_green.png","dragon_white.png"
+    };
+    //{"flower_bamboo.png","flower_chrysanthemum.png","flower_orchid.png","flower_plum.png","season_fall.png","season_spring.png","season_summer.png","season_winter.png"};
+    char const* img_dir = "images/tiles";
+
+    std::vector<SDL_Surface*> surfaces;
+    for (char const* name : img_tiles) {
+        char fn[512];
+        snprintf(fn,sizeof(fn), "%s/%s", img_dir, name);
+        surfaces.push_back( IMG_Load(fn) );
     }
-    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, dm.w,dm.h, 0);//SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+
+    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
+    SDL_GetCurrentDisplayMode(0, &dm); //SDL_GetRendererOutputSize(renderer_, &w, &h);SDL_GetWindowSize(window_, &w, &h);SDL_RendererGetViewport(renderer_, &rect);
+    squa_.w = squa_.h = std::min(dm.w,dm.h);
+    squa_.x = squa_.y = 0;
+    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, squa_.w,squa_.h, 0);//SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
 
     ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -358,33 +371,17 @@ Main::Main(int argc, char* const argv[]) : tile_textures_({})
     //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
     //SDL_RenderSetLogicalSize(renderer_, 1024, 768);
 
-    // 万 筒 索 字
-    // 东 南 西 北 中 发 白
-    // 顺 刻 将
-    char const* imgs[4][9] = {
-        {"character_1.png","character_2.png","character_3.png","character_4.png","character_5.png","character_6.png","character_7.png","character_8.png","character_9.png"},
-        {"ball_1.png","ball_2.png","ball_3.png","ball_4.png","ball_5.png","ball_6.png","ball_7.png","ball_8.png","ball_9.png" },
-        {"bamboo_1.png","bamboo_2.png","bamboo_3.png","bamboo_4.png","bamboo_5.png","bamboo_6.png","bamboo_7.png","bamboo_8.png","bamboo_9.png"},
-        {"wind_east.png","wind_south.png","wind_west.png","wind_north.png","dragon_red.png","dragon_green.png","dragon_white.png", nullptr}
-    };
-    //{"flower_bamboo.png","flower_chrysanthemum.png","flower_orchid.png","flower_plum.png","season_fall.png","season_spring.png","season_summer.png","season_winter.png"};
-    char const* img_dir_ = "images/tiles";
-
-    for (int x=0; x<4; ++x) {
-        for (int y=0; y<9; ++y) {
-            if (!imgs[x][y])
-                break;
-            char fn[512];
-            snprintf(fn,sizeof(fn), "%s/%s", img_dir_, imgs[x][y]);
-            tile_textures_[x][y] = create_texture(fn);
-        }
-    }
-
     //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
     texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h);
     SDL_SetTextureBlendMode(texture_, SDL_BLENDMODE_BLEND);
     //for (int i=0; i<4; ++i)
     //    facing_[i] = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h/2);
+
+    tile_textures_.reserve(surfaces.size());
+    for (auto ptr : surfaces) {
+        tile_textures_.push_back( SDL_CreateTextureFromSurface(renderer_, ptr) );
+        SDL_FreeSurface(ptr);
+    }
 }
 
 void Main::draw_discard()
@@ -514,14 +511,14 @@ void Main::draw_rotate_test()
     SDL_Rect dr = rect_;
     dr.x = pc.x + rect_.w;
     dr.y = pc.y + rect_.w;
-    SDL_RenderCopy(renderer_, tile_textures_[0][0], 0, &dr);
+    SDL_RenderCopy(renderer_, tile_textures_[0], 0, &dr);
     dr.x = pc.x + rect_.w*3;
     dr.y = pc.y + rect_.w*3;
-    SDL_RenderCopyEx(renderer_, tile_textures_[0][0], 0, &dr, 90, 0, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, tile_textures_[0], 0, &dr, 90, 0, SDL_FLIP_NONE);
     dr.x = pc.x + rect_.w*6;
     dr.y = pc.y + rect_.w*6;
     SDL_Point cr = {}; //{dr.w/2, dr.h/2};
-    SDL_RenderCopyEx(renderer_, tile_textures_[0][0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer_, tile_textures_[0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
 }
 
 int Main::loop(int argc, char* const argv[])
@@ -554,8 +551,8 @@ int Main::loop(int argc, char* const argv[])
 
 int main(int argc, char *argv[])
 {
-    static plog::ColorConsoleAppender<plog::TxtFormatter> loga;
-    plog::init(plog::verbose, &loga);
+    //static plog::ColorConsoleAppender<plog::TxtFormatter> loga;
+    //plog::init(plog::verbose, &loga);
     Main app(argc, argv);
     app.loop(argc, argv);
     return 0;
