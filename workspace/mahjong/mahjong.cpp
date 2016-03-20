@@ -43,6 +43,80 @@ inline std::array<int,2> first_row(int height, int rh) {
     x -= n*(rh);
     return { x - rh, x };
 }
+void PrintEvent(const SDL_Event * event)
+{
+    switch (event->window.event) {
+        case SDL_WINDOWEVENT_SHOWN:
+            SDL_Log("Window %d shown", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_HIDDEN:
+            SDL_Log("Window %d hidden", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_EXPOSED:
+            SDL_Log("Window %d exposed", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_MOVED:
+            SDL_Log("Window %d moved to %d,%d",
+                    event->window.windowID, event->window.data1,
+                    event->window.data2);
+            break;
+        case SDL_WINDOWEVENT_RESIZED:
+            SDL_Log("Window %d resized to %dx%d",
+                    event->window.windowID, event->window.data1,
+                    event->window.data2);
+            break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            SDL_Log("Window %d size changed to %dx%d",
+                    event->window.windowID, event->window.data1,
+                    event->window.data2);
+            break;
+        case SDL_WINDOWEVENT_MINIMIZED:
+            SDL_Log("Window %d minimized", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+            SDL_Log("Window %d maximized", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_RESTORED:
+            SDL_Log("Window %d restored", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_ENTER:
+            SDL_Log("Mouse entered window %d",
+                    event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_LEAVE:
+            SDL_Log("Mouse left window %d", event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            SDL_Log("Window %d gained keyboard focus",
+                    event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            SDL_Log("Window %d lost keyboard focus",
+                    event->window.windowID);
+            break;
+        case SDL_WINDOWEVENT_CLOSE:
+            SDL_Log("Window %d closed", event->window.windowID);
+            break;
+        default:
+            SDL_Log("Window %d got unknown event %d",
+                    event->window.windowID, event->window.event);
+            break;
+    }
+}
+void PrintSize(SDL_Window* win, SDL_Renderer* ren, SDL_Texture* tex)
+{
+    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
+    SDL_GetCurrentDisplayMode(0, &dm);
+    SDL_Log("\tDisplay %dx%d", dm.w, dm.h);
+    int w,h;
+    SDL_GetWindowSize(win, &w, &h);
+    SDL_Log("\tWindow %dx%d", w, h);
+    SDL_GetRendererOutputSize(ren, &w, &h);
+    SDL_Log("\tRenderer %dx%d", w, h);
+    //SDL_Rect rvp; SDL_RendererGetViewport(ren, &rvp); SDL_Log("\tViewport %dx%d+%d+%d", rvp.w, rvp.h, rvp.x, rvp.y);
+    SDL_QueryTexture(tex, 0, 0, &w, &h);
+    SDL_Log("\tTexture %dx%d", w,h);
+}
 
 // 万 筒 索 字
 // 东 南 西 北 中 发 白
@@ -362,7 +436,7 @@ Main::Main(int argc, char* const argv[]) //: tile_textures_({})
     SDL_GetCurrentDisplayMode(0, &dm); //SDL_GetRendererOutputSize(renderer_, &w, &h);SDL_GetWindowSize(window_, &w, &h);SDL_RendererGetViewport(renderer_, &rect);
     squa_.w = squa_.h = std::min(dm.w,dm.h);
     squa_.x = squa_.y = 0;
-    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, squa_.w,squa_.h, 0);//SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, squa_.w,squa_.h, SDL_WINDOW_RESIZABLE); //SDL_WINDOW_RESIZABLE SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
 
     ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -382,6 +456,8 @@ Main::Main(int argc, char* const argv[]) //: tile_textures_({})
         tile_textures_.push_back( SDL_CreateTextureFromSurface(renderer_, ptr) );
         SDL_FreeSurface(ptr);
     }
+
+    PrintSize(window_, renderer_, texture_);
 }
 
 void Main::draw_discard()
@@ -540,6 +616,10 @@ int Main::loop(int argc, char* const argv[])
                             return 0;
                         default: input.pressed(sym);//;drawrect(gSurface, {64,48,64,48}, 0x88ff|((sym*3)<<16)&0xffffff);
                     }
+                    break;
+                case SDL_WINDOWEVENT:
+                    PrintEvent(&event);
+                    PrintSize(window_, renderer_, texture_);
                     break;
             }
         }
