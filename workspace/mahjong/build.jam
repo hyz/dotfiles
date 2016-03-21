@@ -19,8 +19,8 @@ project mahjong
     ;
 
 exe a : mahjong.cpp : <cflags>$(sdl_cflags) <linkflags>$(sdl_libs) : <link>static ;
-exe b : mahjong2.cpp : <cflags>$(sdl_cflags) <linkflags>$(sdl_libs) : <link>static ;
+exe b : sample/resize-blend.cc : <cflags>$(sdl_cflags) <linkflags>$(sdl_libs) : <link>static ;
 
-install bin : a b
+install bin : a 
     ;
 

@@ -22,7 +22,7 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
 {
     fprintf(stderr, fmt, lin_, a...); //fflush(stderr);
 }
-#define ENSURE(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
+#define ensure(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
 
 inline SDL_Point center_point(const SDL_Rect& a) { return SDL_Point{a.x+a.w/2, a.y+a.h/2}; }
 
@@ -43,80 +43,6 @@ inline std::array<int,2> first_row(int height, int rh) {
     x -= n*(rh);
     return { x - rh, x };
 }
-void PrintEvent(const SDL_Event * event)
-{
-    switch (event->window.event) {
-        case SDL_WINDOWEVENT_SHOWN:
-            SDL_Log("Window %d shown", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_HIDDEN:
-            SDL_Log("Window %d hidden", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_EXPOSED:
-            SDL_Log("Window %d exposed", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MOVED:
-            SDL_Log("Window %d moved to %d,%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_RESIZED:
-            SDL_Log("Window %d resized to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-            SDL_Log("Window %d size changed to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_MINIMIZED:
-            SDL_Log("Window %d minimized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MAXIMIZED:
-            SDL_Log("Window %d maximized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_RESTORED:
-            SDL_Log("Window %d restored", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_ENTER:
-            SDL_Log("Mouse entered window %d",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_LEAVE:
-            SDL_Log("Mouse left window %d", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_GAINED:
-            SDL_Log("Window %d gained keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_LOST:
-            SDL_Log("Window %d lost keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_CLOSE:
-            SDL_Log("Window %d closed", event->window.windowID);
-            break;
-        default:
-            SDL_Log("Window %d got unknown event %d",
-                    event->window.windowID, event->window.event);
-            break;
-    }
-}
-void PrintSize(SDL_Window* win, SDL_Renderer* ren, SDL_Texture* tex)
-{
-    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
-    SDL_GetCurrentDisplayMode(0, &dm);
-    SDL_Log("\tDisplay %dx%d", dm.w, dm.h);
-    int w,h;
-    SDL_GetWindowSize(win, &w, &h);
-    SDL_Log("\tWindow %dx%d", w, h);
-    SDL_GetRendererOutputSize(ren, &w, &h);
-    SDL_Log("\tRenderer %dx%d", w, h);
-    //SDL_Rect rvp; SDL_RendererGetViewport(ren, &rvp); SDL_Log("\tViewport %dx%d+%d+%d", rvp.w, rvp.h, rvp.x, rvp.y);
-    SDL_QueryTexture(tex, 0, 0, &w, &h);
-    SDL_Log("\tTexture %dx%d", w,h);
-}
 
 // 万 筒 索 字
 // 东 南 西 北 中 发 白
@@ -124,9 +50,9 @@ void PrintSize(SDL_Window* win, SDL_Renderer* ren, SDL_Texture* tex)
 struct Hand : std::array<std::array<int8_t,9>,4>
 {
     // std::array<int8_t,4> nc;
+    //int8_t pair_idx = -1;
 
     Hand() : std::array<std::array<int8_t,9>,4>({}) {}
-    //int8_t pair_idx = -1;
     //static char* parse(std::array<int8_t,9>& mj, char const* beg, char const* end);
     //static bool parse_file(Hand& mj, FILE* fp);
 
@@ -156,22 +82,28 @@ struct Hand : std::array<std::array<int8_t,9>,4>
 struct Mahjong : std::array<Hand,4>
 {
     enum { Nplayer = 4, Ntiles=(9*3+7)*4 }; //enum { East = 0, South, West, North };
-    //int8_t wall_[Ntiles]; short end_, beg_;
-    std::deque<int> wall_;
-    std::vector<int> discard_;
+    struct Tiles : std::vector<int8_t> {
+        short last_=0, first_=0;
+        int8_t pop(bool tail) {
+            return (*this)[tail ? last_-- : first_++];
+        }
+        bool empty() const { return first_ > last_+int(size());}
+    };
+    Tiles wall_; //int8_t wall_[Ntiles]; short end_, beg_; //std::deque<int> wall_;
+    std::vector<int8_t> discard_;
     int8_t first_hand_pos_ = -1;
     struct Init;
 
     Hand& at(int pos) const { return const_cast<Hand&>( (*this)[pos%Nplayer] ); }
 
-    void deal(int pos, int nc=13);
+    void deal(int pos, int ntoh=13);
     void prepare(int pos) {
         //Hand& h = at(pos); //(*this)[pos%Nplayer];
         //std::array<int8_t,4> sums = hand.sums();
-        //int nc = std::accumulate(sums.begin(), sums.end(), 0);
+        //int ntoh = std::accumulate(sums.begin(), sums.end(), 0);
     }
 
-    void fetch(int pos);
+    void fetch(int pos, bool tail=0);
     void discard(int pos);
     void hu(int pos);
     void pen(int pos);
@@ -187,231 +119,85 @@ struct Mahjong::Init : std::array<std::vector<int>,4>
     Init(Mahjong* p) : thiz(p) {}
 
     int wall(int x, std::vector<int> v) {
-        ENSURE(x<4, "wall");
+        ensure(x<4, "wall");
         (*this)[x] = std::move(v);
         if (++n_ == 4) {
+            thiz->wall_.reserve(v.size()*4);
             for (int x=0; x<4; ++x) {
-                auto& v = (*this)[x];
-                thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
+                for (int cx : (*this)[x])
+                    thiz->wall_.push_back(cx & 0x3f);
+                //thiz->wall_.insert(thiz->wall_.end(), v.begin(), v.end());
             }
         }
         return (4-n_);
     }
 };
 
-void Mahjong::deal(int pos, int nc)
+void Mahjong::deal(int pos, int ntoh)
 {
     first_hand_pos_ = pos;
-    nc *= Nplayer;
-    while (nc > Nplayer) {
+    ntoh *= Nplayer;
+    while (ntoh > Nplayer) {
         for (int n=0; n < 4; ++n)
             fetch(pos);
-        nc -= 4;
+        ntoh -= 4;
         ++pos;
     }
-    ENSURE(pos%Nplayer==first_hand_pos_, "deal pos");
-    while (nc > 0) {
+    ensure(pos%Nplayer==first_hand_pos_, "deal pos");
+    while (ntoh > 0) {
         fetch(pos);
         prepare(pos);
         ++pos;
-        nc -= 1;
+        ntoh -= 1;
     }
-    ENSURE(pos%Nplayer==first_hand_pos_, "deal pos");
+    ensure(pos%Nplayer==first_hand_pos_, "deal pos");
 }
 
-void Mahjong::fetch(int pos)
+void Mahjong::fetch(int pos, bool tail)
 {
+    ensure(!wall_.empty(), "fetch wall:empty");
     Hand& h = at(pos);
-    int cx = wall_.front() & 0x3f; wall_.pop_front();
+    int cx = wall_.pop(tail); //wall_.front() & 0x3f; wall_.pop_front();
     int w = cx/9;
     int v = cx%9;
     h[w][v]++;
 }
 
-#define TILE_WIDTH                42
-#define TILE_HEIGHT_CONCEALED     76
-#define TILE_HEIGHT_SHOWN         60
-#define TILE_HEIGHT_WALL          60
-#define TILE_HEIGHT_COMPUTER      70
-
-//void CGeneral::DrawTile(const CTile &t, int x, int y, int dir, int size)
-//{
-//   SDL_Rect dstrect, dstrect2;
-//
-//   dstrect.x = x;
-//   dstrect.y = y;
-//
-//   if (dir <= PLAYER_CONCEALED) {
-//      // shown tile
-//      dstrect.w = dstrect2.w = TILE_WIDTH;
-//      dstrect.h = dstrect2.h = ((dir < PLAYER_CONCEALED) ?
-//         TILE_HEIGHT_SHOWN : TILE_HEIGHT_CONCEALED);
-//
-//      if (t.GetSuit() == TILESUIT_DRAGON) {
-//         dstrect2.x = (t.index2() + 4) * TILE_WIDTH;
-//         dstrect2.y = 3 * dstrect.h;
-//      } else {
-//         dstrect2.x = t.index2() * TILE_WIDTH;
-//         dstrect2.y = t.index1() * dstrect.h;
-//      }
-//
-//      if (dir < PLAYER_CONCEALED) {
-//         dstrect2.y += TILE_HEIGHT_CONCEALED * 4;
-//      }
-//   } else if (dir == COMPUTER_CONCEALED) {
-//      // concealed tile
-//      dstrect2.x = 0;
-//      dstrect2.y = TILE_HEIGHT_SHOWN * 4 + TILE_HEIGHT_CONCEALED * 4;
-//      dstrect2.w = dstrect.w = TILE_WIDTH;
-//      dstrect2.h = dstrect.h = TILE_HEIGHT_COMPUTER;
-//   } else if (dir == WALL_CONCEALED) {
-//      dstrect2.x = TILE_WIDTH;
-//      dstrect2.y = TILE_HEIGHT_SHOWN * 4 + TILE_HEIGHT_CONCEALED * 4;
-//      dstrect2.w = dstrect.w = TILE_WIDTH;
-//      dstrect2.h = dstrect.h = TILE_HEIGHT_WALL;
-//   }
-//
-//   // Draw the tile to the screen
-//   if (size >= 1) {
-//       SDL_RenderCopy(renderer_, m_imgTiles, &dstrect2, &dstrect);
-//      //SDL_BlitSurface(m_imgTiles, &dstrect2, gpScreen, &dstrect);
-//   } else {
-//      dstrect.w = dstrect.w * 7 / 10;
-//      dstrect.h = dstrect.h * 7 / 10;
-//      SDL_RenderCopy(renderer_, m_imgTiles, &dstrect2, &dstrect);
-//      //UTIL_ScaleBlit(m_imgTiles, &dstrect2, gpScreen, &dstrect);
-//   }
-//}
-//
-//void CGeneral::DrawTiles(const CTile t[], int num, int x, int y, int dir, int size)
-//{
-//   int i;
-//
-//   if (dir == COMPUTER_SHOWN) {
-//      // Draw computer's tiles in reverse order
-//      for (i = num - 1; i >= 0; i--) {
-//         DrawTile(t[i], (int)(x + (num - i - 1) * TILE_WIDTH * (size ? 1 : 0.7)),
-//            y, dir, size);
-//      }
-//   } else {
-//      // Otherwise draw in normal order
-//      for (i = 0; i < num; i++) {
-//         DrawTile(t[i], (int)(x + i * TILE_WIDTH * (size ? 1 : 0.7)), y, dir, size);
-//      }
-//   }
-//}
-
-struct Main
+struct View_resource
 {
-    SDL_Window *window_; // SDL_Surface *gSurface;
-    SDL_Renderer* renderer_;
+    SDL_Window *window; // SDL_Surface *gSurface;
+    SDL_Renderer* renderer;
+    std::vector<SDL_Texture*> tiles; //std::array<std::array<SDL_Texture*,9>,4> tiles; // = {};
 
-    SDL_Texture* texture_;
-    SDL_Texture* facing_[4];
-    std::vector<SDL_Texture*> tile_textures_; //std::array<std::array<SDL_Texture*,9>,4> tile_textures_; // = {};
-
-    Mahjong m_;
-    SDL_Rect squa_ = {}, rect_ = {}, rect_hv_;
-    short tiles_total_ = 0;
-    struct Grid;
-    struct UInput;
-
-    ~Main();
-    Main(int argc, char* const argv[]);
-    int loop(int argc, char* const argv[]);
-
-    void draw();
-    void draw_rotate_test();
-    void draw_discard();
-    void draw_background();
-    void draw_hands();
-    void draw_wall();
-
-    void draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils);
-
-    SDL_Texture *create_texture(const char *filename) {
-        SDL_Surface *pic = IMG_Load(filename);
-        ENSURE(pic, "IMG_Load: %s", SDL_GetError());
-        //std::unique_ptr<SDL_Surface,decltype(& SDL_FreeSurface)> xfree(pic, SDL_FreeSurface);
-        SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, pic);
-        SDL_FreeSurface(pic);
-        return tex;
-    }
-
-    void init1() {
-        tiles_total_ = m_.wall_.size();
-        int nor = tiles_total_/4/2;
-        int w, h;
-        SDL_QueryTexture(tile_textures_[0], 0, 0, &w, &h);
-        float ratio = float(squa_.w)/((w+1)*nor+(h+1)*6+w*2);
-        rect_.w = w*ratio;
-        rect_.h = h*ratio;
-    }
-    SDL_Texture* tiletex(int cx) const {
-        return tile_textures_[cx & 0x3f];
-        //cx &= 0x3f;
-        //int w = cx/9; //int v = cx%9;
-        //return this->tile_textures_[w][v];
-    };
+    View_resource();
+    ~View_resource();
 };
 
-struct Main::Grid
+View_resource::~View_resource()
 {
-    int w_,h_;
-};
-
-
-struct Main::UInput
-{
-    Main* thiz;
-    UInput(Main* p) : thiz(p) {}
-
-    int pressed(int ksym) {
-        auto& m = thiz->m_;
-        if (SDLK_0 == ksym) {
-            m = Mahjong{};
-            shuffle();
-        } else if (thiz->rect_.w > 0) switch (ksym) {
-            case SDLK_1: // If escape is pressed, return (and thus, quit)
-                m.deal(rand()%4);
-                break;
-            default: ;
-        }
-        return ksym;
-    }
-
-    void shuffle() {
-        std::vector<int> tils; //(4*9*3 + 4*7);
-        for (int x=0, n=thiz->tile_textures_.size(); x<n; ++x) {
-            for (int y=0; y<4; ++y)
-                tils.push_back( (y<<6) | x );
-        }
-
-        //=std::random_shuffle(tils.begin(), tils.end());
-        std::vector<int> ridx = {3,2,1,0};
-        //=std::random_shuffle(ridx.begin(), ridx.end());
-        //LOG_DEBUG << tils.size() <<' '<< tils.size()/4;
-
-        Mahjong::Init init(&thiz->m_);
-        for (int n=tils.size()/4, i=0; i<4; ++i) {
-            auto it = tils.begin() + n*i;
-            if (init.wall(ridx.back(), std::vector<int>(it, it+n)) == 0)
-                thiz->init1();
-            ridx.pop_back();
-        }
-    }
-};
-
-Main::~Main()
-{
+    for (SDL_Texture* ptr : tiles)
+        SDL_DestroyTexture(ptr);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-Main::Main(int argc, char* const argv[]) //: tile_textures_({})
+View_resource::View_resource()
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE) < 0) { 
-        ERR_EXIT("Unable to init SDL: %s", SDL_GetError());
-    }
+    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE);// >=0, "SDL_Init: %s", SDL_GetError()
+    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
+    SDL_GetCurrentDisplayMode(0, &dm); //SDL_GetRendererOutputSize(renderer, &w, &h);SDL_GetWindowSize(window, &w, &h);SDL_RendererGetViewport(renderer, &rect);
+    int wh = std::min(dm.w,dm.h);
+
+    //window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, SDL_WINDOW_RESIZABLE); //SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+    //window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, 0); //SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_BORDERLESS,,SDL_WINDOW_FULLSCREEN
+    window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN_DESKTOP); //SDL_WINDOW_RESIZABLE SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+    
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_TARGETTEXTURE);
+    //renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);//, "SDL_CreateRenderer: %s", SDL_GetError()
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+    //SDL_RenderSetLogicalSize(renderer, 1024, 768);
 
     // 万 筒 索 字
     // 东 南 西 北 中 发 白
@@ -425,201 +211,398 @@ Main::Main(int argc, char* const argv[]) //: tile_textures_({})
     //{"flower_bamboo.png","flower_chrysanthemum.png","flower_orchid.png","flower_plum.png","season_fall.png","season_spring.png","season_summer.png","season_winter.png"};
     char const* img_dir = "images/tiles";
 
-    std::vector<SDL_Surface*> surfaces;
+    int nt = sizeof(img_tiles)/sizeof(img_tiles[0]);
+    ensure(nt%2==0, "N-tiles %d", nt);
+
+    tiles.reserve(nt);
     for (char const* name : img_tiles) {
         char fn[512];
         snprintf(fn,sizeof(fn), "%s/%s", img_dir, name);
-        surfaces.push_back( IMG_Load(fn) );
+        SDL_Surface* surf = IMG_Load(fn);
+        ensure(surf, "IMG_Load %s: %s", fn, SDL_GetError());
+        tiles.push_back( SDL_CreateTextureFromSurface(renderer, surf) );
+        SDL_FreeSurface(surf);
     }
+    SDL_Log("tiles.size=%d %d", (int)tiles.size(), nt);
+}
 
-    SDL_DisplayMode dm; //SDL_GetNumVideoDisplays()
-    SDL_GetCurrentDisplayMode(0, &dm); //SDL_GetRendererOutputSize(renderer_, &w, &h);SDL_GetWindowSize(window_, &w, &h);SDL_RendererGetViewport(renderer_, &rect);
-    squa_.w = squa_.h = std::min(dm.w,dm.h);
-    squa_.x = squa_.y = 0;
-    window_ = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, squa_.w,squa_.h, SDL_WINDOW_RESIZABLE); //SDL_WINDOW_RESIZABLE SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+struct Board_size_
+{
+    int s, sp; // texture-size, space
+    int w, h;  // tile width,length
+    int n;     // wall-length
+    int x, y;  // center-point outside
+    Board_size_(SDL_Renderer* renderer, SDL_Texture* tile, int nts) {
+        int w0,h0;
+        SDL_GetRendererOutputSize(renderer, &w0, &h0); //SDL_GetCurrentDisplayMode SDL_GetRendererOutputSize SDL_GetWindowSize
+        int w1,h1;
+        SDL_QueryTexture(tile, 0, 0, &w1, &h1); //wh_ratio = double(w1)/h1;
+        s = std::min(w0,h0);
+        n = nts/4/2;
+        //--------------------------------------
+        // h/w = h1/w1;
+        // s - 2*(h+w) = ?h + sp + n*w
+        // sp >= w/2;
+        //--------------------------------------
+        w = s/(double(4*h1)/w1 + double(5+2*n)/2);
+        h = double(h1)/w1*w;
+        sp = s - 2*(h+w) - 2*h - n*w;
+        x = w0/2; y = h0/2;
+    }
+};
 
-    ENSURE(window_, "SDL_CreateWindow: %s", SDL_GetError());
-    renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_PRESENTVSYNC);
-    ENSURE(renderer_, "SDL_CreateRenderer: %s", SDL_GetError());
-    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
-    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-    //SDL_RenderSetLogicalSize(renderer_, 1024, 768);
+struct Renderer
+{
+    View_resource* res;
+    SDL_Texture* texture_;
+    Board_size_ size_; //int nline_; int w_, h_; int wh_;
 
-    //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
-    texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h);
+    Renderer(View_resource& vr, int ncol);
+    ~Renderer() { SDL_DestroyTexture(texture_); }
+
+    //SDL_Point center_point(int x=0,int y=0) { return SDL_Point{x+w_*nline_, y+w_*nline_}; }
+    //SDL_Rect main_rect(int x=0,int y=0) { return SDL_Rect{x,y, x+w_*nline_*2, y+w_*nline_*2}; }
+
+    void draw_background();
+};
+
+struct View : Renderer
+{
+    View(View_resource& vr);
+
+    SDL_Texture* tiletex(int cx) const { return res->tiles[cx & 0x3f]; };
+
+    void draw(Mahjong const&);
+
+    void draw_rotate_test();
+    void draw_discard();
+    void draw_hands();
+    void draw_wall(Mahjong::Tiles const& tiles, int pos0);
+
+    void draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils);
+
+    //static int Ncol(SDL_Texture* tile, int nts) {
+    //    nts /= (4*2);
+    //    int w,h;
+    //    SDL_QueryTexture(tile, 0, 0, &w, &h);
+    //    return ((nts+1)/2 + 1 + (3*h+(w-2))/w) *2;
+    //}
+};
+
+Renderer::Renderer(View_resource& vr, int nts)
+    : res(&vr)
+    , size_(vr.renderer, vr.tiles[0], nts)
+{
+    //nline_ = (1+3+(nts/4/2-2+1)+3+1) / 2; // ((nts+1)/2 + 1 + (3*h+(w-2))/w) *2;
+    //ensure(ncol%2==0, "Ncol %d", ncol);
+
+    // SDL_SetRenderTarget(res->renderer, 0);
+    // SDL_SetRenderDrawBlendMode(res->renderer, SDL_BLENDMODE_BLEND);
+    //int w0,h0;
+    //SDL_GetRendererOutputSize(res->renderer, &w0, &h0); //SDL_GetCurrentDisplayMode SDL_GetRendererOutputSize SDL_GetWindowSize
+    //int w1,h1;
+    //SDL_QueryTexture(vr.tiles[0], 0, 0, &w1, &h1); //wh_ratio = double(w1)/h1;
+    //wh_ = std::min(w0,h0);
+    //nts=nts/4/2;
+
+    //double ratio = double(h1)/w1;
+    //w_ = (wh_-sx)/(nts+2+3*ratio); //nts*w + h + 2*h + 2*w = wh_ - sx;// <=wh_ sx>0; (nts+2+3*(double(h1)/w1))*w = wh_-sx;// <=wh_ sx>0;
+    //h_ = w*ratio;
+    //n = (wh_ - 2*h_) / w;
+    //sp_ = (wh_ - 2*h_) / w;
+
+    //int w = wh_/2 / (nline_-1 + double(h1)/w1);
+    //h_ = double(w)/w1 * h1 -1;
+    //w_ = w -1;
+
+    texture_ = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s); //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
+    //texture_ = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s);
     SDL_SetTextureBlendMode(texture_, SDL_BLENDMODE_BLEND);
-    //for (int i=0; i<4; ++i)
-    //    facing_[i] = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, squa_.w, squa_.h/2);
-
-    tile_textures_.reserve(surfaces.size());
-    for (auto ptr : surfaces) {
-        tile_textures_.push_back( SDL_CreateTextureFromSurface(renderer_, ptr) );
-        SDL_FreeSurface(ptr);
-    }
-
-    PrintSize(window_, renderer_, texture_);
 }
 
-void Main::draw_discard()
+View::View(View_resource& vr)
+    : Renderer(vr, 4*vr.tiles.size())
 {
 }
 
-auto renderTarget0 = [](SDL_Renderer* r){ SDL_SetRenderTarget(r,NULL); };
-
-void Main::draw_hands()
+struct Main : View_resource
 {
-    SDL_SetRenderTarget(renderer_, texture_);
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0);
-    for (unsigned i=0; i<m_.size(); ++i) {
-        std::vector<int> tils;
-        m_[i].copy( std::back_inserter(tils) );
+    Mahjong m_;
+    View view_;
+    struct UInput;
 
-        SDL_RenderClear(renderer_);
-        draw_hand_tiles(texture_, tils);
+    enum { STAGE_0, STAGE_1 };
+    int8_t stage_ = 0; //short tiles_total_ = 0;
 
-        SDL_SetRenderTarget(renderer_, 0);
-        //SDL_RenderCopy(renderer_, texture_, 0, &squa_);
-        SDL_RenderCopyEx(renderer_, texture_, 0, &squa_,   90*i, 0, SDL_FLIP_NONE);
-        SDL_SetRenderTarget(renderer_, texture_);
+    Main(int argc, char* const argv[]);
+    ~Main();
+    int loop(int argc, char* const argv[]);
+
+    void stage(int s) { stage_ = s; }
+};
+
+struct Main::UInput
+{
+    Main* thiz;
+    UInput(Main* p) : thiz(p) {}
+
+    int pressed(int ksym) {
+        auto& m = thiz->m_;
+        if (SDLK_0 == ksym) {
+            m = Mahjong{};
+            shuffle();
+        } else /*if (thiz->rect_.w > 0)*/ switch (ksym) {
+            case SDLK_1: // If escape is pressed, return (and thus, quit)
+                m.deal(rand()%4);
+                break;
+            default: ;
+        }
+        return ksym;
     }
-    SDL_SetRenderTarget(renderer_, 0);
+
+    void shuffle() {
+        std::vector<int> tils; //(4*9*3 + 4*7);
+        for (int x=0, n=thiz->tiles.size(); x<n; ++x) {
+            for (int y=0; y<4; ++y)
+                tils.push_back( (y<<6) | x );
+        }
+
+        //=std::random_shuffle(tils.begin(), tils.end());
+        std::vector<int> ridx = {3,2,1,0};
+        //=std::random_shuffle(ridx.begin(), ridx.end());
+        //LOG_DEBUG << tils.size() <<' '<< tils.size()/4;
+
+        Mahjong::Init init(&thiz->m_);
+        for (int n=tils.size()/4, i=0; i<4; ++i) {
+            auto it = tils.begin() + n*i;
+            if (init.wall(ridx.back(), std::vector<int>(it, it+n)) == 0)
+                thiz->stage(Main::STAGE_1); //thiz->view_.init1();
+            ridx.pop_back();
+        }
+    }
+};
+
+Main::~Main()
+{
 }
 
-void Main::draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils)
-{
-    SDL_Rect rect = {};
-    SDL_GetRendererOutputSize(renderer_, &rect.w, &rect.h);
-    SDL_Point pc = center_point(rect);
+Main::Main(int argc, char* const argv[])
+    : view_(*this)
+{}
 
-    SDL_Rect dr = rect_;
-    int step = rect_.w+1;
-    dr.y = pc.y + last_y(rect.h/2, step) - rect_.w;
-    dr.x = pc.x - nth_y(tils.size()/2, rect.w/2, step) +1;
-    rect_hv_.x = dr.x;
-    rect_hv_.y = dr.y;
-    rect_hv_.w = (rect_.w+1) * tils.size();
-    rect_hv_.h = rect_.h;
-    for (int cx : tils) {
-        SDL_RenderCopy(renderer_, tiletex(cx), 0, &dr);
-        dr.x += step;
-    }
+void Renderer::draw_background()
+{
+    SDL_SetRenderDrawColor(res->renderer, 0,0,0, 255);
+    SDL_RenderClear(res->renderer);
+
+    int xp[2], yp[2];
+    xp[0] = size_.x - size_.s/2;// + size_.h + size_.w;
+    xp[1] = size_.x + size_.s/2;// - size_.h - size_.w;
+    yp[0] = size_.y - size_.s/2;// + size_.h + size_.w;
+    yp[1] = size_.y + size_.s/2;// - size_.h - size_.w;
+
+    SDL_SetRenderDrawColor(res->renderer, 12,12,12, 255);
+
+    SDL_RenderDrawLine(res->renderer, size_.x, yp[0], size_.x, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[0], size_.y, xp[1], size_.y);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[0], xp[1], yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[1], xp[1], yp[0]);
+
+    SDL_RenderDrawLine(res->renderer, xp[0]+size_.h, yp[0], xp[0]+size_.h, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[0]+size_.h+size_.w, yp[0], xp[0]+size_.h+size_.w, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[1]-size_.h, yp[0], xp[1]-size_.h, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[1]-size_.h-size_.w, yp[0], xp[1]-size_.h-size_.w, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[0]+size_.h, xp[1], yp[0]+size_.h);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[0]+size_.h+size_.w, xp[1], yp[0]+size_.h+size_.w);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[1]-size_.h, xp[1], yp[1]-size_.h);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[1]-size_.h-size_.w, xp[1], yp[1]-size_.h-size_.w);
+
+    xp[0] = size_.x - size_.s/2 + size_.h + size_.w;
+    xp[1] = size_.x + size_.s/2 - size_.h - size_.w;
+    yp[0] = size_.y - size_.s/2 + size_.h + size_.w;
+    yp[1] = size_.y + size_.s/2 - size_.h - size_.w;
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[1]-size_.h*2, xp[1]-size_.h*2-size_.sp, yp[1]-size_.h*2);
+    SDL_RenderDrawLine(res->renderer, xp[1]-size_.h*2-size_.sp, yp[1]-size_.h*2, xp[1]-size_.h*2-size_.sp, yp[1]);
+
+    SDL_RenderDrawLine(res->renderer, xp[0]+size_.h*2+size_.sp, yp[0]+size_.h*2, xp[1], yp[0]+size_.h*2);
+    SDL_RenderDrawLine(res->renderer, xp[0]+size_.h*2+size_.sp, yp[0]+size_.h*2, xp[0]+size_.h*2+size_.sp, yp[0]);
+
+    SDL_RenderDrawLine(res->renderer, xp[0]+size_.h*2, yp[0], xp[0]+size_.h*2, yp[1]-size_.h*2-size_.sp);
+    SDL_RenderDrawLine(res->renderer, xp[0], yp[1]-size_.h*2-size_.sp, xp[0]+size_.h*2, yp[1]-size_.h*2-size_.sp);
+
+    SDL_RenderDrawLine(res->renderer, xp[1]-size_.h*2, yp[0]+size_.h*2+size_.sp, xp[1]-size_.h*2, yp[1]);
+    SDL_RenderDrawLine(res->renderer, xp[1]-size_.h*2, yp[0]+size_.h*2+size_.sp, xp[1], yp[0]+size_.h*2+size_.sp);
+
+    ////SDL_SetRenderTarget(res->renderer, 0);
+    //int w0,h0;
+    //SDL_GetRendererOutputSize(res->renderer, &w0, &h0); //SDL_GetCurrentDisplayMode SDL_GetRendererOutputSize SDL_GetWindowSize
+
+    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 255);
+    //SDL_RenderClear(res->renderer);
+
+    ////SDL_Rect rect = main_rect(x_,y_);
+    //int x=w0/2, y=h0/2; //center_point(x_,y_);
+    //int w=w_+1;
+    //int wh = wh_/2;//w*(nline_-1) + h_;
+
+    //SDL_SetRenderDrawColor(res->renderer, 12,12,12, 255);
+    //SDL_RenderDrawLine(res->renderer, x, y-wh, x, y+wh);
+    //SDL_RenderDrawLine(res->renderer, x-wh, y, x+wh, y);
+
+    //SDL_SetRenderDrawColor(res->renderer, 6,6,6, 255);
+    //for (int i=1; i < nline_; ++i) {
+    //    SDL_RenderDrawLine(res->renderer, x-w*i, y-wh, x-w*i, y+wh);
+    //    SDL_RenderDrawLine(res->renderer, x+w*i, y-wh, x+w*i, y+wh);
+    //    SDL_RenderDrawLine(res->renderer, x-wh, y-w*i, x+wh, y-w*i);
+    //    SDL_RenderDrawLine(res->renderer, x-wh, y+w*i, x+wh, y+w*i);
+    //}
+    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
 }
 
-void Main::draw_wall()
-{
-    int fr0 = 0;
-    int nor = tiles_total_/4/2;
-    SDL_Point pc = center_point(squa_);
-    SDL_Rect dr = rect_;
 
-    dr.x = pc.x - nor/2*(rect_.w+1) +1;
-    dr.y = pc.y +1;
-    fr0 = 0;
-    for (int i=0; i<nor; ++i){
-        SDL_RenderCopy(renderer_, tiletex(m_.wall_[fr0+i]), 0, &dr);
-        dr.x += 1+rect_.w;
-    }
-    dr.x = pc.x - nor/2*(rect_.w+1) +1;
-    dr.y = pc.y +1 + rect_.h + 1;
-    fr0 += nor;
-    for (int i=0; i<nor; ++i) {
-        SDL_RenderCopy(renderer_, tiletex(m_.wall_[fr0+i]), 0, &dr);
-        dr.x += 1+rect_.w;
-    }
+void View::draw_discard()
+{
+}
+
+//auto renderTarget0 = [](SDL_Renderer* r){ SDL_SetRenderTarget(r,NULL); };
+
+//void View::draw_hands()
+//{
+//    SDL_SetRenderTarget(renderer, texture_);
+//    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+//    for (unsigned i=0; i<m_.size(); ++i) {
+//        std::vector<int> tils;
+//        m_[i].copy( std::back_inserter(tils) );
+//
+//        SDL_RenderClear(renderer);
+//        draw_hand_tiles(texture_, tils);
+//
+//        SDL_SetRenderTarget(renderer, 0);
+//        //SDL_RenderCopy(renderer, texture_, 0, &squa_);
+//        SDL_RenderCopyEx(renderer, texture_, 0, &squa_,   90*i, 0, SDL_FLIP_NONE);
+//        SDL_SetRenderTarget(renderer, texture_);
+//    }
+//    SDL_SetRenderTarget(renderer, 0);
+//}
+
+//void View::draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils)
+//{
+//    SDL_Rect rect = {};
+//    SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
+//    SDL_Point pc = center_point(rect);
+//
+//    SDL_Rect dr = rect_;
+//    int step = rect_.w+1;
+//    dr.y = pc.y + last_y(rect.h/2, step) - rect_.w;
+//    dr.x = pc.x - nth_y(tils.size()/2, rect.w/2, step) +1;
+//    rect_hv_.x = dr.x;
+//    rect_hv_.y = dr.y;
+//    rect_hv_.w = (rect_.w+1) * tils.size();
+//    rect_hv_.h = rect_.h;
+//    for (int cx : tils) {
+//        SDL_RenderCopy(renderer, tiletex(cx), 0, &dr);
+//        dr.x += step;
+//    }
+//}
+
+void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
+{
+    if (tiles.first_ >= tiles.last_ + (int)tiles.size())
+        return;
+    return;
+
+    ////SDL_SetRenderTarget(res->renderer, 0);
+    //int w0,h0;
+    //SDL_GetRendererOutputSize(res->renderer, &w0, &h0);
+
+    //int nt = tiles.size();
+    //int nr = nt/4/2;
+    //int w = w_+1;
+    //int y = wh_/2 + (nline_-2)*w - h_;
+    //int x = wh_/2 - (nline_-3)*w + (nr-1)*w; //(nline_-6)*w;
+
+    //int last = tiles.last_ + nt;
+    //for (int pos=pos0; pos < pos0+4; ++pos) {
+    //    SDL_SetRenderTarget(res->renderer, texture_);
+    //    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
+    //    //SDL_SetRenderDrawBlendMode(res->renderer, SDL_BLENDMODE_NONE);
+    //    SDL_RenderClear(res->renderer);
+
+    //    int beg = (pos%4) * nr;
+    //    if (beg < tiles.last_)
+    //        beg += nt;
+    //    int end = beg + nr*2;
+    //    for (int i=beg; i < end; ++i) {
+    //        if (tiles.first_ <= i && i <= last) {
+    //            int j = i-beg;
+    //            SDL_Rect dr = {x - w*(j/2), y - w*(j%2), w_,h_};
+    //            SDL_Texture* tex = tiletex( tiles[ pos0*nr*2 + j] );
+    //            SDL_RenderCopy(res->renderer, tex, 0, &dr);
+    //        }
+    //    }
+
+    //    SDL_SetRenderTarget(res->renderer, NULL);
+    //    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
+    //    //SDL_SetRenderDrawBlendMode(res->renderer, SDL_BLENDMODE_BLEND);
+    //    //SDL_SetTextureBlendMode(texture_, SDL_BLENDMODE_BLEND);
+    //    SDL_Rect rect = {w0/2-wh_/2,h0/2-wh_/2, wh_,wh_};
+    //    SDL_RenderCopyEx(res->renderer, texture_, 0, &rect, (pos % 4)*90, 0, SDL_FLIP_NONE);
+    //}
 }
 //gSurface = SDL_CreateRGBSurface(0, 640, 480, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 //SDL_FillRect(gSurface, &{64,48,64,48}, 0xff);
 
-void Main::draw_background()
+void View::draw(Mahjong const& m)
 {
-    SDL_SetRenderDrawColor(renderer_, 5, 5, 5, 255);
-    SDL_RenderClear(renderer_);
+    draw_wall(m.wall_, 0);
 
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-    SDL_RenderFillRect(renderer_, &squa_);
+    //draw_hands();
 
-    //std::array<int,2> px = center_row(squa_.w, rect_.w +1);
-    //std::array<int,2> py = center_row(squa_.h, rect_.w +1);
-    ////std::array<int,2> py = first_row<1>(squa_.h, rect_.w);
-    ////int y = last_row<1>(squa_.h, rect_.w)[1] - rect_.h;
-    //SDL_RenderDrawLine(renderer_, px[0], 0, px[0], squa_.h);
-    //SDL_RenderDrawLine(renderer_, px[1], 0, px[1], squa_.h);
-    //SDL_RenderDrawLine(renderer_, py[0], 0, py[0], squa_.w);
-    //SDL_RenderDrawLine(renderer_, py[1], 0, py[1], squa_.w);
-
-    SDL_Point pc = center_point(squa_);
-
-    SDL_SetRenderDrawColor(renderer_, 16, 16, 16, 255);
-    SDL_RenderDrawLine(renderer_, pc.x, squa_.y, pc.x, squa_.y+squa_.h);
-    SDL_RenderDrawLine(renderer_, squa_.x, pc.y, squa_.x+squa_.w, pc.y);
-
-    SDL_SetRenderDrawColor(renderer_, 10, 10, 10, 255);
-
-    int s = rect_.w+1;
-    while (pc.y - s > squa_.y) {
-        SDL_RenderDrawLine(renderer_, squa_.x, pc.y-s, squa_.x+squa_.w, pc.y-s);
-        SDL_RenderDrawLine(renderer_, squa_.x, pc.y+s, squa_.x+squa_.w, pc.y+s);
-        SDL_RenderDrawLine(renderer_, pc.x-s, squa_.y, pc.x-s, squa_.y+squa_.h);
-        SDL_RenderDrawLine(renderer_, pc.x+s, squa_.y, pc.x+s, squa_.y+squa_.h);
-        s += rect_.w+1;
-    }
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
+    //draw_discard();
+    ////draw_rotate_test();
 }
 
-void Main::draw()
-{
-    if (rect_.w < 1)
-        return;
-
-    draw_background();
-
-    draw_wall();
-
-    draw_hands();
-
-    draw_discard();
-    //draw_rotate_test();
-}
-
-void Main::draw_rotate_test()
-{
-    SDL_Point pc = center_point(squa_);
-    SDL_Rect dr = rect_;
-    dr.x = pc.x + rect_.w;
-    dr.y = pc.y + rect_.w;
-    SDL_RenderCopy(renderer_, tile_textures_[0], 0, &dr);
-    dr.x = pc.x + rect_.w*3;
-    dr.y = pc.y + rect_.w*3;
-    SDL_RenderCopyEx(renderer_, tile_textures_[0], 0, &dr, 90, 0, SDL_FLIP_NONE);
-    dr.x = pc.x + rect_.w*6;
-    dr.y = pc.y + rect_.w*6;
-    SDL_Point cr = {}; //{dr.w/2, dr.h/2};
-    SDL_RenderCopyEx(renderer_, tile_textures_[0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
-}
+//void View::draw_rotate_test()
+//{
+//    SDL_Point pc = center_point(squa_);
+//    SDL_Rect dr = rect_;
+//    dr.x = pc.x + rect_.w;
+//    dr.y = pc.y + rect_.w;
+//    SDL_RenderCopy(renderer, tiles[0], 0, &dr);
+//    dr.x = pc.x + rect_.w*3;
+//    dr.y = pc.y + rect_.w*3;
+//    SDL_RenderCopyEx(renderer, tiles[0], 0, &dr, 90, 0, SDL_FLIP_NONE);
+//    dr.x = pc.x + rect_.w*6;
+//    dr.y = pc.y + rect_.w*6;
+//    SDL_Point cr = {}; //{dr.w/2, dr.h/2};
+//    SDL_RenderCopyEx(renderer, tiles[0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
+//}
 
 int Main::loop(int argc, char* const argv[])
 {
-    UInput input(this); //ENSURE(argc>1, "argc"); SDL_Texture* tils = create_texture(argv[1]);
-    SDL_Event event;
+    UInput input(this); //ensure(argc>1, "argc"); SDL_Texture* tils = create_texture(argv[1]);
+    SDL_Event ev;
 
     while (1) {
-        draw();
-        SDL_RenderPresent(renderer_);
+        view_.Renderer::draw_background();
+        if (stage_ > 0)
+            view_.draw(m_);
+        SDL_RenderPresent(renderer);
 
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
+        while (SDL_PollEvent(&ev)) {
+            switch (ev.type) {
                 case SDL_QUIT:
                     return(0);
                 case SDL_KEYUP:
-                    switch (int sym = event.key.keysym.sym) {
+                    switch (int sym = ev.key.keysym.sym) {
                         case SDLK_ESCAPE: // If escape is pressed, return (and thus, quit)
                             return 0;
                         default: input.pressed(sym);//;drawrect(gSurface, {64,48,64,48}, 0x88ff|((sym*3)<<16)&0xffffff);
                     }
                     break;
                 case SDL_WINDOWEVENT:
-                    PrintEvent(&event);
-                    PrintSize(window_, renderer_, texture_);
+                    if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
+                        view_ = View(*this); //view_.window_resized();
                     break;
             }
         }
