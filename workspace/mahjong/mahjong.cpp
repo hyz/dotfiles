@@ -83,11 +83,11 @@ struct Mahjong : std::array<Hand,4>
 {
     enum { Nplayer = 4, Ntiles=(9*3+7)*4 }; //enum { East = 0, South, West, North };
     struct Tiles : std::vector<int8_t> {
-        short last_=0, first_=0;
+        short last=0, first=0;
         int8_t pop(bool tail) {
-            return (*this)[tail ? last_-- : first_++];
+            return (*this)[tail ? last-- : first++];
         }
-        bool empty() const { return first_ > last_+int(size());}
+        bool empty() const { return first > last+int(size());}
     };
     Tiles wall_; //int8_t wall_[Ntiles]; short end_, beg_; //std::deque<int> wall_;
     std::vector<int8_t> discard_;
@@ -96,11 +96,11 @@ struct Mahjong : std::array<Hand,4>
 
     Hand& at(int pos) const { return const_cast<Hand&>( (*this)[pos%Nplayer] ); }
 
-    void deal(int pos, int ntoh=13);
+    void deal(int pos, int beg, int to_pos, int noh=13);
     void prepare(int pos) {
         //Hand& h = at(pos); //(*this)[pos%Nplayer];
         //std::array<int8_t,4> sums = hand.sums();
-        //int ntoh = std::accumulate(sums.begin(), sums.end(), 0);
+        //int noh = std::accumulate(sums.begin(), sums.end(), 0);
     }
 
     void fetch(int pos, bool tail=0);
@@ -133,22 +133,22 @@ struct Mahjong::Init : std::array<std::vector<int>,4>
     }
 };
 
-void Mahjong::deal(int pos, int ntoh)
+void Mahjong::deal(int pos, int beg, int to_pos, int noh=13);
 {
     first_hand_pos_ = pos;
-    ntoh *= Nplayer;
-    while (ntoh > Nplayer) {
+    noh *= Nplayer;
+    while (noh > Nplayer) {
         for (int n=0; n < 4; ++n)
             fetch(pos);
-        ntoh -= 4;
+        noh -= 4;
         ++pos;
     }
     ensure(pos%Nplayer==first_hand_pos_, "deal pos");
-    while (ntoh > 0) {
+    while (noh > 0) {
         fetch(pos);
         prepare(pos);
         ++pos;
-        ntoh -= 1;
+        noh -= 1;
     }
     ensure(pos%Nplayer==first_hand_pos_, "deal pos");
 }
@@ -226,13 +226,13 @@ View_resource::View_resource()
     SDL_Log("tiles.size=%d %d", (int)tiles.size(), nt);
 }
 
-struct Board_size_
+struct Layout_size
 {
     int s, sp; // texture-size, space
     int w, h;  // tile width,length
     int n;     // wall-length
     int x, y;  // center-point outside
-    Board_size_(SDL_Renderer* renderer, SDL_Texture* tile, int nts) {
+    Layout_size(SDL_Renderer* renderer, SDL_Texture* tile, int nts) {
         int w0,h0;
         SDL_GetRendererOutputSize(renderer, &w0, &h0); //SDL_GetCurrentDisplayMode SDL_GetRendererOutputSize SDL_GetWindowSize
         int w1,h1;
@@ -255,7 +255,7 @@ struct Renderer
 {
     View_resource* res;
     SDL_Texture* texture_;
-    Board_size_ size_; //int nline_; int w_, h_; int wh_;
+    Layout_size size_; //int nline_; int w_, h_; int wh_;
 
     Renderer(View_resource& vr, int ncol);
     ~Renderer() { SDL_DestroyTexture(texture_); }
@@ -353,7 +353,7 @@ struct Main::UInput
             shuffle();
         } else /*if (thiz->rect_.w > 0)*/ switch (ksym) {
             case SDLK_1: // If escape is pressed, return (and thus, quit)
-                m.deal(rand()%4);
+                m.deal(rand()%4, rand()%thiz->view_.size_.n, rand()%4);
                 break;
             default: ;
         }
@@ -367,9 +367,9 @@ struct Main::UInput
                 tils.push_back( (y<<6) | x );
         }
 
-        //=std::random_shuffle(tils.begin(), tils.end());
+        //==std::random_shuffle(tils.begin(), tils.end());
         std::vector<int> ridx = {3,2,1,0};
-        //=std::random_shuffle(ridx.begin(), ridx.end());
+        //==std::random_shuffle(ridx.begin(), ridx.end());
         //LOG_DEBUG << tils.size() <<' '<< tils.size()/4;
 
         Mahjong::Init init(&thiz->m_);
@@ -507,7 +507,7 @@ void View::draw_discard()
 
 void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
 {
-    if (tiles.first_ >= tiles.last_ + (int)tiles.size())
+    if (tiles.empty()) //(tiles.first >= tiles.last + (int)tiles.size())
         return;
     return;
 
@@ -521,7 +521,7 @@ void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
     //int y = wh_/2 + (nline_-2)*w - h_;
     //int x = wh_/2 - (nline_-3)*w + (nr-1)*w; //(nline_-6)*w;
 
-    //int last = tiles.last_ + nt;
+    //int last = tiles.last + nt;
     //for (int pos=pos0; pos < pos0+4; ++pos) {
     //    SDL_SetRenderTarget(res->renderer, texture_);
     //    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
@@ -529,11 +529,11 @@ void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
     //    SDL_RenderClear(res->renderer);
 
     //    int beg = (pos%4) * nr;
-    //    if (beg < tiles.last_)
+    //    if (beg < tiles.last)
     //        beg += nt;
     //    int end = beg + nr*2;
     //    for (int i=beg; i < end; ++i) {
-    //        if (tiles.first_ <= i && i <= last) {
+    //        if (tiles.first <= i && i <= last) {
     //            int j = i-beg;
     //            SDL_Rect dr = {x - w*(j/2), y - w*(j%2), w_,h_};
     //            SDL_Texture* tex = tiletex( tiles[ pos0*nr*2 + j] );
