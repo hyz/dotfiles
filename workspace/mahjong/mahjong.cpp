@@ -24,26 +24,6 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
 }
 #define ensure(c, ...) if(!(c))ERR_EXIT(__VA_ARGS__)
 
-inline SDL_Point center_point(const SDL_Rect& a) { return SDL_Point{a.x+a.w/2, a.y+a.h/2}; }
-
-inline std::array<int,2> center_row(int height, int rh) {
-    return { height/2+1 - rh/2, height/2 + rh/2 };
-}
-inline int last_y(int height, int rh) { return (height/rh)*(rh); }
-inline int nth_y(int nth, int height, int rh) { return (/*height/rh*/ + nth)*(rh); }
-//inline std::array<int,2> last_row(int height, int rh) {
-//    int x = height/2 + rh/2;
-//    int n = (height-x) / (rh);
-//    x += n*(rh);
-//    return { x, x + rh };
-//}
-inline std::array<int,2> first_row(int height, int rh) {
-    int x = height/2+1 - rh/2;
-    int n = x / (rh);
-    x -= n*(rh);
-    return { x - rh, x };
-}
-
 // 万 筒 索 字
 // 东 南 西 北 中 发 白
 // 顺 刻 将
@@ -87,7 +67,8 @@ struct Mahjong : std::array<Hand,4>
         int8_t pop(bool tail) {
             return (*this)[tail ? last-- : first++];
         }
-        bool empty() const { return first > last+int(size());}
+        int size() const { return int(std::vector<int8_t>::size()); }
+        bool empty() const { return first > (last+int(size()))%size();}
     };
     Tiles wall_; //int8_t wall_[Ntiles]; short end_, beg_; //std::deque<int> wall_;
     std::vector<int8_t> discard_;
@@ -133,7 +114,7 @@ struct Mahjong::Init : std::array<std::vector<int>,4>
     }
 };
 
-void Mahjong::deal(int pos, int beg, int to_pos, int noh=13);
+void Mahjong::deal(int pos, int beg, int to_pos, int noh)
 {
     first_hand_pos_ = pos;
     noh *= Nplayer;
@@ -277,7 +258,7 @@ struct View : Renderer
     void draw_rotate_test();
     void draw_discard();
     void draw_hands();
-    void draw_wall(Mahjong::Tiles const& tiles, int pos0);
+    void draw_wall(Mahjong::Tiles const& wall, int pos0);
 
     void draw_hand_tiles(SDL_Texture* tex, std::vector<int>& tils);
 
@@ -505,23 +486,27 @@ void View::draw_discard()
 //    }
 //}
 
-void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
+void View::draw_wall(Mahjong::Tiles const& wall, int pos0)
 {
-    if (tiles.empty()) //(tiles.first >= tiles.last + (int)tiles.size())
+    if (wall.empty()) //(wall.first >= wall.last + (int)wall.size())
         return;
-    return;
+
+    for (int beg = (size_.n*2)*pos0, end = beg + (size_.n*2)
+            ; beg < end; ++beg) {
+        ;
+    }
 
     ////SDL_SetRenderTarget(res->renderer, 0);
     //int w0,h0;
     //SDL_GetRendererOutputSize(res->renderer, &w0, &h0);
 
-    //int nt = tiles.size();
+    //int nt = wall.size();
     //int nr = nt/4/2;
     //int w = w_+1;
     //int y = wh_/2 + (nline_-2)*w - h_;
     //int x = wh_/2 - (nline_-3)*w + (nr-1)*w; //(nline_-6)*w;
 
-    //int last = tiles.last + nt;
+    //int last = wall.last + nt;
     //for (int pos=pos0; pos < pos0+4; ++pos) {
     //    SDL_SetRenderTarget(res->renderer, texture_);
     //    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
@@ -529,14 +514,14 @@ void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
     //    SDL_RenderClear(res->renderer);
 
     //    int beg = (pos%4) * nr;
-    //    if (beg < tiles.last)
+    //    if (beg < wall.last)
     //        beg += nt;
     //    int end = beg + nr*2;
     //    for (int i=beg; i < end; ++i) {
-    //        if (tiles.first <= i && i <= last) {
+    //        if (wall.first <= i && i <= last) {
     //            int j = i-beg;
     //            SDL_Rect dr = {x - w*(j/2), y - w*(j%2), w_,h_};
-    //            SDL_Texture* tex = tiletex( tiles[ pos0*nr*2 + j] );
+    //            SDL_Texture* tex = tiletex( wall[ pos0*nr*2 + j] );
     //            SDL_RenderCopy(res->renderer, tex, 0, &dr);
     //        }
     //    }
@@ -555,6 +540,9 @@ void View::draw_wall(Mahjong::Tiles const& tiles, int pos0)
 void View::draw(Mahjong const& m)
 {
     draw_wall(m.wall_, 0);
+    draw_wall(m.wall_, 1);
+    draw_wall(m.wall_, 2);
+    draw_wall(m.wall_, 3);
 
     //draw_hands();
 
