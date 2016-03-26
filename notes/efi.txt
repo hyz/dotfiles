@@ -7,3 +7,8 @@ efibootmgr -b 3 -B
 efibootmgr -l "\EFI\grub\BOOTX64.efi" -L "grub" -c
 efibootmgr -o 0,1,6
 
+### uefi boot usb-disk arch linux, PARTLABEL
+\EFI\Arch\vmlinuz-linux root=PARTLABEL=Arch initrd=/EFI/Arch/initramfs-linux.img
+[OR]
+/EFI/Arch/vmlinuz-linux root=PARTLABEL=Arch rw add_efi_memmap initrd=/EFI/Arch/initramfs-linux.img
+
