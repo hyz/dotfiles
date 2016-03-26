@@ -1,0 +1,32 @@
+
+制作一个floppy镜像文件，ext2文件系统，grub引导
+wood wood 2010-01-15 22:56:25
+适合给虚拟机作为引导软盘。
+
+1.
+dd if=/dev/zero of=floppy.img bs=2x80x18b count=1
+
+2.
+losetup -f floppy.img
+losetup -a
+
+3.
+mke2fs -t ext2 -T floppy /dev/loop/0
+
+4.
+mount /dev/loop/0 /mnt/floppy
+mkdir -p /mnt/floppy/boot/grub
+cp -t /mnt/floppy/boot/grub /lib/grub/i386-pc/stage[12]
+cp -t /mnt/floppy/boot/grub /boot/grub/menu.lst
+
+5.
+安装grub
+
+6.
+umount /mnt/floppy
+losetup -d /dev/loop/0
+OK.
+
+测试
+kvm -fda floppy.img -boot a
+
