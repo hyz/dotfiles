@@ -1,0 +1,191 @@
+#trde_list li{display:block;height:50px;border-bottom:1px solid #2c312c;line-height:50px;list-style:none;}
+#trde_list li em{display:inline-block;font-size:1.2em;width:25%;text-align:center;font-style:normal;}
+#trde_list li em.name{color:#F60} #trde_list li em.code, #trde_list li em.price, #trde_list li em.zd{color: #FFF}
+
+#line{display:block;width:100%; position: absolute;top:95px; bottom:90px; z-index:-1;}
+
+#Canvas{ background: none;}
+
+#prodoct_info{display:block; float:left; height:24px; line-height:24px; padding:10px 0; margin-left:10px}
+
+#login{ background: #282828!important;}
+#logo-content{    text-align: center;
+    margin-top: 53px;}
+#btnlogin_submit,#btnlogin_submit2{width: 100%;
+    height: 48px;
+    line-height: 48px;
+    border: none;
+    background: #e96300;
+    font-size: 1.5em;
+    color: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px #006868;
+    -moz-box-shadow: 2px 2px 5px 0px #006868;
+    box-shadow: 2px 2px 5px 0px #006868;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;}
+#reg_submit,#reg_submit2{width: 100%;
+    height: 48px;
+    line-height: 48px;
+    border: none;
+    background:  #006868;
+    font-size: 1.5em;
+    color: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px #293645;
+    -moz-box-shadow: 2px 2px 5px 0px #293645;
+    box-shadow: 2px 2px 5px 0px #293645;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;}
+#reg-content{    text-align: center;
+    margin-top: 5px;}
+	#btnlogin_submit{width: 100%;
+    height: 48px;
+    line-height: 48px;
+    border: none;
+    background: #e96300;
+    font-size: 1.5em;
+    color: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px #293645;
+    -moz-box-shadow: 2px 2px 5px 0px #293645;
+    box-shadow: 2px 2px 5px 0px #293645;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;}
+#reg_form li{ display:block; width:100%;}
+
+#reg_form li input,#reg_form em{ display:inline-block; margin-right:-4px; width:50%; }
+#reg_form em{ background:#F60; height:48px; line-height:48px;text-align:center;}
+.btn_sub{width: 100%;
+    height: 48px;
+    line-height: 48px;
+    border: none;
+    background: #e96300;
+    font-size: 1.5em;
+    color: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px #293645;
+    -moz-box-shadow: 2px 2px 5px 0px #293645;
+    box-shadow: 2px 2px 5px 0px #293645;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;}
+#txtlogin_uid {
+    background: #434242 url(../img/piclogin_user.png) no-repeat;
+    background-position: -10px -5px;
+}
+
+#txtlogin_pwd[placeholder],#txtlogin_uid[placeholder]{ padding-left:50px;}
+#txtlogin_pwd {
+    background:#434242  url(../img/piclogin_pwd.png) no-repeat;
+    background-position: -10px -5px;
+    margin-top: 0.25em;
+
+}
+#txtlogin_uid, #txtlogin_pwd {
+    height: 48px;
+    border-radius: 2px;
+    border: none;
+    color: rgb(153, 153, 153);
+    -webkit-box-shadow: 2px 2px 5px 0px #101410;
+    -moz-box-shadow: 2px 2px 5px 0px #101410;
+    box-shadow: 2px 2px 5px 0px #101410;
+}
+#login_form {
+	margin-top: 40px;
+}
+#user_info li{ border-bottom-color:#333; font-size:1.2em}
+#user_info li em{ padding-left:10px;}
+#user_info li em:first-child { color: #666}
+.btn_sub_funds{ height: 38px;
+    line-height: 38px;
+    border: none;
+    background: #e96300;
+    font-size: 1.2em;
+    color: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px #293645;
+    -moz-box-shadow: 2px 2px 5px 0px #293645;
+    box-shadow: 2px 2px 5px 0px #293645;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em; width:100px}
+.m_left10{ margin-left:10px;}
+.bg_636363{ background:#636363;}
+.tip{ display:block; line-height:180%; border: 1px solid   #F60; padding:10px; margin-top:10px; margin-bottom:10px; border-radius: 2px; }
+
+
+.menu{ display:block; height:50px; border-bottom:1px solid #F60; margin-top:10px;}
+.menu li{ display:inline-block; margin-right:-4px; width:50%; text-align:center; font-size:1.5em; height:50px; padding:0; line-height:40px;}
+.menu li.git_active{ background:#F60}
+/*持仓-------------*/
+.pro_list{ display:block; background:#464545; margin:10px 0; border-bottom:1px solid #F60; padding:5px 0; margin:5px 0;}
+.pro_list div{ display:inline-block; margin-right:-4px;vertical-align: top;}
+.pro_list div:first-child{ width:30%;}
+.pro_list div:first-child li{ display:block; width:100%; text-align:center; height:34px; font-size:1.3em; line-height:34px;}
+.pro_list .p_zd{ color:#F00}
+.pro_list .p_d{ color: #3F0;}
+.pro_list div.p_infos{ width:70%;}
+
+.pro_list div.p_infos ul:first-child li{ display:inline-block; width:50%; margin-right:-4px; height:40px; text-align:center; border-left:1px solid  #333}
+.pro_list div.p_infos ul:first-child li em{ display:block; width:100%; height:20px; line-height:20px;}
+.pro_list div.p_infos ul:first-child li em:last-child{ font-size:1.3em;}
+.pro_list div.p_infos ul:last-child{ border-top:1px solid #333}
+.pro_list div.p_infos ul:last-child li{ display:inline-block; width:50%; margin-right:-4px; height:60px; text-align:center; border-left:1px solid #333}
+.pro_list div.p_infos ul:last-child li em{ display:block; width:100%;}
+.pro_list div.p_infos ul:last-child li em:first-child{ height:20px; line-height:20px;}
+.pro_list div.p_infos ul:last-child li em:last-child{ height:20px; line-height:20px; font-size:1.3em;}
+.pro_list div.p_infos li em:first-child{ color:#999}
+.pro_list div.p_infos li em:last-child{ font-size:1em;}
+/*8888888888888888trde_main*/
+#trde_line{ width:100%;}
+#trde_line select{-webkit-box-shadow:none;
+    -moz-box-shadow:none;
+    box-shadow:none;
+    }
+#trde_line div{ display:inline-block; width:30%; margin-right:-4px;vertical-align: top; text-align:center;}
+#trde_line div:first-child{ width:40%!important}
+#shouyi{ background:#09F; height:47px; line-height:47px; margin-top:4px; font-size:1.3em;}
+#money{ position:relative;}
+#money li{ display:inline-block;vertical-align: top; margin-right:-4px;}
+#money li{ height:47px; line-height:47px; background:#F60; width:20%; margin-top:4px; text-align:center; font-size:2em}
+#funds{ width:60%!important; background: #666!important;font-size:1em!important}
+
+#trde_content{ display:block; position:absolute; bottom:0px; left:0; width:100%;}
+#trde_content div{ display:inline-block; margin-right:-4px; text-align:center; height:80px; line-height:80px;vertical-align: top; width:33.333%; font-size:1.5em;}
+#buy_up{ background:#F00}
+#buy_down{ background:#093}
+#new_price{ background:#666;}
+/*商品列----表---×*/
+#select_time{ border-bottom:1px solid #F60; background:#333; margin-top:5px; width:100%; overflow:hidden;}
+#select_time li{ display:inline-block; height:50px; line-height:50px; margin-left:-4px; width:25%; text-align:center; vertical-align:top;}
+#select_time li.ac{ background:#F60;}
+#reg{ z-index:100000;}
+#user_show{ display:block; float:left; height:44px; line-height:44px; margin-left:10px;}
+#trde_title{ display:block; text-align:center; height:30px; line-height:30px; font-size:1.5em;}
+#left li.m_ac{ background: #F60!important}
+.daojishi,.new_price{ height:30px; text-align:center; width:50%; margin-left:-4px;display:inline-block;}
+#pay_wx{ text-align:center;}
+#pay_wx img{ max-width:100%;}
+#pay_content{ margin-top:10px;}
+.daojishi{ color:#F00; font-size:1.3em;}
+.new_price{font-size:1.3em;}
+.trde_jg{ display:block; width:100%; height:30px; border-top:1px solid #333; margin-top:5px;}
+.trde_jg em{ display:inline-block; width:50%; margin-right:-4px; height:30px; line-height:30px; text-align:center; font-size:1.3em;}
+.trde_jg em:last-child{ border-left:1px solid #333}
+#trde_tip{ display:block; width:100%; padding:20px;}
+#trde_tip  ul{ display:block; height:40px; border-bottom:1px solid #CCC}
+#trde_tip li{ display:inline-block; margin-right:-4px; width:50%; height:40px; line-height:40px; color:#666}
+#trde_tip li em{ color:#000;}
+#trde_tip li:last-child{ border-left:1px solid #CCC; text-align:center;}
+#trde_tip ul:last-child{ border:none;}
+a.btn{ display:block; width:100%; background: #F60; height:48px; line-height:48px; color:#fff; font-size:1.5em; text-decoration:none; text-align:center; margin-top:5px;border-radius:5px; -webkit-box-shadow: 2px 2px 5px 0px #293645;
+    -moz-box-shadow: 2px 2px 5px 0px #293645;
+    box-shadow: 2px 2px 5px 0px #293645;}
+	#funds_info{ background: #666; margin-top:5px; padding:5px 0;}
+	#funds_info li{ display:inline-block; margin-right:-4px; width:33.33%}
+	#funds_info li em{ display:block; width:100%; text-align:center;}
+	#funds_info li em:last-child{ height:30px; line-height:30px; font-weight:bold; font-size:1.5em;}
+	#user_nick{ padding-right:5px;}
+.pay_menu{ display:block; border-bottom:1px solid #F60; background:#333; margin-top:5px;}
+.pay_menu ul{ display:block;border-bottom:1px solid #333}
+.pay_menu a{ display:inline-block; margin-right:-4px; height:48px; line-height:48px; text-align: center; font-size:1.5em; width:50%; text-decoration:none; color:#fff}
+.pay_menu a.pay_ac{ background:#F60}
+.log_content li{ display:inline-block; height:40px; line-height:40px; text-align:center; margin-left:-4px}
+.log_content ul li{width:25%; }
+.log_content ul li:first-child{width:50%!important; text-align:left!important }
+#funds input{ margin:0; text-align:center;}
+	

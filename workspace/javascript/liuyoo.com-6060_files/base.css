@@ -1,0 +1,337 @@
+.eryuan,
+.eryuan .view,
+.eryuan .view .pages {
+  font: 14px 'Roboto', sans-serif;
+  background: #101410;
+  color: #fff;
+  border-color: #fff;
+}
+.eryuan.light .view,
+.eryuan.light .view .pages {
+  background: #FDFDFD;
+  color: #000;
+}
+.eryuan .view header {
+  background: #1e1e1e;
+  color:#fff;
+  
+  border-color: #d45b00;
+}
+.eryuan .view header .button {
+  color: inherit;
+  background: none;
+  font-size: 14px;
+  box-shadow: none;
+}
+.eryuan .view header .backButton {
+  background: inherit;
+  color: inherit;
+}
+.eryuan .view footer {
+  box-shadow: none;
+  background: #282828;
+  border-top: 2px solid #e96300;
+  border-bottom: none;
+  padding: 0;
+}
+.eryuan .view footer > a:not(.button) {
+  color: inherit;
+  top: 0px;
+}
+.eryuan .view footer > a.pressed:not(.button) {
+  border: 0px;
+
+  border-radius: 0px;
+  background: none;
+   background:#e96300;
+ border:none;
+}
+.eryuan .view footer > a.icon.pressed:not(.button):before {
+  color: inherit;
+}
+.eryuan .menuButton:after {
+  border-color: white;
+}
+.eryuan .af-badge {
+  border: none;
+}
+.eryuan .list {
+  background: inherit;
+  color: inherit;
+  border-color: #303030;
+}
+.eryuan .list .divider {
+  color: black;
+}
+.eryuan .panel h2 {
+  color: inherit;
+}
+.eryuan .collapsed:after {
+  border-top: 6px solid;
+}
+.eryuan .collapsed:before {
+  border: 2px solid;
+}
+.eryuan .expanded:after {
+  border-bottom: 6px solid;
+}
+.eryuan .expanded:before {
+  border: 2px solid;
+}
+.eryuan .afScrollbar {
+  background: white !important;
+}
+.eryuan input[type="range"] {
+  -webkit-appearance: none;
+  background-color: #ccc;
+  height: 2px !important;
+  position: relative;
+  top: -10px;
+  margin-top: 15px;
+}
+.eryuan input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+  width: 21px;
+  height: 21px;
+  border-radius: 40px;
+  background: #33b5e5;
+}
+.eryuan input.toggle + label:after {
+  color: inherit;
+}
+.eryuan input.toggle + label {
+  border-radius: 0;
+}
+.eryuan input.toggle + label > span {
+  border-radius: 0;
+  top: 0;
+  width: 27px;
+  height: 29px;
+}
+.eryuan input.toggle:checked + label {
+  background: #33b5e5;
+}
+.eryuan label {
+  color: inherit;
+}
+.eryuan input[type="checkbox"] + label:before {
+  border-radius: 0;
+}
+.eryuan input[type="checkbox"]:not(.toggle):checked + label:before {
+  color: #33b5e5;
+  background: white;
+}
+.eryuan .button {
+  border-radius: 0;
+  border: none;
+  background: #424343;
+  border-color: transparent;
+  color: inherit;
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.eryuan .button.previous::after {
+  width: 20px;
+  height: 20px;
+  background-color: inherit;
+  top: 5px;
+  left: -12px;
+  border-radius: 0;
+  box-shadow: none;
+  border-color: transparent;
+}
+.eryuan .button.next::after {
+  width: 20px;
+  height: 20px;
+  background-color: inherit;
+  top: 5px;
+  right: -12px;
+  border-radius: 0;
+  box-shadow: none;
+  border-color: transparent;
+}
+.eryuan header .button-grouped > .button {
+  border-color: #777;
+}
+.eryuan .button-grouped * {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-left-width: 0;
+  box-shadow: none;
+}
+.eryuan .button-grouped.vertical * {
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom-width: 0;
+}
+.eryuan .button-grouped.vertical .button:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+.eryuan .afPopup {
+	width:320px;
+  border: solid 1px #333;
+  padding: 0;
+  border-radius: 0;
+  -webkit-transform: none;
+  transform: none;
+  -webkit-transition: none;
+  transition: none;
+  background: inherit;
+  background-color:#fff;
+  color:#000;
+}
+.eryuan .afPopup > HEADER {
+	color:#fff;
+	background:#2e313c;
+  font-weight: normal;
+  font-size: 20px;
+  text-align: left;
+  padding: 10px;
+}
+.eryuan .afPopup > DIV {
+  font-size: 14px;
+  text-align: left;
+  padding: 5px;
+  margin: 0;
+  border-top: solid 1px #aaa;
+  border-bottom: solid 1px #aaa;
+}
+.eryuan .afPopup > FOOTER {
+  background: #2e313c;
+}
+.eryuan .afPopup > FOOTER > A#cancel {
+  margin-left: 10px;
+  width: 120px;
+}
+.eryuan .afPopup > FOOTER > A#action {
+  margin-right: 10px;
+  width: 120px;
+}
+.eryuan .afPopup > FOOTER > A.center {
+  margin: 8px;
+}
+.eryuan #af_actionsheet {
+ 
+  border-top:3px  #33b5e5 ;
+  background:#636363;
+  color: inherit;
+  margin: -20px 0px 0 0px;
+  padding: 0px;
+}
+.eryuan #af_actionsheet a {
+  border-radius: 0;
+  border:0px solid   #F00;
+  background: #636363;
+  color: inherit;
+  line-height: 50px;
+  margin-bottom: 0px;
+   border-bottom:1px solid #333;
+}
+ul,li{ list-style:none;}
+.eryuan #af_actionsheet a.cancel {
+  margin-bottom: 0px;
+  background: #424343;
+  color: red;
+}
+.eryuan.light .menuButton:after {
+  border-color: black;
+}
+.eryuan.light .afScrollbar {
+  background: black !important;
+}
+.eryuan.light .button {
+  background: #eee;
+  border-color: #D1D1D1;
+}
+.eryuan.light .afPopup {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+.eryuan.light #af_actionsheet {
+  border: #bbb 1px solid;
+  border-top: #33b5e5 3px solid;
+  background: #bbb;
+}
+.eryuan.light #af_actionsheet a {
+  background: #fff;
+}
+.eryuan.light .view header h1 {
+  color: black;
+  text-shadow: none;
+}
+.eryuan .view .panel {
+  background: inherit;
+  color: inherit;
+}
+.eryuan .collapsed:before,
+.eryuan .expanded:before {
+  border-color: inherit;
+}
+.eryuan .collapsed:after,
+.eryuan .expanded:after {
+  border-top-color: inherit;
+}
+.eryuan select,
+.eryuan textarea,
+.eryuan input[type="text"],
+.eryuan input[type=search],
+.eryuan input[type="password"],
+.eryuan input[type="datetime"],
+.eryuan input[type="datetime-local"],
+.eryuan input[type="date"],
+.eryuan input[type="month"],
+.eryuan input[type="time"],
+.eryuan input[type="week"],
+.eryuan input[type="number"],
+.eryuan input[type="email"],
+.eryuan input[type="url"],
+.eryuan input[type="tel"],
+.eryuan input[type="color"],
+.eryuan .input-group {
+  background: inherit;
+  color: inherit;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #ccc;
+}
+.eryuan:not(.light) input[type="radio"]:not(.toggle):checked + label:before {
+  background: #33b5e5;
+  border: 2px solid white;
+}
+.eryuan .button.pressed,
+.eryuan header .button-grouped  > .button.pressed {
+  background: #33b5e5;
+  border-color: #33b5e5;
+}
+.eryuan .afPopup  > FOOTER  > A,
+.eryuan.light .afPopup  > FOOTER  > A {
+  background: #fff;
+  color: #111;
+}
+.eryuan nav .panel,.eryuan nav .pages,.eryuan nav li{ background:#414141!important}
+.eryuan nav li{border-bottom:1px solid #282828;}
+.eryuan .backButton{ display:none!important;}
+.eryuan input[type="text"],.eryuan input[type="password"]{
+	 background:#434242;
+  
+    margin-top: 0.25em;
+	height: 48px;
+    border-radius: 2px;
+    border: none;
+    color:#fff);
+    -webkit-box-shadow: 2px 2px 5px 0px #101410;
+    -moz-box-shadow: 2px 2px 5px 0px #101410;
+    box-shadow: 2px 2px 5px 0px #101410;}
+.eryuan em{ font-style:normal;}
+.eryuan select{ background:#434242; background:#434242;
+  
+    margin-top: 0.25em;
+	height: 48px;
+    border-radius: 2px;
+    border: none;
+    color:#fff);
+    -webkit-box-shadow: 2px 2px 5px 0px #101410;
+    -moz-box-shadow: 2px 2px 5px 0px #101410;
+    box-shadow: 2px 2px 5px 0px #101410;}
+	.clearfix:after {visibility:hidden;display:block;font-size:0;content:" ";clear:both;height:0;}
+.clearfix{*zoom:1;}
+.clear:before, .clear:after {content:"";display:table}.clear:after{clear:both}.clear{*zoom:1;/*ie6,7*/}

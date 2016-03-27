@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" type="text/css" href="liuyoo.com-6060_files/af.css">
+<link rel="stylesheet" type="text/css" href="liuyoo.com-6060_files/base.css">
+<link rel="stylesheet" type="text/css" href="liuyoo.com-6060_files/icos.css">
+<link rel="stylesheet" type="text/css" href="liuyoo.com-6060_files/index.css">
+<script type="text/javascript" charset="utf-8" src="liuyoo.com-6060_files/jquery_002.js"></script>
+<script type="text/javascript" charset="utf-8" src="liuyoo.com-6060_files/appframework.js"></script>
+<script type="text/javascript" charset="utf-8" src="liuyoo.com-6060_files/fastclick.js"></script>
+<script type="text/javascript" charset="utf-8" src="liuyoo.com-6060_files/jquery.js"></script>
+<script type="text/javascript" src="liuyoo.com-6060_files/hidpi-canvas.js"></script>
+<script type="text/javascript" src="liuyoo.com-6060_files/MinuteLine.js"></script>
+<script type="text/javascript" src="liuyoo.com-6060_files/time.js"></script>
+<script type="text/javascript" charset="utf-8" src="liuyoo.com-6060_files/base.js"></script>
+<title>金融期权微交易</title>
+</head>
+
+<body class="eryuan">
+
+<div style="display: none;" id="login" class="panel">
+  <div id="logo-content">
+    <div><img src="liuyoo.com-6060_files/logo.png" id="logo"></div>
+  </div>
+  <div id="login_form">
+    <input value="1234" class="" id="txtlogin_uid" placeholder="请输入登录帐号" type="text">
+    <input id="txtlogin_pwd" placeholder="请输入登录密码" type="password">
+    <button class="" type="button" id="btnlogin_submit">登    录</button>
+    <button type="button" id="reg_submit">开     户</button>
+  </div>
+</div>
+<div class="panel" id="reg">
+  <div id="reg-content">
+    <div><img src="liuyoo.com-6060_files/logo.png" id="logo"></div>
+  </div>
+  <div id="reg_form">
+    <div class="tip">帐号由系统自动创建，将通过手机发送给您，因此请务必准确填写信息，若有疑问请咨询客服专员！ </div>
+    <input id="iuser_name" placeholder="姓名" reg="^[\u4e00-\u9fa5]{2,4}$" type="text">
+    <input id="imob" placeholder="手机" reg="^[0-9]{11}$" type="text">
+    <input id="iemail" placeholder="电子邮箱" reg="^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$" type="text">
+    <input id="iweixin" placeholder="微信号" type="text">
+    <input id="ipass" placeholder="交易密码" reg="^[a-z,A-Z,0-9]{6,15}$" msg="交易密码最少6位!" type="password">
+    <input id="ifundspass" placeholder="资金密码" reg="^[a-z,A-Z,0-9]{6,15}$" msg="资金密码最少6位!" type="password">
+    <input id="ibank" placeholder="银行卡" reg="^[0-9]{15,19}$" type="text">
+    <input id="ibank_name" placeholder="开户行" reg="^[\u4e00-\u9fa5]{1,30}$" type="text">
+    <li>
+      <input id="iyanz" placeholder="验证码" reg="^[0-9]{6}$" type="text">
+      <em id="send_yzm">发送手机验证码</em></li>
+    <button type="button" id="reg_submit2">立 即 开 户</button>
+    <button type="button" id="btnlogin_submit2">已有帐号登录</button>
+  </div>
+</div>
+<div style="" class="view active" id="mainvie">
+  <header><a class="backButton back">Back</a>
+    <div id="user_show"><em id="user_nick">模拟</em><em id="funds_user">884696</em>  </div>
+    <h1>商品列表</h1>
+    <a class="menuButton" data-right-menu="left" data-transition="push"></a> </header>
+  <div class="pages"> 
+    
+    <!--Tab View Pages-->
+    <div style="z-index: 10;" class="panel bg-101410 active" data-title="商品列表" id="main">
+      <div id="select_time">
+        <li class="" time="60s">1分钟</li>
+        <li class="ac" time="15m">5分钟</li>
+        <li time="30m">30分钟</li>
+        <li time="5d">60分钟</li>
+      </div>
+      <div id="trde_list"><li bl="0.8" total_time="240" class_id="1" id="c040104"><em class="name">IF1604</em><em class="code">IF1604</em><em class="price">--</em><em class="zd">--</em></li><li bl="0.8" total_time="240" class_id="1" id="c040304"><em class="name">IH1604</em><em class="code">IH1604</em><em class="price">--</em><em class="zd">--</em></li><li bl="0.8" total_time="240" class_id="1" id="c040404 "><em class="name">IC1604</em><em class="code">IC1604</em><em class="price">--</em><em class="zd">--</em></li><li bl="0.8" total_time="745" class_id="2" id="c7203"><em class="name">恒指03</em><em class="code">HSIH6</em><em class="price">--</em><em class="zd">--</em></li><li bl="0.8" total_time="745" class_id="2" id="c7243"><em class="name">小恒指03</em><em class="code">MHIH6</em><em class="price">--</em><em class="zd">--</em></li></div>
+    </div>
+    <div class="panel" id="git" data-title="交易记录">
+      <div class="menu">
+        <li class="git_active">持仓</li>
+        <li page="hist_trde">历史交易</li>
+      </div>
+      <div id="pro_list"></div>
+    </div>
+	<div class="panel" id="rool" data-title="交易规则">
+      <div id="rool_content">
+	  
+	   <p>1、1分钟产品最大持仓下单2笔</p>
+       <p>2、单笔投资额度最小100元人民币，最大5000元人民币</p>
+       <p>3、单账户持仓总额度3万元人民币</p>
+	   <p>4、因非农数据影响，全球行情发生剧烈波动；为了规避投资者的投资风险，
+         在非农数据公布当天,公司将暂停1个小时商品交易，暂停交易时间段为：20:50分-21:50分，21:50分后将恢复正常交易</p>
+       <p>5、用户出入金请进入电脑版PC端进行操作，微信平台仅支持出金操作</p>
+       <p>6: 工作日支持24小时出入金，到账时间为工作日15:00-17:00</p>
+       <p>7、电脑版PC端下载地址：http://www.liuyoo.com:6060/zgt.zip</p>
+	   <p>8、交易时间:
+	   </p><p>外汇：早8:00-00:00  伦敦金银现货：早8:00-00:00  美原油：早8:00-00:00 
+中金所：9:30-11:30、13:00-15:00  上证指数、深证成指：9:30-11:30、13:00-15:00  
+恒生期指：9:15-12:00、    13:00-16:15、17:00-23:45
+       </p><p>9、1分钟商品：伦敦金-伦敦银-美元加元-美元瑞郎-英镑美元-纽元美元-澳元美元-欧元美元-美元日元</p>
+       <p>10、5-15分钟商品：(中金所IF、IC、IH)(香港恒生期指、大恒指、小恒指）（美原油）</p>
+       <p>11、30分钟商品：(中金所IF、IC、IH)(香港恒生期指、大恒指、小恒指）（美原油）（上证指数）（深证成指）</p>
+       <p>12、60分钟商品：（上证指数）（深证成指）<br>
+</p>
+	  
+	  </div>
+    </div>
+    <div class="panel" id="hist_trde" data-title="历史交易">
+      <div class="menu">
+        <li page="git">持仓</li>
+        <li class="git_active">历史交易</li>
+      </div>
+      <div id="funds_info">
+        <li><em>账户余额</em><em id="ye">0.00</em></li>
+        <li><em>当日盈亏</em><em id="yk">0.00</em></li>
+        <li><em>当日单数</em><em id="count_num">0.00</em></li>
+      </div>
+      <div id="hist_list"></div>
+    </div>
+    <div class="panel" data-title="个人信息" id="user_info">
+      <ul class="list">
+      </ul>
+      <a href="#re_user_info" data-transition="invoke" class="btn">修改个人信息</a> </div>
+    <div class="panel" data-title="修改信息" id="re_user_info">
+      <ul class="list" id="re_info">
+        <input placeholder="手机" id="x_mob" reg="^[0-9]{11}$" type="text">
+        <input placeholder="姓名" id="x_user_name" reg="^[\u4e00-\u9fa5]{2,4}$" type="text">
+        <input placeholder="邮箱" id="x_email" reg="^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$" type="text">
+        <input placeholder="微信号" id="x_weixin" type="text">
+        <input placeholder="银行帐号" id="x_bank_card" reg="^[0-9]{15,19}$" type="text">
+        <input placeholder="开户行" id="x_bank" reg="^[\u4e00-\u9fa5]{1,30}$" type="text">
+      </ul>
+      <button type="button" id="btn_reuserinfo" class="btn_sub">修改个人信息</button>
+    </div>
+    <div class="panel" id="pay" data-title="转账">
+      <div class="tip"> 输入出金金额，点击确定，若有疑问请联系客服专员。 </div>
+      <div id="pay_content">
+        <input placeholder="出金金额" id="out_funds" type="text">
+        <input placeholder="资金密码" id="out_pass" type="password">
+        <button type="button" id="funds_submits" class="btn_sub">确 定</button>
+        <a href="#pay_log" data-transition="invoke" class="btn">资金流水</a>
+      </div>
+    </div>
+    <div class="panel" id="pay_log">
+    <div class="pay_menu">
+    <a class="pay_log pay_ac">入金记录</a>
+    <a class="pay_log" href="#out_log" data-transition="invoke">出金记录</a>
+    </div>
+     <div class="log_content"></div>
+    </div>
+    <div class="panel" id="out_log">
+    <div class="pay_menu">
+    <a class="pay_log" href="#pay_log">入金记录</a>
+    <a class="pay_log  pay_ac" data-transition="invoke">出金记录</a>
+    </div>
+     <div class="log_content"></div>
+    </div>
+    <div class="panel" id="pay_wx" data-title="微信入金">
+      <div class="tip">微信入金流程:添加官方微信为好友(长按下方二维码选择识别图中二维码)如有疑问请联系客服 </div>
+      <img src="liuyoo.com-6060_files/wx.htm"> <img src="liuyoo.com-6060_files/pay.htm"> </div>
+    <div class="panel" id="repass" data-title="修改密码">
+      <input placeholder="旧密码" id="old_pass" type="password">
+      <input placeholder="新密码" id="pass" type="password">
+      <input placeholder="确认新密码" id="compass" type="password">
+      <button type="button" id="btnrepass_submit" class="btn_sub">修改交易密码</button>
+    </div>
+      <div class="panel" id="safe_pass" data-title="修改资金密码">
+      <input placeholder="旧密码" id="s_old_pass" type="password">
+      <input placeholder="新密码" id="s_pass" type="password">
+      <input placeholder="确认新密码" id="s_compass" type="password">
+      <button type="button" id="safe_submit" class="btn_sub">修改资金密码</button>
+    </div>
+    <div style="z-index: 1;" class="panel" data-title="交易" id="trde">
+      <div id="trde_line" class="clear">
+        <div id="money">
+          <li id="del">-</li>
+          <li id="funds"><input value="100" type="text"></li>
+          <li id="add">+</li>
+        </div>
+        <div id="shouyi">0%</div>
+        <div>
+          <select id="times"><option selected="selected" value="60">1分钟</option></select>
+        </div>
+      </div>
+      <div id="trde_title">null(null)</div>
+      <div id="line" class="clearfix"><canvas style="height: 0px; width: 100px;" id="Canvas" width="125" height="0"></canvas></div>
+      <div class="clear"></div>
+      <div id="trde_content">
+        <div class="" id="buy_up">买涨</div>
+        <div id="new_price">0</div>
+        <div class="" id="buy_down">买跌</div>
+      </div>
+    </div>
+  </div>
+  <nav id="left">
+    <div class="view active" id="navView1">
+      <header>
+        <h1>菜单</h1>
+      </header>
+      <div class="pages">
+        <div class="panel active" id="navPage1" data-title="Foobar">
+          <ul class="list">
+            <li page="user_info" class="icon big user">个人信息</li>
+            <li page="git" class="icon middl git">持仓</li>
+            <li page="hist_trde" class="icon big hist">历史交易</li>
+            <li page="repass" class="icon big pass">修改交易密码</li>
+              <li page="safe_pass" class="icon big pass">修改资金密码</li>
+			    <li page="rool" class="icon middl hist">交易规则</li>
+            <li page="exit" class="icon middl exit">安全退出</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <footer id="foot"> <a data-ignore-pressed="true" href="#main" class="icon list pressed" id="tab1" data-transition="invoke">商品列表</a> <a data-ignore-pressed="true" href="#trde" class="icon trde" id="tab2" data-transition="invoke">委托交易</a> <a data-ignore-pressed="true" href="#git" class="icon trde_log" id="tab3" data-transition="invoke" data-load="">交易记录</a> <a data-ignore-pressed="true" href="#pay" class="icon pay" id="tab4" data-transition="invoke">转账</a> </footer>
+</div>
+
+
+<div style="z-index: 20000; display: none;" class="ui-loader" id="afui_mask"><span class="ui-icon ui-icon-loading spin"></span><h1>Loading Content</h1></div></body></html>
