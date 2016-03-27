@@ -1,8 +1,49 @@
+
+####
+hda=/dev/sda9 ### Windows7
+rom=/esp/OEM/DELL23/DELL23.ROM
+
+[ "`stat -c '%G' $hda`"="kvm" ] || sudo chgrp kvm $hda
+
+### qemu
+qemu-system-x86_64 -enable-kvm -cpu host -m 2048M -smp 2 -rtc base=localtime -name Winows7 \
+    -drive file=$hda,index=0,media=disk,format=raw \
+    -drive file=/dev/sdb,index=1,media=disk,format=raw \
+    -net user,smb=/home/wood/smb \
+    -net nic,model=rtl8139 \
+    -boot menu=on,splash-time=5000 \
+    #-usb -usbdevice host:0781:5567 \
+    #-drive file=/dev/sdb,index=1,media=disk,format=raw \
+    #-bios "$rom" \
+    #
+exit
+    #-fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
+
+#!/bin/sh
+### qemu
+qemu-system-x86_64 -enable-kvm -cpu host -m 12288 -smp 2 -usb \
+    -rtc base=localtime \
+    -name Win7 -monitor telnet:127.0.0.1:12997,server,nowait,ipv4 \
+    -drive file=/home/jserink/VMs/Win_7_Pro.img,index=0,media=disk,format=raw \
+    -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 \
+    -cdrom /home/jserink/CDs/virtio-win-0.1-49.iso \
+    -net nic,vlan=0,model=virtio,macaddr=52:54:00:00:EE:07 -net vde \
+    -vga qxl -global qxl.vram_size=128000 \
+    -spice port=15900,addr=127.0.0.1,disable-ticketing \
+    -chardev spicevmc,id=spicechannel0,name=vdagent \
+    -boot c \
+    & 
+
+####
+hda=/dev/sda9 ### WindowsXP
+
+[ "`stat -c '%G' $hda`"="kvm" ] || sudo chgrp kvm $hda
+
 qemu-system-x86_64 -enable-kvm -m 1024M \
     -net user,smb=/home/wood/smb \
     -net nic,model=rtl8139 \
     -fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
-    -hda /dev/sda9 
+    -hda $hda 
 
 # -redir tcp:3389::3389
 # -drive file=/path/to/primary/disk.img,index=0,media=disk,if=virtio
