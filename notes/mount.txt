@@ -1,13 +1,37 @@
 
 > mount /dev/sda1 /esp -o uid=1000,gid=1000
 
-
 > parted bootmgr.vhd unit B print free
-> mount -t ntfs-3g -o loop,ro,offset=65536 bootmgr.vhd /mnt
 > mount -t vfat -o loop,offset=65536,uid=1000,gid=1000 /esp/windows/boot/bootmgr.vhd mnt
+> mount -t ntfs-3g -o loop,ro,offset=65536 bootmgr.vhd /mnt
 
 ### cygwin
 > mount --help
 > mount
 > mount -o binary,posix=0,user D:/home /home # cygwin
+
+### mount MBR raw disk
+wood@arch> fdisk /dev/sda9                                                                                                   ~
+Welcome to fdisk (util-linux 2.27.1).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Command (m for help): p
+Disk /dev/sda9: 29.1 GiB, 31280070656 bytes, 61093888 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xa3f8a3f8
+
+Device      Boot Start      End  Sectors  Size Id Type
+/dev/sda9p1 *       63 61063064 61063002 29.1G  7 HPFS/NTFS/exFAT
+
+Command (m for help): q
+
+wood@arch> echo $((512*63))                                                                                                  ~
+32256
+wood@arch> sudo mount -t ntfs-3g -o loop,ro,offset=32256 /dev/sda9 ~/mnt                                                     ~
+wood@arch> ls ~/mnt
+wood@arch> cp -R /mnt/bootmgr /mnt/boot ~/mnt/
 

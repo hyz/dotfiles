@@ -5,16 +5,23 @@ rom=/esp/OEM/DELL23/DELL23.ROM
 
 [ "`stat -c '%G' $hda`"="kvm" ] || sudo chgrp kvm $hda
 
+### lsusb
+### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
+### ... -usb -device usb-host,hostbus=2,hostaddr=6
+### sudo chgrp kvm /dev/bus/usb/002/006
+### qemu-system-x86_64 -device help
+### qemu-system-x86_64 -device usb-host,help
 ### qemu
-qemu-system-x86_64 -enable-kvm -cpu host -m 2048M -smp 2 -rtc base=localtime -name Winows7 \
+qemu-system-x86_64 -enable-kvm -cpu host -m 2048M -smp 2 -rtc base=localtime -name Winows7 -full-screen \
     -drive file=$hda,index=0,media=disk,format=raw \
-    -drive file=/dev/sdb,index=1,media=disk,format=raw \
     -net user,smb=/home/wood/smb \
     -net nic,model=rtl8139 \
-    -boot menu=on,splash-time=5000 \
-    #-usb -usbdevice host:0781:5567 \
-    #-drive file=/dev/sdb,index=1,media=disk,format=raw \
     #-bios "$rom" \
+    #-boot menu=on,splash-time=5000 \
+    #-drive file=/dev/sdb,index=1,media=disk,format=raw \
+    #
+    #-usb -device usb-host,hostbus=2,hostaddr=6 \
+    #-usb -usbdevice host:0781:5567 \
     #
 exit
     #-fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
