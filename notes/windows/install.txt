@@ -8,3 +8,16 @@ slmgr.vbs -ilc NAME.XRM-MS # with the asus certificate and then do a
 slmgr.vbs -ipk XXXX-XXXX # the slp key..
 slmgr.vbs -dli #to see if it worked..
 
+### http://bootableusb.net/install-windows-7-usb-drive-easy-way/
+C:\> DISKPART
+LIST DISK
+SELECT DISK X
+CREATE PARTITION PRIMARY
+SELECT PARTITION 1
+ACTIVE
+FORMAT FS=NTFS
+ASSIGN
+EXIT
+
+C:\> BOOTSECT.EXE /NT60 X:
+
