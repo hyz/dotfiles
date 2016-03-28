@@ -1,0 +1,11 @@
+
+http://www.jianshu.com/p/874ff12a4c01
+https://github.com/codepath/android_guides/wiki
+
+Learning to build real data-driven apps requires a few core concepts.
+Views: Common Controls and View Layout
+Events: Interaction and Event Handling
+Navigation: Screen Flows and Navigation
+Data: Models, Networking and Persistence
+Platform: OS Services, Hardware, Accessing Sensors
+

@@ -76,7 +76,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     /bin/ls -1d /cygdrive/[cde]/*/GNU/GnuPG | while read x ; do
         PATH=$PATH:$x
     done
-    for x in $HOME/.gnupg /cygdrive/{e,f,g}/.gnupg ; do
+    for x in $HOME/.gnupg /cygdrive/{e,f,g,h}/.gnupg ; do
         if [ -d "$x" ] ; then
             export GNUPGHOME=`cygpath -w "$x"`
             break
