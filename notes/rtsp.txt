@@ -1,0 +1,12 @@
+### http://stackoverflow.com/questions/12962358/stream-from-mp4-file-over-rtsp-with-ffserver
+
+$ ffserver -f ffserver-sample.conf
+$ ffplay rtsp://192.168.1.99:7654/test2-rtsp
+
+### 
+https://github.com/Akagi201/curl-rtsp
+
+
+### http://www.live555.com/liveMedia/public/
+testProgs/testRTSPClient rtsp://127.0.0.1:7654/test1-rtsp
+

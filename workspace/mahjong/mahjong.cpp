@@ -147,6 +147,7 @@ void Mahjong::fetch(int pos, bool tail)
 struct View_resource
 {
     SDL_Window *window; // SDL_Surface *gSurface;
+    SDL_DisplayMode displayMode;
     SDL_Renderer* renderer;
     std::vector<SDL_Texture*> tiles; //std::array<std::array<SDL_Texture*,9>,4> tiles; // = {};
 
@@ -172,9 +173,10 @@ View_resource::View_resource()
 
     //window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, SDL_WINDOW_RESIZABLE); //SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
     //window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, 0); //SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_BORDERLESS,,SDL_WINDOW_FULLSCREEN
-    window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,0, wh,wh, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN_DESKTOP); //SDL_WINDOW_RESIZABLE SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+    window = SDL_CreateWindow("Mahjong", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, wh,wh, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN_DESKTOP); //SDL_WINDOW_RESIZABLE SDL_WINDOW_BORDERLESS,SDL_WINDOW_FULLSCREEN_DESKTOP,SDL_WINDOW_FULLSCREEN
+    SDL_GetWindowDisplayMode(window, &displayMode);
     
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_TARGETTEXTURE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
     //renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);//, "SDL_CreateRenderer: %s", SDL_GetError()
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
@@ -209,10 +211,10 @@ View_resource::View_resource()
 
 struct Layout_size
 {
-    int s, sp; // texture-size, space
     int w, h;  // tile width,length
-    int n;     // wall-length
-    int x, y;  // center-point outside
+    int n, sp;     // wall-length, space
+    int s; // texture-size
+    int x, y;  // center-point of world
     Layout_size(SDL_Renderer* renderer, SDL_Texture* tile, int nts) {
         int w0,h0;
         SDL_GetRendererOutputSize(renderer, &w0, &h0); //SDL_GetCurrentDisplayMode SDL_GetRendererOutputSize SDL_GetWindowSize
@@ -239,7 +241,10 @@ struct Renderer
     Layout_size size_; //int nline_; int w_, h_; int wh_;
 
     Renderer(View_resource& vr, int ncol);
-    ~Renderer() { SDL_DestroyTexture(texture_); }
+    ~Renderer() {
+        SDL_Log("DestroyTexture(texture_)");
+        SDL_DestroyTexture(texture_);
+    }
 
     //SDL_Point center_point(int x=0,int y=0) { return SDL_Point{x+w_*nline_, y+w_*nline_}; }
     //SDL_Rect main_rect(int x=0,int y=0) { return SDL_Rect{x,y, x+w_*nline_*2, y+w_*nline_*2}; }
@@ -255,7 +260,7 @@ struct View : Renderer
 
     void draw(Mahjong const&);
 
-    void draw_rotate_test();
+    void draw_test(SDL_Texture* tile);
     void draw_discard();
     void draw_hands();
     void draw_wall(Mahjong::Tiles const& wall, int pos0);
@@ -296,6 +301,7 @@ Renderer::Renderer(View_resource& vr, int nts)
     //h_ = double(w)/w1 * h1 -1;
     //w_ = w -1;
 
+    SDL_Log("CreateTexture %d", size_.s);
     texture_ = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s); //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
     //texture_ = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s);
     SDL_SetTextureBlendMode(texture_, SDL_BLENDMODE_BLEND);
@@ -547,24 +553,39 @@ void View::draw(Mahjong const& m)
     //draw_hands();
 
     //draw_discard();
-    ////draw_rotate_test();
 }
 
-//void View::draw_rotate_test()
-//{
-//    SDL_Point pc = center_point(squa_);
-//    SDL_Rect dr = rect_;
-//    dr.x = pc.x + rect_.w;
-//    dr.y = pc.y + rect_.w;
-//    SDL_RenderCopy(renderer, tiles[0], 0, &dr);
-//    dr.x = pc.x + rect_.w*3;
-//    dr.y = pc.y + rect_.w*3;
-//    SDL_RenderCopyEx(renderer, tiles[0], 0, &dr, 90, 0, SDL_FLIP_NONE);
-//    dr.x = pc.x + rect_.w*6;
-//    dr.y = pc.y + rect_.w*6;
-//    SDL_Point cr = {}; //{dr.w/2, dr.h/2};
-//    SDL_RenderCopyEx(renderer, tiles[0], 0, &dr, 90, &cr, SDL_FLIP_NONE);
-//}
+void View::draw_test(SDL_Texture* tile)
+{
+    //static SDL_Texture*texture = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET , size_.s,size_.s); //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
+    //texture = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s);
+    static SDL_Texture*texture = 0;
+    if (!texture) {
+        texture = SDL_CreateTexture(res->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, size_.s,size_.s); //SDL_TEXTUREACCESS_STREAMING SDL_TEXTUREACCESS_STATIC
+        SDL_Log("size_.s %d test", size_.s);
+    }
+    texture = texture_;
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
+
+    SDL_SetRenderTarget(res->renderer, texture);
+    //SDL_SetRenderDrawColor(res->renderer, 0,0,0, 0);
+    //SDL_SetRenderDrawBlendMode(res->renderer, SDL_BLENDMODE_NONE);
+    SDL_RenderClear(res->renderer);
+    {
+        SDL_Rect dr = {0,0, size_.w,size_.h};
+        SDL_RenderCopy(res->renderer, tile, 0, &dr);
+        //SDL_Point cr = {}; //{dr.w/2, dr.h/2};
+        //SDL_RenderCopyEx(renderer, tile, 0, &dr, 90, &cr, SDL_FLIP_NONE);
+    }
+    SDL_SetRenderTarget(res->renderer, NULL);
+    SDL_SetRenderDrawBlendMode(res->renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(res->renderer, 0,0,0, 255);
+    //SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SDL_Rect dr = {size_.x-size_.s/2,size_.y-size_.s/2, size_.s,size_.s};
+    SDL_RenderCopyEx(res->renderer, texture, 0, &dr,  0, 0, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(res->renderer, texture, 0, &dr, 90, 0, SDL_FLIP_NONE);
+}
 
 int Main::loop(int argc, char* const argv[])
 {
@@ -573,6 +594,7 @@ int Main::loop(int argc, char* const argv[])
 
     while (1) {
         view_.Renderer::draw_background();
+        view_.draw_test(tiles[0]);
         if (stage_ > 0)
             view_.draw(m_);
         SDL_RenderPresent(renderer);
@@ -589,8 +611,11 @@ int Main::loop(int argc, char* const argv[])
                     }
                     break;
                 case SDL_WINDOWEVENT:
-                    if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
+                    if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        SDL_Log("SDL_WINDOWEVENT_RESIZED");
+                        SDL_SetWindowDisplayMode(window, &displayMode);
                         view_ = View(*this); //view_.window_resized();
+                    }
                     break;
             }
         }
