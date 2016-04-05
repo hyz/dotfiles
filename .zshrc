@@ -94,61 +94,13 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
 elif [ ! -d "$HOME/.gnupg" ] ; then
-    for x in /media/wood/*/.gnupg ; do
+    /bin/ls -1d /media/wood/*/.gnupg | while read x ; do
         export GNUPGHOME="$x"
         break
     done
 fi
 
 ###########################################################
-
-PYTHONSTARTUP=$HOME/.pythonstartup
-if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
-
-# Add environment variable ANT_ROOT for cocos2d-x
-#export ANT_ROOT=/usr/bin
-
-SDK_ROOT=/opt/android/sdk
-if [[ -d "$SDK_ROOT" ]] ; then
-    ANDROID_SDK_ROOT=$SDK_ROOT
-    ANDROID_HOME=$SDK_ROOT
-    export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
-
-    PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
-fi
-
-NDK_ROOT=/opt/android/ndk
-if [ -d "$NDK_ROOT" ]; then
-    ANDROID_NDK_ROOT=$NDK_ROOT
-    export NDK_ROOT ANDROID_NDK_ROOT
-
-    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/standalone/toolchain/android-12/bin
-fi
-
-# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
-#COCOS2DX_ROOT=$HOME/cocos2d
-#if [ -d "$COCOS2DX_ROOT" ] ; then
-#    export COCOS2DX_ROOT
-#fi
-
-COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
-if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
-    PATH=$PATH:$COCOS_CONSOLE_ROOT
-    export COCOS_CONSOLE_ROOT
-fi
-
-if [ -d "/opt/local/bin" ]; then
-    PATH=$PATH:/opt/local/bin:/opt/local/sbin
-fi
-
-# Add environment variable ANT_ROOT for cocos2d-x
-export ANT_HOME=/usr/share/apache-ant
-export ANT_ROOT=/bin
-
-PATH=$PATH:bin:../bin
-export PATH
-
-# limit coredumpsize 0
 
 #alias dict='sdcv -0'
 dict() {
@@ -173,4 +125,56 @@ google() {
     done
     xdg-open "http://$h/search?q=$q"
 }
+
+PYTHONSTARTUP=$HOME/.pythonstartup
+if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
+
+# Add environment variable ANT_ROOT for cocos2d-x
+#export ANT_ROOT=/usr/bin
+
+SDK_ROOT=/opt/android/sdk
+if [[ -d "$SDK_ROOT" ]] ; then
+    ANDROID_SDK_ROOT=$SDK_ROOT
+    ANDROID_HOME=$SDK_ROOT
+    export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
+
+    PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
+fi
+
+NDK_ROOT=/opt/android/ndk
+if [ -d "$NDK_ROOT" ]; then
+    ANDROID_NDK_ROOT=$NDK_ROOT
+    export NDK_ROOT ANDROID_NDK_ROOT
+
+    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/standalone/toolchain/android-12/bin
+fi
+
+if [ -d "/opt/local/bin" ]; then
+    PATH=$PATH:/opt/local/bin #:/opt/local/sbin
+fi
+# limit coredumpsize 0
+
+# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
+#COCOS2DX_ROOT=$HOME/cocos2d
+#if [ -d "$COCOS2DX_ROOT" ] ; then
+#    export COCOS2DX_ROOT
+#fi
+
+COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
+if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
+    PATH=$PATH:$COCOS_CONSOLE_ROOT
+    export COCOS_CONSOLE_ROOT
+fi
+
+if [ -d "/opt/gradle-2.12/bin" ]; then
+    export GRADLE_HOME=/opt/gradle-2.12
+    PATH=$PATH:/opt/gradle-2.12/bin
+fi
+
+# Add environment variable ANT_ROOT for cocos2d-x
+export ANT_HOME=/usr/share/apache-ant
+export ANT_ROOT=/bin
+
+export PATH
+date
 

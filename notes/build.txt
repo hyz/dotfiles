@@ -8,4 +8,21 @@ $ cd lantern
 $ HEADLESS=true make linux-amd64
 $ ./lantern_linux_amd64 --addr 0.0.0.0:8787
 
+### ubuntu 32bit
+
+### https://github.com/getlantern/lantern/issues/3842
+## install nodejs & npm
+curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+## install gulp(maybe it's automatic, not sure)
+sudo npm install gulf -g
+
+## https://github.com/graphite-ng/carbon-relay-ng/issues/73
+sudo apt-get remove golang
+sudo apt-get autoremove
+sudo apt-get install golang-1.6
+export PATH=$PATH:/usr/lib/go-1.6/bin
+
+HEADLESS=true make linux-386
 

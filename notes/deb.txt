@@ -1,0 +1,7 @@
+### dpkg
+
+dpkg-query -L lantern
+dpkg --search /usr/bin/lantern
+sudo dpkg --remove lantern
+sudo dpkg -i ~/Downloads/installer-32-bit.deb
+
