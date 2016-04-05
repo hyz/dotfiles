@@ -76,7 +76,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     /bin/ls -1d /cygdrive/[cde]/*/GNU/GnuPG | while read x ; do
         PATH=$PATH:$x
     done
-    for x in $HOME/.gnupg /cygdrive/{e,f,g,h}/.gnupg ; do
+    for x in $HOME/.gnupg /cygdrive/{c,d,e,f,g,h}/.gnupg ; do
         if [ -d "$x" ] ; then
             export GNUPGHOME=`cygpath -w "$x"`
             break
@@ -93,6 +93,11 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
+elif [ ! -d "$HOME/.gnupg" ] ; then
+    for x in /media/wood/*/.gnupg ; do
+        export GNUPGHOME="$x"
+        break
+    done
 fi
 
 ###########################################################
@@ -103,7 +108,7 @@ if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_ROOT=/usr/bin
 
-SDK_ROOT=/opt/android-sdk
+SDK_ROOT=/opt/android/sdk
 if [[ -d "$SDK_ROOT" ]] ; then
     ANDROID_SDK_ROOT=$SDK_ROOT
     ANDROID_HOME=$SDK_ROOT
@@ -112,7 +117,7 @@ if [[ -d "$SDK_ROOT" ]] ; then
     PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
 fi
 
-NDK_ROOT=/opt/android-ndk
+NDK_ROOT=/opt/android/ndk
 if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
@@ -168,16 +173,4 @@ google() {
     done
     xdg-open "http://$h/search?q=$q"
 }
-
-if [ ! -d "$HOME/.gnupg" -a ! -d "$GNUPGHOME" ] ; then
-    PASS=`which pass`
-    pass() {
-        _gnupg=$HOME/mnt$HOME/.gnupg
-        if [ -d "$_gnupg" ]; then
-            GNUPGHOME=$_gnupg $PASS $*
-        fi # else $PASS $*
-        #export PASSWORD_STORE_DIR=~/mnt/wood/.password-store
-        #export PASSWORD_STORE_GIT=$PASSWORD_STORE_DIR
-    }
-fi
 

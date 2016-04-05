@@ -1,0 +1,13 @@
+sudo apt-get install libbotan1.10-dev libzbar-dev libqrencode-dev libappindicator-dev \
+    qtbase5-dev
+
+# lib/libQtShadowsocks.pro 
+    DEFINES  += QSS_STATIC
+
+# src/ss-qt5.pri
+    unix : {
+
+        INCLUDEPATH += ../libQtShadows
+        LIBS += -L../libQtShadowsocks/
+    }
+
