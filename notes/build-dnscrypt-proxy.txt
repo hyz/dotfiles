@@ -1,0 +1,6 @@
+### https://github.com/jedisct1/libsodium
+./configure --disable-shared --enable-static --prefix=/opt
+
+### https://github.com/jedisct1/dnscrypt-proxy
+CFLAGS=-I/opt/include LDFLAGS=-L/opt/lib ./configure --prefix=/opt
+
