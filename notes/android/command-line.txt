@@ -1,0 +1,11 @@
+###
+android update project --path . --target android-18
+
+### install sdk
+
+android --help list sdk
+android --help update sdk
+
+android update sdk --no-ui --filter android-18,platform,source # Android 4.3.1, API 18, revision 3
+
+
