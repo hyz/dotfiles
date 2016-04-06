@@ -28,7 +28,7 @@ set path=.,..,*/,*/*/,include,../include,~/include,/usr/include,/usr/include/*/
 " set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
 " gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
 
-" set tags+=../tags,~/.tags
+set tags+=../tags,../../tags,~/.tags
 " set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
 
 " set cscopeprg=mlcscope
