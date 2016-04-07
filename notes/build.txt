@@ -26,3 +26,10 @@ export PATH=$PATH:/usr/lib/go-1.6/bin
 
 HEADLESS=true make linux-386
 
+
+export PKG_CONFIG_PATH=/opt/lib/pkgconfig
+export LD_LIBRARY_PATH=/opt/lib
+pkg-config --cflags --libs ortp
+
+https://github.com/Distrotech/oRTP
+gcc -D_REENTRANT -I/opt/include rtprecv.c -L/opt/lib -lortp -lpthread -lrt

@@ -1,0 +1,12 @@
+v=0
+o=- 0 0 IN IP4 127.0.0.1
+s=No Title
+c=IN IP4 0.0.0.0
+t=0 0
+a=tool:libavformat 57.29.101
+m=video 0 RTP/AVP 32
+b=AS:4000
+a=control:streamid=0
+m=audio 0 RTP/AVP 14
+b=AS:384
+a=control:streamid=1

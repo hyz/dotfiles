@@ -1,16 +1,11 @@
-
-path-constant BOOST_ROOT : /opt/boost_1_60_0 ;
-
-use-project /boost : $(BOOST_ROOT) ;
-
-project
+project android-boost-sample
     : requirements
         <include>$(BOOST_ROOT)
         <threading>multi
         <link>static
     : default-build release
     ;
-#lib rt : librt-empty.c : <link>static ;
+lib rt : librt-empty.c : <link>static ;
 
 exe multi : multi_index-employee.cpp  ;
 exe hcli : async_http_client.cpp /boost//system ;

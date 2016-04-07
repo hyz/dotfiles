@@ -16,8 +16,8 @@ Date: Wed, 06 Apr 2016 08:09:42 GMT
 Session: f9ee78b09205b247
 Transport: RTP/AVP/UDP;unicast;client_port=1234-1235;server_port=37612-37613
 
-$ nc -u -p 1234 127.0.0.1 37612 > /tmp/out
-$
+$ nc -u -l 1234 > /tmp/rtp-data # nc -u -l 1234 |xxd -ps
+$ xxd -l 100 -g 1 /tmp/rtp-data
 
 ### http://www.live555.com/liveMedia/public/
 testProgs/testRTSPClient rtsp://127.0.0.1:7654/test1-rtsp

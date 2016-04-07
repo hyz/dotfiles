@@ -214,7 +214,6 @@ static void print_usage(const char *base_name) {
 /* main app */
 int main(int argc, char *const argv[])
 {
-
     const char *transport = DEFAULT_TRANSPORT;
     const char *range = DEFAULT_RANGE;
     bool teardown_flag = true;
