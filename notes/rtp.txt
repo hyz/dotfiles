@@ -1,0 +1,6 @@
+http://www.cs.columbia.edu/irt/software/rtptools/
+http://www.cs.columbia.edu/~hgs/rtp/rtp_video.html
+http://www.cs.columbia.edu/~hgs/rtp/
+http://www.cs.columbia.edu/~hgs/rtp/faq.html
+https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
+

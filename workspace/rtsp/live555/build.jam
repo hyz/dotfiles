@@ -1,0 +1,38 @@
+project liv555
+    : requirements
+            <define>SOCKLEN_T=socklen_t
+            <define>XLOCALE_NOT_USED=1
+            <include>$(BOOST_ROOT)
+            <include>BasicUsageEnvironment/include 
+            <include>liveMedia/include 
+            <include>mediaServer/include 
+            <include>UsageEnvironment/include
+            <include>groupsock/include 
+    : default-build release
+    ;
+# exe a : a.cc /boost//filesystem : <link>static ; install bin : a ;
+
+lib basic_env : [ glob BasicUsageEnvironment/*.cpp ]
+    : <link>static ;
+lib usage_env : [ glob UsageEnvironment/*.cpp ]
+    : <link>static ;
+lib group_sock : [ glob groupsock/*.cpp groupsock/*.c ]
+    : <link>static ;
+lib live_media : [ glob liveMedia/*.cpp liveMedia/*.c ]
+    : <link>static ;
+lib media_server : [ glob mediaServer/*.cpp ]
+    : <link>static ;
+
+lib liv5 : basic_env usage_env live_media : <link>shared ;
+
+exe openRTSP
+    : testProgs/openRTSP.cpp testProgs/playCommon.cpp
+        basic_env usage_env live_media group_sock
+    ;
+exe sRTSPClient
+    : sRTSPClient.cpp
+        basic_env usage_env live_media group_sock
+    ;
+
+install bin : openRTSP sRTSPClient ;
+
