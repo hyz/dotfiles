@@ -4,3 +4,27 @@ http://www.cs.columbia.edu/~hgs/rtp/
 http://www.cs.columbia.edu/~hgs/rtp/faq.html
 https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
 
+
+./rtptools-1.20/rtpdump /1234
+curl-rtsp/curl-rtsp rtsp://127.0.0.1:7654/rtp1
+FFmpeg/ffserver -f ffs.conf
+xxd -b -c4 dump|less
+Fragmentation Units (FUs)
+NRI: 2 bits
+          nal_ref_idc
+Table 3.  Summary of allowed NAL unit types for each packetization
+       mode (yes = allowed, no = disallowed, ig = ignore)
+
+          Type   Packet    Single NAL    Non-Interleaved    Interleaved
+                           Unit Mode           Mode             Mode
+          -------------------------------------------------------------
+
+          0      undefined     ig               ig               ig
+          1-23   NAL unit     yes              yes               no
+          24     STAP-A        no              yes               no
+          25     STAP-B        no               no              yes
+          26     MTAP16        no               no              yes
+          27     MTAP24        no               no              yes
+          28     FU-A          no              yes              yes
+          29     FU-B          no               no              yes
+          30-31  undefined     ig               ig               ig

@@ -1,0 +1,12 @@
+# /boost//headers
+# use-project boost : $(BOOST_ROOT) ; 
+
+project mys
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : default-build release
+    ;
+lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
+exe a : curl-rtsp.c curl ;
+
+install bin : a ;
+

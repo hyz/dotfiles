@@ -179,8 +179,13 @@ static void get_sdp_filename(const char *url, char *sdp_filename) {
 
 
 /* scan sdp file for media control attribute */
-static void get_media_control_attribute(const char *sdp_filename,
-        char *control) {
+static void get_media_control_attribute(const char *sdp_filename, char *control)
+{
+    //m=video 0 RTP/AVP 96
+    //b=AS:261
+    //a=rtpmap:96 H264/90000
+    //a=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LAFdsHgjv/AIgAhxAAAAfQAAF2qPFi7g==,aMqFyA==; profile-level-id=42C015
+    //a=control:streamid=0
     int max_len = 256;
     char *s = malloc(max_len);
     FILE *sdp_fp = fopen(sdp_filename, "rt");
@@ -188,8 +193,15 @@ static void get_media_control_attribute(const char *sdp_filename,
     control[0] = '\0';
 
     if (sdp_fp != NULL) {
+        bool m_video = 0;
         while (fgets(s, max_len - 2, sdp_fp) != NULL) {
-            sscanf(s, " a = control: %s", control);
+            if (m_video) {
+                if (sscanf(s, " a = control: %s", control) > 0)
+                    break;
+            } else {
+                if (strncmp(s, "m=video", 7) == 0)
+                    m_video = 1;
+            }
         }
         fclose(sdp_fp);
     }

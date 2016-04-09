@@ -1,0 +1,51 @@
+Single-time aggregation packet (STAP)
+http://tools.ietf.org/html/rfc3984#section-5.7
+
+Multi-time aggregation packet (MTAP): 
+
+http://stackoverflow.com/questions/9618369/h-264-over-rtp-identify-sps-and-pps-frames
+You should write SPS and PPS at the start of stream, and only when they change in the middle of stream.
+
+SPS and PPS frames are packed in a STAP NAL unit (generally STAP-A) with NAL type 24 (STAP-A) or 25 (STAP-B) STAP format is described in RFC-3984 section 5.7.1
+
+Don't rely on marker bit, use start bit and end bit in NAL header.
+
+For fragmented video frames you should regenerate NAL unit using 3 NAL unit bits of first fragment (F, NRI) combined with 5 NAL type bits of first byte in payload (only for packets with start bit set to 1) check RFC-3984 section 5.8:
+
+
+
+	   The FU indicator octet has the following format:
+	
+	      +---------------+
+	      |0|1|2|3|4|5|6|7|
+	      +-+-+-+-+-+-+-+-+
+	      |F|NRI|  Type   |
+	      +---------------+
+	   The FU header has the following format:
+	
+	      +---------------+
+	      |0|1|2|3|4|5|6|7|
+	      +-+-+-+-+-+-+-+-+
+	      |S|E|R|  Type   |
+	      +---------------+
+
+      Table 1.  Summary of NAL unit types and the corresponding packet
+                types
+
+      NAL Unit  Packet    Packet Type Name               Section
+      Type      Type
+      -------------------------------------------------------------
+      0        reserved                                     -
+      1-23     NAL unit  Single NAL unit packet             5.6
+      24       STAP-A    Single-time aggregation packet     5.7.1
+      25       STAP-B    Single-time aggregation packet     5.7.1
+      26       MTAP16    Multi-time aggregation packet      5.7.2
+      27       MTAP24    Multi-time aggregation packet      5.7.2
+      28       FU-A      Fragmentation unit                 5.8
+      29       FU-B      Fragmentation unit                 5.8
+      30-31    reserved                                     -
+
+
+https://sourceforge.net/projects/h264bitstream/
+https://cardinalpeak.com/blog/the-h-264-sequence-parameter-set/
+
