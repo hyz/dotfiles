@@ -1,0 +1,3 @@
+
+bios440.filename = "DELL23.ROM"
+
