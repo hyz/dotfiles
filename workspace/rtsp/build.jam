@@ -1,0 +1,12 @@
+project mys
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : default-build release
+    ;
+#lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
+
+exe datagrams-dump : datagrams-dump.cpp /boost//system /boost//filesystem ;
+exe rtp-a : rtp-a.cpp /boost//system ;
+exe a : a.cpp /boost//system ;
+
+#install bin : datagrams-dump ;
+

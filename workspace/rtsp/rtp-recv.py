@@ -92,16 +92,17 @@ def setsesid(recst,idn):
 
 # ********* (2) The routine for handling the RTP stream ***********
 
-def digestpacket(st):
+startbytes="\x00\x00\x00\x01" # this is the sequence of four bytes that identifies a NAL packet.. must be in front of every NAL packet.
+
+def digestpacket(rtp_packet):
   """ This routine takes a UDP packet, i.e. a string of bytes and ..
   (a) strips off the RTP header
   (b) adds NAL "stamps" to the packets, so that they are recognized as NAL's
   (c) Concantenates frames
   (d) Returns a packet that can be written to disk as such and that is recognized by stock media players as h264 stream
   """
-  startbytes="\x00\x00\x00\x01" # this is the sequence of four bytes that identifies a NAL packet.. must be in front of every NAL packet.
 
-  bt=bitstring.BitArray(bytes=st) # turn the whole string-of-bytes packet into a string of bits.  Very unefficient, but hey, this is only for demoing.  lc=12 # bytecounter
+  bt=bitstring.BitArray(bytes=rtp_packet) # turn the whole string-of-bytes packet into a string of bits.  Very unefficient, but hey, this is only for demoing.  lc=12 # bytecounter
   bc=12*8 # bitcounter
 
   version=bt[0:2].uint # version
@@ -119,11 +120,11 @@ def digestpacket(st):
   lc=12 # so, we have red twelve bytes
   bc=12*8 # .. and that many bits
 
-  print "version, p, x, cc, m, pt",version,p,x,cc,m,pt
+  print "version, p, x, cc, m, pt:",version,p,x,cc,m,pt
   print "sequence number, timestamp",sn,timestamp
   print "sync. source identifier",ssrc
 
-  # st=f.read(4*cc) # csrc identifiers, 32 bits (4 bytes) each
+  # rtp_packet=f.read(4*cc) # csrc identifiers, 32 bits (4 bytes) each
   cids=[]
   for i in range(cc):
     cids.append(bt[bc:bc+32].uint)
@@ -142,7 +143,7 @@ def digestpacket(st):
 
     hst=bt[bc:bc+32*hlen]
     bc+=32*hlen; lc+=4*hlen;
-
+  print 'rtp-header-size', lc
 
   # OK, now we enter the NAL packet, as described here:
   # 
@@ -194,11 +195,11 @@ def digestpacket(st):
   Other bytes: [... VIDEO FRAGMENT DATA...]
   """
 
-  fb=bt[bc] # i.e. "F"
+  fb=int(bt[bc]) # i.e. "F"
   nri=bt[bc+1:bc+3].uint # "NRI"
   nlu0=bt[bc:bc+3] # "3 NAL UNIT BITS" (i.e. [F | NRI])
   typ=bt[bc+3:bc+8].uint # "Type"
-  print "F, NRI, Type :", fb, nri, typ
+  print "F, NRI, Type :", fb, nri, typ, 'size', len(rtp_packet)-lc
   print "first three bits together :", nlu0 #bt[bc:bc+3]
 
   if (typ==7 or typ==8):
@@ -210,8 +211,27 @@ def digestpacket(st):
       print ">>>>> SPS packet"
     else:
       print ">>>>> PPS packet"
-    return startbytes+st[lc:]
+    return startbytes+rtp_packet[lc:]
     # .. notice here that we include the NAL starting sequence "startbytes" and the "First byte"
+  elif typ == 24:
+    bc+=8; lc+=1;
+    ret = ''
+    while lc+2 < len(rtp_packet):
+      siz=bt[bc:bc+16].uint
+      bc+=16; lc+=2;
+      if lc+siz > len(rtp_packet):
+          return ret
+      fb=int(bt[bc]) # i.e. "F"
+      nri=bt[bc+1:bc+3].uint # "NRI"
+      # nlu0=bt[bc:bc+3] # "3 NAL UNIT BITS" (i.e. [F | NRI])
+      typ=bt[bc+3:bc+8].uint # "Type"
+      print "F, NRI, Type :", fb, nri, typ, 'size', siz, 'STAP-A'
+      ret += startbytes + rtp_packet[lc:lc+siz]
+      bc += 8*(siz); lc += siz;
+    return ret
+  elif typ != 28:
+    print >>sys.stderr, "unknown nal_unit_type(%d)" % typ
+    return None
 
   bc+=8; lc+=1; # let's go to "Second byte"
   # ********* WE ARE AT THE "Second byte" ************
@@ -234,7 +254,7 @@ def digestpacket(st):
     lc+=1 # We skip the "Second byte"
 
   if (typ==28): # This code only handles "Type" = 28, i.e. "FU-A"
-    return head+st[lc:]
+    return head+rtp_packet[lc:]
   else:
     print >>sys.stderr, "unknown frame type for this piece of s(%d)" % typ
     return None #raise(Exception,"unknown frame type for this piece of s")
@@ -259,7 +279,7 @@ printrec(recst)
 
 print
 print "*** SENDING SETUP ***"
-print
+print _setup.partition('\r')[0]
 sock_stream.send(_setup)
 recst=sock_stream.recv(4096)
 print
@@ -271,7 +291,7 @@ idn=sessionid(recst)
 serverports=getPorts("server_port",recst)
 clientports=getPorts("client_port",recst)
 print "****"
-print "ip,serverports",ip,serverports
+print "ip,serverports",ip,serverports,"clientports",clientports
 print "****"
 
 sock_dgram=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -305,6 +325,7 @@ for i in range(rn):
   if st:
       print "dumping",len(st),"bytes"
       f.write(st)
+f.write(startbytes)
 f.close()
 
 # Before closing the sockets, we should give the "TEARDOWN" command via RTSP, but I am feeling lazy today (after googling, wireshark-analyzing, among other-things).
