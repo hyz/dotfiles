@@ -6,7 +6,8 @@ project mys
 
 exe datagrams-dump : datagrams-dump.cpp /boost//system /boost//filesystem ;
 exe rtp-a : rtp-a.cpp /boost//system ;
-exe a : a.cpp /boost//system ;
+exe h264-a : h264-a.cpp /boost//system ;
+exe a : base64.cpp /boost//system ;
 
 #install bin : datagrams-dump ;
 

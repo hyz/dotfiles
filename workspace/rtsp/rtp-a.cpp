@@ -2,13 +2,34 @@
 #include <fstream>
 #include <iostream>
 #include <boost/static_assert.hpp>
+#include <boost/scope_exit.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <boost/scope_exit.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/algorithm/string.hpp>
 
 using boost::asio::ip::udp;
+
+std::string base64dec(char const* beg, char const* end)
+{
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<char const*>,8,6>;
+    return boost::algorithm::trim_right_copy_if(
+            std::string(It(beg), It(end)), [](char c) { return c == '\0'; }
+        );
+}
+inline std::string base64dec(char const* cstr) { return base64dec(cstr, cstr+strlen(cstr)); }
+
+std::string base64enc(const std::string &val) {
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+    auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+    return tmp.append((3 - val.size() % 3) % 3, '=');
+}
 
 static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
 {
@@ -106,6 +127,13 @@ struct fu_header
 };
 #define FU_A_HEADER_LENGTH	2
 
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
+{
+    fprintf(stderr, fmt, lin_, a...);
+    exit(127);
+}
+#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
+
 template <typename Int,unsigned> struct Ntoh_;
 template <typename Int> struct Ntoh_<Int,4> { static Int cast(Int val) { return ntohl(val); } };
 template <typename Int> struct Ntoh_<Int,2> { static Int cast(Int val) { return ntohs(val); } };
@@ -122,9 +150,23 @@ template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
 struct Main : boost::asio::io_service
 {
     BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
+    struct Args {
+        Args(int ac, char* av[]) {
+            if (ac != 4) {
+                ERR_EXIT("Usage: %s <port>", av[0]);
+            }
+            port = atoi(av[1]);
+            sps = av[2];
+            pps = av[3];
+        }
+        int port;
+        char *sps, *pps;
+    };
 
-    Main(short port/*, boost::filesystem::path dir*/)
-        : socket_(*this, udp::endpoint(udp::v4(), port))
+    Main(Args args)
+        : socket_(*this, udp::endpoint(udp::v4(), args.port))
+        , sps_(base64dec(args.sps))
+        , pps_(base64dec(args.pps))
         //, dir_(dir)
     {
         socket_.async_receive_from(
@@ -134,7 +176,23 @@ struct Main : boost::asio::io_service
                     boost::asio::placeholders::bytes_transferred));
     }
 
-    //void run() { boost::asio::io_service::run(); }
+    int run(int ac, char* av[])
+    {
+        //= struct stat st;
+        //= if (fstat(fileno(stdin), &st) <0)
+        //=     return 1;
+
+        //= std::vector<uint32_t> buf( st.st_size/sizeof(int32_t)+1 );
+        //= uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
+        //= uint8_t* end = begin + st.st_size;
+
+        //= if ((int)fread(begin, 1,st.st_size, stdin) != st.st_size)
+        //=     return 2;
+        //= rtp_a(begin, end);
+
+        //= return 0;
+        return boost::asio::io_service::run();
+    }
 private:
     static void rtp_a(uint8_t* data, uint8_t* end)
     {
@@ -209,9 +267,11 @@ private:
 
     udp::socket socket_;
     udp::endpoint peer_endpoint_;
+
+    std::string sps_, pps_;
+
     enum { max_length = 4096 };
     uint32_t data_[max_length/sizeof(uint32_t)+1];
-
     uint8_t* data() const { return reinterpret_cast<uint8_t*>(&const_cast<Main*>(this)->data_); }
 
     //boost::filesystem::path dir_;
@@ -221,14 +281,8 @@ private:
 int main(int argc, char* argv[])
 {
     try {
-        if (argc != 2) {
-            fprintf(stderr,"Usage: %s <port>\n", argv[0]);
-            return 1;
-        }
-
-        using namespace std; // For atoi.
-        Main s(atoi(argv[1]));
-        s.run();
+        Main s(Main::Args(argc, argv));
+        s.run(argc, argv);
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << "\n";
     }

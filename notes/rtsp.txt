@@ -22,3 +22,7 @@ $ xxd -l 100 -g 1 /tmp/rtp-data
 ### http://www.live555.com/liveMedia/public/
 testProgs/testRTSPClient rtsp://127.0.0.1:7654/test1-rtsp
 
+
+vlc -vvv sample_video/big_buck_bunny_480p_h264.mov --sout '#transcode{vcodec=h264,vb=700,fps=20,scale=0.25,acodec=none}:rtp{dst=10.5.110.117,port=5004,ttl=1}'
+
+http://stackoverflow.com/questions/20634476/is-sprop-parameter-sets-or-profile-level-id-the-sdp-parameter-required-to-decode?rq=1
