@@ -140,40 +140,46 @@ struct fu_header
     unsigned length() const { return 1; }
 
     void print(uint8_t* data, uint8_t* end) {
+        char const* se = "";
+        if (this->s)
+            se = "\t:FU-A START";
+        else if (this->e)
+            se = "\t:FU-A END";
+        else if (this->s && this->e)
+            se = "\t:FU-A START&END";
         char xs[128] = {};
-        printf("%4u:%u: s %d e %d type %d: %s\n"
+        printf("%4u:%u: s %d e %d type %d: %s%s\n"
                 , int(end-data), this->length()
                 , this->s, this->e, this->type
-                , xsfmt(xs,sizeof(xs), data,end));
+                , xsfmt(xs,sizeof(xs), data,end), se);
     }
 };
 #define FU_A_HEADER_LENGTH	2
 
-struct rtph264
+struct nal_unit
 {
     std::unique_ptr<FILE,decltype(&fclose)> fp_;
     std::string sps_, pps_;
 
-    explicit rtph264(FILE* fp, std::string sps, std::string pps)
+    explicit nal_unit(FILE* fp, std::string sps, std::string pps)
         : fp_(fp, fclose) , sps_(sps) , pps_(pps)
     {
-        union { int ints[32]; uint8_t bytes[sizeof(ints)]; } u = {};
+        std::vector<int> buf( std::max(sps_.size(),pps_.size())/sizeof(int)+1 );
+        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
+        //uint8_t* end = begin + buf.size()*sizeof(int);
 
-        nal_unit_header* h = nal_unit_header::cast(u.bytes,u.bytes+12);
-        h->nri = 3; // 0x67, 0x68
+        //nal_unit_header* h = nal_unit_header::cast(begin,end);
+        //h->nri = 3; // 0x67, 0x68
+        //h->type = 7;
 
-        h->type = 7;
-        memcpy(h+1, sps_.data(), sps_.length());
-        dump(u.bytes, u.bytes+1+sps_.length());
+        memcpy(begin, sps_.data(), sps_.length());
+        dump(begin, begin+sps_.length());
 
-        h->type = 8;
-        memcpy(h+1, pps_.data(), pps_.length());
-        dump(u.bytes, u.bytes+1+pps_.length());
-
-        //nalu_write(fp_.get(), &h, (uint8_t*)sps_.data(), (uint8_t*)sps_.data()+sps_.length());
-        //nalu_write(fp_.get(), &h, (uint8_t*)pps_.data(), (uint8_t*)pps_.data()+sps_.length());
+        //h->type = 8;
+        memcpy(begin, pps_.data(), pps_.length());
+        dump(begin, begin+pps_.length());
     }
-    explicit rtph264(FILE* fp=0) : fp_(fp, fclose) {}
+    explicit nal_unit(FILE* fp=0) : fp_(fp, fclose) {}
 
     void dump(uint8_t* data, uint8_t* end) const
     {
@@ -183,79 +189,77 @@ struct rtph264
 
         if (h1->type == 1) // Ignore
             return;
-        BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
+        //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
 
         h1->print(data,end);
-        data += 1; //h1->length();
 
         switch (h1->type) {
             case 7: // SPS
-                nalu_write(data, end);
+                nalu_write(1, data, end);
                 break;
             case 8: // PPS
-                nalu_write(data, end);
+                nalu_write(1, data, end);
                 break;
             case 24: // STAP-A
+                data += 1; //h1->length();
                 while (end-data >= 2) {
                     uint16_t len = Ntoh<uint16_t>(data,end);
                     data += 2;
+                    if (len > end - data)
+                        break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        nalu_write(data, data+len);
+                        nalu_write(1, data, data+len);
 
                         data += len; //
                     }
                 }
                 break;
             case 28: // FU-A
+                data += 1; //h1->length();
                 if (fu_header* h2 = fu_header::cast(data,end)) {
                     h2->print(data,end);
-                    fu_header cpy = *h2;
-
-                    nal_unit_header* h = nal_unit_header::cast(data,end);
-                    h->nri = h1->nri;
-                    h->f = h1->f;
-                    h->print(data,end);
-                    nalu_write(data, end);
-
-                    if (cpy.s)
-                        printf("FU-A START\n");
-                    else if (cpy.e)
-                        printf("FU-A END\n");
-                    else if (cpy.s && cpy.e)
-                        printf("FU-A START&END\n");
-                    //data += h.length();
+                    fu_header fuh = *h2;
+                    if (fuh.s) {
+                        nal_unit_header* h = nal_unit_header::cast(data,end);
+                        h->nri = h1->nri;
+                        h->f = h1->f;
+                        h->print(data,end);
+                    }
+                    nalu_write(fuh.s, data + !fuh.s, end);
                 }
                 break;
         }
     }
 
-    void nalu_write( uint8_t const* data, uint8_t const* end) const
+    void nalu_write(bool sbytes, uint8_t const* data, uint8_t const* end) const
     {
         if (fp_) {
-            uint8_t zd[4] = {0,0,0,1};
-            fwrite(&zd, sizeof(zd), 1, fp_.get());
+            if (sbytes) {
+                uint8_t zd[4] = {0,0,0,1};
+                fwrite(&zd, sizeof(zd), 1, fp_.get());
+            }
             fwrite(data, end-data, 1, fp_.get());
         }
     }
-    void nalu_write(nal_unit_header const* h, uint8_t const* data, uint8_t const* end) const
-    { //writev
-        if (fp_) {
-            uint8_t zd[4] = {0,0,0,1};
-            fwrite(&zd, sizeof(zd), 1, fp_.get());
-            fwrite(h, sizeof(*h), 1, fp_.get());
-            fwrite(data, end-data, 1, fp_.get());
-        }
-    }
+    //void nalu_write(nal_unit_header const* h, uint8_t const* data, uint8_t const* end) const
+    //{ //writev
+    //    if (fp_) {
+    //        uint8_t zd[4] = {0,0,0,1};
+    //        fwrite(&zd, sizeof(zd), 1, fp_.get());
+    //        fwrite(h, sizeof(*h), 1, fp_.get());
+    //        fwrite(data, end-data, 1, fp_.get());
+    //    }
+    //}
 };
 
-struct rtph264_client : boost::noncopyable, rtph264
+struct rtph264_client : boost::noncopyable, nal_unit
 {
     typedef rtph264_client This;
     rtph264_client(boost::asio::io_service& io_s
             , int port
             , std::string sps, std::string pps, FILE* outfile)
-        : rtph264(outfile, sps, pps)
+        : nal_unit(outfile, sps, pps)
         , socket_(io_s, udp::endpoint(udp::v4(), port))
         //, dir_(dir)
     {
@@ -265,6 +269,8 @@ struct rtph264_client : boost::noncopyable, rtph264
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));
     }
+
+    int start(int, char*[]) { return 0; }
 
 private:
     void handle_receive_from(const boost::system::error_code& error, size_t bytes_recvd)
@@ -297,19 +303,19 @@ private:
     int dg_idx_ = 0;
 };
 
-struct h264_reader : boost::noncopyable, rtph264
+struct h264_reader : boost::noncopyable, nal_unit
 {
-    h264_reader(FILE* infile) : rtph264()
+    h264_reader(FILE* fd)
     {
         struct stat st;
-        if (fstat(fileno(infile), &st) <0)
+        if (fstat(fileno(fd), &st) <0)
             ERR_EXIT("fstat");
 
-        std::vector<uint32_t> buf( st.st_size/sizeof(int32_t)+1 );
+        std::vector<int> buf( st.st_size/sizeof(int)+1 );
         uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
-        uint8_t* end = begin + st.st_size;
+        uint8_t* end = begin + buf.size()*sizeof(int);
 
-        if ((int)fread(begin, 1,st.st_size, stdin) != st.st_size)
+        if ((int)fread(begin, 1,st.st_size, fd) != st.st_size)
             ERR_EXIT("fread");
         uint8_t dx[] = {0, 0, 0, 1};
 
@@ -323,71 +329,74 @@ struct h264_reader : boost::noncopyable, rtph264
             begin = p + 4;
         }
     }
+
+    int start(int, char*[]) { return 0; }
 };
 
 struct Main : boost::asio::io_service, boost::noncopyable
 {
     struct Args {
-        Args(int ac, char* av[]) {
+        Args(int ac, char* av[]) : port(0) {
             if (ac == 2) {
                 if ( !(fp = fopen(av[1], "rb")))
                     ERR_EXIT("file %s: fail", av[1]);
             } else if (ac == 5) {
                 port = atoi(av[1]);
-                if ( !(fp = fopen(av[1], "wb")))
+                if ( !(fp = fopen(av[2], "wb")))
                     ERR_EXIT("file %s: fail", av[2]);
-                base64dec(av[3], sps);
-                base64dec(av[4], pps);
+                b64dec(av[3], sps);
+                b64dec(av[4], pps);
             } else {
                 ERR_EXIT("Usage: %s <port>", av[0]);
             }
         }
-        static void base64dec(char const* cstr, std::string& out) {
-            ::base64dec(cstr, cstr+strlen(cstr), std::back_inserter(out));
+        static void b64dec(char const* cs, std::string& out) {
+            ::base64dec(cs, cs+strlen(cs), std::back_inserter(out));
         }
-        FILE* fp;
         int port = 0;
+        FILE* fp;
         std::string sps, pps;
     };
 
-    Main(int ac, char* av[])
+    Main(int ac, char* av[]) : signals_(*this)
     {
         Args args(ac, av);
-        if (args.port == 0) {
-            new (&objmem_) rtph264_client(*this, args.port, args.sps, args.pps, args.fp);
-            dtor_ = [this]() {
-                auto* obj = reinterpret_cast<rtph264_client*>(&objmem_);
+        if (args.port > 0) {
+            auto* obj = new (&objmem_) rtph264_client(*this, args.port, args.sps, args.pps, args.fp);
+            dtor_ = [obj]() {
                 obj->rtph264_client::~rtph264_client();
             };
+            start_ = [obj](int ac,char*av[]) {
+                obj->start(ac,av);
+            };
+
+            signals_.add(SIGINT);
+            signals_.add(SIGTERM);
+            //signals_.add(SIGQUIT);
+            signals_.async_wait(boost::bind(&boost::asio::io_service::stop, this));
         } else {
-            new (&objmem_) h264_reader(args.fp);
-            dtor_ = [this]() {
-                auto* obj = reinterpret_cast<h264_reader*>(&objmem_);
+            auto* obj = new (&objmem_) h264_reader(args.fp);
+            dtor_ = [obj]() {
                 obj->h264_reader::~h264_reader();
             };
+            start_ = [obj](int ac,char*av[]) {
+                obj->start(ac,av);
+            };
         }
+        // auto* obj = reinterpret_cast<T*>(&objmem_);
     }
     ~Main() { dtor_(); }
 
     int run(int ac, char* av[])
     {
-        //= struct stat st;
-        //= if (fstat(fileno(stdin), &st) <0)
-        //=     return 1;
-
-        //= std::vector<uint32_t> buf( st.st_size/sizeof(int32_t)+1 );
-        //= uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
-        //= uint8_t* end = begin + st.st_size;
-
-        //= if ((int)fread(begin, 1,st.st_size, stdin) != st.st_size)
-        //=     return 2;
-        //= dump(begin, end);
-
-        //= return 0;
+        start_(ac, av);
         return boost::asio::io_service::run();
     }
 
 private:
+    boost::asio::signal_set signals_;
+
+    std::function<void(int,char*[])> start_;
     std::function<void()> dtor_;
     static int objmem_[sizeof(rtph264_client)/sizeof(int)+1];
     BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
