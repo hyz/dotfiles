@@ -14,15 +14,17 @@
 
 using boost::asio::ip::udp;
 
-std::string base64dec(char const* beg, char const* end)
+template <typename I2>
+void base64dec(char const* beg, char const* end, I2 out_it)
 {
+    while (end > beg && *(end-1) == '=')
+        --end;
     using namespace boost::archive::iterators;
     using It = transform_width<binary_from_base64<char const*>,8,6>;
-    return boost::algorithm::trim_right_copy_if(
-            std::string(It(beg), It(end)), [](char c) { return c == '\0'; }
-        );
+    std::copy(It(beg), It(end), out_it);
+    //return boost::algorithm::trim_right_copy_if( std::string(It(beg), It(end)), [](char c) { return c == '\0'; });
 }
-inline std::string base64dec(char const* cstr) { return base64dec(cstr, cstr+strlen(cstr)); }
+//inline std::string base64dec(char const* cstr) { return base64dec(cstr, cstr+strlen(cstr)); }
 
 std::string base64enc(const std::string &val) {
     using namespace boost::archive::iterators;
@@ -150,23 +152,27 @@ template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
 struct Main : boost::asio::io_service
 {
     BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
+    //boost::variant<> ;
     struct Args {
         Args(int ac, char* av[]) {
             if (ac != 4) {
                 ERR_EXIT("Usage: %s <port>", av[0]);
             }
             port = atoi(av[1]);
-            sps = av[2];
-            pps = av[3];
+            base64dec(av[2], sps);
+            base64dec(av[3], pps);
+        }
+        static void base64dec(char const* cstr, std::string& out) {
+            ::base64dec(cstr, cstr+strlen(cstr), std::back_inserter(out));
         }
         int port;
-        char *sps, *pps;
+        std::string sps, pps;
     };
 
     Main(Args args)
         : socket_(*this, udp::endpoint(udp::v4(), args.port))
-        , sps_(base64dec(args.sps))
-        , pps_(base64dec(args.pps))
+        , sps_(args.sps)
+        , pps_(args.pps)
         //, dir_(dir)
     {
         socket_.async_receive_from(
@@ -240,11 +246,6 @@ private:
                         printf("FU-A END\n");
                     else if (cpy.s && cpy.e)
                         printf("FU-A START&END\n");
-//1472:12: version 2 p 0 x 0 cc 0 pt 96: 8060 ab0e 04a0 f0b1
-//1460:1: f 0 nri 2 type 28: 5c81 88c0 94bf fff0
-//1459:1: s 1 e 0 type 1: 8188 c094 bfff f044
-//1459:1: f 0 nri 2 type 1: 4188 c094 bfff f044
-
                     //data += h.length();
                 }
                 writev;
