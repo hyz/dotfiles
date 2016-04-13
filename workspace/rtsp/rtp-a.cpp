@@ -171,9 +171,6 @@ struct Main : boost::asio::io_service
 
     Main(Args args)
         : socket_(*this, udp::endpoint(udp::v4(), args.port))
-        , sps_(args.sps)
-        , pps_(args.pps)
-        //, dir_(dir)
     {
         socket_.async_receive_from(
                 boost::asio::buffer(data(), max_length), peer_endpoint_,
@@ -184,19 +181,21 @@ struct Main : boost::asio::io_service
 
     int run(int ac, char* av[])
     {
-        //= struct stat st;
-        //= if (fstat(fileno(stdin), &st) <0)
-        //=     return 1;
+#       if 1
+        struct stat st;
+        if (fstat(fileno(stdin), &st) <0)
+            return 1;
 
-        //= std::vector<uint32_t> buf( st.st_size/sizeof(int32_t)+1 );
-        //= uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
-        //= uint8_t* end = begin + st.st_size;
+        std::vector<uint32_t> buf( st.st_size/sizeof(int32_t)+1 );
+        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
+        uint8_t* end = begin + st.st_size;
 
-        //= if ((int)fread(begin, 1,st.st_size, stdin) != st.st_size)
-        //=     return 2;
-        //= rtp_a(begin, end);
+        if ((int)fread(begin, 1,st.st_size, stdin) != st.st_size)
+            return 2;
+        rtp_a(begin, end);
 
-        //= return 0;
+        return 0;
+#       endif
         return boost::asio::io_service::run();
     }
 private:
