@@ -46,3 +46,8 @@ h264bitstream-0.1.9/h264_analyze video-H264-1
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
  Figure 1.  RTP header according to RFC 3550
+
+http://blog.csdn.net/baby313/article/details/7363528
+手写RTP服务器——用RTP协议传输TS流
+
+
