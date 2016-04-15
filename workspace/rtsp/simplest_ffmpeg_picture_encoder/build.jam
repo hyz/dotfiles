@@ -8,7 +8,7 @@ project
 
 lib x264 lzma z bz2 ;
 
-exe a : simplest_ffmpeg_picture_encoder.cpp
+exe a : a.cpp
             /rtp//avformat /rtp//avcodec /rtp//avutil /rtp//swresample
             x264 lzma z bz2
       : <include>../FFmpeg
