@@ -13,6 +13,11 @@ exe a : a.cpp
             x264 lzma z bz2
       : <include>../FFmpeg
       ;
+exe b : b.cpp
+            /rtp//avformat /rtp//avcodec /rtp//avutil /rtp//swresample
+            x264 lzma z bz2
+      : <include>../FFmpeg
+      ;
 
 install bin : a ;
 

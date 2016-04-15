@@ -27,17 +27,20 @@ int main(int argc, char* argv[])
     AVOutputFormat* oformat = av_guess_format("mjpeg", NULL, NULL);
     ensure(oformat, "av_guess_format");
 
+    AVCodec *codec = avcodec_find_encoder(oformat->video_codec); //(AV_CODEC_ID_JPEG2000);
+    ensure(codec, "avcodec_find_encoder");
+
     AVFormatContext* format_ctx = avformat_alloc_context();
     format_ctx->oformat = oformat;
         //Method 2. More simple
         //avformat_alloc_output_context2(&format_ctx, NULL, NULL, out_file);
         //AVOutputFormat* oformat = format_ctx->oformat;
 
-    AVCodecContext* codec_ctx;
-    AVStream* stream = avformat_new_stream(format_ctx, 0);
-    ensure(stream, "avformat_new_stream");
+    // AVStream* stream = avformat_new_stream(format_ctx, 0); ensure(stream, "avformat_new_stream");
+    // codec_ctx = stream->codec;
+    AVCodecContext* codec_ctx = avcodec_alloc_context3(codec); //
+    ensure(codec_ctx, "avcodec_alloc_context3");
     {
-        codec_ctx = stream->codec;
         codec_ctx->codec_id = oformat->video_codec;
         codec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
 
@@ -48,67 +51,70 @@ int main(int argc, char* argv[])
         codec_ctx->time_base.num = 1;  
         codec_ctx->time_base.den = 25;   
 
-        AVCodec* codec = avcodec_find_encoder(codec_ctx->codec_id);
-        ensure(codec, "avcodec_find_encoder");
-
         if (avcodec_open2(codec_ctx, codec, NULL) < 0) {
             ERR_EXIT("avcodec_open2");
         }
     }
+    AVFrame* picture = av_frame_alloc();
+    picture->pts = 0;
+    picture->height = codec_ctx->height;
+    picture->width = codec_ctx->width;
+    picture->format = codec_ctx->pix_fmt;
+
+    int size = avpicture_get_size(codec_ctx->pix_fmt, codec_ctx->width, codec_ctx->height);
+    uint8_t* picture_buf = (uint8_t *)av_malloc(size);
+    ensure(picture_buf, "av_malloc");
+    avpicture_fill((AVPicture *)picture, picture_buf, codec_ctx->pix_fmt, codec_ctx->width, codec_ctx->height);
 
     int y_size = codec_ctx->width * codec_ctx->height;
 
-    AVPacket jpeg_packet;
-    av_new_packet(&jpeg_packet, y_size*3);
+    AVPacket pkt;
+    av_new_packet(&pkt, y_size*3);
 
-    int got_jpeg = 0;
-    {
-        AVFrame* yuv_frame = av_frame_alloc();
-
-        int size = avpicture_get_size(codec_ctx->pix_fmt, codec_ctx->width, codec_ctx->height);
-        uint8_t* yuv_frame_buf = (uint8_t *)av_malloc(size);
-        ensure(yuv_frame_buf, "av_malloc");
-        avpicture_fill( (AVPicture*)yuv_frame, yuv_frame_buf, codec_ctx->pix_fmt, codec_ctx->width, codec_ctx->height);
-
-        //Read YUV
-        FILE * in_file = fopen(argv[1], "rb");
-        if (fread(yuv_frame_buf, 1, y_size*3/2, in_file) <= 0) {
-            ERR_EXIT("fread");
-        }
-        fclose(in_file);
-
-        yuv_frame->data[0] = yuv_frame_buf;              // Y
-        yuv_frame->data[1] = yuv_frame_buf+ y_size;      // U 
-        yuv_frame->data[2] = yuv_frame_buf+ y_size*5/4;  // V
-        //Encode
-        ret = avcodec_encode_video2(codec_ctx, &jpeg_packet, yuv_frame, &got_jpeg);
-        ensure(ret>=0, "avcodec_encode_video2");
-
-        av_free(yuv_frame_buf);
-        av_free(yuv_frame);
+    //Read YUV
+    FILE * in_file = fopen(argv[1], "rb");
+    if (fread(picture_buf, 1, y_size*3/2, in_file) <= 0) {
+        ERR_EXIT("fread");
     }
+    picture->data[0] = picture_buf;              // Y
+    picture->data[1] = picture_buf+ y_size;      // U 
+    picture->data[2] = picture_buf+ y_size*5/4;  // V
 
-    if (got_jpeg > 0){
-        //jpeg_packet.stream_index = stream->index;
+    //Encode
+    int got_picture=0;
+    ret = avcodec_encode_video2(codec_ctx, &pkt, picture, &got_picture);
+    ensure(ret>=0, "avcodec_encode_video2");
+
+    if (got_picture > 0){
+        //pkt.stream_index = stream->index;
         ///Output some information
         av_dump_format(format_ctx, 0, out_file, 1);
-
+        ///Output URL
         if (avio_open(&format_ctx->pb, out_file, AVIO_FLAG_READ_WRITE) < 0){
             ERR_EXIT("avio_open");
         }
+        ///Write Header
         avformat_write_header(format_ctx, NULL);
-        ret = av_write_frame(format_ctx, &jpeg_packet);
+        ///Write Frame
+        ret = av_write_frame(format_ctx, &pkt);
+        ///Write Trailer
         av_write_trailer(format_ctx);
-        avio_close(format_ctx->pb);
     }
-    av_packet_unref(&jpeg_packet); // av_free_packet(&jpeg_packet);
 
-    if (stream) {
-        avcodec_close(stream->codec);
+    av_free_packet(&pkt);
+
+    printf("Encode Successful.\n");
+
+    {
+        avcodec_close(codec_ctx);//(stream->codec);
+        av_free(picture);
+        av_free(picture_buf);
     }
+    avio_close(format_ctx->pb);
     avformat_free_context(format_ctx);
 
-    printf("%s\n", out_file);
+    fclose(in_file);
+
     return 0;
 }
 
