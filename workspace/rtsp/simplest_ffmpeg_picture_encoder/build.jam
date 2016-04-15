@@ -1,0 +1,18 @@
+
+
+project
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : default-build release
+    ;
+#lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
+
+lib x264 lzma z bz2 ;
+
+exe a : simplest_ffmpeg_picture_encoder.cpp
+            /rtp//avformat /rtp//avcodec /rtp//avutil /rtp//swresample
+            x264 lzma z bz2
+      : <include>../FFmpeg
+      ;
+
+install bin : a ;
+

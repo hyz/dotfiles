@@ -1,3 +1,4 @@
+#include <sys/mman.h>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -236,33 +237,45 @@ struct nal_unit
     void nalu_write(uint8_t const* data, uint8_t const* end) const { nalu_write(1, data, end); }
 };
 
+struct H264File 
+{
+    typedef std::pair<uint8_t*,uint8_t*> range;
+    uint8_t *begin_, *end_;
+
+    H264File(int fd) {
+        struct stat st; // fd = open(fn, O_RDONLY);
+        fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
+        begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+        end_ = begin_ + st.st_size;
+        assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
+    }
+    //~H264File() { close(fd); }
+
+    range begin() const { return find_(begin_); }
+    range next(range const& prev) const { return find_(prev.second); }
+
+    range find_(uint8_t* e) const {
+        uint8_t* b = e;
+        if (e+4 < end_) {
+            uint8_t dx[] = {0, 0, 0, 1};
+            b = e + 4;
+            e = std::search(b, end_, &dx[0], &dx[4]);
+        }
+        return std::make_pair(b,e);
+    }
+};
+
 struct h264_reader : nal_unit, boost::noncopyable
 {
     std::unique_ptr<FILE,decltype(&fclose)> fp_;
+    H264File h264f_;
 
-    h264_reader(FILE* fp) : fp_(fp,fclose)
+    h264_reader(FILE* fp) : fp_(fp,fclose), h264f_(fileno(fp))
     {}
     int setup(int, char*[])
     {
-        FILE* fp = fp_.get();
-        struct stat st;
-        if (fstat(fileno(fp), &st) <0)
-            ERR_EXIT("fstat");
-
-        std::vector<int> buf( st.st_size/sizeof(int)+1 );
-        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
-        uint8_t* end = begin + buf.size()*sizeof(int);
-
-        if ((int)fread(begin, 1,st.st_size, fp) != st.st_size)
-            ERR_EXIT("fread");
-        uint8_t dx[] = {0, 0, 0, 1};
-
-        begin = std::search(begin, end, &dx[0], &dx[4]) + 4;
-        while (begin < end) {
-            uint8_t* p = std::search(begin, end, &dx[0], &dx[4]);
-            if (p > begin)
-                this->dump(begin, p);
-            begin = p + 4;
+        for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
+            this->dump(p.first, p.second);
         }
         return 0;
     }
@@ -353,7 +366,7 @@ struct Main : boost::asio::io_service, boost::noncopyable
         Args args(ac, av);
         if (args.port > 0) {
             auto* obj = new (&objmem_) rtph264_client(*this, args.port, args.sps, args.pps, args.fp);
-            dtor_ = [obj]() { obj->rtph264_client::~rtph264_client(); };
+            dtor_ = [obj]() { obj->~rtph264_client(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
 
             signals_.add(SIGINT);
@@ -362,7 +375,7 @@ struct Main : boost::asio::io_service, boost::noncopyable
             signals_.async_wait(boost::bind(&boost::asio::io_service::stop, this));
         } else {
             auto* obj = new (&objmem_) h264_reader(args.fp);
-            dtor_ = [obj]() { obj->h264_reader::~h264_reader(); };
+            dtor_ = [obj]() { obj->~h264_reader(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
         }
         // auto* obj = reinterpret_cast<T*>(&objmem_);
