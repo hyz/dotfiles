@@ -17,7 +17,7 @@ lib avutil : : <file>FFmpeg/libavutil/libavutil.a ;
 lib swresample : : <file>FFmpeg/libswresample/libswresample.a ;
 
 lib x264 lzma z bz2 ;
-exe ffmpeg-dec-h264 : ffmpeg-dec-h264.cc avcodec avutil swresample x264 lzma z : <include>FFmpeg ;
+exe ffmpeg-dec-h264 : ffmpeg-dec-h264.cc avcodec avformat avutil swresample x264 lzma z : <include>FFmpeg ;
 exe mmap : mmap-example.cc ;
 # exe ffmpeg-save-frame : ffmpeg-save-frame.cc avcodec avutil avformat swresample x264 lzma z bz2 : <include>FFmpeg ;
 

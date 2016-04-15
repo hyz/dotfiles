@@ -1,159 +1,119 @@
-/**
- * ???򵥵Ļ???FFmpeg??ͼ????????
- * Simplest FFmpeg Picture Encoder
- * 
- * ?????? Lei Xiaohua
- * leixiaohua1020@126.com
- * ?й???ý??ѧ/???ֵ??Ӽ???
- * Communication University of China / Digital TV Technology
- * http://blog.csdn.net/leixiaohua1020
- * 
- * ??????ʵ????YUV420P???????ݱ???ΪJPEGͼƬ???????򵥵?FFmpeg???뷽???Ľ̡̳?
- * ͨ??ѧϰ?????ӿ????˽?FFmpeg?ı??????̡?
- */
-
 #include <stdio.h>
 
-#define __STDC_CONSTANT_MACROS
-
-#ifdef _WIN32
-//Windows
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-};
-#else
-//Linux...
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#ifdef __cplusplus
 };
-#endif
-#endif
-
 
 int main(int argc, char* argv[])
 {
-	AVFormatContext* pFormatCtx;
-	AVOutputFormat* fmt;
-	AVStream* video_st;
-	AVCodecContext* pCodecCtx;
-	AVCodec* pCodec;
+    const char* out_file = "out.jpg";    //Output file
+    int ret=0;
+    int in_w=480, in_h=272;                           //YUV's width and height
 
-	uint8_t* picture_buf;
-	AVFrame* picture;
-	AVPacket pkt;
-	int y_size;
-	int got_picture=0;
-	int size;
+    av_register_all();
 
-	int ret=0;
+    AVFormatContext* pFormatCtx; {
+        //Method 1
+        pFormatCtx = avformat_alloc_context();
+        //Guess format
+        AVOutputFormat* fmt = av_guess_format("mjpeg", NULL, NULL);
+        pFormatCtx->oformat = fmt;
 
-	FILE *in_file = NULL;                            //YUV source
-	int in_w=480,in_h=272;                           //YUV's width and height
-	const char* out_file = "out.jpg";    //Output file
+        //Method 2. More simple
+        //avformat_alloc_output_context2(&pFormatCtx, NULL, NULL, out_file);
+        //AVOutputFormat* fmt = pFormatCtx->oformat;
+    }
 
-	in_file = fopen(argv[1], "rb");
+    AVCodecContext* pCodecCtx;
+    AVStream* video_st = avformat_new_stream(pFormatCtx, 0); {
+        if (video_st==NULL) {
+            return -1;
+        }
+        pCodecCtx = video_st->codec;
+        pCodecCtx->codec_id = pFormatCtx->oformat->video_codec;
+        pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
 
-	av_register_all();
+        pCodecCtx->pix_fmt = AV_PIX_FMT_YUVJ420P;
+        pCodecCtx->width = in_w;  
+        pCodecCtx->height = in_h;
 
-	//Method 1
-	pFormatCtx = avformat_alloc_context();
-	//Guess format
-	fmt = av_guess_format("mjpeg", NULL, NULL);
-	pFormatCtx->oformat = fmt;
+        pCodecCtx->time_base.num = 1;  
+        pCodecCtx->time_base.den = 25;   
+
+        AVCodec* pCodec = avcodec_find_encoder(pCodecCtx->codec_id);
+        if (!pCodec) {
+            printf("Codec not found.");
+            return -1;
+        }
+        if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
+            printf("Could not open codec.");
+            return -1;
+        }
+    }
+
+    //Output some information
+    av_dump_format(pFormatCtx, 0, out_file, 1);
     //Output URL
-	if (avio_open(&pFormatCtx->pb,out_file, AVIO_FLAG_READ_WRITE) < 0){
-		printf("Couldn't open output file.");
-		return -1;
-	}
+    if (avio_open(&pFormatCtx->pb, out_file, AVIO_FLAG_READ_WRITE) < 0){
+        printf("Couldn't open output file.");
+        return -1;
+    }
+    //Write Header
+    avformat_write_header(pFormatCtx, NULL);
 
-	//Method 2. More simple
-	//avformat_alloc_output_context2(&pFormatCtx, NULL, NULL, out_file);
-	//fmt = pFormatCtx->oformat;
+    AVFrame* picture = av_frame_alloc();
 
-	video_st = avformat_new_stream(pFormatCtx, 0);
-	if (video_st==NULL){
-		return -1;
-	}
-	pCodecCtx = video_st->codec;
-	pCodecCtx->codec_id = fmt->video_codec;
-	pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
-	pCodecCtx->pix_fmt = AV_PIX_FMT_YUVJ420P;
+    int size = avpicture_get_size(pCodecCtx->pix_fmt, pCodecCtx->width, pCodecCtx->height);
+    uint8_t* picture_buf = (uint8_t *)av_malloc(size);
+    if (!picture_buf) {
+        return -1;
+    }
+    avpicture_fill((AVPicture *)picture, picture_buf, pCodecCtx->pix_fmt, pCodecCtx->width, pCodecCtx->height);
 
-	pCodecCtx->width = in_w;  
-	pCodecCtx->height = in_h;
+    int y_size = pCodecCtx->width * pCodecCtx->height;
 
-	pCodecCtx->time_base.num = 1;  
-	pCodecCtx->time_base.den = 25;   
-	//Output some information
-	av_dump_format(pFormatCtx, 0, out_file, 1);
+    AVPacket pkt;
+    av_new_packet(&pkt, y_size*3);
 
-	pCodec = avcodec_find_encoder(pCodecCtx->codec_id);
-	if (!pCodec){
-		printf("Codec not found.");
-		return -1;
-	}
-	if (avcodec_open2(pCodecCtx, pCodec,NULL) < 0){
-		printf("Could not open codec.");
-		return -1;
-	}
-	picture = av_frame_alloc();
-	size = avpicture_get_size(pCodecCtx->pix_fmt, pCodecCtx->width, pCodecCtx->height);
-	picture_buf = (uint8_t *)av_malloc(size);
-	if (!picture_buf)
-	{
-		return -1;
-	}
-	avpicture_fill((AVPicture *)picture, picture_buf, pCodecCtx->pix_fmt, pCodecCtx->width, pCodecCtx->height);
+    //Read YUV
+    FILE * in_file = fopen(argv[1], "rb");
+    if (fread(picture_buf, 1, y_size*3/2, in_file) <= 0) {
+        printf("Could not read input file.");
+        return -1;
+    }
+    picture->data[0] = picture_buf;              // Y
+    picture->data[1] = picture_buf+ y_size;      // U 
+    picture->data[2] = picture_buf+ y_size*5/4;  // V
 
-	//Write Header
-	avformat_write_header(pFormatCtx,NULL);
+    //Encode
+    int got_picture=0;
+    ret = avcodec_encode_video2(pCodecCtx, &pkt,picture, &got_picture);
+    if(ret < 0){
+        printf("Encode Error.\n");
+        return -1;
+    }
+    if (got_picture > 0){
+        //pkt.stream_index = video_st->index;
+        ret = av_write_frame(pFormatCtx, &pkt);
+    }
 
-	y_size = pCodecCtx->width * pCodecCtx->height;
-	av_new_packet(&pkt,y_size*3);
-	//Read YUV
-	if (fread(picture_buf, 1, y_size*3/2, in_file) <=0)
-	{
-		printf("Could not read input file.");
-		return -1;
-	}
-	picture->data[0] = picture_buf;              // Y
-	picture->data[1] = picture_buf+ y_size;      // U 
-	picture->data[2] = picture_buf+ y_size*5/4;  // V
+    av_free_packet(&pkt);
+    //Write Trailer
+    av_write_trailer(pFormatCtx);
 
-	//Encode
-	ret = avcodec_encode_video2(pCodecCtx, &pkt,picture, &got_picture);
-	if(ret < 0){
-		printf("Encode Error.\n");
-		return -1;
-	}
-	if (got_picture==1){
-		pkt.stream_index = video_st->index;
-		ret = av_write_frame(pFormatCtx, &pkt);
-	}
+    printf("Encode Successful.\n");
 
-	av_free_packet(&pkt);
-	//Write Trailer
-	av_write_trailer(pFormatCtx);
+    if (video_st){
+        avcodec_close(video_st->codec);
+        av_free(picture);
+        av_free(picture_buf);
+    }
+    avio_close(pFormatCtx->pb);
+    avformat_free_context(pFormatCtx);
 
-	printf("Encode Successful.\n");
+    fclose(in_file);
 
-	if (video_st){
-		avcodec_close(video_st->codec);
-		av_free(picture);
-		av_free(picture_buf);
-	}
-	avio_close(pFormatCtx->pb);
-	avformat_free_context(pFormatCtx);
-
-	fclose(in_file);
-
-	return 0;
+    return 0;
 }
 

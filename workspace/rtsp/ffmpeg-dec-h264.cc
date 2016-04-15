@@ -12,10 +12,11 @@
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 //#  include "libavcodec/libavutil/mathematics.h"
 }
-int save_frame_as_jpeg(AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN);
-static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN);
+int save_frame_as_jpeg(char const* odir, AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN);
+static void yuv420p_save(char const* odir, AVFrame *pFrame, int width, int height, int idxN);
 
 struct H264File 
 {
@@ -62,7 +63,7 @@ static void init_packet(AVPacket& avpkt, std::vector<uint8_t>& vec, uint8_t* beg
     // printf("nalu size %d\n", int(avpkt.size));
 }
 
-void video_decode(char const *outfilename, char const *filename)
+void video_decode(char const *out_dir, char const *h264_fn)
 {
     AVCodec *codec;
     AVCodecContext *cctx= NULL;
@@ -90,9 +91,9 @@ void video_decode(char const *outfilename, char const *filename)
         exit(1);
     }
 
-    // f = fopen(filename, "rb");
+    // f = fopen(h264_fn, "rb");
     //if (!f) {
-    //    fprintf(stderr, "could not open %s\n", filename);
+    //    fprintf(stderr, "could not open %s\n", h264_fn);
     //    exit(1);
     //}
     //outf = fopen(outfilename,"w");
@@ -101,7 +102,7 @@ void video_decode(char const *outfilename, char const *filename)
     //    exit(1);
     //}
 
-    H264File2 h264f(filename);
+    H264File2 h264f(h264_fn);
     std::vector<uint8_t> vec;
 
     for (auto nalu = h264f.begin() ; boost::size(nalu)>4; nalu = h264f.next(nalu)) {
@@ -118,8 +119,8 @@ void video_decode(char const *outfilename, char const *filename)
             avframe->width = cctx->width;
             avframe->format = cctx->pix_fmt;
             avframe->pts = 0;
-yuv420p_save(avframe, cctx->width, cctx->height, gotN);
-//save_frame_as_jpeg(cctx, avframe, gotN);
+yuv420p_save(out_dir, avframe, cctx->width, cctx->height, gotN);
+//save_frame_as_jpeg(out_dir, cctx, avframe, gotN);
         //WriteJPEG(cctx, avframe, gotN);
             //for(i=0; i<cctx->height; i++)
             //    fwrite(avframe->data[0] + i * avframe->linesize[0], 1, cctx->width, outf  );
@@ -140,8 +141,8 @@ yuv420p_save(avframe, cctx->width, cctx->height, gotN);
         ++gotN;
         printf("last, naluN %d, gotN %d\n", naluN, gotN);
     //WriteJPEG(cctx, avframe, gotN);
-yuv420p_save(avframe, cctx->width, cctx->height, gotN);
-save_frame_as_jpeg(cctx, avframe, gotN);
+yuv420p_save(out_dir, avframe, cctx->width, cctx->height, gotN);
+//save_frame_as_jpeg(out_dir, cctx, avframe, gotN);
     }
 
     //fclose(f);
@@ -165,17 +166,16 @@ save_frame_as_jpeg(cctx, avframe, gotN);
 int main(int argc, char **argv)
 {
     BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END ;
+
     avcodec_register_all();
-    video_decode("test", argv[1]);
+    video_decode(argv[1], argv[2]);
 
     return 0;
 }
 
-static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN)
+static void yuv420p_save(char const* odir, AVFrame *pFrame, int width, int height, int idxN)
 {
 	int i = 0;
-	FILE *pFile;
-	char szFilename[32];
 
 	int height_half = height / 2, width_half = width / 2;
 	int y_wrap = pFrame->linesize[0];
@@ -185,8 +185,11 @@ static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN)
 	unsigned char *y_buf = pFrame->data[0];
 	unsigned char *u_buf = pFrame->data[1];
 	unsigned char *v_buf = pFrame->data[2];
-	sprintf(szFilename, "/tmp/a/%d.yuv", idxN);
-	pFile = fopen(szFilename, "wb");
+
+	//char szFilename[32]; sprintf(szFilename, "/tmp/a/%d.yuv", idxN);
+    char fn_out[256];
+    snprintf(fn_out,sizeof(fn_out), "%s/%d.yuv", odir, idxN);
+	FILE* pFile = fopen(fn_out, "wb");
 
 	//save y
 	for (i = 0; i <height; i++)
@@ -238,7 +241,7 @@ static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN)
 //    int                     BufSizActual;
 //    int                     ImgFmt = AV_PIX_FMT_YUVJ420P; //for the newer ffmpeg version, this int to pixelformat
 //    FILE                   *JPEGFile;
-//    char                    JPEGFName[256];
+//    char                    out_jpeg[256];
 //
 //    BufSiz = avpicture_get_size(AV_PIX_FMT_YUVJ420P, pCodecCtx->width, pCodecCtx->height);
 //
@@ -282,8 +285,8 @@ static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN)
 //    pFrame->quality = pOCodecCtx->global_quality;
 //    BufSizActual = avcodec_encode_video(pOCodecCtx,Buffer,BufSiz,pFrame);
 //
-//    sprintf ( JPEGFName, "%06d.jpg", FrameNo );
-//    JPEGFile = fopen ( JPEGFName, "wb" );
+//    sprintf ( out_jpeg, "%06d.jpg", FrameNo );
+//    JPEGFile = fopen ( out_jpeg, "wb" );
 //    fwrite ( Buffer, 1, BufSizActual, JPEGFile );
 //    fclose ( JPEGFile );
 //
@@ -292,26 +295,27 @@ static void yuv420p_save(AVFrame *pFrame, int width, int height, int idxN)
 //    return ( BufSizActual );
 //}
 
-int save_frame_as_jpeg(AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN)
+int save_frame_as_jpeg(char const* odir, AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN)
 {
-    AVCodec *jpegCodec = avcodec_find_encoder(AV_CODEC_ID_JPEG2000);
-    if (!jpegCodec) {
-        return -1;
-    }
-    AVCodecContext *jpegContext = avcodec_alloc_context3(jpegCodec);
-    if (!jpegContext) {
-        return -1;
-    }
+    AVOutputFormat* oformat = av_guess_format("mjpeg", NULL, NULL);
+    assert(oformat);
 
-    jpegContext->pix_fmt = pCodecCtx->pix_fmt;
+    AVCodec *jpegCodec = avcodec_find_encoder(oformat->video_codec); //(AV_CODEC_ID_JPEG2000);
+    assert(jpegCodec);
+
+    AVCodecContext *jpegContext = avcodec_alloc_context3(jpegCodec);
+    assert(jpegContext);
+    //avcodec_free_context(jpegContext);
+
+    jpegContext->pix_fmt = AV_PIX_FMT_YUVJ420P; //pCodecCtx->pix_fmt; // ;
     jpegContext->height = pFrame->height;
     jpegContext->width = pFrame->width;
 
     if (avcodec_open2(jpegContext, jpegCodec, NULL) < 0) {
         return -1;
     }
-    FILE *JPEGFile;
-    char JPEGFName[256];
+
+    //FILE *JPEGFile;
 
     AVPacket packet = {0,0};//{.data = NULL, .size = 0};
     av_init_packet(&packet);
@@ -321,12 +325,31 @@ int save_frame_as_jpeg(AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN)
         return -1;
     }
 
-    sprintf(JPEGFName, "/tmp/a/%06d.jpeg", idxN);
-    JPEGFile = fopen(JPEGFName, "wb");
-    fwrite(packet.data, 1, packet.size, JPEGFile);
-    fclose(JPEGFile);
+    {
+        AVFormatContext* pFormatCtx = avformat_alloc_context();
+        pFormatCtx->oformat = oformat;
 
-    av_free_packet(&packet);
+        char outfn[256];
+        snprintf(outfn,sizeof(outfn), "%s/%d.jpeg", odir, idxN);
+
+        av_dump_format(pFormatCtx, 0, outfn, 1);
+        if (avio_open(&pFormatCtx->pb, outfn, AVIO_FLAG_READ_WRITE) < 0){
+            printf("Couldn't open output file.");
+            return -1;
+        }
+        avformat_write_header(pFormatCtx, NULL);
+        av_write_frame(pFormatCtx, &packet);
+        av_write_trailer(pFormatCtx);
+
+        avio_close(pFormatCtx->pb);
+        avformat_free_context(pFormatCtx);
+    }
+
+    //JPEGFile = fopen(outfn, "wb");
+    //fwrite(packet.data, 1, packet.size, JPEGFile);
+    //fclose(JPEGFile);
+
+    av_packet_unref(&packet); // av_free_packet(&packet); //
     avcodec_close(jpegContext);
     return 0;
 }
