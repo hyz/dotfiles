@@ -1,3 +1,11 @@
+###
+cpp -dM /dev/null
+cpp -dM /dev/null |grep SIZE
+cpp -dM /dev/null |grep END
+cpp -dM /dev/null |grep VER
+
+###
+
  Like all references, universal references must be initialized, and it is a universal reference’s initializer that determines whether it represents an lvalue reference or an rvalue reference:
 
     If the expression initializing a universal reference is an lvalue, the universal reference becomes an lvalue reference.

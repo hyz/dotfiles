@@ -20,3 +20,10 @@ rsync -aPh ... ...
 
 rsync -aPh /mnt/. foo/bar/
 
+### with find
+cd ~/workspace/
+find ctpx |grep -E '\.(jam|h|cpp)$' |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+find websocketpp/websocketpp |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+find rapidjson/include |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+
