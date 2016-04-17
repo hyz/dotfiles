@@ -28,3 +28,26 @@ Table 3.  Summary of allowed NAL unit types for each packetization
           28     FU-A          no              yes              yes
           29     FU-B          no               no              yes
           30-31  undefined     ig               ig               ig
+
+live555/bin/openRTSP rtsp://127.0.0.1:7654/rtp1
+h264bitstream-0.1.9/h264_analyze video-H264-1
+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |                           timestamp                           |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |           synchronization source (SSRC) identifier            |
+ +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ |            contributing source (CSRC) identifiers             |
+ |                             ....                              |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+ Figure 1.  RTP header according to RFC 3550
+
+http://blog.csdn.net/baby313/article/details/7363528
+手写RTP服务器——用RTP协议传输TS流
+
+

@@ -49,3 +49,44 @@ For fragmented video frames you should regenerate NAL unit using 3 NAL unit bits
 https://sourceforge.net/projects/h264bitstream/
 https://cardinalpeak.com/blog/the-h-264-sequence-parameter-set/
 
+
+Sequence Parameter Set (SPS) and the Picture Parameter Set (PPS). 
+
+SPS and PPS frames are packed in a STAP NAL unit (generally STAP-A) with NAL type 24 (STAP-A) or 25 (STAP-B) STAP format is described in RFC-3984 section 5.7.1
+
+this is first two bytes of a FU-A payload (right after rtp header):
+
+|  FU indicator |   FU header   |
++---------------+---------------+
+|0|1|2|3|4|5|6|7|0|1|2|3|4|5|6|7|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|F|NRI|  Type   |S|E|R|  Type   |
++---------------+---------------+
+
+to construct the NAL unit you should take "Type" from "FU Header" and "F" and "NRI" from "FU indicator"
+
+
+   Figure 7 presents an example of an RTP packet that contains an STAP-
+   A.  The STAP contains two single-time aggregation units, labeled as 1
+   and 2 in the figure.
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                          RTP Header                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |STAP-A NAL HDR |         NALU 1 Size           | NALU 1 HDR    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         NALU 1 Data                           |
+      :                                                               :
+      +               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               | NALU 2 Size                   | NALU 2 HDR    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         NALU 2 Data                           |
+      :                                                               :
+      |                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                               :...OPTIONAL RTP padding        |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+      Figure 7.  An example of an RTP packet including an STAP-A and two
+                 single-time aggregation units
