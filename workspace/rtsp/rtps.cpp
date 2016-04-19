@@ -78,7 +78,8 @@ static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
 
 struct rtp_header
 {
-    // 12: version 2 p 0 x 0 cc 0 pt 96: 80e0 2f04 4691 97f6
+    BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
+
     uint8_t cc:4;         // CSRC count
     uint8_t x:1;          // header extension flag
     uint8_t p:1;          // padding flag
@@ -137,7 +138,6 @@ struct nal_unit_header
                 , xsfmt(xs,sizeof(xs), data,end));
     }
 };
-#define MAX_NAL_FRAME_LENGTH	200000
 
 struct fu_header
 {
@@ -168,36 +168,36 @@ struct fu_header
                 , xsfmt(xs,sizeof(xs), data,end), se);
     }
 };
-#define FU_A_HEADER_LENGTH	2
 
-struct nal_unit
+struct nal_unit_sink : boost::noncopyable
 {
-    struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
-    std::shared_ptr<FILE> dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
-    std::string sps_, pps_;
+    //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
+    // std::string sps_, pps_;
+    FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
 
-    explicit nal_unit(FILE* fp, std::string sps, std::string pps)
-        : dump_fp_(fp, Fclose()) , sps_(sps) , pps_(pps)
-    {
-        std::vector<int> buf( std::max(sps_.size(),pps_.size())/sizeof(int)+1 );
-        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
-        //uint8_t* end = begin + buf.size()*sizeof(int);
+    explicit nal_unit_sink(FILE* fp=0) : dump_fp_(fp) {}
 
-        //nal_unit_header* h = nal_unit_header::cast(begin,end);
-        //h->nri = 3; // 0x67, 0x68
-        //h->type = 7;
-
-        memcpy(begin, sps_.data(), sps_.length());
-        dump(begin, begin+sps_.length());
-
-        //h->type = 8;
-        memcpy(begin, pps_.data(), pps_.length());
-        dump(begin, begin+pps_.length());
+    ~nal_unit_sink() {
+        if (dump_fp_)
+            fclose(dump_fp_);
     }
-    explicit nal_unit(FILE* fp=0) : dump_fp_(fp, Fclose()) {}
 
-    void dump(uint8_t* data, uint8_t* end) const
+    void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
+        //sps_ = std::move(sps); pps_ = std::move(pps);
+        std::vector<int> buf( std::max(sps.size(),pps.size())/sizeof(int)+1 );
+        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
+
+        memcpy(begin, sps.data(), sps.length());
+        write(begin, begin+sps.length());
+
+        memcpy(begin, pps.data(), pps.length());
+        write(begin, begin+pps.length());
+    }
+
+    void write(uint8_t* data, uint8_t* end) const
+    {
+        output_helper out(dump_fp_);
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
             return;
@@ -214,8 +214,7 @@ struct nal_unit
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        nalu_write(data, data+len);
-
+                        out.put(data, data+len);
                         data += len; //
                     }
                 }
@@ -231,48 +230,71 @@ struct nal_unit
                         h->f = h1->f;
                         h->print(data,end);
                     }
-                    nalu_write(fuh.s, data + !fuh.s, end);
+                    out.put(fuh.s, data + !fuh.s, end);
                 }
                 break;
             default:
                 if (h1->type < 24)
-                    nalu_write(data, end);
+                    out.put(data, end);
                 break;
         }
     }
 
-    void nalu_write(bool sbytes, uint8_t const* data, uint8_t const* end) const
+    struct output_helper
     {
-        if (dump_fp_) {
-            if (sbytes) {
-                uint8_t zd[4] = {0,0,0,1};
-                fwrite(&zd, sizeof(zd), 1, dump_fp_.get());
-            }
-            fwrite(data, end-data, 1, dump_fp_.get());
-        }
-    }
-    void nalu_write(uint8_t const* data, uint8_t const* end) const { nalu_write(1, data, end); }
+        FILE* fp_;
+        uint8_t* opos_;
+        uint8_t* oend_;
+        uint8_t* ohead_;
 
-    void sprop_parameter_sets(std::string sps, std::string pps) {
-        sps_ = std::move(sps);
-        pps_ = std::move(pps);
-    }
+        output_helper(FILE* fp, uint8_t* b=0, uint8_t* e=0) {
+            fp_ = fp;
+            ohead_ = opos_ = b;
+            oend_ = e;
+        }
+        ~output_helper() {
+            ;
+        }
+        unsigned avails() const { return unsigned(oend_ - opos_); }
+
+        void put(bool start_bytes, uint8_t const* data, uint8_t const* end)
+        {
+            uint8_t start_bytes4[4] = {0,0,0,1};
+            if (fp_) {
+                if (start_bytes)
+                    fwrite(&start_bytes4, sizeof(start_bytes4), 1, fp_);
+                fwrite(data, end-data, 1, fp_);
+            }
+
+            if (avails() < 4u*start_bytes + (end - data)) {
+                ERR_MSG("not enough output size");
+                return;
+            }
+            if (start_bytes) {
+                std::copy(&start_bytes4[0], &start_bytes4[4], opos_);
+                opos_ += 4;
+            }
+            std::copy(data, end, opos_);
+            opos_ += (end - data);
+        }
+        void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
+    };
 };
 
 #include <sys/mman.h>
-struct H264File 
+struct h264_filemap 
 {
     typedef std::pair<uint8_t*,uint8_t*> range;
     uint8_t *begin_, *end_;
 
-    H264File(int fd) {
+    h264_filemap(int fd) {
         struct stat st; // fd = open(fn, O_RDONLY);
         fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
         begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
         end_ = begin_ + st.st_size;
         assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
     }
-    //~H264File() { close(fd); }
+    //~h264_filemap() { close(fd); }
 
     range begin() const { return find_(begin_); }
     range next(range const& prev) const { return find_(prev.second); }
@@ -288,17 +310,17 @@ struct H264File
     }
 };
 
-struct h264_reader : nal_unit, boost::noncopyable
+struct h264file_printer : boost::noncopyable
 {
-    std::unique_ptr<FILE,decltype(&fclose)> dump_fp_;
-    H264File h264f_;
+    nal_unit_sink nalu_;
+    h264_filemap h264f_;
 
-    h264_reader(FILE* fp) : dump_fp_(fp,fclose), h264f_(fileno(fp))
+    h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd)
     {}
     int setup(int, char*[])
     {
         for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            this->dump(p.first, p.second);
+            nalu_.write(p.first, p.second);
         }
         return 0;
     }
@@ -446,9 +468,9 @@ struct rtph264_client : boost::noncopyable
 
     rtph264_client(boost::asio::io_service& io_s
             , ip::tcp::endpoint remote_endpoint , std::string remote_path
-            , nal_unit nalu)
+            , FILE* dump_fp)
         : rtsp_client_(this, io_s, remote_endpoint, remote_path)
-        , nalu_(nalu) //(outfile, sps, pps)
+        , nalu_(dump_fp) //(outfile, sps, pps)
         , udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
     {}
 
@@ -550,7 +572,7 @@ private: // rtsp communication
     };
 
     rtsp_client rtsp_client_;
-    nal_unit nalu_;
+    nal_unit_sink nalu_;
 
 private:
     static int local_port(int p=0) { return 3395+p; } // TODO
@@ -563,8 +585,7 @@ private:
                 ERR_EXIT("rtp_header::cast");
 
             h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-            nalu_.dump(bufptr()+h->length(), bufptr()+bytes_recvd);
-            //boost::filesystem::ofstream ofs(dir_/std::to_string(dg_idx_++));
+            nalu_.write(bufptr()+h->length(), bufptr()+bytes_recvd);
         }
         using namespace boost::asio;
         udpsock_.async_receive_from(
@@ -612,13 +633,12 @@ struct Main : boost::asio::io_service, boost::noncopyable
     Main(int ac, char* av[]) : signals_(*this)
     {
         Args args(ac, av);
-        if (ac == 2) {
-            auto* obj = new (&objmem_) h264_reader(args.dump_fp);
-            dtor_ = [obj]() { obj->~h264_reader(); };
+        if (ac <= 2) {
+            auto* obj = new (&objmem_) h264file_printer(0, args.dump_fp);
+            dtor_ = [obj]() { obj->~h264file_printer(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
         } else {
-            nal_unit nalu(args.dump_fp); // (args.sps, args.pps, args.dump_fp);
-            auto* obj = new (&objmem_) rtph264_client(*this, args.endp, args.path, nalu);
+            auto* obj = new (&objmem_) rtph264_client(*this, args.endp, args.path, args.dump_fp);
             dtor_ = [obj]() { obj->~rtph264_client(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
 
@@ -642,7 +662,6 @@ private:
     std::function<void(int,char*[])> setup_;
     std::function<void()> dtor_;
     static int objmem_[sizeof(rtph264_client)/sizeof(int)+1];
-    BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
 };
 int Main::objmem_[sizeof(rtph264_client)/sizeof(int)+1] = {};
 
