@@ -106,6 +106,7 @@ static void rtsp_describe(CURL *curl, const char *uri,
     my_curl_easy_setopt(curl, CURLOPT_WRITEDATA, sdp_fp);
     my_curl_easy_setopt(curl, CURLOPT_RTSP_REQUEST, CURL_RTSPREQ_DESCRIBE);
     my_curl_easy_perform(curl);
+
     my_curl_easy_setopt(curl, CURLOPT_WRITEDATA, stdout);
 
     if (sdp_fp != stdout) {

@@ -1,0 +1,5 @@
+https://github.com/liuxang/LivePublisher
+ Android rtmp推流器 
+https://github.com/liuxang/MediaCodecPublisher
+ 使用android MediaCodec编码h264+aac上传rtmp服务器进行直播. 
+

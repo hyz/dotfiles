@@ -3,10 +3,14 @@ o=- 0 0 IN IP4 127.0.0.1
 s=No Title
 c=IN IP4 0.0.0.0
 t=0 0
-a=tool:libavformat 57.29.101
-m=video 0 RTP/AVP 32
-b=AS:4000
+a=tool:libavformat 57.31.100
+m=video 0 RTP/AVP 96
+b=AS:261
+a=rtpmap:96 H264/90000
+a=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LAFdsHgjv/AIgAhxAAAAfQAAF2qPFi7g==,aMqFyA==; profile-level-id=42C015
 a=control:streamid=0
-m=audio 0 RTP/AVP 14
-b=AS:384
+m=audio 0 RTP/AVP 97
+b=AS:41
+a=rtpmap:97 MPEG4-GENERIC/44100/2
+a=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=121056E500
 a=control:streamid=1

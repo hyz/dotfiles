@@ -21,5 +21,7 @@ exe ffmpeg-dec-h264 : ffmpeg-dec-h264.cc avcodec avformat avutil swresample x264
 exe mmap : mmap-example.cc ;
 # exe ffmpeg-save-frame : ffmpeg-save-frame.cc avcodec avutil avformat swresample x264 lzma z bz2 : <include>FFmpeg ;
 
-install bin : rtph264 ;
+exe a : a.cc /boost//system /boost//regex : <link>static ;
+install bin : a ;
 
+exe rtps : rtps.cpp /boost//system /boost//regex ;

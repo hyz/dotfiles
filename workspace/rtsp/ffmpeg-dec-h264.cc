@@ -44,10 +44,10 @@ struct H264File
         return std::make_pair(b,e);
     }
 };
-struct H264File2 : H264File {
-    H264File2(const char* fn) : H264File(fd_ = open(fn, O_RDONLY)) {}
+struct H264File_reader : H264File {
+    H264File_reader(const char* fn) : H264File(fd_ = open(fn, O_RDONLY)) {}
     int fd_;
-    ~H264File2() { close(fd_); }
+    ~H264File_reader() { close(fd_); }
 };
 
 //#define INBUF_SIZE 4096
@@ -102,7 +102,7 @@ void video_decode(char const *out_dir, char const *h264_fn)
     //    exit(1);
     //}
 
-    H264File2 h264f(h264_fn);
+    H264File_reader h264f(h264_fn);
     std::vector<uint8_t> vec;
 
     for (auto nalu = h264f.begin() ; boost::size(nalu)>4; nalu = h264f.next(nalu)) {
