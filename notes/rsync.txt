@@ -27,3 +27,7 @@ find websocketpp/websocketpp |rsync -avz --files-from=- -e ssh . x.x.x.x:workspa
 find rapidjson/include |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 
+# #empty dir ignored
+find test \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync -v --files-from=- . /tmp/
+
+

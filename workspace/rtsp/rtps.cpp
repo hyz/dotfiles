@@ -46,10 +46,10 @@ void base64dec(I1 beg, I1 end, I2 out_it)
     std::copy(Iter(beg), Iter(end), out_it);
     //return boost::algorithm::trim_right_copy_if( std::string(Iter(beg), Iter(end)), [](char c) { return c == '\0'; });
 }
-template <typename I2>
-void base64enc(char const* beg, char const* end, I2 out_it) {
+template <typename I1, typename I2>
+void base64enc(I1 beg, I1 end, I2 out_it) {
     using namespace boost::archive::iterators;
-    using Iter = base64_from_binary<transform_width<std::string::const_iterator,6,8>>;
+    using Iter = base64_from_binary<transform_width<I1,6,8>>;
     std::copy(Iter(beg), Iter(end), out_it);
 }
 

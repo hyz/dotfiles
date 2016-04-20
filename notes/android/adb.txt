@@ -1,0 +1,3 @@
+adb push a.h264 /sdcard/
+adb shell ls /sdcard
+
