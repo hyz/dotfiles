@@ -1,9 +1,0 @@
-### http://blog.csdn.net/bxjie/article/details/46046415
-
-### http://blog.csdn.net/liuhongxiangm/article/details/17584303
- android硬编码h264-MediaCodec 
-
-
-http://blog.csdn.net/halleyzhang3/article/details/11473961
-
-
