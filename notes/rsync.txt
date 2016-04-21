@@ -30,4 +30,6 @@ find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspa
 # #empty dir ignored
 find test \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync -v --files-from=- . /tmp/
 
+find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
+
 
