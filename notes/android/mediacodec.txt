@@ -1,6 +1,9 @@
-http://stackoverflow.com/questions/21182246/android-mediacodec-decode-h264-raw-frame
-bigflake & Grafika. 
-The DecodeEditEncodeTest and EncodeDecodeTest examples
+### http://blog.csdn.net/bxjie/article/details/46046415
 
-http://stackoverflow.com/questions/22332003/decoding-h264-bytestream-on-android?rq=1
+### http://blog.csdn.net/liuhongxiangm/article/details/17584303
+ android硬编码h264-MediaCodec 
+
+
+http://blog.csdn.net/halleyzhang3/article/details/11473961
+
 
