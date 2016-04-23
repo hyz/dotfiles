@@ -1,0 +1,23 @@
+project
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : default-build release
+    ;
+#lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
+
+#exe datagrams-dump : datagrams-dump.cpp /boost//system /boost//filesystem ;
+#exe rtp-a : rtp-a.cpp /boost//system ;
+#exe h264-a : h264-a.cpp /boost//system ;
+#exe a : base64.cpp /boost//system ;
+
+#lib glfw rt m dl Xrandr Xinerama Xi Xcursor Xrender GL drm Xdamage Xfixes X11-xcb xcb-glx xcb-dri2 Xxf86vm Xext X11 xcb Xau Xdmcp ;
+lib glfw : : <file>/usr/lib/libglfw.so.3 ;
+lib GL : ;
+
+exe a : main.cpp imgui_impl_glfw.cpp
+        [ glob ../imgui/*.cpp ]
+        GL glfw
+        /boost//system # /boost//regex
+    : <include>../imgui #<link>static
+    ;
+install bin : a ;
+
