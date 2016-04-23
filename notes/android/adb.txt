@@ -1,3 +1,11 @@
 adb push a.h264 /sdcard/
 adb shell ls /sdcard
 
+
+adb shell pm list permissions -s
+adb shell pm list permissions
+adb shell pm list permissions -g
+adb shell dumpsys package com.foo.bar |egrep -A99999 "grantedPermissions:"
+
+adb logcat -s '<TAG>'
+

@@ -1,3 +1,4 @@
+# export PATH=$PATH:/opt/android/standalone-toolchain/gcc-4.9-android-18/bin
 #import boost ; 
 #boost.use-project 1.59 ; 
 
@@ -70,4 +71,16 @@ using gcc :  : arm-linux-androideabi-g++
 #  link=static|shared                    Whether to build static or shared libraries
 #  threading=single|multi            Whether to build single or multithreaded binaries
 #  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
+
+### http://developer.android.com/ndk/guides/standalone_toolchain.html
+### clang
+# export NDK=/opt/android-ndk-r10c
+# export SYSROOT=$NDK/platforms/android-21/arch-arm
+#
+# $NDK/toolchains/llvm-3.5/prebuilt/linux-x86/bin/clang --sysroot=$SYSROOT \
+#   -target armv7-none-linux-androideabi -gcc-toolchain $NDK/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86 \
+#   -c hello-jni.c
+#
+#   -target i686-none-linux-android
+#
 

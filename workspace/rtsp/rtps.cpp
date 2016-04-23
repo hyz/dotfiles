@@ -234,8 +234,11 @@ struct nal_unit_sink : boost::noncopyable
                 }
                 break;
             default:
-                if (h1->type < 24)
+                if (h1->type < 24) {
                     out.put(data, end);
+                } else {
+                    ERR_MSG("nal-unit-type %d", h1->type);
+                }
                 break;
         }
     }
@@ -267,7 +270,7 @@ struct nal_unit_sink : boost::noncopyable
             }
 
             if (avails() < 4u*start_bytes + (end - data)) {
-                ERR_MSG("not enough output size");
+                ERR_MSG("size %u<%u", avails(), 4u*start_bytes + (end - data));
                 return;
             }
             if (start_bytes) {
@@ -282,19 +285,19 @@ struct nal_unit_sink : boost::noncopyable
 };
 
 #include <sys/mman.h>
-struct h264_filemap 
+struct h264_filemmap 
 {
     typedef std::pair<uint8_t*,uint8_t*> range;
     uint8_t *begin_, *end_;
 
-    h264_filemap(int fd) {
+    h264_filemmap(int fd) {
         struct stat st; // fd = open(fn, O_RDONLY);
         fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
         begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
         end_ = begin_ + st.st_size;
         assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
     }
-    //~h264_filemap() { close(fd); }
+    //~h264_filemmap() { close(fd); }
 
     range begin() const { return find_(begin_); }
     range next(range const& prev) const { return find_(prev.second); }
@@ -313,7 +316,7 @@ struct h264_filemap
 struct h264file_printer : boost::noncopyable
 {
     nal_unit_sink nalu_;
-    h264_filemap h264f_;
+    h264_filemmap h264f_;
 
     h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd)
     {}
@@ -612,8 +615,8 @@ struct Main : boost::asio::io_service, boost::noncopyable
 {
     struct Args {
         Args(int ac, char* av[]) {
-            if (ac == 2) {
-                if ( !(dump_fp = fopen(av[1], "rb")))
+            if (ac <= 2) {
+                if (ac==2 && !(dump_fp = fopen(av[1], "rb")))
                     ERR_EXIT("file %s: fail", av[1]);
             } else if (ac > 3) {
                 endp = ip::tcp::endpoint(ip::address::from_string(av[1]),atoi(av[2]));
