@@ -1,8 +1,6 @@
 // ImGui - standalone example application for Glfw + OpenGL 2, using fixed pipeline
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 
-#include <GLFW/glfw3.h>
-#include <imgui.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <boost/static_assert.hpp>
@@ -23,6 +21,9 @@
 //#include <boost/filesystem/path.hpp>
 //#include <boost/filesystem/fstream.hpp>
 #include <boost/signals2/signal.hpp>
+
+#include <GLFW/glfw3.h>
+#include <imgui.h>
 #include "imgui_impl_glfw.h"
 
 namespace ip = boost::asio::ip;
@@ -39,89 +40,6 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 #define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
 #define DBG_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-
-static void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error %d: %s\n", error, description);
-}
-
-int main(int, char**)
-{
-    // Setup window
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
-        return 1;
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "你好！世界", NULL, NULL);
-    glfwMakeContextCurrent(window);
-
-    // Setup ImGui binding
-    ImGui_ImplGlfw_Init(window, true);
-
-    // Load Fonts
-    // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
-    ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontFromFileTTF("/home/wood/.fonts/msyh.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
-    //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-
-    bool show_test_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImColor(114, 144, 154);
-
-    // Main loop
-    while (!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-        ImGui_ImplGlfw_NewFrame();
-
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        {
-            static float f = 0.0f;
-            ImGui::Text("你好，时间!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            ImGui::ColorEdit3("clear color", (float*)&clear_color);
-            if (ImGui::Button("Test Window")) show_test_window ^= 1;
-            if (ImGui::Button("Another Window")) show_another_window ^= 1;
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        }
-
-        // 2. Show another simple window, this time using an explicit Begin/End pair
-        if (show_another_window)
-        {
-            ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-            ImGui::Begin("Another Window", &show_another_window);
-            ImGui::Text("Hello");
-            ImGui::End();
-        }
-
-        // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (show_test_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
-        }
-
-        // Rendering
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui::Render();
-        glfwSwapBuffers(window);
-    }
-
-    // Cleanup
-    ImGui_ImplGlfw_Shutdown();
-    glfwTerminate();
-
-    return 0;
-}
 
 template <typename Derived>
 struct http_connection
@@ -370,6 +288,94 @@ private:
 // BOOST_TYPE_ERASURE_MEMBER((setup_fn), ~, 0)
 //boost::type_erasure::any<setup_fn<int(int,char*[])>, boost::type_erasure::_self&> ;
 
+struct gui
+{
+    bool show_test_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImColor(114, 144, 154);
+    GLFWwindow* window;
+
+    static void error_callback(int error, const char* description)
+    {
+        fprintf(stderr, "Error %d: %s\n", error, description);
+    }
+
+    gui(int ac,char* const av[])
+    {
+        // Setup window
+        glfwSetErrorCallback(error_callback);
+        if (!glfwInit())
+            ERR_EXIT("glfwInit");
+        window = glfwCreateWindow(1280, 720, "你好！世界", NULL, NULL);
+        glfwMakeContextCurrent(window);
+
+        // Setup ImGui binding
+        ImGui_ImplGlfw_Init(window, true);
+
+        // Load Fonts
+        // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF("/home/wood/.fonts/msyh.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
+        //io.Fonts->AddFontDefault();
+        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
+        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
+        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
+        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
+        //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    }
+    ~gui() {
+        // Cleanup
+        ImGui_ImplGlfw_Shutdown();
+        glfwTerminate();
+    }
+
+    void event_loop()
+    {
+        if (!glfwWindowShouldClose(window))
+        {
+            glfwPollEvents();
+            ImGui_ImplGlfw_NewFrame();
+
+            // 1. Show a simple window
+            // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+            {
+                static float f = 0.0f;
+                ImGui::Text("你好，时间!");
+                ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+                ImGui::ColorEdit3("clear color", (float*)&clear_color);
+                if (ImGui::Button("Test Window")) show_test_window ^= 1;
+                if (ImGui::Button("Another Window")) show_another_window ^= 1;
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            }
+
+            // 2. Show another simple window, this time using an explicit Begin/End pair
+            if (show_another_window)
+            {
+                ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
+                ImGui::Begin("Another Window", &show_another_window);
+                ImGui::Text("Hello");
+                ImGui::End();
+            }
+
+            // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
+            if (show_test_window)
+            {
+                ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
+                ImGui::ShowTestWindow(&show_test_window);
+            }
+
+            // Rendering
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+            glClear(GL_COLOR_BUFFER_BIT);
+            ImGui::Render();
+            glfwSwapBuffers(window);
+        }
+    }
+};
+
 struct Main : boost::asio::io_service, boost::noncopyable
 {
     struct Args {
@@ -393,14 +399,13 @@ struct Main : boost::asio::io_service, boost::noncopyable
         //FILE* dump_fp = 0;
     };
 
-    Main(int ac, char* av[]) : signals_(*this)
+    gui gui_;
+
+    Main(int ac, char* av[])
+        : gui_(ac,av)
+        , signals_(*this)
     {
         Args args(ac, av);
-        //if (ac <= 2) {
-        //    auto* obj = new (&objmem_) h264file_printer(0, args.dump_fp);
-        //    dtor_ = [obj]() { obj->~h264file_printer(); };
-        //    setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
-        //} else
         {
             auto* obj = new (&objmem_) liuhc_client(*this, args.host, args.path);
             dtor_ = [obj]() { obj->~liuhc_client(); };
@@ -408,19 +413,29 @@ struct Main : boost::asio::io_service, boost::noncopyable
 
             signals_.add(SIGINT);
             signals_.add(SIGTERM); // (SIGQUIT);
-            signals_.async_wait( [obj](boost::system::error_code, int){ obj->teardown(); } );
+            signals_.async_wait( [this](boost::system::error_code, int){
+                        auto* obj = reinterpret_cast<liuhc_client*>(&objmem_);
+                        obj->teardown();
+                        this->stop();
+                    } );
         }
-        // auto* obj = reinterpret_cast<T*>(&objmem_);
+
     }
     ~Main() { dtor_(); }
 
     int run(int ac, char* av[])
     {
-        setup_(ac, av);
+        //setup_(ac, av);
+        gui_loop();
         return boost::asio::io_service::run();
     }
 
 private:
+    void gui_loop() {
+        gui_.event_loop();
+        post([this](){ gui_loop(); });
+    }
+
     boost::asio::signal_set signals_;
 
     std::function<void(int,char*[])> setup_;
@@ -429,18 +444,18 @@ private:
 };
 int Main::objmem_[sizeof(liuhc_client)/sizeof(int)+1] = {};
 
-//int main(int argc, char* argv[])
-//{
-//    //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
-//    try {
-//        Main s(argc, argv);
-//        s.run(argc, argv);
-//    } catch (std::exception& e) {
-//        std::cerr << "Exception: " << e.what() << "\n";
-//    }
-//
-//    return 0;
-//}
+int main(int argc, char* argv[])
+{
+    //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
+    try {
+        Main s(argc, argv);
+        s.run(argc, argv);
+    } catch (std::exception& e) {
+        ERR_MSG("Exception: %s", e.what());
+    }
+
+    return 0;
+}
 
 //http://www.y1118.com/xin-index-1.html?year=2002
 //<td>2002001</td>

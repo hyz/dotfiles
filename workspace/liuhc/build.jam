@@ -1,5 +1,6 @@
 project
     : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+        <threading>multi
     : default-build release
     ;
 #lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
@@ -16,7 +17,7 @@ lib GL : ;
 exe a : main.cpp imgui_impl_glfw.cpp
         [ glob ../imgui/*.cpp ]
         GL glfw
-        /boost//system # /boost//regex
+        /boost//system /boost//regex
     : <include>../imgui #<link>static
     ;
 install bin : a ;
