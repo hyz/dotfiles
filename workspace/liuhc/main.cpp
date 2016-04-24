@@ -43,7 +43,7 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 #define DBG_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
 
 template <typename Derived>
-struct http_connection
+struct http_connection : boost::noncopyable
 {
     typedef http_connection<Derived> This;
 
@@ -90,7 +90,6 @@ struct http_connection
             return boost::make_iterator_range(data(), data()+size());
         }
     };
-    //int cseq_ = 1;
 
     http_connection(boost::asio::io_service& io_s, std::string host, std::string path)
         : resolver_(io_s),tcpsock_(io_s)
@@ -185,7 +184,6 @@ private:
 //Content-Encoding: gzip
 
     std::string cookie_;
-    bool chunked_ = 0;
     bool gzip_ = 0;
 
     Derived* derived() { return static_cast<Derived*>(this); }
@@ -194,7 +192,8 @@ private:
     {
         auto h = [this](boost::system::error_code ec, size_t bytes) {
             DBG_MSG("r headers: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
-            int content_len = 0; // chunked_ = 1; gzip_ = 1;
+            int content_len = 0; // gzip_ = 1;
+            bool bchunked = 0;
             if (ec) {
                 derived()->on_error(ec, Query{});
                 return;
@@ -216,7 +215,7 @@ private:
                             content_len = atoi(m[2].first.operator->());
                         } else if (boost::starts_with(line, "Transfer-Encoding")) {
                             const char* v = "chunked";
-                            chunked_ = std::equal(m[2].first,m[2].second, v, v+7);
+                            bchunked = std::equal(m[2].first,m[2].second, v, v+7);
                         } else if (boost::starts_with(line, "Content-Encoding")) {
                             const char* v = "gzip";
                             gzip_ = std::equal(m[2].first,m[2].second, v, v+4);
@@ -230,10 +229,10 @@ private:
                         }
                     }
                 }
-                DBG_MSG("gzip %d, chunk %d, clen %d, eoh %d", gzip_, chunked_, content_len, end_of_headers_);
+                DBG_MSG("gzip %d, chunk %d, clen %d, eoh %d", gzip_, bchunked, content_len, end_of_headers_);
             }
 
-            if (chunked_) {
+            if (bchunked) {
                 read_chunk_size();
             } else {
                 read_content(content_len);
@@ -283,8 +282,12 @@ private:
             }
         };
         unsigned bufsiz = boost::asio::buffer_size(response_.data());
-        DBG_MSG("r chunk: %d %d", len, bufsiz);
-        boost::asio::async_read(tcpsock_, response_.prepare(len+2-bufsiz), h);
+        if (len + 2 <= bufsiz) {
+            h(boost::system::error_code(), bufsiz);
+        } else {
+            DBG_MSG("r chunk: %d %d", len, bufsiz);
+            boost::asio::async_read(tcpsock_, response_.prepare(len+2-bufsiz), h);
+        }
     }
     void read_content(size_t len) {
         auto h = [this](boost::system::error_code ec, size_t bytes){
@@ -329,11 +332,6 @@ private:
 
 struct gui
 {
-    bool show_test_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImColor(114, 144, 154);
-    GLFWwindow* window;
-
     static void error_callback(int error, const char* description)
     {
         fprintf(stderr, "Error %d: %s\n", error, description);
@@ -369,49 +367,75 @@ struct gui
         glfwTerminate();
     }
 
-    void event_loop()
+    template <typename T>
+    void update(T* obj)
     {
-        if (!glfwWindowShouldClose(window))
-        {
+        if (!glfwWindowShouldClose(window)) {
+            auto scoped_fn = [this](T* obj){
+                int w, h;
+                glfwGetFramebufferSize(this->window, &w, &h);
+                glViewport(0, 0, w, h);
+                glClearColor(this->clear_color.x, this->clear_color.y, this->clear_color.z, this->clear_color.w);
+                glClear(GL_COLOR_BUFFER_BIT);
+                ImGui::Render();
+                glfwSwapBuffers(this->window);
+
+                //DBG_MSG("scoped-fn");
+                obj->get_io_service().post([this,obj](){ this->update(obj); });
+            };
+            std::unique_ptr<T,decltype(scoped_fn)> scoped(obj,scoped_fn);
             glfwPollEvents();
             ImGui_ImplGlfw_NewFrame();
 
-            // 1. Show a simple window
-            // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-            {
-                static float f = 0.0f;
-                ImGui::Text("你好，时间!");
-                ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-                ImGui::ColorEdit3("clear color", (float*)&clear_color);
-                if (ImGui::Button("Test Window")) show_test_window ^= 1;
-                if (ImGui::Button("Another Window")) show_another_window ^= 1;
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            }
+            imview(obj);
+            (void)scoped;
+        }
+    }
 
-            // 2. Show another simple window, this time using an explicit Begin/End pair
-            if (show_another_window)
-            {
-                ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-                ImGui::Begin("Another Window", &show_another_window);
-                ImGui::Text("Hello");
-                ImGui::End();
-            }
+private:
+    GLFWwindow* window;
+    bool show_test_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImColor(114, 144, 154);
 
-            // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-            if (show_test_window)
-            {
-                ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-                ImGui::ShowTestWindow(&show_test_window);
-            }
+    void* obj_;
+    char buf_[64];
 
-            // Rendering
-            int display_w, display_h;
-            glfwGetFramebufferSize(window, &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
-            glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-            glClear(GL_COLOR_BUFFER_BIT);
-            ImGui::Render();
-            glfwSwapBuffers(window);
+    template <typename T>
+    void imview(T* obj)
+    {
+        // 1. Show a simple window
+        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+        {
+            static float f = 0.0f;
+            ImGui::Text("你好，时间!");
+            ImGui::InputText("时间", buf_, sizeof(buf_));
+            if (ImGui::Button("Calc-5")) {
+                ;
+            }
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+            ImGui::ColorEdit3("clear color", (float*)&clear_color);
+            if (ImGui::Button("Test Window"))
+                show_test_window ^= 1;
+            if (ImGui::Button("Another Window"))
+                show_another_window ^= 1;
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        }
+
+        // 2. Show another simple window, this time using an explicit Begin/End pair
+        if (show_another_window)
+        {
+            ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
+            ImGui::Begin("Another Window", &show_another_window);
+            ImGui::Text("Hello");
+            ImGui::End();
+        }
+
+        // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
+        if (show_test_window)
+        {
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
+            ImGui::ShowTestWindow(&show_test_window);
         }
     }
 };
@@ -427,7 +451,7 @@ struct Liuhc : boost::noncopyable
     {}
 
     int setup(int, char*[]) {
-        gui_loop();
+        gui_.update(this);
         http_client_.start();
         return 0;
     }
@@ -440,13 +464,8 @@ struct Liuhc : boost::noncopyable
         http_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
     }
 
-private: // rtsp communication
     boost::asio::io_service& get_io_service() { return http_client_.get_io_service(); }
-
-    void gui_loop() {
-        gui_.event_loop();
-        get_io_service().post([this](){ gui_loop(); });
-    }
+private: // rtsp communication
 
     /// path /xin-index-1.html?year=2002
     struct http_client : http_connection<http_client>, boost::noncopyable
@@ -521,6 +540,8 @@ private: // rtsp communication
             DBG_MSG("year =>%d, cur %d", year_, current_year());
             if (year_ <= current_year()) {
                 get_io_service().post([this](){ start(); });
+            } else {
+                // object->web_data_ready_ = 1;
             }
         }
 
@@ -559,9 +580,9 @@ private: // rtsp communication
 private:
     //boost::filesystem::path dir_;
     //std::aligned_storage<1024*64,alignof(int)>::type data_;
-    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
-    enum { BufSiz = 1024*64 };
-    int buf_[BufSiz/sizeof(int)+1];
+    //uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
+    //enum { BufSiz = 1024*64 };
+    //int buf_[BufSiz/sizeof(int)+1];
 };
 
 //#include <boost/type_erasure/member.hpp>
