@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
@@ -21,6 +22,9 @@
 #include <boost/signals2/signal.hpp>
 //#include <boost/iostreams/filtering_stream.hpp>
 //#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -330,7 +334,156 @@ private:
     //};
 };
 
-struct gui
+struct Liuhc : boost::noncopyable
+{
+    typedef Liuhc This;
+
+    std::vector< std::string > his_;
+    std::vector<int> counts_; // int last_year_count_ = 0;
+
+    template <typename Args>
+    Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
+        : http_client_(this, io_s, a.remote_host, a.remote_path)
+    {
+        std::ifstream ifs("/tmp/liuhc.ar");
+        if (ifs) {
+            boost::archive::text_iarchive ia(ifs);
+            ia >> his_;
+        }
+    }
+
+    void setup(int, char*[]) {
+        //TODO http_client_.start();
+    }
+
+    void teardown() {
+        DBG_MSG("Teardown");
+        //http_client_.teardown();
+
+        boost::asio::io_service& io_s = http_client_.get_io_service();
+        http_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
+    }
+
+    boost::asio::io_service& get_io_service() { return http_client_.get_io_service(); }
+private: // rtsp communication
+
+    /// path /xin-index-1.html?year=2002
+    struct http_client : http_connection<http_client> //, boost::noncopyable
+    {
+        Liuhc* object;
+        int oldest_year_ = 2015;
+        int year_;
+
+        http_client(Liuhc* obj
+                , boost::asio::io_service& io_s
+                , std::string remote_host, std::string remote_path)
+            : http_connection(io_s, remote_host, remote_path)
+        {
+            object = obj;
+            year_ = current_year();
+        }
+        static int current_year() { return 2016; }
+
+        // void on_success(Close) { }
+
+        void on_success(Connect) {
+            //year_ = oldest_year_;
+            DBG_MSG(">query: %d", year_);
+            //{
+            //    boost::filesystem::ifstream in("/tmp/a.htm");
+            //    std::ostream ob(&response_);
+            //    ob << in.rdbuf();
+            //    on_success(Query{});
+            //}
+            query(year_); //(path_ + std::to_string(2015)); //options();
+        }
+        void on_success(Query)
+        {
+            std::string y = "<td>" + std::to_string(year_) + "001</td>";
+            std::istream ins(&content_);
+            std::string line;
+            bool line_b = 0;
+            // int yno = 0;
+            std::string codes;
+            std::vector< std::string > his;
+            boost::regex re_yno("<td>(\\d{7})</td>");
+            boost::regex re_code("<td\\s+class=\".*\">(\\d+)</td>");
+            while (std::getline(ins, line)) {
+                boost::trim_right(line);
+                std::cout << line <<"\n";
+                if (!line_b)
+                    line_b = std::search(line.begin(),line.end(), y.begin(),y.end()) < line.end();
+                if (!line_b)
+                    continue;
+
+                //<td class="cp_2">14</td>
+                boost::smatch m;
+                if (boost::regex_search(line, m, re_code)) {
+                    char const* s = m[1].first.operator->(); // (m[1].first,m[1].second);
+                    int c = atoi(s);
+                    codes.push_back(char(c));
+
+                //<td>2002002</td>
+                } else if (boost::regex_search(line, m, re_yno)) {
+                    // auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
+                    std::sort(codes.begin(), codes.end());
+                    for (char c : codes) std::cout <<" "<< int(c); std::cout <<"\n"; // 
+                    his.push_back( codes );
+                    codes.clear();
+
+                    //</tr></table>
+                } else if (boost::ends_with(line, "</table>")) {
+                    break;
+                }
+            } // while
+
+            object->history(his.begin(), his.end());
+            --year_;
+            close();
+
+            DBG_MSG("year =>%d, oldest %d", year_, oldest_year_);
+            if (year_ >= oldest_year_) {
+                get_io_service().post([this](){ start(); });
+            } else {
+                // object->web_data_ready_ = 1;
+            }
+        }
+
+        template <typename A> void on_success(A) { DBG_MSG("success:A"); }
+
+        template <typename A>
+        void on_error(boost::system::error_code ec, A) {
+            ERR_MSG("error: %d", ec.value());
+            // TODO : deadline_timer reconnect
+        }
+
+        boost::signals2::signal<void()> sig_teardown;
+    };
+
+    template <typename I>
+    void history(I b, I e) {
+        his_.insert(his_.end(), b, e);
+        counts_.push_back(e - b); // last_year_count_ = ;
+
+        std::ofstream ofs("/tmp/liuhc.ar");
+        boost::archive::text_oarchive oa(ofs);
+        oa << his_;
+    }
+
+    http_client http_client_;
+
+private:
+    //boost::filesystem::path dir_;
+    //std::aligned_storage<1024*64,alignof(int)>::type data_;
+    //uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
+    //enum { BufSiz = 1024*64 };
+    //int buf_[BufSiz/sizeof(int)+1];
+};
+
+extern "C" void inittwiddle( int m, int n, int *p );
+extern "C" int twiddle( int *x, int *y, int *z, int *p);
+
+struct UIMain : private Liuhc
 {
     static void error_callback(int error, const char* description)
     {
@@ -338,7 +491,7 @@ struct gui
     }
 
     template <typename Args>
-    gui(Args&&) //(int ac,char* const av[])
+    UIMain(boost::asio::io_service& io_s, Args a) : Liuhc(io_s, a)
     {
         // Setup window
         glfwSetErrorCallback(error_callback);
@@ -361,58 +514,152 @@ struct gui
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
         //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     }
-    ~gui() {
+    ~UIMain() {
         // Cleanup
         ImGui_ImplGlfw_Shutdown();
         glfwTerminate();
     }
 
-    template <typename T>
-    void update(T* obj)
-    {
-        if (!glfwWindowShouldClose(window)) {
-            auto scoped_fn = [this](T* obj){
-                int w, h;
-                glfwGetFramebufferSize(this->window, &w, &h);
-                glViewport(0, 0, w, h);
-                glClearColor(this->clear_color.x, this->clear_color.y, this->clear_color.z, this->clear_color.w);
-                glClear(GL_COLOR_BUFFER_BIT);
-                ImGui::Render();
-                glfwSwapBuffers(this->window);
+    void setup(int ac, char* av[]) {
+        Liuhc::setup(ac, av);
+        this->update();
+    }
+    void teardown() { Liuhc::teardown(); }
 
-                //DBG_MSG("scoped-fn");
-                obj->get_io_service().post([this,obj](){ this->update(obj); });
-            };
-            std::unique_ptr<T,decltype(scoped_fn)> scoped(obj,scoped_fn);
-            glfwPollEvents();
-            ImGui_ImplGlfw_NewFrame();
+private:
+    struct Combination {
+        enum { N=49 };
+        int M;
+        int psv_[51], ofv_[49]; //, cv[7];
 
-            imview(obj);
-            (void)scoped;
+        Combination(int m=1) {
+            M = m;
+        }
+
+        template <typename I>
+        void first(I it) {
+            inittwiddle(M, N, psv_);
+            int i;//, x, y, z, psv_[52], ofv_[50];
+            for(i = 0; i != N-M; i++) {
+                ofv_[i] = 0;
+            }
+            while(i != N) {
+                ofv_[i++] = 1;
+            }
+            copy_to(it);
+        }
+        template <typename I>
+        int* next(I it)
+        {
+            int x,y,z;
+            if (!twiddle(&x, &y, &z, psv_)) {
+                ofv_[x] = 1;
+                ofv_[y] = 0;
+                copy_to(it);
+                return ofv_;
+            }
+            return 0;
+        }
+        template <typename I>
+        void copy_to(I it) {
+            for(int i = 0; i != N; i++)
+                if (ofv_[i])
+                    *it++ = char(i+1); //putchar(b[i]? '1': '0');
+        }
+    };
+
+    Combination comb_;
+    std::map<int,std::vector<std::string>> mlis_;
+
+    int his_travel(std::string const& s) {
+        int nm = 0;
+        std::string sm;
+        for (auto& v : his_) {
+            std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(sm));
+            nm += !sm.empty();
+            sm.clear();
+        }
+        return nm;
+    }
+
+    void genlist(int m) {
+        mlis_.clear();
+        comb_ = Combination(m);
+
+        std::string res;
+        comb_.first(std::back_inserter(res));
+        int cnt = his_travel(res);
+        mlis_[cnt].push_back(res);
+
+        int sa = 1;
+        res.clear();
+        while (comb_.next(std::back_inserter(res))) {
+            cnt = his_travel(res);
+            mlis_[cnt].push_back(res);
+            ++sa;
+            res.clear();
+        }
+
+        {
+        while (sa > 300) {
+            auto it = --mlis_.end();
+            if (sa - it->second.size() > 100) {
+                sa -= it->second.size();
+                mlis_.erase(it);
+            } else break;
+        }
+        int n = 0;
+        for (auto& p: mlis_) {
+            if (n++ > 100)
+                break;
+            std::cout <<p.first <<" "<< p.second.size() << "\n\t";
+            for (std::string& s : p.second) {
+                for (int c : s)
+                    std::cout << (c);
+                std::cout <<" ";
+            }
+            std::cout <<"\n";
+        }
         }
     }
 
-private:
-    GLFWwindow* window;
-    bool show_test_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImColor(114, 144, 154);
-
-    void* obj_;
-    char buf_[64];
-
-    template <typename T>
-    void imview(T* obj)
+    void vMain()
     {
-        // 1. Show a simple window
+        // ImGui::BeginChild("SubA", ImVec2(0,300), true);
+        ImGui::Columns(3);
+        if (ImGui::Button("五码")) {
+            genlist(5);
+        }
+        ImGui::NextColumn();
+        if (ImGui::Button("四码")) {
+            genlist(4);
+        }
+        ImGui::NextColumn();
+        if (ImGui::Button("三码")) {
+            genlist(3);
+        }
+        // ImGui::EndChild();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
+        ImGui::BeginChild("Sub2", ImVec2(0,300), true);
+        ImGui::Text("With border");
+        ImGui::Columns(3);
+        for (int i = 0; i < 90; i++)
+        {
+            if (i == 30 || i == 60)
+                ImGui::NextColumn();
+            char buf[32];
+            sprintf(buf, "%08x", i*5731);
+            ImGui::Button(buf, ImVec2(-1.0f, 0.0f));
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+
         {
             static float f = 0.0f;
             ImGui::Text("你好，时间!");
             ImGui::InputText("时间", buf_, sizeof(buf_));
-            if (ImGui::Button("Calc-5")) {
-                ;
-            }
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
             ImGui::ColorEdit3("clear color", (float*)&clear_color);
             if (ImGui::Button("Test Window"))
@@ -438,151 +685,37 @@ private:
             ImGui::ShowTestWindow(&show_test_window);
         }
     }
-};
 
-struct Liuhc : boost::noncopyable
-{
-    typedef Liuhc This;
+    GLFWwindow* window;
+    bool show_test_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImColor(114, 144, 154);
 
-    template <typename Args>
-    Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
-        : gui_(a) //(ac,av)
-        , http_client_(this, io_s, a.remote_host, a.remote_path)
-    {}
+    char buf_[64];
 
-    int setup(int, char*[]) {
-        gui_.update(this);
-        http_client_.start();
-        return 0;
-    }
-
-    void teardown() {
-        DBG_MSG("Teardown");
-        //http_client_.teardown();
-
-        boost::asio::io_service& io_s = http_client_.get_io_service();
-        http_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
-    }
-
-    boost::asio::io_service& get_io_service() { return http_client_.get_io_service(); }
-private: // rtsp communication
-
-    /// path /xin-index-1.html?year=2002
-    struct http_client : http_connection<http_client>, boost::noncopyable
+    void update()
     {
-        Liuhc* object;
-        int begin_year_ = 2010;
-        int year_ = 2016;
+        if (!glfwWindowShouldClose(window)) {
+            auto scoped_fn = [this](Liuhc*){
+                int w, h;
+                glfwGetFramebufferSize(this->window, &w, &h);
+                glViewport(0, 0, w, h);
+                glClearColor(this->clear_color.x, this->clear_color.y, this->clear_color.z, this->clear_color.w);
+                glClear(GL_COLOR_BUFFER_BIT);
+                ImGui::Render();
+                glfwSwapBuffers(this->window);
 
-        http_client(Liuhc* obj
-                , boost::asio::io_service& io_s
-                , std::string remote_host, std::string remote_path)
-            : http_connection(io_s, remote_host, remote_path)
-        { object = obj; }
+                //DBG_MSG("scoped-fn");
+                get_io_service().post([this](){ this->update(); });
+            };
+            std::unique_ptr<Liuhc,decltype(scoped_fn)> scoped(this,scoped_fn);
+            glfwPollEvents();
+            ImGui_ImplGlfw_NewFrame();
 
-        // void on_success(Close) { }
-
-        void on_success(Connect) {
-            //year_ = begin_year_;
-            DBG_MSG(">query: %d", year_);
-            //{
-            //    boost::filesystem::ifstream in("/tmp/a.htm");
-            //    std::ostream ob(&response_);
-            //    ob << in.rdbuf();
-            //    on_success(Query{});
-            //}
-            query(year_); //(path_ + std::to_string(2015)); //options();
-        }
-        void on_success(Query)
-        {
-            std::string y = "<td>" + std::to_string(year_) + "001</td>";
-            std::istream ins(&content_);
-            std::string line;
-            bool line_b = 0;
-            // int yno = 0;
-            std::vector<int> codes;
-            std::vector< std::vector<int> > his;
-            boost::regex re_yno("<td>(\\d{7})</td>");
-            boost::regex re_code("<td\\s+class=\".*\">(\\d+)</td>");
-            while (std::getline(ins, line)) {
-                boost::trim_right(line);
-                std::cout << line <<"\n";
-                if (!line_b)
-                    line_b = std::search(line.begin(),line.end(), y.begin(),y.end()) < line.end();
-                if (!line_b)
-                    continue;
-
-                //<td class="cp_2">14</td>
-                boost::smatch m;
-                if (boost::regex_search(line, m, re_code)) {
-                    char const* s = m[1].first.operator->(); // (m[1].first,m[1].second);
-                    int c = atoi(s);
-                    codes.push_back(c);
-
-                //<td>2002002</td>
-                } else if (boost::regex_search(line, m, re_yno)) {
-                    // auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
-                    std::sort(codes.begin(), codes.end());
-                    for (int c : codes) std::cout <<" "<< c; std::cout <<"\n"; // 
-                    his.push_back( codes );
-                    codes.clear();
-
-                    //</tr></table>
-                } else if (boost::ends_with(line, "</table>")) {
-                    break;
-                }
-            } // while
-
-            object->history(his.begin(), his.end());
-            ++year_;
-            close();
-
-            DBG_MSG("year =>%d, cur %d", year_, current_year());
-            if (year_ <= current_year()) {
-                get_io_service().post([this](){ start(); });
-            } else {
-                // object->web_data_ready_ = 1;
-            }
-        }
-
-        static int current_year() { return 2016; }
-
-        template <typename A> void on_success(A) { DBG_MSG("success:A"); }
-
-        template <typename A>
-        void on_error(boost::system::error_code ec, A) {
-            ERR_MSG("error: %d", ec.value());
-            // TODO : deadline_timer reconnect
-        }
-
-        boost::signals2::signal<void()> sig_teardown;
-    };
-
-    template <typename I>
-    void history(I b, I e) {
-        his_.insert(his_.end(), b, e);
-        counts_.push_back(e - b); // last_year_count_ = ;
-
-        std::cout << "history:";
-        for (; b != e; ++b) {
-            for (auto& x: *b)
-                std::cout <<" "<< x;
-            std::cout << "\n";
+            vMain();
+            (void)scoped;
         }
     }
-
-    std::vector< std::vector<int> > his_;
-    std::vector<int> counts_; // int last_year_count_ = 0;
-
-    gui gui_;
-    http_client http_client_;
-
-private:
-    //boost::filesystem::path dir_;
-    //std::aligned_storage<1024*64,alignof(int)>::type data_;
-    //uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
-    //enum { BufSiz = 1024*64 };
-    //int buf_[BufSiz/sizeof(int)+1];
 };
 
 //#include <boost/type_erasure/member.hpp>
@@ -645,7 +778,7 @@ int main(int argc, char* argv[])
 {
     //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
     try {
-        Main<Liuhc,Args> s(argc, argv);
+        Main<UIMain,Args> s(argc, argv);
         //s.setup(argc,argv);
         boost::asio::signal_set sigs(s);
         sigs.add(SIGINT);

@@ -14,10 +14,10 @@ project
 lib glfw : : <file>/usr/lib/libglfw.so.3 ;
 lib GL : ;
 
-exe a : main.cpp imgui_impl_glfw.cpp
+exe a : main.cpp twiddle.c imgui_impl_glfw.cpp
         [ glob ../imgui/*.cpp ]
         GL glfw
-        /boost//system /boost//regex
+        /boost//system /boost//regex /boost//serialization
     : <include>../imgui #<link>static
     ;
 install bin : a ;
