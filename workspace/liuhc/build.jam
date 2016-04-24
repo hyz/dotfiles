@@ -22,3 +22,5 @@ exe a : main.cpp imgui_impl_glfw.cpp
     ;
 install bin : a ;
 
+exe x : x.cpp /boost//system /boost//regex ;
+

@@ -1,12 +1,10 @@
-// ImGui - standalone example application for Glfw + OpenGL 2, using fixed pipeline
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
+#include <boost/range/iterator_range.hpp>
 //#include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -19,12 +17,15 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/signal_set.hpp>
 //#include <boost/filesystem/path.hpp>
-//#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/signals2/signal.hpp>
+//#include <boost/iostreams/filtering_stream.hpp>
+//#include <boost/iostreams/device/back_inserter.hpp>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include "imgui_impl_glfw.h"
+#include <iostream>
 
 namespace ip = boost::asio::ip;
 
@@ -50,9 +51,45 @@ struct http_connection
     ip::tcp::socket tcpsock_;
     std::string host_; //ip::tcp::endpoint endpoint_;
     std::string path_;
-    std::string session_;
-    boost::asio::streambuf request_;
-    boost::asio::streambuf response_;
+
+    boost::asio::streambuf request_, response_;
+    boost::asio::streambuf content_;
+
+    struct response_buffer : private std::string {
+        size_t siz0_ = 0;
+
+        size_t size() const { return std::string::size()-siz0_; }
+        size_t capacity() const { return std::string::capacity()-siz0_; }
+
+        char* head() { return const_cast<char*>(std::string::data()); }
+        char* begin() { return head() + siz0_; }
+        char* end() { return data() + size(); }
+        void shrink_leading_fit(char* p=0, size_t siz=0) {
+            std::move(head()+siz, data(), size());
+            if (siz > 0)
+                std::memcpy(head(), p, siz);
+            siz0_=siz;
+        }
+
+        boost::asio::mutable_buffer prepare(size_t len) {
+            if (capacity()-size() < len) {
+                std::string::reserve(siz0_+size()+len);
+            }
+            return boost::asio::mutable_buffer(data(), len);
+        }
+        void commit(int len) {
+            if (len > capacity()-size())
+                ERR_EXIT("commit");
+            resize(siz0_ + size() + len);
+        }
+
+        void consume(int len) { siz0_ += len; }
+        void consume_to(char* pos) { siz0_ = pos - head(); }
+
+        boost::iterator_range<char*> iterator_range() {
+            return boost::make_iterator_range(data(), data()+size());
+        }
+    };
     //int cseq_ = 1;
 
     http_connection(boost::asio::io_service& io_s, std::string host, std::string path)
@@ -66,25 +103,24 @@ struct http_connection
 
     struct Resolve {};
     struct Connect {};
-    struct Query {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
+    struct Query {};
 
     void close() {
         boost::system::error_code ec;
         tcpsock_.close(ec);
     }
 
-    void resolve() // Resolve
+    void start() // Resolve
     {
         auto h_resolv = [this](boost::system::error_code ec, ip::tcp::resolver::iterator it) {
+            DBG_MSG("@resolv: %d", ec.value());
             if (ec) {
                 derived()->on_error(ec, Resolve{});
             } else {
+        std::cout <<"resolved: "<< it->endpoint() <<"\n";
                 connect(it);
             }
         };
-
         ip::tcp::resolver::query q(host_, "http");
         resolver_.async_resolve(q, h_resolv);
     } // void connect()
@@ -92,6 +128,7 @@ struct http_connection
     void connect(ip::tcp::resolver::iterator it)
     {
         auto h_connect = [this](boost::system::error_code ec, ip::tcp::resolver::iterator it) {
+            DBG_MSG("@connect: %d", ec.value());
             if (ec) {
                 derived()->on_error(ec, Connect{});
             } else {
@@ -103,190 +140,192 @@ struct http_connection
 
     void query(int year) // Query
     {
+        //std::string remote_path = "/xin-index-1.html?year="; // + "2010"
         {
         std::ostream outs(&request_);
         outs << "GET " << path_ <<""<< year << " HTTP/1.1\r\n"
             << "Host: " << host_ << "\r\n"
-            << "User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)" << "\r\n"
-            << "Accept: */*\r\n"
-            << "Connection: close" << "\r\n"
+            << "User-Agent: curl/7.18" << "\r\n"
+            << "Accept: */*" << "\r\n"
+            //<< "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0\r\n"
+            //<< "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+            //<< "Accept-Language: en-US,zh-CN;q=0.8,en;q=0.5,zh;q=0.3\r\n"
+            //<< "Accept-Encoding: gzip, deflate\r\n"
+            //<< "Connection: keep-alive\r\n" //<< "Connection: close\r\n"
             << "\r\n";
-        }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Query>{derived()} );
+        } //out.flush();
+        auto h = [this](boost::system::error_code ec, size_t) {
+            if (ec) {
+                derived()->on_error(ec, Query{});
+            } else {
+                read_response_headers();
+            }
+        };
+        boost::asio::async_write(tcpsock_, request_, h);
     }
 
 private:
+//GET /xin-index-1.html?year=2016 HTTP/1.1
+//Host: www.x.com
+//User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0
+//Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+//Accept-Language: en-US,zh-CN;q=0.8,en;q=0.5,zh;q=0.3
+//Accept-Encoding: gzip, deflate
+//Cookie: cck_lasttime=1461466867278; cck_count=1
+//Connection: keep-alive
+
+//HTTP/1.1 200 OK
+//Server: nginx
+//Date: Sun, 24 Apr 2016 02:57:44 GMT
+//Content-Type: text/html;charset=utf-8
+//Transfer-Encoding: chunked
+//Connection: keep-alive
+//Vary: Accept-Encoding
+//X-Powered-By: PHP/5.3.29
+//Content-Encoding: gzip
+
+    std::string cookie_;
+    bool chunked_ = 0;
+    bool gzip_ = 0;
+
     Derived* derived() { return static_cast<Derived*>(this); }
 
-    template <typename Action>
-    struct Action_helper
+    void read_response_headers()
     {
-        void operator()(boost::system::error_code ec, size_t) const {
-            auto* derived = derived_;
+        auto h = [this](boost::system::error_code ec, size_t bytes) {
+            DBG_MSG("r headers: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
+            int content_len = 0; // chunked_ = 1; gzip_ = 1;
             if (ec) {
-                derived->on_error(ec, Action{});
+                derived()->on_error(ec, Query{});
+                return;
             } else {
-                derived->response_.consume(derived->response_.size());
-                boost::asio::async_read_until(derived->tcpsock_, derived->response_, "\r\n\r\n"
-                        , [derived](boost::system::error_code ec, size_t){
-                            if (ec) {
-                                derived->on_error(ec, Action{});
-                            } else {
-                                // "RTSP/1.0 200 OK"; // TODO
-                                Action fn;
-                                fn(derived);
-                            }
-                    });
-            }
-        }
-        Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
-    };
-};
+                bool end_of_headers_ = 0;
 
-struct liuhc_client : boost::noncopyable
-{
-    typedef liuhc_client This;
+                std::istream ins(&response_);
+                std::string line;
 
-    liuhc_client(boost::asio::io_service& io_s
-            , std::string remote_host, std::string remote_path
-            )
-        : http_client_(this, io_s, remote_host, remote_path)
-        ///, nalu_(dump_fp) //(outfile, sps, pps)
-        ///, udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
-    {}
-
-    int setup(int, char*[]) {
-        http_client_.resolve();
-        return 0;
-    }
-
-    void teardown() {
-        DBG_MSG("Teardown");
-        //http_client_.teardown();
-
-        boost::asio::io_service& io_s = http_client_.get_io_service();
-        http_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
-    }
-
-private: // rtsp communication
-    /// http://www.y1118.com
-    /// path /xin-index-1.html?year=2002
-    struct http_client : http_connection<http_client>, boost::noncopyable
-    {
-        liuhc_client* thiz;
-        int begin_year_ = 2010;
-        int year_ = 2010;
-
-        http_client(liuhc_client* ptr
-                , boost::asio::io_service& io_s
-                , std::string remote_host, std::string remote_path)
-            : http_connection(io_s, remote_host, remote_path)
-        { thiz = ptr; }
-
-        // void on_success(Close) { }
-
-        void on_success(Connect) {
-            //year_ = begin_year_;
-            query(year_); //(path_ + std::to_string(2015)); //options();
-        }
-        void on_success(Query)
-        {
-            std::string y = std::to_string(year_) + "001";
-            std::istream ins(&response_);
-            std::string line;
-            bool line_b = 0;
-            int noy = 0;
-            std::vector<int> codes;
-            std::vector< std::vector<int> > his;
-            while (std::getline(ins, line)) {
-                if (!line_b)
-                    line_b = std::search(line.begin(),line.end(), y.begin(),y.end()) < line.end();
-                if (!line_b)
-                    continue;
-
-                //<td>2002002</td>
-                if (!noy) {
+                if (std::getline(ins, line)) {
+                    DBG_MSG("%s", line.c_str());
+                }
+                boost::regex re_headline("^([^:]+):\\s+(.+)$");
+                while (std::getline(ins, line)) {
+                    boost::trim_right(line); // boost::regex re_eoh("^\\s*$");
                     boost::smatch m;
-                    boost::regex re("<td>([[:digital:]]{7})</td>");
-                    if (boost::regex_search(line, m, re)) {
-                        auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
-                        noy = atoi(s);
+                    if (boost::regex_match(line, m, re_headline)) {
+                        if (boost::starts_with(line, "Content-Length")) {
+                            content_len = atoi(m[2].first.operator->());
+                        } else if (boost::starts_with(line, "Transfer-Encoding")) {
+                            const char* v = "chunked";
+                            chunked_ = std::equal(m[2].first,m[2].second, v, v+7);
+                        } else if (boost::starts_with(line, "Content-Encoding")) {
+                            const char* v = "gzip";
+                            gzip_ = std::equal(m[2].first,m[2].second, v, v+4);
+                        }
+                    } else {
+                        if (line.empty()) {
+                            end_of_headers_ = 1;
+                            break;
+                        } else {
+                            ERR_EXIT("%s",line.c_str());
+                        }
                     }
-                    continue;
                 }
-
-                //<td class="cp_2">14</td>
-                boost::smatch m;
-                boost::regex re("<td[[:space:]]+class=\".*\">([[:digital:]]+)</td>");
-                if (boost::regex_search(line, m, re)) {
-                    char const* s = m[1].first.operator->(); // (m[1].first,m[1].second);
-                    int c = atoi(s);
-                    codes.push_back(c);
-
-                    //</tr><tr>
-                } else if (boost::starts_with(line, "</tr>")) {
-                    std::sort(codes.begin(), codes.end());
-                    his.push_back( codes );
-                    codes.clear();
-                    noy=0;
-
-                    //</tr></table>
-                } else if (boost::ends_with(line, "</table>")) {
-                    break;
-                }
-            } // while
-
-            thiz->history(his.begin(), his.end());
-            ++year_;
-            DBG_MSG("year => %d", year_);
-            close();
-
-            if (year_ <= current_year()) {
-                get_io_service().post([this](){ resolve(); });
+                DBG_MSG("gzip %d, chunk %d, clen %d, eoh %d", gzip_, chunked_, content_len, end_of_headers_);
             }
-        }
 
-        static int current_year() { return 2016; }
-
-        template <typename A> void on_success(A) { DBG_MSG("success:A"); }
-
-        template <typename A>
-        void on_error(boost::system::error_code ec, A) {
-            ERR_MSG("error");
-            // TODO : deadline_timer reconnect
-        }
-
-        boost::signals2::signal<void()> sig_teardown;
-    };
-
-    template <typename I>
-    void history(I b, I e) {
-        his_.insert(his_.end(), b, e);
-        last_year_count_ = e - b;
+            if (chunked_) {
+                read_chunk_size();
+            } else {
+                read_content(content_len);
+            }
+        };
+        boost::asio::async_read_until(tcpsock_, response_, "\r\n\r\n", h);
+    }
+    void read_chunk_size()
+    {
+        auto h = [this](boost::system::error_code ec, size_t bytes) {
+            DBG_MSG("r chunk-size: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
+            if (ec) {
+                derived()->on_error(ec, Query{});
+            } else {
+                char tmp[16];
+                auto * bufptr = boost::asio::buffer_cast<char const*>(response_.data());
+                unsigned bufsiz = boost::asio::buffer_size(response_.data());
+                strncpy(tmp, bufptr, std::min(15u,bufsiz));
+                response_.consume(bytes);
+                if (!isxdigit(*tmp)) {
+                    ERR_EXIT("%s", tmp);
+                }
+                size_t len = strtol(tmp, NULL, 16); // strtol(const char *nptr, char **endptr, int base);
+                if (len == 0) {
+                    DBG_MSG("Completed");
+                    derived()->on_success(Query{});
+                } else {
+                    DBG_MSG("r chunk-size: %d, bytes %d, len %d", bufsiz, bytes, len);
+                    read_chunk(len);
+                }
+            }
+        };
+        boost::asio::async_read_until(tcpsock_, response_, "\r\n", h);
+    }
+    void read_chunk(size_t len) {
+        auto h = [this,len](boost::system::error_code ec, size_t bytes){
+            DBG_MSG("r chunk: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
+            if (ec) {
+                derived()->on_error(ec, Query{});
+            } else {
+                std::ostream out(&content_);
+                auto* p = boost::asio::buffer_cast<char const*>(response_.data());
+                //size_t bufsiz = boost::asio::buffer_size(response_.data());
+                out.write(p, len);
+                response_.consume(len+2);
+                read_chunk_size();
+            }
+        };
+        unsigned bufsiz = boost::asio::buffer_size(response_.data());
+        DBG_MSG("r chunk: %d %d", len, bufsiz);
+        boost::asio::async_read(tcpsock_, response_.prepare(len+2-bufsiz), h);
+    }
+    void read_content(size_t len) {
+        auto h = [this](boost::system::error_code ec, size_t bytes){
+            DBG_MSG("r content: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
+            if (ec) {
+                derived()->on_error(ec, Query{});
+            } else {
+                DBG_MSG("Completed");
+                derived()->on_success(Query{});
+            }
+        };
+        size_t siz = boost::asio::buffer_size(response_.data());
+        boost::asio::async_read(tcpsock_, response_.prepare(len-siz), h);
     }
 
-    std::vector< std::vector<int> > his_;
-    int last_year_count_ = 0;
-
-    http_client http_client_;
-    //nal_unit_sink nalu_;
-
-private:
-    static int local_port(int p=0) { return 3395+p; } // TODO
-
-    //ip::udp::socket udpsock_; ip::udp::endpoint peer_endpoint_;
-
-    //boost::filesystem::path dir_; int dg_idx_ = 0;
-    //std::aligned_storage<1024*64,alignof(int)>::type data_;
-    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
-    enum { BufSiz = 1024*64 };
-    int buf_[BufSiz/sizeof(int)+1];
+    //template <typename Action>
+    //struct Action_helper
+    //{
+    //    void operator()(boost::system::error_code ec, size_t) const {
+    //        auto* derived = derived_;
+    //        if (ec) {
+    //            derived->on_error(ec, Action{});
+    //        } else {
+    //            // derived->response_.consume(derived->response_.size());
+    //            boost::asio::async_read(derived->tcpsock_, derived->response_.prepare(16384*4)
+    //                    , [derived](boost::system::error_code ec, size_t bytes){
+    //                        DBG_MSG("read: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
+    //                        if (ec) {
+    //                            derived->on_error(ec, Action{});
+    //                        } else {
+    //                            // "... 200 OK"; // TODO
+    //                            derived->response_.commit(bytes);
+    //                            Action fn;
+    //                            fn(derived);
+    //                        }
+    //                });
+    //        }
+    //    }
+    //    Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
+    //};
 };
-
-//#include <boost/type_erasure/member.hpp>
-//BOOST_TYPE_ERASURE_MEMBER((setup_fn), setup, 2)
-// BOOST_TYPE_ERASURE_MEMBER((setup_fn), ~, 0)
-//boost::type_erasure::any<setup_fn<int(int,char*[])>, boost::type_erasure::_self&> ;
 
 struct gui
 {
@@ -300,7 +339,8 @@ struct gui
         fprintf(stderr, "Error %d: %s\n", error, description);
     }
 
-    gui(int ac,char* const av[])
+    template <typename Args>
+    gui(Args&&) //(int ac,char* const av[])
     {
         // Setup window
         glfwSetErrorCallback(error_callback);
@@ -376,79 +416,220 @@ struct gui
     }
 };
 
-struct Main : boost::asio::io_service, boost::noncopyable
+struct Liuhc : boost::noncopyable
 {
-    struct Args {
-        Args(int ac, char* av[]) {
-        //    if (ac <= 2) {
-        //        if (ac==2 && !(dump_fp = fopen(av[1], "rb")))
-        //            ERR_EXIT("file %s: fail", av[1]);
-        //    } else if (ac > 3) {
-        //        endp = ip::tcp::endpoint(ip::address::from_string(av[1]),atoi(av[2]));
-        //        //path = av[3];
-        //        //if (ac > 4 && !(dump_fp = fopen(av[4], "wb")))
-        //        //    ERR_EXIT("file %s: fail", av[2]);
-        //    } else {
-        //        ERR_EXIT("Usage: %s ...", av[0]);
-        //    }
-        }
-        
-        //ip::tcp::endpoint endp;
-        std::string host = "www.y1118.com"; // + "2010"
-        std::string path = "/xin-index-1.html?year="; // + "2010"
-        //FILE* dump_fp = 0;
-    };
+    typedef Liuhc This;
 
-    gui gui_;
+    template <typename Args>
+    Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
+        : gui_(a) //(ac,av)
+        , http_client_(this, io_s, a.remote_host, a.remote_path)
+    {}
 
-    Main(int ac, char* av[])
-        : gui_(ac,av)
-        , signals_(*this)
-    {
-        Args args(ac, av);
-        {
-            auto* obj = new (&objmem_) liuhc_client(*this, args.host, args.path);
-            dtor_ = [obj]() { obj->~liuhc_client(); };
-            setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
-
-            signals_.add(SIGINT);
-            signals_.add(SIGTERM); // (SIGQUIT);
-            signals_.async_wait( [this](boost::system::error_code, int){
-                        auto* obj = reinterpret_cast<liuhc_client*>(&objmem_);
-                        obj->teardown();
-                        this->stop();
-                    } );
-        }
-
-    }
-    ~Main() { dtor_(); }
-
-    int run(int ac, char* av[])
-    {
-        //setup_(ac, av);
+    int setup(int, char*[]) {
         gui_loop();
-        return boost::asio::io_service::run();
+        http_client_.start();
+        return 0;
     }
 
-private:
+    void teardown() {
+        DBG_MSG("Teardown");
+        //http_client_.teardown();
+
+        boost::asio::io_service& io_s = http_client_.get_io_service();
+        http_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
+    }
+
+private: // rtsp communication
+    boost::asio::io_service& get_io_service() { return http_client_.get_io_service(); }
+
     void gui_loop() {
         gui_.event_loop();
-        post([this](){ gui_loop(); });
+        get_io_service().post([this](){ gui_loop(); });
     }
 
-    boost::asio::signal_set signals_;
+    /// path /xin-index-1.html?year=2002
+    struct http_client : http_connection<http_client>, boost::noncopyable
+    {
+        Liuhc* object;
+        int begin_year_ = 2010;
+        int year_ = 2016;
 
-    std::function<void(int,char*[])> setup_;
-    std::function<void()> dtor_;
-    static int objmem_[sizeof(liuhc_client)/sizeof(int)+1];
+        http_client(Liuhc* obj
+                , boost::asio::io_service& io_s
+                , std::string remote_host, std::string remote_path)
+            : http_connection(io_s, remote_host, remote_path)
+        { object = obj; }
+
+        // void on_success(Close) { }
+
+        void on_success(Connect) {
+            //year_ = begin_year_;
+            DBG_MSG(">query: %d", year_);
+            //{
+            //    boost::filesystem::ifstream in("/tmp/a.htm");
+            //    std::ostream ob(&response_);
+            //    ob << in.rdbuf();
+            //    on_success(Query{});
+            //}
+            query(year_); //(path_ + std::to_string(2015)); //options();
+        }
+        void on_success(Query)
+        {
+            std::string y = "<td>" + std::to_string(year_) + "001</td>";
+            std::istream ins(&content_);
+            std::string line;
+            bool line_b = 0;
+            // int yno = 0;
+            std::vector<int> codes;
+            std::vector< std::vector<int> > his;
+            boost::regex re_yno("<td>(\\d{7})</td>");
+            boost::regex re_code("<td\\s+class=\".*\">(\\d+)</td>");
+            while (std::getline(ins, line)) {
+                boost::trim_right(line);
+                std::cout << line <<"\n";
+                if (!line_b)
+                    line_b = std::search(line.begin(),line.end(), y.begin(),y.end()) < line.end();
+                if (!line_b)
+                    continue;
+
+                //<td class="cp_2">14</td>
+                boost::smatch m;
+                if (boost::regex_search(line, m, re_code)) {
+                    char const* s = m[1].first.operator->(); // (m[1].first,m[1].second);
+                    int c = atoi(s);
+                    codes.push_back(c);
+
+                //<td>2002002</td>
+                } else if (boost::regex_search(line, m, re_yno)) {
+                    // auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
+                    std::sort(codes.begin(), codes.end());
+                    for (int c : codes) std::cout <<" "<< c; std::cout <<"\n"; // 
+                    his.push_back( codes );
+                    codes.clear();
+
+                    //</tr></table>
+                } else if (boost::ends_with(line, "</table>")) {
+                    break;
+                }
+            } // while
+
+            object->history(his.begin(), his.end());
+            ++year_;
+            close();
+
+            DBG_MSG("year =>%d, cur %d", year_, current_year());
+            if (year_ <= current_year()) {
+                get_io_service().post([this](){ start(); });
+            }
+        }
+
+        static int current_year() { return 2016; }
+
+        template <typename A> void on_success(A) { DBG_MSG("success:A"); }
+
+        template <typename A>
+        void on_error(boost::system::error_code ec, A) {
+            ERR_MSG("error: %d", ec.value());
+            // TODO : deadline_timer reconnect
+        }
+
+        boost::signals2::signal<void()> sig_teardown;
+    };
+
+    template <typename I>
+    void history(I b, I e) {
+        his_.insert(his_.end(), b, e);
+        counts_.push_back(e - b); // last_year_count_ = ;
+
+        std::cout << "history:";
+        for (; b != e; ++b) {
+            for (auto& x: *b)
+                std::cout <<" "<< x;
+            std::cout << "\n";
+        }
+    }
+
+    std::vector< std::vector<int> > his_;
+    std::vector<int> counts_; // int last_year_count_ = 0;
+
+    gui gui_;
+    http_client http_client_;
+
+private:
+    //boost::filesystem::path dir_;
+    //std::aligned_storage<1024*64,alignof(int)>::type data_;
+    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
+    enum { BufSiz = 1024*64 };
+    int buf_[BufSiz/sizeof(int)+1];
 };
-int Main::objmem_[sizeof(liuhc_client)/sizeof(int)+1] = {};
+
+//#include <boost/type_erasure/member.hpp>
+//BOOST_TYPE_ERASURE_MEMBER((setup_fn), setup, 2)
+// BOOST_TYPE_ERASURE_MEMBER((setup_fn), ~, 0)
+//boost::type_erasure::any<setup_fn<int(int,char*[])>, boost::type_erasure::_self&> ;
+
+template <typename Instance, typename Args>
+struct Main : boost::asio::io_service, boost::noncopyable
+{
+    typedef Main<Instance,Args> This;
+    struct Interface {
+        virtual ~Interface() {}
+        virtual void teardown() = 0;
+        virtual void setup(int,char*[]) = 0;
+    };
+    struct Wrapper : Interface {
+        Instance obj_;
+        Wrapper(This& m, Args a) : obj_(m, a) {}
+        virtual void teardown() { obj_.teardown(); }
+        virtual void setup(int ac,char* av[]) { obj_.setup(ac,av); }
+    };
+
+    ~Main() { reinterpret_cast<Wrapper*>(&objmem_)->~Wrapper(); }
+
+    Main(int ac, char* av[]) {
+        new (&objmem_) Wrapper(*this, Args(ac, av));
+    }
+    int run(int ac, char* av[]) {
+        reinterpret_cast<Wrapper*>(&objmem_)->setup(ac,av);
+        return boost::asio::io_service::run();
+    }
+    void stop() {
+        reinterpret_cast<Wrapper*>(&objmem_)->teardown();
+        boost::asio::io_service::stop();
+    }
+
+    void renew(Args a) {
+        reinterpret_cast<Wrapper*>(&objmem_)->teardown();
+        reinterpret_cast<Wrapper*>(&objmem_)->~Wrapper();
+        new (&objmem_) Wrapper(*this, std::move(a));
+        reinterpret_cast<Wrapper*>(&objmem_)->setup(a.argc,a.argv);
+    }
+private:
+    static int objmem_[sizeof(Wrapper)/sizeof(int)+1]; // static Wrapper obj_;
+};
+template <typename Instance, typename Args> int Main<Instance,Args>::objmem_[sizeof(Wrapper)/sizeof(int)+1] = {};
+
+struct Args
+{
+    int argc; char** argv;
+    Args(int ac, char* av[]) : argc(ac), argv(av)
+    {}
+
+    std::string remote_host = "www.y1118.com"; // + "2010"
+    std::string remote_path = "/xin-index-1.html?year="; // + "2010"
+};
 
 int main(int argc, char* argv[])
 {
     //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
     try {
-        Main s(argc, argv);
+        Main<Liuhc,Args> s(argc, argv);
+        //s.setup(argc,argv);
+        boost::asio::signal_set sigs(s);
+        sigs.add(SIGINT);
+        sigs.add(SIGTERM); // (SIGQUIT);
+        sigs.async_wait( [&s](boost::system::error_code,int){ s.stop(); } );
         s.run(argc, argv);
     } catch (std::exception& e) {
         ERR_MSG("Exception: %s", e.what());
