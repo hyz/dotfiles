@@ -26,9 +26,15 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-#include <GLFW/glfw3.h>
 #include <imgui.h>
-#include "imgui_impl_glfw.h"
+#if defined(GLFW3_OPENGL)
+#  include <GLFW/glfw3.h>
+#  include "imgui_impl_glfw.h"
+#else //if defined(SDL_OPENGL)
+#  include <SDL.h>
+#  include <SDL_opengl.h>
+#  include "imgui_impl_sdl.h"
+#endif
 #include <iostream>
 
 namespace ip = boost::asio::ip;
@@ -218,11 +224,9 @@ private:
                         if (boost::starts_with(line, "Content-Length")) {
                             content_len = atoi(m[2].first.operator->());
                         } else if (boost::starts_with(line, "Transfer-Encoding")) {
-                            const char* v = "chunked";
-                            bchunked = std::equal(m[2].first,m[2].second, v, v+7);
+                            bchunked = (boost::equals(m[2], "chunked"));
                         } else if (boost::starts_with(line, "Content-Encoding")) {
-                            const char* v = "gzip";
-                            gzip_ = std::equal(m[2].first,m[2].second, v, v+4);
+                            gzip_ = (boost::equals(m[2], "gzip"));
                         }
                     } else {
                         if (line.empty()) {
@@ -357,7 +361,7 @@ struct Liuhc : boost::noncopyable
     }
 
     void teardown() {
-        DBG_MSG("Teardown");
+        DBG_MSG("Liuhc:teardown");
         //http_client_.teardown();
 
         boost::asio::io_service& io_s = http_client_.get_io_service();
@@ -483,7 +487,7 @@ private:
 extern "C" void inittwiddle( int m, int n, int *p );
 extern "C" int twiddle( int *x, int *y, int *z, int *p);
 
-struct UIMain : private Liuhc
+struct VMain : private Liuhc
 {
     static void error_callback(int error, const char* description)
     {
@@ -491,8 +495,9 @@ struct UIMain : private Liuhc
     }
 
     template <typename Args>
-    UIMain(boost::asio::io_service& io_s, Args a) : Liuhc(io_s, a)
+    VMain(boost::asio::io_service& io_s, Args a) : Liuhc(io_s, a)
     {
+#if defined(GLFW3_OPENGL)
         // Setup window
         glfwSetErrorCallback(error_callback);
         if (!glfwInit())
@@ -502,29 +507,57 @@ struct UIMain : private Liuhc
 
         // Setup ImGui binding
         ImGui_ImplGlfw_Init(window, true);
+#else //if defined(SDL_OPENGL)
+        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+            ERR_EXIT("%s\n", SDL_GetError());
+        }
+        // Setup window
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_DisplayMode current;
+        SDL_GetCurrentDisplayMode(0, &current);
+        window = SDL_CreateWindow("ImGui SDL2+OpenGL example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+        glcontext = SDL_GL_CreateContext(window);
+
+        // Setup ImGui binding
+        ImGui_ImplSdl_Init(window);
+#endif
 
         // Load Fonts
         // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
         ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF("/home/wood/.fonts/msyh.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
+        auto* fnt = "/home/wood/.local/share/fonts/Monaco_Yahei.ttf"; //"/home/wood/.fonts/msyh.ttf"
+        io.Fonts->AddFontFromFileTTF(fnt, 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
         //io.Fonts->AddFontDefault();
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
         //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+        DBG_MSG("VMain:VMain");
     }
-    ~UIMain() {
-        // Cleanup
+    ~VMain() {
+        DBG_MSG("VMain:~VMain");
+#if defined(GLFW3_OPENGL)
         ImGui_ImplGlfw_Shutdown();
         glfwTerminate();
+#else //if defined(SDL_OPENGL)
+        ImGui_ImplSdl_Shutdown();
+        SDL_GL_DeleteContext(glcontext);  
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+#endif
     }
 
     void setup(int ac, char* av[]) {
+        DBG_MSG("VMain:setup");
         Liuhc::setup(ac, av);
         this->update();
     }
-    void teardown() { Liuhc::teardown(); }
+    void teardown() { Liuhc::teardown(); DBG_MSG("VMain:teardown"); }
 
 private:
     struct Combination {
@@ -625,7 +658,7 @@ private:
 
     void vMain()
     {
-        // ImGui::BeginChild("SubA", ImVec2(0,300), true);
+        ImGui::BeginChild("SubA", ImVec2(0,40), true);
         ImGui::Columns(3);
         if (ImGui::Button("五码")) {
             genlist(5);
@@ -638,14 +671,13 @@ private:
         if (ImGui::Button("三码")) {
             genlist(3);
         }
-        // ImGui::EndChild();
+        ImGui::EndChild();
 
         ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
-        ImGui::BeginChild("Sub2", ImVec2(0,300), true);
+        ImGui::BeginChild("Sub2", ImVec2(0,0), true);
         ImGui::Text("With border");
         ImGui::Columns(3);
-        for (int i = 0; i < 90; i++)
-        {
+        for (int i = 0; i < 90; i++) {
             if (i == 30 || i == 60)
                 ImGui::NextColumn();
             char buf[32];
@@ -686,7 +718,9 @@ private:
         }
     }
 
-    GLFWwindow* window;
+    SDL_Window *window; //GLFWwindow* window;
+    SDL_GLContext glcontext;
+    
     bool show_test_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImColor(114, 144, 154);
@@ -695,6 +729,7 @@ private:
 
     void update()
     {
+#if defined(GLFW3_OPENGL)
         if (!glfwWindowShouldClose(window)) {
             auto scoped_fn = [this](Liuhc*){
                 int w, h;
@@ -714,7 +749,37 @@ private:
 
             vMain();
             (void)scoped;
+            return;
         }
+#else //if defined(SDL_OPENGL)
+        static bool done_ = false;
+        if (!done_) {
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                ImGui_ImplSdl_ProcessEvent(&event);
+                if (event.type == SDL_QUIT) {
+                    done_ = true;
+                }
+            }
+            auto scoped_fn = [this](Liuhc*){
+                glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
+                glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+                glClear(GL_COLOR_BUFFER_BIT);
+                ImGui::Render();
+                SDL_GL_SwapWindow(window);
+
+                get_io_service().post([this](){ this->update(); });
+            };
+            std::unique_ptr<Liuhc,decltype(scoped_fn)> scoped(this,scoped_fn);
+            ImGui_ImplSdl_NewFrame(window);
+
+            vMain();
+            (void)scoped;
+            return;
+        }
+#endif
+        teardown();
+        get_io_service().stop();
     }
 };
 
@@ -746,6 +811,7 @@ struct Main : boost::asio::io_service, boost::noncopyable
     }
     int run(int ac, char* av[]) {
         reinterpret_cast<Wrapper*>(&objmem_)->setup(ac,av);
+        DBG_MSG(":run");
         return boost::asio::io_service::run();
     }
     void stop() {
@@ -778,7 +844,7 @@ int main(int argc, char* argv[])
 {
     //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
     try {
-        Main<UIMain,Args> s(argc, argv);
+        Main<VMain,Args> s(argc, argv);
         //s.setup(argc,argv);
         boost::asio::signal_set sigs(s);
         sigs.add(SIGINT);
