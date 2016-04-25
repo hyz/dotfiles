@@ -12,7 +12,12 @@ exe chats : chat_server.cpp /boost//system : <link>static  ;
 exe chatc : chat_client.cpp /boost//system /boost//thread : <link>static  ;
 
 lib hello-jni : hello-jni.c ; #: <link>static ;
-lib hgs : hgs-jni.c hgs-rtph264.cpp ; #: <link>static ;
+lib log ;
+
+lib hgs : hgs-jni.c hgs-rtph264.cpp
+        /opt/boost_1_60_0/libs/system/src/error_code.cpp
+        log
+    ; #: <link>static ;
 
 #install bin/a : multi hcli chats chatc ;
 

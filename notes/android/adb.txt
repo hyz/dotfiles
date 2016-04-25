@@ -1,3 +1,9 @@
+
+### cygwin
+export PATH=$PATH:/cygdrive/d/Android/sdk/platform-tools
+
+###
+
 adb push a.h264 /sdcard/
 adb shell ls /sdcard
 
