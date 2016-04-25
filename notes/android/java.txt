@@ -1,0 +1,6 @@
+javap -classpath /opt/android/sdk/sources/android-18 -p -s DocFooter.class
+
+man javap
+man javah
+
+javac

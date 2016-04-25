@@ -1,6 +1,8 @@
 #include <string.h>
 #include <jni.h>
 
+void foo();
+
 JNIEXPORT jstring JNICALL
 Java_com_hg_streaming_RtpH264_stringFromJNI( JNIEnv* env, jobject thiz )
 {
@@ -36,6 +38,7 @@ Java_com_hg_streaming_RtpH264_stringFromJNI( JNIEnv* env, jobject thiz )
    #define ABI "unknown"
 #endif
 
+    foo();
     return (*env)->NewStringUTF(env, "Hello from JNI !  Compiled with ABI " ABI ".");
 }
 
