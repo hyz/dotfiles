@@ -19,10 +19,10 @@ lib sdl : : <search>/usr/lib/i386-linux-gnu <name>SDL2 : : <include>/usr/include
 exe a : main.cpp twiddle.c imgui_impl_sdl.cpp imgui_impl_sdl.h
         [ glob ../imgui/*.cpp ]
         GL sdl #glfw
-        /boost//system /boost//regex /boost//serialization
+        /boost//system /boost//regex /boost//filesystem
     : <include>../imgui #<link>static
     ;
 install bin : a ;
 
-exe x : x.cpp /boost//system /boost//regex ;
+#exe x : x.cpp /boost//system /boost//regex ;
 

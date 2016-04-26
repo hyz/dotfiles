@@ -6,6 +6,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <boost/spirit/include/qi.hpp>
+//#include <boost/spirit/include/qi_repeat.hpp>
 //#include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -17,14 +19,15 @@
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/filesystem/operations.hpp>
 //#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+//#include <boost/filesystem/fstream.hpp>
 #include <boost/signals2/signal.hpp>
 //#include <boost/iostreams/filtering_stream.hpp>
 //#include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
+//#include <boost/archive/text_iarchive.hpp>
+//#include <boost/archive/text_oarchive.hpp>
 
 #include <imgui.h>
 #if defined(GLFW3_OPENGL)
@@ -119,20 +122,20 @@ struct http_connection : boost::noncopyable
         tcpsock_.close(ec);
     }
 
-    void start() // Resolve
+    void resovle()
     {
         auto h_resolv = [this](boost::system::error_code ec, ip::tcp::resolver::iterator it) {
             DBG_MSG("@resolv: %d", ec.value());
             if (ec) {
                 derived()->on_error(ec, Resolve{});
             } else {
-        std::cout <<"resolved: "<< it->endpoint() <<"\n";
+                std::cout <<"resolved: "<< it->endpoint() <<"\n";
                 connect(it);
             }
         };
         ip::tcp::resolver::query q(host_, "http");
         resolver_.async_resolve(q, h_resolv);
-    } // void connect()
+    }
 
     void connect(ip::tcp::resolver::iterator it)
     {
@@ -338,26 +341,42 @@ private:
     //};
 };
 
+template <typename I>
+std::string make_string(I b, I e) {
+    std::string ret;
+    for (; b != e; ++b)
+        ret += char(*b);
+    return std::move(ret);
+}
+
+char* c_trim_right(char* h)
+{
+    char* end = h + strlen(h);
+    char* p = end;
+    while (p > h && isspace(*(p-1)))
+        --p;
+    if (p != end)
+        *p = 0;
+    return h;
+}
+
 struct Liuhc : boost::noncopyable
 {
     typedef Liuhc This;
 
-    std::vector< std::string > his_;
-    std::vector<int> counts_; // int last_year_count_ = 0;
+    std::vector< std::string > his_; // std::vector<int> counts_; // int last_year_count_ = 0;
 
     template <typename Args>
     Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
         : http_client_(this, io_s, a.remote_host, a.remote_path)
-    {
-        std::ifstream ifs("/tmp/liuhc.ar");
-        if (ifs) {
-            boost::archive::text_iarchive ia(ifs);
-            ia >> his_;
-        }
-    }
+    {}
 
     void setup(int, char*[]) {
-        //TODO http_client_.start();
+        http_client_.change_n_years(2);
+        if (http_client_._download_data() == 0) {
+            his_ = http_client_.prepare_history_data();
+        }
+        DBG_MSG("his: %u", his_.size());
     }
 
     void teardown() {
@@ -369,13 +388,13 @@ struct Liuhc : boost::noncopyable
     }
 
     boost::asio::io_service& get_io_service() { return http_client_.get_io_service(); }
-private: // rtsp communication
 
+private: // rtsp communication
     /// path /xin-index-1.html?year=2002
     struct http_client : http_connection<http_client> //, boost::noncopyable
     {
         Liuhc* object;
-        int oldest_year_ = 2015;
+        int oldest_year_ = 2016;
         int year_;
 
         http_client(Liuhc* obj
@@ -388,6 +407,67 @@ private: // rtsp communication
         }
         static int current_year() { return 2016; }
 
+        void change_n_years(int n_year)
+        {
+            year_ = current_year();
+            oldest_year_ = year_ +1 - n_year;
+        }
+
+        std::vector<std::string> prepare_history_data() // Prepare
+        {
+            if (year_ >= oldest_year_) {
+                return std::vector<std::string>();
+            }
+            std::vector<std::string> his;
+            for (int y = current_year(); y >= oldest_year_; --y) {
+                std::string fn = (".year." + std::to_string(y) + ".txt");
+
+                FILE* fp = fopen(fn.c_str(), "r");
+                if (!fp) {
+                    ERR_EXIT("open %s", fn.c_str());
+                }
+                std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+
+                char linebuf[512];
+                while (fgets(linebuf, sizeof(linebuf), fp)) {
+                    c_trim_right(linebuf);
+                    if (*linebuf == 0) continue;
+                    namespace qi = boost::spirit::qi;
+                    using qi::int_;
+                    std::array<int,7> c;
+                    char* pos = linebuf;
+                    if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                                , int_ >> int_ >> int_ >> int_ >> int_ >> int_ >> int_
+                                , qi::space
+                                , c[0], c[1], c[2], c[3], c[4], c[5], c[6])) {
+                        ERR_EXIT("parse: %s: %s", fn.c_str(), pos);
+                    }
+                    his.push_back( make_string(c.begin(),c.end()) );
+                }
+            }
+            //this->get_io_service().post([this](){ this->on_success(http_stages::Prepare{}); });
+            return std::move(his);
+        }
+
+        int _download_data() // Resolve
+        {
+            if (year_ < oldest_year_)
+                return 0;
+
+            std::string fn = (".year." + std::to_string(year_) + ".txt");
+            if (boost::filesystem::exists(fn)) {
+                --year_;
+                return _download_data();
+            }
+
+            DBG_MSG("year =>%d, oldest %d", year_, oldest_year_);
+
+            request_.consume(boost::asio::buffer_size(request_.data()));
+            response_.consume(boost::asio::buffer_size(response_.data()));
+            content_.consume(boost::asio::buffer_size(content_.data()));
+            resovle();
+            return 1;
+        }
         // void on_success(Close) { }
 
         void on_success(Connect) {
@@ -414,7 +494,7 @@ private: // rtsp communication
             boost::regex re_code("<td\\s+class=\".*\">(\\d+)</td>");
             while (std::getline(ins, line)) {
                 boost::trim_right(line);
-                std::cout << line <<"\n";
+                // std::cout << line <<"\n";
                 if (!line_b)
                     line_b = std::search(line.begin(),line.end(), y.begin(),y.end()) < line.end();
                 if (!line_b)
@@ -431,7 +511,7 @@ private: // rtsp communication
                 } else if (boost::regex_search(line, m, re_yno)) {
                     // auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
                     std::sort(codes.begin(), codes.end());
-                    for (char c : codes) std::cout <<" "<< int(c); std::cout <<"\n"; // 
+                    // for (char c : codes) std::cout <<" "<< int(c); std::cout <<"\n"; // 
                     his.push_back( codes );
                     codes.clear();
 
@@ -441,16 +521,21 @@ private: // rtsp communication
                 }
             } // while
 
-            object->history(his.begin(), his.end());
-            --year_;
-            close();
-
-            DBG_MSG("year =>%d, oldest %d", year_, oldest_year_);
-            if (year_ >= oldest_year_) {
-                get_io_service().post([this](){ start(); });
-            } else {
-                // object->web_data_ready_ = 1;
+            {
+                std::string fn = (".year." + std::to_string(year_) + ".txt");
+                if (FILE* fp = fopen(fn.c_str(), "w")) {
+                    for (auto& s : his) {
+                        for (int c : s)
+                            fprintf(fp, "%d ", c);
+                        fprintf(fp, "\n");
+                    }
+                    fclose(fp);
+                }
             }
+
+            this->close();
+            --year_;
+            get_io_service().post([this](){ _download_data(); });
         }
 
         template <typename A> void on_success(A) { DBG_MSG("success:A"); }
@@ -463,25 +548,8 @@ private: // rtsp communication
 
         boost::signals2::signal<void()> sig_teardown;
     };
-
-    template <typename I>
-    void history(I b, I e) {
-        his_.insert(his_.end(), b, e);
-        counts_.push_back(e - b); // last_year_count_ = ;
-
-        std::ofstream ofs("/tmp/liuhc.ar");
-        boost::archive::text_oarchive oa(ofs);
-        oa << his_;
-    }
-
+protected:
     http_client http_client_;
-
-private:
-    //boost::filesystem::path dir_;
-    //std::aligned_storage<1024*64,alignof(int)>::type data_;
-    //uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
-    //enum { BufSiz = 1024*64 };
-    //int buf_[BufSiz/sizeof(int)+1];
 };
 
 extern "C" void inittwiddle( int m, int n, int *p );
@@ -615,9 +683,16 @@ private:
         return nm;
     }
 
-    void genlist(int m) {
+    void genlist(int marks) {
+        if (his_.empty()) {
+            his_ = http_client_.prepare_history_data();
+            if (his_.empty()) {
+                DBG_MSG("downloading...");
+            }
+            DBG_MSG("his: %u", his_.size());
+        }
         mlis_.clear();
-        comb_ = Combination(m);
+        comb_ = Combination(marks);
 
         std::string res;
         comb_.first(std::back_inserter(res));
@@ -634,25 +709,34 @@ private:
         }
 
         {
-        while (sa > 300) {
-            auto it = --mlis_.end();
-            if (sa - it->second.size() > 100) {
-                sa -= it->second.size();
-                mlis_.erase(it);
-            } else break;
-        }
-        int n = 0;
-        for (auto& p: mlis_) {
-            if (n++ > 100)
-                break;
-            std::cout <<p.first <<" "<< p.second.size() << "\n\t";
-            for (std::string& s : p.second) {
-                for (int c : s)
-                    std::cout << (c);
-                std::cout <<" ";
+        //while (sa > 300) {
+        //    auto it = --mlis_.end();
+        //    if (sa - it->second.size() > 100) {
+        //        sa -= it->second.size();
+        //        mlis_.erase(it);
+        //    } else break;
+        //}
+        //"=== 次数 总次数 码数码数, %u ==="
+        if (FILE* fp = fopen("result_marks.txt", "w")) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+
+            //fprintf(fp, "=== 次数, 码数 ===\r\n");
+            fprintf(fp, "=== 出现次数 ===\r\n");
+            int n = 0;
+            for (auto& p: mlis_) {
+                if (n++ > 300)
+                    break;
+                fprintf(fp, "=== %d ===\r\n", p.first); // , p.second.size()
+                for (auto& s : p.second) {
+                    fprintf(fp, "\t");
+                    for (int c : s)
+                        fprintf(fp, "%.2d ", c);
+                    fprintf(fp, "\r\n");
+                }
+                fprintf(fp, "\r\n");
             }
-            std::cout <<"\n";
         }
+        DBG_MSG("Done marks %d", marks);
         }
     }
 
