@@ -1,12 +1,11 @@
 // #include <sys/types.h> #include <signal.h>
 #include <string.h>
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
+#include <regex> //#<boost/regex.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
@@ -30,6 +29,15 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 
+extern "C" {
+    void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
+    void hgs_h264slice_commit(int flags);
+
+    void hgs_poll_once();
+    void hgs_exit();
+    void hgs_init();
+}
+
 template <typename... As> void err_exit_(int lin_, char const* fmt, As... a)
 {
     fprintf(stderr, fmt, lin_, a...);
@@ -39,9 +47,10 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
     fprintf(stderr, fmt, lin_, a...);
     fprintf(stderr, "\n");
 }
-#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-#define DBG_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
+//#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
+//#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
+#define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define ERR_MSG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 template <typename I1, typename I2>
 void base64dec(I1 beg, I1 end, I2 out_it)
@@ -66,8 +75,9 @@ template <typename Int> struct Ntoh_<Int,2> { static Int cast(Int val) { return 
 //template <typename Int> struct Ntoh_<Int,1> { static Int cast(Int val) { return (val); } };
 template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
 {
-    if (size_t(end-data) < sizeof(Int))
-        ERR_EXIT("Ntoh");
+    if (size_t(end-data) < sizeof(Int)) {
+        ERR_EXIT("Ntoh"); return 0;
+    }
     Int val;
     memcpy(&val, data, sizeof(Int));
     return Ntoh_<Int,sizeof(Int)>::cast(val);
@@ -116,11 +126,13 @@ struct rtp_header
     unsigned length() const { return sizeof(rtp_header)-4 + 4*this->cc; }
 
     void print(uint8_t* data, uint8_t* end) {
+#if !defined(__android__)
         char xs[128] = {};
         printf("%4u:%u: version %d p %d x %d cc %d pt %d seq %d: %s\n"
                 , int(end-data), this->length()
                 , this->version, this->p, this->x, this->cc, this->pt, this->seq
                 , xsfmt(xs,sizeof(xs), data,end));
+#endif
     }
 };
 
@@ -138,11 +150,13 @@ struct nal_unit_header
     unsigned length() const { return 1; }
 
     void print(uint8_t* data, uint8_t* end) {
+#if !defined(__android__)
         char xs[128] = {};
         printf("%4u:%u: f %d nri %d type %d: %s\n"
                 , int(end-data), this->length()
                 , this->f, this->nri, this->type
                 , xsfmt(xs,sizeof(xs), data,end));
+#endif
     }
 };
 
@@ -161,6 +175,7 @@ struct fu_header
     unsigned length() const { return 1; }
 
     void print(uint8_t* data, uint8_t* end) {
+#if !defined(__android__)
         char const* se = "";
         if (this->s)
             se = "\t:FU-A START";
@@ -173,6 +188,7 @@ struct fu_header
                 , int(end-data), this->length()
                 , this->s, this->e, this->type
                 , xsfmt(xs,sizeof(xs), data,end), se);
+#endif
     }
 };
 
@@ -192,23 +208,36 @@ struct nal_unit_sink : boost::noncopyable
     void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
         //sps_ = std::move(sps); pps_ = std::move(pps);
-        std::vector<int> buf( std::max(sps.size(),pps.size())/sizeof(int)+1 );
-        uint8_t* begin = reinterpret_cast<uint8_t*>( &buf[0] );
+        std::vector<int> buf( (sps.size()+pps.size())/sizeof(int)+1 );
+        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
 
-        memcpy(begin, sps.data(), sps.length());
-        write(begin, begin+sps.length());
+        memcpy(beg, sps.data(), sps.length());
+        int len = sps.length();
+        // write(beg, beg+sps.length());
 
-        memcpy(begin, pps.data(), pps.length());
-        write(begin, begin+pps.length());
+        if (!pps.empty()) {
+            memcpy(beg+len, pps.data(), pps.length());
+            len += pps.length();
+        }
+        //write(beg, beg+pps.length());
+
+        output_helper out(dump_fp_);
+        out.put(0, beg,beg+len);
+        out.commit(BUFFER_FLAG_CODEC_CONFIG);
     }
 
-    void write(uint8_t* data, uint8_t* end) const
+    size_t totsiz_ = 0, sizprint_=0;
+    void data_coming(uint8_t* data, uint8_t* end) //const
     {
         output_helper out(dump_fp_);
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
             return;
 
+        if (totsiz_-sizprint_ > 1024*10) {
+            LOGD("totsiz %u", totsiz_);
+            sizprint_=totsiz_;
+        }
         h1->print(data,end);
 
         switch (h1->type) {
@@ -221,7 +250,8 @@ struct nal_unit_sink : boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        out.put(data, data+len);
+                        out.put(1, data, data+len); totsiz_ += len;
+                        out.commit(0);
                         data += len; //
                     }
                 }
@@ -237,14 +267,20 @@ struct nal_unit_sink : boost::noncopyable
                         h->f = h1->f;
                         h->print(data,end);
                     }
-                    out.put(fuh.s, data + !fuh.s, end);
+                    if (fuh.e) {
+                        out.put(fuh.s, data + !fuh.s, end); totsiz_ += (end-data);
+                        out.commit(0);
+                    } else {
+                        out.put(fuh.s, data + !fuh.s, end); totsiz_ += (end-data);
+                    }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    out.put(data, end);
+                    out.put(1, data,end); totsiz_ += (end-data);
+                    out.commit((h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
                 } else {
-                    ERR_MSG("nal-unit-type %d", h1->type);
+                    LOGE("nal-unit-type %d", h1->type);
                 }
                 break;
         }
@@ -253,41 +289,51 @@ struct nal_unit_sink : boost::noncopyable
     struct output_helper
     {
         FILE* fp_;
-        uint8_t* opos_;
-        uint8_t* oend_;
-        uint8_t* ohead_;
+        //uint8_t* opos_; uint8_t* oend_; uint8_t* ohead_;
 
         output_helper(FILE* fp, uint8_t* b=0, uint8_t* e=0) {
             fp_ = fp;
-            ohead_ = opos_ = b;
-            oend_ = e;
+            //ohead_ = opos_ = b; oend_ = e;
         }
         ~output_helper() {
             ;
         }
-        unsigned avails() const { return unsigned(oend_ - opos_); }
+        // unsigned avails() const { return unsigned(oend_ - opos_); }
 
         void put(bool start_bytes, uint8_t const* data, uint8_t const* end)
         {
-            uint8_t start_bytes4[4] = {0,0,0,1};
+            static uint8_t sbytes[4] = {0,0,0,1};
+
             if (fp_) {
                 if (start_bytes)
-                    fwrite(&start_bytes4, sizeof(start_bytes4), 1, fp_);
+                    fwrite(sbytes, sizeof(sbytes), 1, fp_);
                 fwrite(data, end-data, 1, fp_);
             }
-
-            if (avails() < 4u*start_bytes + (end - data)) {
-                ERR_MSG("size %u<%u", avails(), 4u*start_bytes + (end - data));
-                return;
-            }
             if (start_bytes) {
-                std::copy(&start_bytes4[0], &start_bytes4[4], opos_);
-                opos_ += 4;
+                data -= 4;
+                memcpy((void*)data, sbytes, sizeof(sbytes));
             }
-            std::copy(data, end, opos_);
-            opos_ += (end - data);
+            hgs_h264slice_inflate(0, (char*)data, end-data);
+
+            //if (avails() < 4u*start_bytes + (end - data)) {
+            //    ERR_MSG("size %u<%u", avails(), 4u*start_bytes + (end - data));
+            //    return;
+            //}
+            // if (start_bytes) {
+            //     std::copy(&start_bytes4[0], &start_bytes4[4], opos_);
+            //     opos_ += 4;
+            // }
+            // std::copy(data, end, opos_);
+            // opos_ += (end - data);
         }
-        void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
+        // void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
+        void commit(int flags) {
+            hgs_h264slice_commit(flags);
+            if (flags) {
+                LOGD("BUFFER_FLAG_CODEC_CONFIG %d", flags);
+            }
+        }
+        // void commit(uint8_t const* data, uint8_t const* end, int flags) { return commit(1, data, end, flags); }
     };
 };
 
@@ -330,7 +376,7 @@ struct h264file_printer : boost::noncopyable
     int setup(int, char*[])
     {
         for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            nalu_.write(p.first, p.second);
+            nalu_.data_coming(p.first+4, p.second);
         }
         return 0;
     }
@@ -352,7 +398,7 @@ struct rtsp_connection
 
     rtsp_connection(boost::asio::io_service& io_s, ip::tcp::endpoint ep, std::string path)
         : tcpsock_(io_s), endpoint_(ep), path_(path)
-    {}
+    { LOGD("rtsp_connection"); }
 
     struct Options {
         void operator()(Derived* d) const { d->on_success(*this); }
@@ -381,6 +427,7 @@ struct rtsp_connection
                 derived()->on_success(Connect{});
             }
         };
+        LOGD("connect %s:%d", endpoint_.address().to_string().c_str(), endpoint_.port());
         tcpsock_.async_connect( endpoint_, handler );
     }
 
@@ -409,6 +456,7 @@ struct rtsp_connection
 
     void setup(std::string streamid, std::string transport)
     {
+        LOGD("setup: %s/%s\n\t%s", path_.c_str(), streamid.c_str(), transport.c_str());
         {
         std::ostream outs(&request_);
         outs << "SETUP " << path_ <<"/"<< streamid << " RTSP/1.0\r\n"
@@ -482,7 +530,9 @@ struct rtph264_client : boost::noncopyable
         : rtsp_client_(this, io_s, remote_endpoint, remote_path)
         , nalu_(dump_fp) //(outfile, sps, pps)
         , udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
-    {}
+    {
+        LOGD("rtph264_client");
+    }
 
     int setup(int, char*[]) {
         rtsp_client_.connect();
@@ -493,7 +543,7 @@ struct rtph264_client : boost::noncopyable
         rtsp_client_.teardown();
 
         boost::asio::io_service& io_s = udpsock_.get_io_service();
-        rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
+        //rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
     }
 
 private: // rtsp communication
@@ -503,42 +553,50 @@ private: // rtsp communication
 
         rtsp_client(rtph264_client* ptr, boost::asio::io_service& io_s, ip::tcp::endpoint remote_endpoint, std::string remote_path)
             : rtsp_connection(io_s, remote_endpoint, remote_path)
-        { thiz = ptr; }
+        {
+            LOGD("rtsp_client");
+            thiz = ptr;
+        }
 
         void on_success(Connect) {
             options();
         }
         void on_success(Options) {
+            LOGD("Options");
             describe();
         }
         void on_success(Describe)
         {
+            LOGD("Describe");
             std::string sps, pps, streamid;
             std::istream ins(&response_);
             std::string line;
             bool v = 0;
             while (std::getline(ins, line)) {
+                boost::trim_right(line);
+                LOGD("%s", line.c_str());
                 if (boost::starts_with(line, "m=")) {
                     v = boost::starts_with(line, "m=video");
                 } else if (v) {
                     if (boost::starts_with(line, "a=fmtp:")) {
-                        boost::smatch m;
-                        boost::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
-                        if (boost::regex_search(line, m, re)) {
+                        std::smatch m;
+                        std::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
+                        if (std::regex_search(line, m, re)) {
                             base64dec(m[1].first, m[1].second, std::back_inserter(sps));
                             base64dec(m[2].first, m[2].second, std::back_inserter(pps));
                         }
                     } else if (boost::starts_with(line, "a=control:")) {
-                        boost::smatch m;
-                        boost::regex re("streamid=[0-9]+");
-                        if (boost::regex_search(line, m, re)) {
-                            streamid.assign( m[0].first, m[0].second );
+                        std::smatch m;
+                        std::regex re("a=control:([^=]+=[0-9]+)");
+                        if (std::regex_search(line, m, re)) {
+                            streamid.assign( m[1].first, m[1].second );
                         }
                     }
                 }
             }
 
-            thiz->nalu_.sprop_parameter_sets(sps, pps);
+            if (!sps.empty())
+                thiz->nalu_.sprop_parameter_sets(sps, pps);
 
             char transport[128];
             snprintf(transport,sizeof(transport)
@@ -548,13 +606,16 @@ private: // rtsp communication
 
         void on_success(Setup)
         {
+            LOGD("Setup");
             std::istream ins(&response_);
             std::string line;
             while (std::getline(ins, line)) {
+                boost::trim_right(line);
+                LOGD("%s", line.c_str());
                 if (boost::starts_with(line, "Session:")) {
-                    boost::smatch m;
-                    boost::regex re("Session:[[:space:]]*([^[:space:]]+)");
-                    if (boost::regex_search(line, m, re)) {
+                    std::smatch m;
+                    std::regex re("Session:[[:space:]]*([^[:space:]]+)");
+                    if (std::regex_search(line, m, re)) {
                         session_.assign(m[1].first, m[1].second);
                     }
                 }
@@ -564,21 +625,22 @@ private: // rtsp communication
         }
 
         void on_success(Play) {
+            LOGD("Playing");
         }
 
         void on_success(Teardown) {
-            sig_teardown(); // kill(getpid(), SIGQUIT);
-            DBG_MSG("Teardown");
+            //sig_teardown(); // kill(getpid(), SIGQUIT);
+            LOGD("Teardown");
         }
-        template <typename A> void on_success(A) { DBG_MSG("success:A"); }
+        template <typename A> void on_success(A) { LOGD("success:A"); }
 
         template <typename A>
         void on_error(boost::system::error_code ec, A) {
-            ERR_MSG("error");
+            LOGE(">Error: %d(%s)", ec.value(), ec.message().c_str());
             // TODO : deadline_timer reconnect
         }
 
-        boost::signals2::signal<void()> sig_teardown;
+        //boost::signals2::signal<void()> sig_teardown;
     };
 
     rtsp_client rtsp_client_;
@@ -590,12 +652,18 @@ private:
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
         if (!ec && bytes_recvd > 0) {
+            static size_t max_recvd = 0, mrecvd;
+            if ( (mrecvd = std::max(max_recvd, bytes_recvd)) > max_recvd) {
+                max_recvd = mrecvd;
+                LOGD("max recvd bytes: %u", mrecvd);
+            }
             rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
-            if (!h)
-                ERR_EXIT("rtp_header::cast");
+            if (!h) {
+                ERR_EXIT("rtp_header::cast"); return;
+            }
 
             h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-            nalu_.write(bufptr()+h->length(), bufptr()+bytes_recvd);
+            nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
         }
         using namespace boost::asio;
         udpsock_.async_receive_from(
@@ -608,8 +676,8 @@ private:
 
     //boost::filesystem::path dir_; int dg_idx_ = 0;
     //std::aligned_storage<1024*64,alignof(int)>::type data_;
-    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
-    enum { BufSiz = 1024*64 };
+    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_)+4; }
+    enum { BufSiz = (1024*128-4) };
     int buf_[BufSiz/sizeof(int)+1];
 };
 
@@ -625,8 +693,9 @@ struct Main : boost::asio::io_service, boost::noncopyable
     struct Args {
         Args(int ac, char* av[]) {
             if (ac <= 2) {
-                if (ac==2 && !(dump_fp = fopen(av[1], "rb")))
-                    ERR_EXIT("file %s: fail", av[1]);
+                if (ac==2 && !(dump_fp = fopen(av[1], "rb"))) {
+                    ERR_EXIT("file %s: fail", av[1]); return;
+                }
             } else if (ac > 3) {
                 endp = ip::tcp::endpoint(ip::address::from_string(av[1]),atoi(av[2]));
                 path = av[3];
@@ -692,25 +761,33 @@ private:
 //width = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_left_offset*2 - frame_crop_right_offset*2;
 //height= ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_top_offset * 2) - (frame_crop_bottom_offset * 2);
 
-extern "C" {
-    void hgs_h264slice_inflate(char* p, size_t len);
-    void hgs_h264slice_commit(char* p, size_t len, int flags);
-
-    void hgs_poll_once();
-    void hgs_exit();
-    void hgs_init();
-}
-
-static int h264file_fd = -1;
-static std::pair<uint8_t*,uint8_t*> range_ = {};
-static int ncommit_ = 0;
+#if 0
+static struct test_h264file {
+    int h264file_fd = -1;
+    std::pair<uint8_t*,uint8_t*> range_ = {};
+    int ncommit_ = 0;
+} test_;
 
 void hgs_poll_once()
 {
+    //static char tmpbuf[1024*64];
     auto* hf = reinterpret_cast<h264file_mmap*>(&objmem_);
-    if (range_.first < range_.second) {
-        hgs_h264slice_commit((char*)range_.first, range_.second - range_.first, ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
-        range_ = hf->next(range_);
+    if (test_.range_.first < test_.range_.second) {
+        char* p = (char*)test_.range_.first;
+        char* end = (char*)test_.range_.second;
+        for (; p+64 < end; p += 64) {
+            hgs_h264slice_inflate(0, p, 64);
+        }
+        if (p < end)
+            hgs_h264slice_inflate(0, p, end-p);
+        hgs_h264slice_commit(test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
+
+        test_.range_ = hf->next(test_.range_);
+        test_.ncommit_++;
+        if (test_.ncommit_ == 400) {
+            test_.ncommit_ = 0;
+            test_.range_ = hf->begin();
+        }
     }
 }
 
@@ -720,15 +797,62 @@ void hgs_exit()
     auto* hf = reinterpret_cast<h264file_mmap*>(&objmem_);
     hf->~h264file_mmap();
 
-    close(h264file_fd);
-    h264file_fd = -1;
+    close(test_.h264file_fd);
+    test_.h264file_fd = -1;
 }
 
 void hgs_init()
 {
     LOGD("init");
-    h264file_fd = open("/sdcard/a.h264", O_RDONLY);
-    auto* hf = new (&objmem_) h264file_mmap(h264file_fd);
-    range_ = hf->begin();
+    test_.h264file_fd = open("/sdcard/a.h264", O_RDONLY);
+    auto* hf = new (&objmem_) h264file_mmap(test_.h264file_fd);
+    test_.range_ = hf->begin();
+}
+#else
+
+static struct {
+    boost::asio::io_service* io_service = 0;
+    rtph264_client* rhc = 0;
+} hgs_;
+
+    /// rtsp://192.168.2.3/live/ch00_2
+void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
+{
+    char const *path;
+    path="rtsp://192.168.2.3/live/ch00_2";
+    path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
+    path="rtsp://192.168.2.3/live/ch00_0"; //320x240
+    auto *ip="192.168.2.3";
+    auto *port = "554";
+    auto endp = ip::tcp::endpoint(ip::address::from_string(ip),atoi(port));
+
+    LOGD("init %s:%s %s", ip, port, path);
+
+    hgs_.io_service = new boost::asio::io_service();
+    LOGD("new2");
+    hgs_.rhc = new rtph264_client(*hgs_.io_service, endp, path, 0); // auto* c = new (&objmem_) rtph264_client(hgs_.io_service, endp, path, 0);
+    LOGD("setup");
+    hgs_.rhc->setup(0,0);
+    // auto* hc = reinterpret_cast<rtph264_client*>(&objmem_);
+    LOGD("return");
 }
 
+void hgs_exit()
+{
+    LOGD("exit");
+    delete hgs_.rhc;
+    delete hgs_.io_service;
+    hgs_.rhc = 0;
+    hgs_.io_service = 0;
+    // auto* c = reinterpret_cast<rtph264_client*>(&objmem_);
+    // c->~rtph264_client();
+}
+
+void hgs_poll_once()
+{
+    //LOGD("poll_one");
+    //auto* c = reinterpret_cast<rtph264_client*>(&objmem_);
+    hgs_.io_service->poll_one();
+}
+
+#endif

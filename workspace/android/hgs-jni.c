@@ -6,19 +6,32 @@
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-extern void hgs_poll_once();
-extern void hgs_exit();
-extern void hgs_init();
+// extern "C" {
+void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
+void hgs_h264slice_commit(int flags);
+
+void hgs_poll_once();
+void hgs_exit();
+void hgs_init();
+// }
 
 static JNIEnv * env_= NULL;
 static jobject oRtpH264 = NULL;
 static jmethodID MID_inflate = 0;
 static jmethodID MID_commit = 0;
 
-void hgs_h264slice_inflate(char* p, size_t len)
+void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
 {
+    static int c=0,len0=2048;
+    if (len > len0) {
+        if (c++ > 30) {
+            len0 += 2048;
+            c = 0;
+        }
+        LOGD("len %d", (int)len);
+    }
     jobject byteBuffer = (*env_)->NewDirectByteBuffer(env_, p, len);
-    (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, byteBuffer);
+    (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, (int)need_start_bytes, byteBuffer);
 
     jthrowable ex = (*env_)->ExceptionOccurred(env_);
     if (ex != NULL) {
@@ -26,9 +39,9 @@ void hgs_h264slice_inflate(char* p, size_t len)
         (*env_)->ExceptionClear(env_);
     }
 }
-void hgs_h264slice_commit(char* p, size_t len, int flags)
+void hgs_h264slice_commit(int flags)
 {
-    hgs_h264slice_inflate(p, len);
+    //hgs_h264slice_inflate(need_start_bytes, p, len);
     (*env_)->CallVoidMethod(env_, oRtpH264, MID_commit, flags);
 
     jthrowable ex = (*env_)->ExceptionOccurred(env_);
@@ -69,7 +82,7 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     env_ = env;
     oRtpH264 = (*env)->NewGlobalRef(env, thiz);
 
-    MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(Ljava/nio/ByteBuffer;)V");
+    MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(ILjava/nio/ByteBuffer;)V");
     MID_commit  = (*env)->GetMethodID(env, cls, "commit", "(I)V");
 
     hgs_init();
