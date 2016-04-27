@@ -32,4 +32,6 @@ find test \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync -
 
 find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
 
+find marksix |grep -vE '(.git|/.gradle|.idea|/bin\>)' |rsync -v --files-from=- . /mnt/hgfs/home/
+
 

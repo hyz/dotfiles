@@ -22,14 +22,6 @@ static jmethodID MID_commit = 0;
 
 void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
 {
-    static int c=0,len0=2048;
-    if (len > len0) {
-        if (c++ > 30) {
-            len0 += 2048;
-            c = 0;
-        }
-        LOGD("len %d", (int)len);
-    }
     jobject byteBuffer = (*env_)->NewDirectByteBuffer(env_, p, len);
     (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, (int)need_start_bytes, byteBuffer);
 

@@ -1,8 +1,8 @@
 // #include <sys/types.h> #include <signal.h>
+#include <sys/mman.h>
 #include <string.h>
 #include <cstdlib>
 #include <iostream>
-#include <regex> //#<boost/regex.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
@@ -22,21 +22,22 @@
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/signal_set.hpp>
+#if defined(__android__)
+#  include <regex> //<boost/regex.hpp>
+namespace re = std;
+#else
+#  include <boost/regex.hpp>
+namespace re = boost;
+#endif
 
-#include <android/log.h>
-#define  LOG_TAG    "HGSX"
-#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-enum { BUFFER_FLAG_CODEC_CONFIG=2 };
+#if defined(__android__)
+#  include <android/log.h>
+#  define  LOG_TAG    "HGSX"
+#  define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#  define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#  define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-extern "C" {
-    void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
-    void hgs_h264slice_commit(int flags);
-
-    void hgs_poll_once();
-    void hgs_exit();
-    void hgs_init();
-}
+#else
 
 template <typename... As> void err_exit_(int lin_, char const* fmt, As... a)
 {
@@ -47,10 +48,20 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
     fprintf(stderr, fmt, lin_, a...);
     fprintf(stderr, "\n");
 }
-//#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-//#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-#define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define ERR_MSG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#  define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
+#  define LOGD(...) err_msg_(__LINE__, "D:%d: " __VA_ARGS__)
+#  define LOGE(...) err_msg_(__LINE__, "E:%d: " __VA_ARGS__)
+#endif
+
+enum { BUFFER_FLAG_CODEC_CONFIG=2 };
+extern "C" {
+    void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
+    void hgs_h264slice_commit(int flags);
+
+    void hgs_poll_once();
+    void hgs_exit();
+    void hgs_init();
+}
 
 template <typename I1, typename I2>
 void base64dec(I1 beg, I1 end, I2 out_it)
@@ -337,7 +348,6 @@ struct nal_unit_sink : boost::noncopyable
     };
 };
 
-#include <sys/mman.h>
 struct h264file_mmap 
 {
     typedef std::pair<uint8_t*,uint8_t*> range;
@@ -579,16 +589,16 @@ private: // rtsp communication
                     v = boost::starts_with(line, "m=video");
                 } else if (v) {
                     if (boost::starts_with(line, "a=fmtp:")) {
-                        std::smatch m;
-                        std::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
-                        if (std::regex_search(line, m, re)) {
+                        re::smatch m; // fmtp:96 profile-level-id=42A01E;packetization-mode=1;sprop-parameter-sets=
+                        re::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
+                        if (re::regex_search(line, m, re)) {
                             base64dec(m[1].first, m[1].second, std::back_inserter(sps));
                             base64dec(m[2].first, m[2].second, std::back_inserter(pps));
                         }
                     } else if (boost::starts_with(line, "a=control:")) {
-                        std::smatch m;
-                        std::regex re("a=control:([^=]+=[0-9]+)");
-                        if (std::regex_search(line, m, re)) {
+                        re::smatch m;
+                        re::regex re("a=control:([^=]+=[0-9]+)");
+                        if (re::regex_search(line, m, re)) {
                             streamid.assign( m[1].first, m[1].second );
                         }
                     }
@@ -613,9 +623,9 @@ private: // rtsp communication
                 boost::trim_right(line);
                 LOGD("%s", line.c_str());
                 if (boost::starts_with(line, "Session:")) {
-                    std::smatch m;
-                    std::regex re("Session:[[:space:]]*([^[:space:]]+)");
-                    if (std::regex_search(line, m, re)) {
+                    re::smatch m;
+                    re::regex re("Session:[[:space:]]*([^[:space:]]+)");
+                    if (re::regex_search(line, m, re)) {
                         session_.assign(m[1].first, m[1].second);
                     }
                 }
@@ -651,24 +661,30 @@ private:
 
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
-        if (!ec && bytes_recvd > 0) {
-            static size_t max_recvd = 0, mrecvd;
-            if ( (mrecvd = std::max(max_recvd, bytes_recvd)) > max_recvd) {
-                max_recvd = mrecvd;
-                LOGD("max recvd bytes: %u", mrecvd);
-            }
-            rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
-            if (!h) {
-                ERR_EXIT("rtp_header::cast"); return;
-            }
+        if (ec) {
+            LOGE("%d(%s)", ec.value(), ec.message().c_str());
+        } else {
+            if (bytes_recvd > 0) {
+                static size_t max_recvd = 0, mrecvd;
+                if ( (mrecvd = std::max(max_recvd, bytes_recvd)) > max_recvd) {
+                    max_recvd = mrecvd;
+                    LOGD("max recvd bytes: %u", mrecvd);
+                }
 
-            h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-            nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
+                rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
+                if (!h) {
+                    ERR_EXIT("rtp_header::cast"); return;
+                } else {
+                    h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
+                    nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
+                }
+            }
+            using namespace boost::asio;
+            udpsock_.async_receive_from(
+                    boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
+                    boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
+            LOGD("udpsock %d", bytes_recvd);
         }
-        using namespace boost::asio;
-        udpsock_.async_receive_from(
-                boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
-                boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
     }
 
     ip::udp::socket udpsock_;
@@ -852,7 +868,7 @@ void hgs_poll_once()
 {
     //LOGD("poll_one");
     //auto* c = reinterpret_cast<rtph264_client*>(&objmem_);
-    hgs_.io_service->poll_one();
+    hgs_.io_service->run();//poll_one();
 }
 
 #endif
