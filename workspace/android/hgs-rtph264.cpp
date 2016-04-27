@@ -203,15 +203,15 @@ struct fu_header
     }
 };
 
-struct nal_unit_sink : boost::noncopyable
+struct h264nal : boost::noncopyable
 {
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
     // std::string sps_, pps_;
     FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
 
-    explicit nal_unit_sink(FILE* fp=0) : dump_fp_(fp) {}
+    explicit h264nal(FILE* fp=0) : dump_fp_(fp) {}
 
-    ~nal_unit_sink() {
+    ~h264nal() {
         if (dump_fp_)
             fclose(dump_fp_);
     }
@@ -378,7 +378,7 @@ struct h264file_mmap
 
 struct h264file_printer : boost::noncopyable
 {
-    nal_unit_sink nalu_;
+    h264nal nalu_;
     h264file_mmap h264f_;
 
     h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd)
@@ -530,134 +530,26 @@ private:
     };
 };
 
-struct rtph264_client : boost::noncopyable
+struct rtp_receiver : boost::noncopyable
 {
-    typedef rtph264_client This;
+    typedef rtp_receiver This;
 
-    rtph264_client(boost::asio::io_service& io_s
-            , ip::tcp::endpoint remote_endpoint , std::string remote_path
-            , FILE* dump_fp)
-        : rtsp_client_(this, io_s, remote_endpoint, remote_path)
-        , nalu_(dump_fp) //(outfile, sps, pps)
+    rtp_receiver(boost::asio::io_service& io_s, FILE* dump_fp)
+        : nalu_(dump_fp) //(outfile, sps, pps)
         , udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
     {
-        LOGD("rtph264_client");
+        LOGD("rtp_receiver");
     }
 
-    int setup(int, char*[]) {
-        rtsp_client_.connect();
-        return 0;
+    void sprop_parameter_sets(std::string const& sps, std::string const& pps) {
+        nalu_.sprop_parameter_sets(sps, pps);
     }
+    void start_playing() { handle_receive_from(boost::system::error_code(), 0); }
 
-    void teardown() {
-        rtsp_client_.teardown();
-
-        boost::asio::io_service& io_s = udpsock_.get_io_service();
-        //rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
-    }
+    static int local_port(int p=0) { return 3396+p; } // TODO
 
 private: // rtsp communication
-    struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
-    {
-        rtph264_client* thiz;
-
-        rtsp_client(rtph264_client* ptr, boost::asio::io_service& io_s, ip::tcp::endpoint remote_endpoint, std::string remote_path)
-            : rtsp_connection(io_s, remote_endpoint, remote_path)
-        {
-            LOGD("rtsp_client");
-            thiz = ptr;
-        }
-
-        void on_success(Connect) {
-            options();
-        }
-        void on_success(Options) {
-            LOGD("Options");
-            describe();
-        }
-        void on_success(Describe)
-        {
-            LOGD("Describe");
-            std::string sps, pps, streamid;
-            std::istream ins(&response_);
-            std::string line;
-            bool v = 0;
-            while (std::getline(ins, line)) {
-                boost::trim_right(line);
-                LOGD("%s", line.c_str());
-                if (boost::starts_with(line, "m=")) {
-                    v = boost::starts_with(line, "m=video");
-                } else if (v) {
-                    if (boost::starts_with(line, "a=fmtp:")) {
-                        re::smatch m; // fmtp:96 profile-level-id=42A01E;packetization-mode=1;sprop-parameter-sets=
-                        re::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
-                        if (re::regex_search(line, m, re)) {
-                            base64dec(m[1].first, m[1].second, std::back_inserter(sps));
-                            base64dec(m[2].first, m[2].second, std::back_inserter(pps));
-                        }
-                    } else if (boost::starts_with(line, "a=control:")) {
-                        re::smatch m;
-                        re::regex re("a=control:([^=]+=[0-9]+)");
-                        if (re::regex_search(line, m, re)) {
-                            streamid.assign( m[1].first, m[1].second );
-                        }
-                    }
-                }
-            }
-
-            if (!sps.empty())
-                thiz->nalu_.sprop_parameter_sets(sps, pps);
-
-            char transport[128];
-            snprintf(transport,sizeof(transport)
-                    , "RTP/AVP;unicast;client_port=%d-%d", thiz->local_port(),thiz->local_port(+1));
-            setup(streamid, transport);
-        }
-
-        void on_success(Setup)
-        {
-            LOGD("Setup");
-            std::istream ins(&response_);
-            std::string line;
-            while (std::getline(ins, line)) {
-                boost::trim_right(line);
-                LOGD("%s", line.c_str());
-                if (boost::starts_with(line, "Session:")) {
-                    re::smatch m;
-                    re::regex re("Session:[[:space:]]*([^[:space:]]+)");
-                    if (re::regex_search(line, m, re)) {
-                        session_.assign(m[1].first, m[1].second);
-                    }
-                }
-            }
-            thiz->handle_receive_from(boost::system::error_code(), 0);
-            play();
-        }
-
-        void on_success(Play) {
-            LOGD("Playing");
-        }
-
-        void on_success(Teardown) {
-            //sig_teardown(); // kill(getpid(), SIGQUIT);
-            LOGD("Teardown");
-        }
-        template <typename A> void on_success(A) { LOGD("success:A"); }
-
-        template <typename A>
-        void on_error(boost::system::error_code ec, A) {
-            LOGE(">Error: %d(%s)", ec.value(), ec.message().c_str());
-            // TODO : deadline_timer reconnect
-        }
-
-        //boost::signals2::signal<void()> sig_teardown;
-    };
-
-    rtsp_client rtsp_client_;
-    nal_unit_sink nalu_;
-
-private:
-    static int local_port(int p=0) { return 3395+p; } // TODO
+    h264nal nalu_;
 
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
@@ -697,13 +589,125 @@ private:
     int buf_[BufSiz/sizeof(int)+1];
 };
 
+struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
+{
+    rtp_receiver* thiz;
+
+    rtsp_client(boost::asio::io_service& io_s, rtp_receiver* ptr, ip::tcp::endpoint remote_endpoint, std::string remote_path)
+        : rtsp_connection(io_s, remote_endpoint, remote_path)
+    {
+        LOGD("rtsp_client");
+        thiz = ptr;
+    }
+
+    int setup(int, char*[]) {
+        connect();
+        return 0;
+    }
+    //void teardown() {
+    //    //boost::asio::io_service& io_s = udpsock_.get_io_service();
+    //    //rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
+    //}
+
+    void on_success(Connect) {
+        options();
+    }
+    void on_success(Options) {
+        LOGD("Options");
+        describe();
+    }
+    void on_success(Describe)
+    {
+        LOGD("Describe");
+        std::string sps, pps, streamid;
+        std::istream ins(&response_);
+        std::string line;
+        bool v = 0;
+        while (std::getline(ins, line)) {
+            boost::trim_right(line);
+            LOGD("%s", line.c_str());
+            if (boost::starts_with(line, "m=")) {
+                v = boost::starts_with(line, "m=video");
+            } else if (v) {
+                if (boost::starts_with(line, "a=fmtp:")) {
+                    re::smatch m; // fmtp:96 profile-level-id=42A01E;packetization-mode=1;sprop-parameter-sets=
+                    re::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
+                    if (re::regex_search(line, m, re)) {
+                        base64dec(m[1].first, m[1].second, std::back_inserter(sps));
+                        base64dec(m[2].first, m[2].second, std::back_inserter(pps));
+                    }
+                } else if (boost::starts_with(line, "a=control:")) {
+                    re::smatch m;
+                    re::regex re("a=control:([^=]+=[0-9]+)");
+                    if (re::regex_search(line, m, re)) {
+                        streamid.assign( m[1].first, m[1].second );
+                    }
+                }
+            }
+        }
+
+        if (!sps.empty())
+            thiz->sprop_parameter_sets(sps, pps);
+
+        char transport[128];
+        snprintf(transport,sizeof(transport)
+                , "RTP/AVP;unicast;client_port=%d-%d", thiz->local_port(),thiz->local_port(+1));
+        rtsp_connection<rtsp_client>::setup(streamid, transport);
+    }
+
+    void on_success(Setup)
+    {
+        LOGD("Setup");
+        std::istream ins(&response_);
+        std::string line;
+        while (std::getline(ins, line)) {
+            boost::trim_right(line);
+            LOGD("%s", line.c_str());
+            if (boost::starts_with(line, "Session:")) {
+                re::smatch m;
+                re::regex re("Session:[[:space:]]*([^[:space:]]+)");
+                if (re::regex_search(line, m, re)) {
+                    session_.assign(m[1].first, m[1].second);
+                }
+            }
+        }
+        thiz->start_playing();
+        play();
+    }
+
+    void on_success(Play) {
+        LOGD("Playing");
+    }
+
+    void on_success(Teardown) {
+        //sig_teardown(); // kill(getpid(), SIGQUIT);
+        LOGD("Teardown");
+    }
+    template <typename A> void on_success(A) { LOGD("success:A"); }
+
+    template <typename A>
+    void on_error(boost::system::error_code ec, A) {
+        LOGE(">Error: %d(%s)", ec.value(), ec.message().c_str());
+        // TODO : deadline_timer reconnect
+    }
+
+    //boost::signals2::signal<void()> sig_teardown;
+}; // rtsp_client rtsp_client_;
+
 //#include <boost/type_erasure/member.hpp>
 //BOOST_TYPE_ERASURE_MEMBER((setup_fn), setup, 2)
 // BOOST_TYPE_ERASURE_MEMBER((setup_fn), ~, 0)
 //boost::type_erasure::any<setup_fn<int(int,char*[])>, boost::type_erasure::_self&> ;
 
-static int objmem_[sizeof(rtph264_client)/sizeof(int)+1];
-// int Main::objmem_[sizeof(rtph264_client)/sizeof(int)+1] = {};
+#if 0
+struct Objmem {
+    int rtp_receiver_[sizeof(rtp_receiver)/sizeof(int)+1];
+    int rtcp_client_[sizeof(rtcp_client)/sizeof(int)+1];
+    int rtsp_client_[sizeof(rtsp_client)/sizeof(int)+1];
+};
+static int objmem_[sizeof(rtp_receiver)/sizeof(int)+1];
+
+// int Main::objmem_[sizeof(rtp_receiver)/sizeof(int)+1] = {};
 struct Main : boost::asio::io_service, boost::noncopyable
 {
     struct Args {
@@ -735,8 +739,8 @@ struct Main : boost::asio::io_service, boost::noncopyable
             dtor_ = [obj]() { obj->~h264file_printer(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
         } else {
-            auto* obj = new (&objmem_) rtph264_client(*this, args.endp, args.path, args.dump_fp);
-            dtor_ = [obj]() { obj->~rtph264_client(); };
+            auto* obj = new (&objmem_) rtp_receiver(*this, args.endp, args.path, args.dump_fp);
+            dtor_ = [obj]() { obj->~rtp_receiver(); };
             setup_ = [obj](int ac,char*av[]) { obj->setup(ac,av); };
 
             signals_.add(SIGINT);
@@ -772,6 +776,7 @@ private:
 //
 //    return 0;
 //}
+#endif
 
 // http://stackoverflow.com/questions/6394874/fetching-the-dimensions-of-a-h264video-stream?lq=1
 //width = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_left_offset*2 - frame_crop_right_offset*2;
@@ -826,9 +831,13 @@ void hgs_init()
 }
 #else
 
+    struct rtcp_client {};
+
 static struct {
     boost::asio::io_service* io_service = 0;
-    rtph264_client* rhc = 0;
+    rtp_receiver* rtp = 0;
+    rtcp_client* rtcp = 0;
+    rtsp_client* rtsp = 0;
 } hgs_;
 
     /// rtsp://192.168.2.3/live/ch00_2
@@ -845,29 +854,33 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
     LOGD("init %s:%s %s", ip, port, path);
 
     hgs_.io_service = new boost::asio::io_service();
-    LOGD("new2");
-    hgs_.rhc = new rtph264_client(*hgs_.io_service, endp, path, 0); // auto* c = new (&objmem_) rtph264_client(hgs_.io_service, endp, path, 0);
-    LOGD("setup");
-    hgs_.rhc->setup(0,0);
-    // auto* hc = reinterpret_cast<rtph264_client*>(&objmem_);
+    hgs_.rtp = new rtp_receiver(*hgs_.io_service, 0); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
+    hgs_.rtsp = new rtsp_client(*hgs_.io_service, hgs_.rtp, endp, path);
+    hgs_.rtcp = new rtcp_client();
+
+    hgs_.rtsp->setup(0,0);
+
+    // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
     LOGD("return");
 }
 
 void hgs_exit()
 {
     LOGD("exit");
-    delete hgs_.rhc;
-    delete hgs_.io_service;
-    hgs_.rhc = 0;
-    hgs_.io_service = 0;
-    // auto* c = reinterpret_cast<rtph264_client*>(&objmem_);
-    // c->~rtph264_client();
+
+    hgs_.rtsp->teardown();
+    hgs_.io_service->stop();
+
+    delete hgs_.rtsp;       hgs_.rtsp = 0;
+    delete hgs_.rtcp;       hgs_.rtcp = 0;
+    delete hgs_.rtp;        hgs_.rtp = 0;
+    delete hgs_.io_service; hgs_.io_service = 0;
 }
 
 void hgs_poll_once()
 {
     //LOGD("poll_one");
-    //auto* c = reinterpret_cast<rtph264_client*>(&objmem_);
+    //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
     hgs_.io_service->run();//poll_one();
 }
 

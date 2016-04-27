@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <boost/regex.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/spirit/include/qi.hpp>
 //#include <boost/spirit/include/qi_repeat.hpp>
@@ -25,11 +25,19 @@
 #include <boost/signals2/signal.hpp>
 //#include <boost/iostreams/filtering_stream.hpp>
 //#include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/serialization/vector.hpp>
+//#include <boost/serialization/vector.hpp>
 //#include <boost/archive/text_iarchive.hpp>
 //#include <boost/archive/text_oarchive.hpp>
 
 #include <imgui.h>
+#ifdef BOOST_MSVC
+#  define GLFW3_OPENGL
+#  include <windows.h>
+#  include <ShellApi.h>
+void notepad_open(const char* fn) { ShellExecuteA(GetDesktopWindow(), "open", fn, NULL, NULL, SW_SHOW); }
+#else
+void notepad_open(const char* fn) {}
+#endif
 #if defined(GLFW3_OPENGL)
 #  include <GLFW/glfw3.h>
 #  include "imgui_impl_glfw.h"
@@ -372,7 +380,7 @@ struct Liuhc : boost::noncopyable
     {}
 
     void setup(int, char*[]) {
-        http_client_.change_n_years(2);
+        http_client_.change_n_years(3);
         if (http_client_._download_data() == 0) {
             his_ = http_client_.prepare_history_data();
         }
@@ -570,7 +578,7 @@ struct VMain : private Liuhc
         glfwSetErrorCallback(error_callback);
         if (!glfwInit())
             ERR_EXIT("glfwInit");
-        window = glfwCreateWindow(1280, 720, "你好！世界", NULL, NULL);
+        window = glfwCreateWindow(1280, 720, "Marks Six", NULL, NULL);
         glfwMakeContextCurrent(window);
 
         // Setup ImGui binding
@@ -597,7 +605,8 @@ struct VMain : private Liuhc
         // Load Fonts
         // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
         ImGuiIO& io = ImGui::GetIO();
-        auto* fnt = "/home/wood/.local/share/fonts/Monaco_Yahei.ttf"; //"/home/wood/.fonts/msyh.ttf"
+		auto* fnt = "C:/Windows/Fonts/simsun.ttc";
+        //auto* fnt = "/home/wood/.local/share/fonts/Monaco_Yahei.ttf"; //"/home/wood/.fonts/msyh.ttf"
         io.Fonts->AddFontFromFileTTF(fnt, 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
         //io.Fonts->AddFontDefault();
         //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
@@ -683,7 +692,8 @@ private:
         return nm;
     }
 
-    void genlist(int marks) {
+    const char* genlist(int marks)
+    {
         if (his_.empty()) {
             his_ = http_client_.prepare_history_data();
             if (his_.empty()) {
@@ -708,6 +718,7 @@ private:
             res.clear();
         }
 
+        char const* resfn = "result_marks.txt";
         {
         //while (sa > 300) {
         //    auto it = --mlis_.end();
@@ -717,7 +728,7 @@ private:
         //    } else break;
         //}
         //"=== 次数 总次数 码数码数, %u ==="
-        if (FILE* fp = fopen("result_marks.txt", "w")) {
+        if (FILE* fp = fopen(resfn, "w")) {
             std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
 
             //fprintf(fp, "=== 次数, 码数 ===\r\n");
@@ -728,7 +739,6 @@ private:
                     break;
                 fprintf(fp, "=== %d ===\r\n", p.first); // , p.second.size()
                 for (auto& s : p.second) {
-                    fprintf(fp, "\t");
                     for (int c : s)
                         fprintf(fp, "%.2d ", c);
                     fprintf(fp, "\r\n");
@@ -738,72 +748,87 @@ private:
         }
         DBG_MSG("Done marks %d", marks);
         }
+        return resfn;
     }
 
     void vMain()
     {
-        ImGui::BeginChild("SubA", ImVec2(0,40), true);
-        ImGui::Columns(3);
-        if (ImGui::Button("五码")) {
-            genlist(5);
+        //ImGui::BeginChild("SubA", ImVec2(0,40), true);
+        //ImGui::Columns(5);
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Button("一码")) {
+            notepad_open(genlist(1));
         }
-        ImGui::NextColumn();
-        if (ImGui::Button("四码")) {
-            genlist(4);
+        //ImGui::NextColumn();
+        if (ImGui::Button("两码")) {
+            notepad_open(genlist(2));
         }
-        ImGui::NextColumn();
+        //ImGui::NextColumn();
         if (ImGui::Button("三码")) {
-            genlist(3);
+            notepad_open(genlist(3));
         }
-        ImGui::EndChild();
+        //ImGui::NextColumn();
+        if (ImGui::Button("四码")) {
+            notepad_open(genlist(4));
+        }
+        //ImGui::NextColumn();
+        if (ImGui::Button("五码")) {
+            notepad_open(genlist(5));
+        }
+        ImGui::PopItemWidth();
+        //ImGui::EndChild();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
-        ImGui::BeginChild("Sub2", ImVec2(0,0), true);
-        ImGui::Text("With border");
-        ImGui::Columns(3);
-        for (int i = 0; i < 90; i++) {
-            if (i == 30 || i == 60)
-                ImGui::NextColumn();
-            char buf[32];
-            sprintf(buf, "%08x", i*5731);
-            ImGui::Button(buf, ImVec2(-1.0f, 0.0f));
-        }
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
+        //ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
+        //ImGui::BeginChild("Sub2", ImVec2(0,0), true);
+        //ImGui::Text("With border");
+        ////ImGui::Columns(3);
+        //for (int i = 0; i < 90; i++) {
+        //    if (i == 30 || i == 60)
+        //        ImGui::NextColumn();
+        //    char buf[32];
+        //    sprintf(buf, "%08x", i*5731);
+        //    ImGui::Button(buf, ImVec2(-1.0f, 0.0f));
+        //}
+        //ImGui::EndChild();
+        //ImGui::PopStyleVar();
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 
-        {
-            static float f = 0.0f;
-            ImGui::Text("你好，时间!");
-            ImGui::InputText("时间", buf_, sizeof(buf_));
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            ImGui::ColorEdit3("clear color", (float*)&clear_color);
-            if (ImGui::Button("Test Window"))
-                show_test_window ^= 1;
-            if (ImGui::Button("Another Window"))
-                show_another_window ^= 1;
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        }
+        //{
+        //    static float f = 0.0f;
+        //    ImGui::Text("你好，时间!");
+        //    ImGui::InputText("时间", buf_, sizeof(buf_));
+        //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        //    ImGui::ColorEdit3("clear color", (float*)&clear_color);
+        //    if (ImGui::Button("Test Window"))
+        //        show_test_window ^= 1;
+        //    if (ImGui::Button("Another Window"))
+        //        show_another_window ^= 1;
+        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        //}
 
-        // 2. Show another simple window, this time using an explicit Begin/End pair
-        if (show_another_window)
-        {
-            ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-            ImGui::Begin("Another Window", &show_another_window);
-            ImGui::Text("Hello");
-            ImGui::End();
-        }
+        //// 2. Show another simple window, this time using an explicit Begin/End pair
+        //if (show_another_window)
+        //{
+        //    ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
+        //    ImGui::Begin("Another Window", &show_another_window);
+        //    ImGui::Text("Hello");
+        //    ImGui::End();
+        //}
 
-        // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (show_test_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
-        }
+        //// 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
+        //if (show_test_window)
+        //{
+        //    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
+        //    ImGui::ShowTestWindow(&show_test_window);
+        //}
     }
 
-    SDL_Window *window; //GLFWwindow* window;
+#ifdef BOOST_MSVC
+	GLFWwindow* window;
+#else
+    SDL_Window *window;
     SDL_GLContext glcontext;
+#endif
     
     bool show_test_window = true;
     bool show_another_window = false;
@@ -961,4 +986,17 @@ int main(int argc, char* argv[])
 //<td class="cp_3">17</td>
 //<td class="cp_1">35</td>
 //<td class="cp_2">14</td>
+
+
+//# boost::filesystem::path full_path( boost::filesystem::current_path() );
+//# std::cout << "Current path is : " << full_path << std::endl;
+//# namespace fs = boost::filesystem;
+//# 
+//# fs::path full_path = fs::system_complete("../asset/toolbox");
+//# 
+//# 			ShellExecuteA(GetDesktopWindow(), "open", "hello.txt", NULL, NULL, SW_SHOW);
+//# 
+//#include <windows.h>
+//#include <ShellApi.h>
+//# 			ShellExecuteA(GetDesktopWindow(), "open", "hello.txt", NULL, NULL, SW_SHOW);
 

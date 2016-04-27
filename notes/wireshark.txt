@@ -1,0 +1,4 @@
+dpkg-reconfigure wireshark-common
+http://anonscm.debian.org/viewvc/collab-maint/ext-maint/wireshark/trunk/debian/README.Debian?view=markup
+usermod -G wireshark -a wood
+
