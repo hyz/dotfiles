@@ -396,7 +396,6 @@ template <typename Derived>
 struct rtsp_connection
 {
     typedef rtsp_connection<Derived> This;
-    //BOOST_STATIC_ASSERT(std::is_base_of<This, Derived>::value);
 
     ip::tcp::socket tcpsock_;
     ip::tcp::endpoint endpoint_;
@@ -408,7 +407,10 @@ struct rtsp_connection
 
     rtsp_connection(boost::asio::io_service& io_s, ip::tcp::endpoint ep, std::string path)
         : tcpsock_(io_s), endpoint_(ep), path_(path)
-    { LOGD("rtsp_connection"); }
+    {
+        BOOST_STATIC_ASSERT(std::is_base_of<This, Derived>::value);
+        LOGD("rtsp_connection");
+    }
 
     struct Options {
         void operator()(Derived* d) const { d->on_success(*this); }
@@ -587,6 +589,11 @@ private: // rtsp communication
     uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_)+4; }
     enum { BufSiz = (1024*128-4) };
     int buf_[BufSiz/sizeof(int)+1];
+};
+
+struct rtcp_client
+{
+    ;
 };
 
 struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
@@ -831,8 +838,6 @@ void hgs_init()
 }
 #else
 
-    struct rtcp_client {};
-
 static struct {
     boost::asio::io_service* io_service = 0;
     rtp_receiver* rtp = 0;
@@ -861,7 +866,7 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
     hgs_.rtsp->setup(0,0);
 
     // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
-    LOGD("return");
+    LOGD("init ok");
 }
 
 void hgs_exit()
