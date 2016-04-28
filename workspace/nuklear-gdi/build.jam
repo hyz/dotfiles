@@ -1,0 +1,22 @@
+import boost ; 
+using boost : 1.60 : <include>E:/home/boost_1_60_0/boost <library>E:/home/boost_1_60_0/stage/lib ; 
+
+boost.use-project 1.60 ; 
+
+project 
+    : requirements <architecture>x86 <runtime-link>static #<link>static
+        <include>$(BOOST_ROOT)
+        <threading>multi
+    : default-build release
+    ;
+
+lib user32 gdi32 ;
+
+exe a
+    : main.c marksix.cpp
+        user32 gdi32
+    : <link>static <library>/boost//system <library>/boost//regex
+    ;
+
+install bin : a ;
+

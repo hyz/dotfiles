@@ -1,4 +1,4 @@
 
 ### Visual Studio /dependents
-'/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/dumpbin.exe' /DEPENDENTS opengl_example.exe
+'/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/dumpbin.exe' /DEPENDENTS bin/a.exe
 

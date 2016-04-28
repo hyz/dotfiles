@@ -9,7 +9,8 @@ cmd.exe
 > bootstrap.bat
 > b2 --help
 > b2 --show-libraries
-> b2 link=static threading=multi --build-type=minimal --with-thread --with-chrono --with-date_time --with-filesystem stage
+> b2 link=static runtime-link=static threading=multi --build-type=minimal --with-thread --with-regex --with-system --with-filesystem stage
+
 
 # D:\workspace\boost_1_59_0\stage\lib
 

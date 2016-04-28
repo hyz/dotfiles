@@ -1,8 +1,14 @@
 project user-config ; 
 
+# using boost : 1.59 : <include>/workspace/boost_1_59_0 <library>/workspace/boost_1_59_0/stage/lib ; 
+    ##then:
+    # import boost ; 
+    # boost.use-project 1.39 ; 
+    # exe hello : hello.cpp : <library>/boost//thread ; 
+
 ### msvc
 #using msvc ;
-#using boost : 1.59 : <include>/workspace/boost_1_59_0 <library>/workspace/boost_1_59_0/stage/lib ; 
+#
 #use-project boost : /cygdrive/d/home/wood/workspace/boost_1_59_0 ; 
 
 ### gcc

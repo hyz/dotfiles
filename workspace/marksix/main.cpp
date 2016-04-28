@@ -28,30 +28,11 @@
 //#include <boost/serialization/vector.hpp>
 //#include <boost/archive/text_iarchive.hpp>
 //#include <boost/archive/text_oarchive.hpp>
-
-#include <imgui.h>
-#ifdef BOOST_MSVC
-#  define GLFW3_OPENGL
-#  include <windows.h>
-#  include <ShellApi.h>
-void notepad_open(const char* fn) { ShellExecuteA(GetDesktopWindow(), "open", fn, NULL, NULL, SW_SHOW); }
-#else
-void notepad_open(const char* fn) {}
-#endif
-#if defined(GLFW3_OPENGL)
-#  include <GLFW/glfw3.h>
-#  include "imgui_impl_glfw.h"
-#else //if defined(SDL_OPENGL)
-#  include <SDL.h>
-#  include <SDL_opengl.h>
-#  include "imgui_impl_sdl.h"
-#endif
 #include <iostream>
 
 namespace ip = boost::asio::ip;
 
-template <typename... As> void err_exit_(int lin_, char const* fmt, As... a)
-{
+template <typename... As> void err_exit_(int lin_, char const* fmt, As... a) {
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
@@ -235,9 +216,9 @@ private:
                         if (boost::starts_with(line, "Content-Length")) {
                             content_len = atoi(m[2].first.operator->());
                         } else if (boost::starts_with(line, "Transfer-Encoding")) {
-                            bchunked = (boost::equals(m[2], "chunked"));
+                            bchunked = (boost::equals(m[2], std::string("chunked")));
                         } else if (boost::starts_with(line, "Content-Encoding")) {
-                            gzip_ = (boost::equals(m[2], "gzip"));
+                            gzip_ = (boost::equals(m[2], std::string("gzip")));
                         }
                     } else {
                         if (line.empty()) {
@@ -563,78 +544,85 @@ protected:
 extern "C" void inittwiddle( int m, int n, int *p );
 extern "C" int twiddle( int *x, int *y, int *z, int *p);
 
-struct VMain : private Liuhc
+struct VMain : boost::asio::io_service , Liuhc
 {
-    static void error_callback(int error, const char* description)
-    {
-        fprintf(stderr, "Error %d: %s\n", error, description);
-    }
-
     template <typename Args>
-    VMain(boost::asio::io_service& io_s, Args a) : Liuhc(io_s, a)
-    {
-#if defined(GLFW3_OPENGL)
-        // Setup window
-        glfwSetErrorCallback(error_callback);
-        if (!glfwInit())
-            ERR_EXIT("glfwInit");
-        window = glfwCreateWindow(1280, 720, "Marks Six", NULL, NULL);
-        glfwMakeContextCurrent(window);
-
-        // Setup ImGui binding
-        ImGui_ImplGlfw_Init(window, true);
-#else //if defined(SDL_OPENGL)
-        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-            ERR_EXIT("%s\n", SDL_GetError());
-        }
-        // Setup window
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-        SDL_DisplayMode current;
-        SDL_GetCurrentDisplayMode(0, &current);
-        window = SDL_CreateWindow("ImGui SDL2+OpenGL example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
-        glcontext = SDL_GL_CreateContext(window);
-
-        // Setup ImGui binding
-        ImGui_ImplSdl_Init(window);
-#endif
-
-        // Load Fonts
-        // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
-        ImGuiIO& io = ImGui::GetIO();
-		auto* fnt = "C:/Windows/Fonts/simsun.ttc";
-        //auto* fnt = "/home/wood/.local/share/fonts/Monaco_Yahei.ttf"; //"/home/wood/.fonts/msyh.ttf"
-        io.Fonts->AddFontFromFileTTF(fnt, 18.0f, NULL, io.Fonts->GetGlyphRangesChinese());
-        //io.Fonts->AddFontDefault();
-        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
-        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
-        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
-        //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
-        //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    VMain(Args a) : Liuhc(*this, a) {
         DBG_MSG("VMain:VMain");
     }
     ~VMain() {
         DBG_MSG("VMain:~VMain");
-#if defined(GLFW3_OPENGL)
-        ImGui_ImplGlfw_Shutdown();
-        glfwTerminate();
-#else //if defined(SDL_OPENGL)
-        ImGui_ImplSdl_Shutdown();
-        SDL_GL_DeleteContext(glcontext);  
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-#endif
     }
 
     void setup(int ac, char* av[]) {
         DBG_MSG("VMain:setup");
         Liuhc::setup(ac, av);
-        this->update();
+        //this->update();
     }
     void teardown() { Liuhc::teardown(); DBG_MSG("VMain:teardown"); }
+
+
+	const char* genlist(int marks)
+	{
+		if (his_.empty()) {
+			his_ = http_client_.prepare_history_data();
+			if (his_.empty()) {
+				DBG_MSG("downloading...");
+			}
+			DBG_MSG("his: %u", his_.size());
+		}
+		mlis_.clear();
+		comb_ = Combination(marks);
+
+		std::string res;
+		comb_.first(std::back_inserter(res));
+		int cnt = his_travel(res);
+		mlis_[cnt].push_back(res);
+
+		int sa = 1;
+		res.clear();
+		while (comb_.next(std::back_inserter(res))) {
+			cnt = his_travel(res);
+			mlis_[cnt].push_back(res);
+			++sa;
+			res.clear();
+		}
+
+		char const* resfn = "result_marks.txt";
+		{
+			//while (sa > 300) {
+			//    auto it = --mlis_.end();
+			//    if (sa - it->second.size() > 100) {
+			//        sa -= it->second.size();
+			//        mlis_.erase(it);
+			//    } else break;
+			//}
+			//"=== 次数 总次数 码数码数, %u ==="
+			if (FILE* fp = fopen(resfn, "w")) {
+				std::unique_ptr<FILE, decltype(&fclose)> xclose(fp, fclose);
+
+				//fprintf(fp, "=== 次数, 码数 ===\r\n");
+				//fprintf(fp, "(出现期数):\r\n");
+				int n = 0;
+				for (auto& p : mlis_) {
+					//fprintf(fp, "=== %d ===\r\n", p.first); // , p.second.size()
+					for (auto& s : p.second) {
+                        fprintf(fp, "%3d: ", p.first); // , p.second.size()
+						for (int c : s)
+							fprintf(fp, "%.2d ", c);
+						fprintf(fp, "\r\n");
+                        if (++n >= 666)
+                            break;
+					}
+					fprintf(fp, "\r\n");
+                    if (n >= 666)
+                        break;
+				}
+			}
+			DBG_MSG("Done marks %d", marks);
+		}
+		return resfn;
+	}
 
 private:
     struct Combination {
@@ -692,204 +680,6 @@ private:
         return nm;
     }
 
-    const char* genlist(int marks)
-    {
-        if (his_.empty()) {
-            his_ = http_client_.prepare_history_data();
-            if (his_.empty()) {
-                DBG_MSG("downloading...");
-            }
-            DBG_MSG("his: %u", his_.size());
-        }
-        mlis_.clear();
-        comb_ = Combination(marks);
-
-        std::string res;
-        comb_.first(std::back_inserter(res));
-        int cnt = his_travel(res);
-        mlis_[cnt].push_back(res);
-
-        int sa = 1;
-        res.clear();
-        while (comb_.next(std::back_inserter(res))) {
-            cnt = his_travel(res);
-            mlis_[cnt].push_back(res);
-            ++sa;
-            res.clear();
-        }
-
-        char const* resfn = "result_marks.txt";
-        {
-        //while (sa > 300) {
-        //    auto it = --mlis_.end();
-        //    if (sa - it->second.size() > 100) {
-        //        sa -= it->second.size();
-        //        mlis_.erase(it);
-        //    } else break;
-        //}
-        //"=== 次数 总次数 码数码数, %u ==="
-        if (FILE* fp = fopen(resfn, "w")) {
-            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-
-            //fprintf(fp, "=== 次数, 码数 ===\r\n");
-            fprintf(fp, "=== 出现次数 ===\r\n");
-            int n = 0;
-            for (auto& p: mlis_) {
-                if (n++ > 300)
-                    break;
-                fprintf(fp, "=== %d ===\r\n", p.first); // , p.second.size()
-                for (auto& s : p.second) {
-                    for (int c : s)
-                        fprintf(fp, "%.2d ", c);
-                    fprintf(fp, "\r\n");
-                }
-                fprintf(fp, "\r\n");
-            }
-        }
-        DBG_MSG("Done marks %d", marks);
-        }
-        return resfn;
-    }
-
-    void vMain()
-    {
-        //ImGui::BeginChild("SubA", ImVec2(0,40), true);
-        //ImGui::Columns(5);
-        ImGui::PushItemWidth(-1);
-        if (ImGui::Button("一码")) {
-            notepad_open(genlist(1));
-        }
-        //ImGui::NextColumn();
-        if (ImGui::Button("两码")) {
-            notepad_open(genlist(2));
-        }
-        //ImGui::NextColumn();
-        if (ImGui::Button("三码")) {
-            notepad_open(genlist(3));
-        }
-        //ImGui::NextColumn();
-        if (ImGui::Button("四码")) {
-            notepad_open(genlist(4));
-        }
-        //ImGui::NextColumn();
-        if (ImGui::Button("五码")) {
-            notepad_open(genlist(5));
-        }
-        ImGui::PopItemWidth();
-        //ImGui::EndChild();
-
-        //ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
-        //ImGui::BeginChild("Sub2", ImVec2(0,0), true);
-        //ImGui::Text("With border");
-        ////ImGui::Columns(3);
-        //for (int i = 0; i < 90; i++) {
-        //    if (i == 30 || i == 60)
-        //        ImGui::NextColumn();
-        //    char buf[32];
-        //    sprintf(buf, "%08x", i*5731);
-        //    ImGui::Button(buf, ImVec2(-1.0f, 0.0f));
-        //}
-        //ImGui::EndChild();
-        //ImGui::PopStyleVar();
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-
-        //{
-        //    static float f = 0.0f;
-        //    ImGui::Text("你好，时间!");
-        //    ImGui::InputText("时间", buf_, sizeof(buf_));
-        //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        //    ImGui::ColorEdit3("clear color", (float*)&clear_color);
-        //    if (ImGui::Button("Test Window"))
-        //        show_test_window ^= 1;
-        //    if (ImGui::Button("Another Window"))
-        //        show_another_window ^= 1;
-        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        //}
-
-        //// 2. Show another simple window, this time using an explicit Begin/End pair
-        //if (show_another_window)
-        //{
-        //    ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-        //    ImGui::Begin("Another Window", &show_another_window);
-        //    ImGui::Text("Hello");
-        //    ImGui::End();
-        //}
-
-        //// 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        //if (show_test_window)
-        //{
-        //    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-        //    ImGui::ShowTestWindow(&show_test_window);
-        //}
-    }
-
-#ifdef BOOST_MSVC
-	GLFWwindow* window;
-#else
-    SDL_Window *window;
-    SDL_GLContext glcontext;
-#endif
-    
-    bool show_test_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImColor(114, 144, 154);
-
-    char buf_[64];
-
-    void update()
-    {
-#if defined(GLFW3_OPENGL)
-        if (!glfwWindowShouldClose(window)) {
-            auto scoped_fn = [this](Liuhc*){
-                int w, h;
-                glfwGetFramebufferSize(this->window, &w, &h);
-                glViewport(0, 0, w, h);
-                glClearColor(this->clear_color.x, this->clear_color.y, this->clear_color.z, this->clear_color.w);
-                glClear(GL_COLOR_BUFFER_BIT);
-                ImGui::Render();
-                glfwSwapBuffers(this->window);
-
-                //DBG_MSG("scoped-fn");
-                get_io_service().post([this](){ this->update(); });
-            };
-            std::unique_ptr<Liuhc,decltype(scoped_fn)> scoped(this,scoped_fn);
-            glfwPollEvents();
-            ImGui_ImplGlfw_NewFrame();
-
-            vMain();
-            (void)scoped;
-            return;
-        }
-#else //if defined(SDL_OPENGL)
-        static bool done_ = false;
-        if (!done_) {
-            SDL_Event event;
-            while (SDL_PollEvent(&event)) {
-                ImGui_ImplSdl_ProcessEvent(&event);
-                if (event.type == SDL_QUIT) {
-                    done_ = true;
-                }
-            }
-            auto scoped_fn = [this](Liuhc*){
-                glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
-                glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-                glClear(GL_COLOR_BUFFER_BIT);
-                ImGui::Render();
-                SDL_GL_SwapWindow(window);
-
-                get_io_service().post([this](){ this->update(); });
-            };
-            std::unique_ptr<Liuhc,decltype(scoped_fn)> scoped(this,scoped_fn);
-            ImGui_ImplSdl_NewFrame(window);
-
-            vMain();
-            (void)scoped;
-            return;
-        }
-#endif
-        teardown();
-        get_io_service().stop();
-    }
 };
 
 //#include <boost/type_erasure/member.hpp>
@@ -898,46 +688,38 @@ private:
 //boost::type_erasure::any<setup_fn<int(int,char*[])>, boost::type_erasure::_self&> ;
 
 template <typename Instance, typename Args>
-struct Main : boost::asio::io_service, boost::noncopyable
+struct Main : boost::noncopyable
 {
-    typedef Main<Instance,Args> This;
-    struct Interface {
-        virtual ~Interface() {}
-        virtual void teardown() = 0;
-        virtual void setup(int,char*[]) = 0;
-    };
-    struct Wrapper : Interface {
-        Instance obj_;
-        Wrapper(This& m, Args a) : obj_(m, a) {}
-        virtual void teardown() { obj_.teardown(); }
-        virtual void setup(int ac,char* av[]) { obj_.setup(ac,av); }
-    };
-
-    ~Main() { reinterpret_cast<Wrapper*>(&objmem_)->~Wrapper(); }
-
+    ~Main() { instance()->~Instance(); }
     Main(int ac, char* av[]) {
-        new (&objmem_) Wrapper(*this, Args(ac, av));
+        new (&objmem_) Instance(Args(ac, av));
     }
+
+    Instance* instance() { return reinterpret_cast<Instance*>(&objmem_); }
+    Instance* operator->() { return instance(); }
+    Instance& operator*() { return *instance(); }
+
     int run(int ac, char* av[]) {
-        reinterpret_cast<Wrapper*>(&objmem_)->setup(ac,av);
+        instance()->setup(ac,av);
         DBG_MSG(":run");
         return boost::asio::io_service::run();
     }
     void stop() {
-        reinterpret_cast<Wrapper*>(&objmem_)->teardown();
+        instance()->teardown();
         boost::asio::io_service::stop();
     }
 
     void renew(Args a) {
-        reinterpret_cast<Wrapper*>(&objmem_)->teardown();
-        reinterpret_cast<Wrapper*>(&objmem_)->~Wrapper();
-        new (&objmem_) Wrapper(*this, std::move(a));
-        reinterpret_cast<Wrapper*>(&objmem_)->setup(a.argc,a.argv);
+        instance()->teardown();
+        instance()->~Instance();
+        new (&objmem_) Instance(a);
+        instance()->setup(a.argc,a.argv);
     }
+
 private:
-    static int objmem_[sizeof(Wrapper)/sizeof(int)+1]; // static Wrapper obj_;
+    static int objmem_[sizeof(Instance)/sizeof(int)+1]; // static Wrapper obj_;
 };
-template <typename Instance, typename Args> int Main<Instance,Args>::objmem_[sizeof(Wrapper)/sizeof(int)+1] = {};
+template <typename Instance, typename Args> int Main<Instance,Args>::objmem_[sizeof(Instance)/sizeof(int)+1] = {};
 
 struct Args
 {
@@ -949,17 +731,36 @@ struct Args
     std::string remote_path = "/xin-index-1.html?year="; // + "2010"
 };
 
-int main(int argc, char* argv[])
+static Main<VMain,Args> *g_;
+static const char* genlist_(int marks) { return g_->instance()->genlist(marks); }
+static void poll_one_() { g_->instance()->poll_one(); }
+static void stop_() { g_->instance()->stop(); }
+
+extern "C" {
+int gui_main(char const* (*gen_)(int), void (*poll_)(), void(*stop_)());
+}
+
+int WINAPI WinMain(
+	HINSTANCE hInstance,       //程序当前实例的句柄，以后随时可以用GetModuleHandle(0)来获得  
+	HINSTANCE hPrevInstance,   //这个参数在Win32环境下总是0，已经废弃不用了  
+	char * lpCmdLine,          //指向以/0结尾的命令行，不包括EXE本身的文件名，  
+							   //以后随时可以用GetCommandLine()来获取完整的命令行  
+	int nCmdShow               //指明应该以什么方式显示主窗口  
+	)//;int main(int argc, char* argv[])
 {
     //BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END
     try {
+		int argc = 0; char** argv = 0;
         Main<VMain,Args> s(argc, argv);
         //s.setup(argc,argv);
-        boost::asio::signal_set sigs(s);
+        boost::asio::signal_set sigs(*s);
         sigs.add(SIGINT);
         sigs.add(SIGTERM); // (SIGQUIT);
-        sigs.async_wait( [&s](boost::system::error_code,int){ s.stop(); } );
-        s.run(argc, argv);
+        sigs.async_wait( [&s](boost::system::error_code,int){ s->stop(); } );
+
+        s->setup(argc,argv);
+        gui_main(&genlist_, &poll_one_, &stop_);
+        // s.run(argc, argv);
     } catch (std::exception& e) {
         ERR_MSG("Exception: %s", e.what());
     }
