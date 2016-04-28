@@ -22,6 +22,7 @@
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #if defined(__android__)
 #  include <regex> //<boost/regex.hpp>
 namespace re = std;
@@ -551,6 +552,7 @@ struct rtp_receiver : boost::noncopyable
     static int local_port(int p=0) { return 3396+p; } // TODO
 
 private: // rtsp communication
+    rtp_header last_rtp_header_ = {};
     h264nal nalu_;
 
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
@@ -569,6 +571,8 @@ private: // rtsp communication
                 if (!h) {
                     ERR_EXIT("rtp_header::cast"); return;
                 } else {
+                    last_rtp_header_ = *h;
+
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
                     nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
@@ -587,13 +591,149 @@ private: // rtsp communication
     //boost::filesystem::path dir_; int dg_idx_ = 0;
     //std::aligned_storage<1024*64,alignof(int)>::type data_;
     uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_)+4; }
-    enum { BufSiz = (1024*128-4) };
+    enum { BufSiz = (1024*32-4) };
     int buf_[BufSiz/sizeof(int)+1];
 };
 
+///rtcp////////////////////////////////////
+enum
+{
+    RTCP_SR     = 200,
+    RTCP_RR     = 201,
+    RTCP_SDES   = 202,
+    RTCP_BYE    = 203,
+    RTCP_APP    = 204,
+};
+
+typedef struct _rtcp_header_t
+{
+    uint8_t rc:5;      // reception report count
+    uint8_t p:1;       // padding
+    uint8_t v:2;       // version
+
+    uint8_t pt;      // packet type
+    uint16_t length; /* pkt len in words, w/o this word */
+} rtcp_header_t;
+
+typedef struct _rtcp_sr_t // sender report
+{
+    uint32_t ssrc;
+    uint32_t ntpmsw; // ntp timestamp MSW(in second)
+    uint32_t ntplsw; // ntp timestamp LSW(in picosecond)
+    uint32_t rtpts;  // rtp timestamp
+    uint32_t spc;    // sender packet count
+    uint32_t soc;    // sender octet count
+} rtcp_sr_t;
+
+typedef struct _rtcp_rr_t // receiver report
+{
+    uint32_t ssrc;
+} rtcp_rr_t;
+
+typedef struct _rtcp_rb_t // report block
+{
+    uint32_t ssrc;
+    uint32_t fraction:8; // fraction lost
+    uint32_t cumulative:24; // cumulative number of packets lost
+    uint32_t exthsn; // extended highest sequence number received
+    uint32_t jitter; // interarrival jitter
+    uint32_t lsr; // last SR
+    uint32_t dlsr; // delay since last SR
+} rtcp_rb_t;
+
+typedef struct _rtcp_sdes_item_t // source description RTCP packet
+{
+    unsigned char pt; // chunk type
+    unsigned char len;
+    unsigned char *data;
+} rtcp_sdes_item_t;
+
 struct rtcp_client
 {
-    ;
+    typedef rtcp_client This;
+    //boost::asio::deadline_timer timer_;
+    //void check_deadline(deadline_timer* deadline) {
+    //    if (!udpsock_.is_open())
+    //        return;
+    //}
+    //void stop() {
+    //    boost::system::error_code ec;
+    //    timer_.cancel(ec);
+    //}
+
+    int64_t mils_tx_ = 0;
+    int64_t mils_rx_ = 0;
+
+    rtcp_client(boost::asio::io_service& io_s, rtp_receiver* r, ip::udp::endpoint const& remote_ep)
+        : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), r->local_port(+1)))
+    {
+        rtp_ = r;
+        ;
+        udpsock_.connect(remote_ep);
+        ;
+        handle_receive_from(boost::system::error_code(), 0);
+    }
+
+    void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
+    {
+        if (ec) {
+            LOGE("%d(%s)", ec.value(), ec.message().c_str());
+            return;
+        }
+        mils_rx_ = milsnow();
+        if (bytes_recvd > 0) {
+            rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
+            if (!h) {
+                ERR_EXIT("rtp_header::cast"); return;
+            } else {
+                h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
+                nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
+            }
+        }
+        using namespace boost::asio;
+        udpsock_.async_receive_from(
+                boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
+                boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
+        LOGD("udpsock %d", bytes_recvd);
+    }
+
+    void handle_send_to(const boost::system::error_code& ec, size_t )
+    {
+        if (ec) {
+            LOGE("send %d(%s)", ec.value(), ec.message().c_str());
+            return;
+        }
+    }
+
+    void report()
+    {
+        if (mils_rx_ == 0) {
+            if (milsnow() - mils_tx_ > 1500) {
+                buf_[0] = 0xfeedface; // ce fa ed fe
+                udpsock_.async_send_to(
+                        boost::asio::buffer(bufptr(), 4), peer_endpoint_,
+                        boost::bind(&server::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+                mils_tx_ = milsnow();
+            }
+            return;
+        }
+
+        if (mils_tx_ < mils_rx_) {
+            packet;
+            udpsock_.async_send_to(
+                    boost::asio::buffer(data_, bytes_recvd), peer_endpoint_,
+                    boost::bind(&server::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        }
+    }
+
+    rtp_receiver* rtp_;
+
+    ip::udp::socket udpsock_;
+    ip::udp::endpoint peer_endpoint_;
+
+    uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_); }
+    enum { BufSiz = 128 };
+    int buf_[BufSiz/sizeof(int)];
 };
 
 struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
