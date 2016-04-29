@@ -576,16 +576,20 @@ struct VMain : boost::asio::io_service , Liuhc
 
 		std::string res;
 		comb_.first(std::back_inserter(res));
-		int cnt = his_travel(res);
-		mlis_[cnt].push_back(res);
+        if (!res.empty()) {
+            int cnt = his_travel(res);
+            mlis_[cnt].push_back(res);
+            res.clear();
+        }
 
-		int sa = 1;
-		res.clear();
+		//int sa = 1;
 		while (comb_.next(std::back_inserter(res))) {
-			cnt = his_travel(res);
-			mlis_[cnt].push_back(res);
-			++sa;
-			res.clear();
+            if (!res.empty) {
+                int cnt = his_travel(res);
+                mlis_[cnt].push_back(res);
+                res.clear();
+            }
+			//++sa;
 		}
 
 		char const* resfn = "result_marks.txt";
