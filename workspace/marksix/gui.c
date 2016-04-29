@@ -14,7 +14,10 @@
 
 #include <windows.h>
 #include <ShellApi.h>
-void notepad_open(const char* fn) { ShellExecuteA(GetDesktopWindow(), "open", fn, NULL, NULL, SW_SHOW); }
+void notepad_open(const char* fn) {
+    if (fn)
+        ShellExecuteA(GetDesktopWindow(), "open", fn, NULL, NULL, SW_SHOW);
+}
 
 static LRESULT CALLBACK
 WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -118,19 +121,19 @@ int gui_main(char const* (*gen_)(int), void (*poll_)(), void(*stop_)()) //(int a
                 notepad_open(gen_(5));
             }
             if (nk_button_label(ctx, "六码", NK_BUTTON_DEFAULT)) {
-                notepad_open(gen_(5));
+                notepad_open(gen_(6));
             }
 			if (nk_button_label(ctx, "七码", NK_BUTTON_DEFAULT)) {
-				notepad_open(gen_(5));
+				notepad_open(gen_(7));
 			}
 			if (nk_button_label(ctx, "八码", NK_BUTTON_DEFAULT)) {
-				notepad_open(gen_(5));
+				notepad_open(gen_(8));
 			}
 			if (nk_button_label(ctx, "九码", NK_BUTTON_DEFAULT)) {
-				notepad_open(gen_(5));
+				notepad_open(gen_(9));
 			}
 			if (nk_button_label(ctx, "十码", NK_BUTTON_DEFAULT)) {
-				notepad_open(gen_(5));
+				notepad_open(gen_(10));
 			}
             //nk_layout_row_dynamic(ctx, 30, 2);
             //if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
