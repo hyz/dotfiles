@@ -111,15 +111,6 @@ int gui_main(char const* (*gen_)(int), void (*poll_)(), void(*stop_)()) //(int a
 
             //nk_layout_row_static(ctx, 30, 80, 1);
             nk_layout_row_dynamic(ctx, 30, 1);
-            if (nk_button_label(ctx, "一码", NK_BUTTON_DEFAULT)) {
-                notepad_open(gen_(1)); //fprintf(stdout, "button1 pressed\n");
-            }
-            if (nk_button_label(ctx, "两码", NK_BUTTON_DEFAULT)) {
-                notepad_open(gen_(2));
-            }
-            if (nk_button_label(ctx, "三码", NK_BUTTON_DEFAULT)) {
-                notepad_open(gen_(3));
-            }
             if (nk_button_label(ctx, "四码", NK_BUTTON_DEFAULT)) {
                 notepad_open(gen_(4));
             }
@@ -129,6 +120,18 @@ int gui_main(char const* (*gen_)(int), void (*poll_)(), void(*stop_)()) //(int a
             if (nk_button_label(ctx, "六码", NK_BUTTON_DEFAULT)) {
                 notepad_open(gen_(5));
             }
+			if (nk_button_label(ctx, "七码", NK_BUTTON_DEFAULT)) {
+				notepad_open(gen_(5));
+			}
+			if (nk_button_label(ctx, "八码", NK_BUTTON_DEFAULT)) {
+				notepad_open(gen_(5));
+			}
+			if (nk_button_label(ctx, "九码", NK_BUTTON_DEFAULT)) {
+				notepad_open(gen_(5));
+			}
+			if (nk_button_label(ctx, "十码", NK_BUTTON_DEFAULT)) {
+				notepad_open(gen_(5));
+			}
             //nk_layout_row_dynamic(ctx, 30, 2);
             //if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
             //if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
