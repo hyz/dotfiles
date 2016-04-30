@@ -5,17 +5,18 @@
 #include <vector>
 //#include <algorithm>
 //#include <numeric>
-#include <fstream>
 #include <boost/config/warning_disable.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <set>
 //#include <iostream>
 //#include "log.h"
-#include "tdxif.h"
-
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
+
+#include "tdxif.h"
+
+#define PATH_PREFIX "C:\\cygwin64\\home\\wood\\_"
 
 struct codes_set : std::unordered_set<int>
 {
@@ -36,8 +37,8 @@ BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_("D:\\home\\wood\\._sexcl");
-    static codes_set s(str(boost::format("D:\\home\\wood\\_%02d") % args[1]));
+    static codes_set excls_(PATH_PREFIX"\\excls");
+    static codes_set s(str(boost::format(PATH_PREFIX"\\%02d") % args[1]));
     int c = atoi(Code);
     return (s.exist(c) && !excls_.exist(c));
 }
@@ -46,7 +47,7 @@ BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_("D:\\home\\wood\\._sexcl");
+    static codes_set excls_(PATH_PREFIX"\\excls");
 
     int icode = atoi(Code);
     if (excls_.exist(icode)) {
@@ -85,7 +86,7 @@ BOOL myflt1(char const* Code, short nSetCode
     }
 
 	using boost::format;
-	boost::filesystem::path fp = "D:\\home\\wood\\workspace\\mys";
+	boost::filesystem::path fp = PATH_PREFIX"";
 	fp /= str(format("%02d") % args[3]);
 
 	if (!boost::filesystem::exists(fp)) {
@@ -146,14 +147,14 @@ struct Dump2
     FILE* fp_ = 0;
     codes_set excls_;
 
-    Dump2(int args[4], BYTE nTQ) : excls_("D:\\home\\wood\\._sexcl")
+    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX"\\excls")
     {
         sh_.resize(args[1]>0 ? args[1] : 15);
 		if (GDef::read(&sh_[0], sh_.size(), PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
             char fn[128];
 			auto & t0 = sh_.front().Time;
 			auto & t1 = sh_.back().Time;
-            sprintf(fn,"D:\\home\\wood\\workspace\\mys\\fx\\%02d%02d-%02d%02d", t0.month,t0.day, t1.month,t1.day);
+            sprintf(fn,PATH_PREFIX"\\fx\\%02d%02d-%02d%02d", t0.month,t0.day, t1.month,t1.day);
             fp_ = fopen(fn, "w");
         }
     }
@@ -193,8 +194,8 @@ struct Dump3
     {
         rd_(sh_, "999999", 1, a...);
         auto& t = sh_.front().Time;
-        char fn[128];// = "D:\\home\\wood\\workspace\\mys\\fx\\mins";
-        sprintf(fn,"D:\\home\\wood\\workspace\\mys\\fx\\%02d%02d", t.month, t.day);
+        char fn[128];
+        sprintf(fn,PATH_PREFIX"\\fx\\%02d%02d", t.month, t.day);
         fp_ = fopen(fn, "w");
     }
 
@@ -276,7 +277,7 @@ BOOL myflt3(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_("D:\\home\\wood\\._sexcl");
+    static codes_set excls_(PATH_PREFIX"\\excls");
     int icode = atoi(Code);
     if (excls_.exist(icode))
         return 0;
@@ -317,14 +318,14 @@ BOOL myflt4(char const* Code, short nSetCode
 	STOCKINFO si = {};
     int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
     if (n > 0) {
-        static boost::filesystem::path fp = "D:\\home\\wood\\._sname";
+        static boost::filesystem::path fp = PATH_PREFIX"\\sname";
         static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
         ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
     }
     return 0;
 }
 
-BOOL myflt5(char const* Code, short nSetCode // 复牌
+BOOL myflt5(char const* Code, short nSetCode // 复p
 	, int Value[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {

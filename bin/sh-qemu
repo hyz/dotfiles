@@ -17,11 +17,11 @@ SLIC=/sys/firmware/acpi/tables/SLIC
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
 
-qemu-system-x86_64 -enable-kvm -cpu host -m 2048M -smp 2 -rtc base=localtime -name Winows7 -full-screen \
+qemu-system-x86_64 -enable-kvm -cpu host -m 3072M -smp 2 -rtc base=localtime -name Winows7 -full-screen \
     -drive file=$hda,index=0,media=disk,format=raw \
-    -net user,smb=/home/wood/smb \
-    -net nic,model=rtl8139 \
+    -net nic,model=rtl8139 -net user,smb=/home/wood/smb \
     -acpitable sig=SLIC,file=$SLIC \
+
     #
     #-acpitable sig=RSDT,oem_id=LENOVO,oem_table_id=TP-70\ \ \ \
     #-acpitable sig=SLIC,file=$SLIC \
