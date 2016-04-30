@@ -354,6 +354,7 @@ struct Liuhc : boost::noncopyable
     typedef Liuhc This;
 
     std::vector< std::string > his_; // std::vector<int> counts_; // int last_year_count_ = 0;
+    std::vector<std::vector<std::string>> vhis_; // std::vector<int> counts_; // int last_year_count_ = 0;
 
     template <typename Args>
     Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
@@ -363,7 +364,7 @@ struct Liuhc : boost::noncopyable
     void setup(int, char*[]) {
         http_client_.change_n_years(3);
         if (http_client_._download_data() == 0) {
-            his_ = http_client_.prepare_history_data();
+            his_ = http_client_.prepare_history_data(vhis_);
         }
         DBG_MSG("his: %u", his_.size());
     }
@@ -402,12 +403,13 @@ private: // rtsp communication
             oldest_year_ = year_ +1 - n_year;
         }
 
-        std::vector<std::string> prepare_history_data() // Prepare
+        std::vector<std::string> prepare_history_data(std::vector<std::vector<std::string>>& vhis) // Prepare
         {
             if (year_ >= oldest_year_) {
                 return std::vector<std::string>();
             }
             std::vector<std::string> his;
+            std::vector<std::string> tmp;
             for (int y = current_year(); y >= oldest_year_; --y) {
                 std::string fn = (".year." + std::to_string(y) + ".txt");
 
@@ -432,7 +434,9 @@ private: // rtsp communication
                         ERR_EXIT("parse: %s: %s", fn.c_str(), pos);
                     }
                     his.push_back( make_string(c.begin(),c.end()) );
+                    tmp.push_back(his.back());
                 }
+                vhis.push_back(std::move(tmp));
             }
             //this->get_io_service().post([this](){ this->on_success(http_stages::Prepare{}); });
             return std::move(his);
@@ -565,7 +569,7 @@ struct VMain : boost::asio::io_service , Liuhc
 	const char* genlist(int marks)
 	{
 		if (his_.empty()) {
-			his_ = http_client_.prepare_history_data();
+			his_ = http_client_.prepare_history_data(vhis_);
 			if (his_.empty()) {
 				DBG_MSG("downloading...");
 			}
@@ -577,49 +581,40 @@ struct VMain : boost::asio::io_service , Liuhc
 		std::string res;
 		comb_.first(std::back_inserter(res));
         if (!res.empty()) {
-            int cnt = his_travel(res);
+            int cnt = his_travel(his_, res);
             mlis_[cnt].push_back(res);
             res.clear();
         }
 
 		//int sa = 1;
 		while (comb_.next(std::back_inserter(res))) {
-            if (!res.empty) {
-                int cnt = his_travel(res);
-                mlis_[cnt].push_back(res);
-                res.clear();
-            }
+            int cnt = his_travel(his_, res);
+            mlis_[cnt].push_back(res);
+            res.clear();
 			//++sa;
 		}
 
-		char const* resfn = "result_marks.txt";
+		static char resfn[32];
+        snprintf(resfn,sizeof(resfn), "result-%02d.txt", marks);
 		{
-			//while (sa > 300) {
-			//    auto it = --mlis_.end();
-			//    if (sa - it->second.size() > 100) {
-			//        sa -= it->second.size();
-			//        mlis_.erase(it);
-			//    } else break;
-			//}
-			//"=== 次数 总次数 码数码数, %u ==="
 			if (FILE* fp = fopen(resfn, "w")) {
 				std::unique_ptr<FILE, decltype(&fclose)> xclose(fp, fclose);
 
-				//fprintf(fp, "=== 次数, 码数 ===\r\n");
-				//fprintf(fp, "(出现期数):\r\n");
-				int n = 0;
+				int first_n = 0;
 				for (auto& p : mlis_) {
-					//fprintf(fp, "=== %d ===\r\n", p.first); // , p.second.size()
 					for (auto& s : p.second) {
-                        fprintf(fp, "%3d: ", p.first); // , p.second.size()
+                        fprintf(fp, "%3d: ", p.first);
 						for (int c : s)
 							fprintf(fp, "%.2d ", c);
+						fprintf(fp, ":");
+                        for (auto& yh : vhis_)
+                            fprintf(fp, "\t%d", his_travel(yh, s));
 						fprintf(fp, "\r\n");
-                        if (++n >= 666)
+                        if (++first_n >= 1000)
                             break;
 					}
 					fprintf(fp, "\r\n");
-                    if (n >= 666)
+                    if (first_n >= 1000)
                         break;
 				}
 			}
@@ -673,13 +668,13 @@ private:
     Combination comb_;
     std::map<int,std::vector<std::string>> mlis_;
 
-    int his_travel(std::string const& s) {
+    int his_travel(std::vector< std::string >& his, std::string const& s) {
         int nm = 0;
-        std::string sm;
-        for (auto& v : his_) {
-            std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(sm));
-            nm += !sm.empty();
-            sm.clear();
+        std::string tmp;
+        for (auto& v : his) {
+            std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(tmp));
+            nm += !tmp.empty();
+            tmp.clear();
         }
         return nm;
     }
