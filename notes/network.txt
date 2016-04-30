@@ -1,5 +1,7 @@
 
 ### https://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html
-ifconfig eth0:1 192.168.11.11/24
-ip addr add 192.168.11.11/24 dev eth0 label eth0:1
+ifconfig eth0:1 192.168.9.172/24
+ip addr add 192.168.9.172/24 dev eth0 label eth0:1
+ip route del default dev eth0
+ip route add default via 192.168.9.1
 

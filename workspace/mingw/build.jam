@@ -1,0 +1,24 @@
+project
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+        <threading>multi
+        <linkflags>-static-libgcc <linkflags>-static-libstdc++ # <runtime-link>static <link>static
+    : default-build release
+    ;
+###
+lib rt : librt-empty.c : <link>static ;
+### cp -t /usr/i686-w64-mingw32/lib/ bin/gcc-mingw-4.8/release/link-static/threading-multi/librt.a
+###
+### /usr/i686-w64-mingw32/lib/libwinpthread-1.dll
+### https://bbs.archlinux.org/viewtopic.php?id=208166
+###
+
+alias boost-lib : /boost//system /boost//regex /boost//filesystem : <link>static ;
+
+lib alib : alib.cpp boost-lib
+    : <define>BUILDING_EXAMPLE_DLL=1
+    ;
+exe a : a.cpp alib
+    ;
+
+install /mnt/hgfs/home : alib a ;
+
