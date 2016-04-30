@@ -5,8 +5,8 @@ hda=/dev/sda9 ### Windows7
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 
-[ "`stat -c '%G' $hda`"="kvm" ] || sudo chgrp kvm $hda
-[ "`stat -c '%G' $SLIC`"="kvm" ] || sudo chgrp kvm $SLIC
+[ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda
+[ "`stat -c '%G' $SLIC`" = "kvm" ] || sudo chgrp kvm $SLIC
 [ -r $SLIC ] || sudo chmod g+r $SLIC
 
 ### lsusb

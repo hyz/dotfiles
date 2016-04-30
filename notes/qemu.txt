@@ -15,7 +15,20 @@ Update: OVMF supports -boot since r13683, and supports -kernel -append -initrd s
 I also tested qemu -kernel -append -initrd with kernel 3.5, 3.6, and 3.8.
 
 ### qemu SLIC and RSDT #Vendor ID
-https://lists.gnu.org/archive/html/qemu-devel/2011-03/msg03080.html
 ### qemu 2.6, future
 https://bugzilla.redhat.com/show_bug.cgi?id=1248758
+###
+https://lists.gnu.org/archive/html/qemu-devel/2011-03/msg03080.html
+
+########### configure qemu-2.6.0-rc3
+# sudo pacman -Sy ceph libiscsi spice-protocol
+
+./configure --prefix=/opt --sysconfdir=/etc --audio-drv-list='alsa' \
+      --python=/usr/bin/python2 --smbd=/usr/bin/smbd \
+      --libexecdir=/opt/lib/qemu \
+      --disable-gtk --enable-linux-aio --enable-seccomp \
+      --enable-spice --localstatedir=/var \
+      --enable-tpm \
+      --enable-modules --enable-{rbd,libiscsi,curl} \
+      --target-list=x86_64-linux-user,i386-linux-user,x86_64-softmmu
 
