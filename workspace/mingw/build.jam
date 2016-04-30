@@ -8,8 +8,10 @@ project mingw
 lib rt : librt-empty.c : <link>static ;
 ### cp -t /usr/i686-w64-mingw32/lib/ bin/gcc-mingw-4.8/release/link-static/threading-multi/librt.a
 ###
-### /usr/i686-w64-mingw32/lib/libwinpthread-1.dll
+### /usr/i686-w64-mingw32/lib   libwinpthread-1.dll
 ### https://bbs.archlinux.org/viewtopic.php?id=208166
+### http://stackoverflow.com/questions/13768515/how-to-do-static-linking-of-libwinpthread-1-dll-in-mingw
+###    ... The apt-get version is old
 ###
 
 alias boost-lib : /boost//system /boost//regex /boost//filesystem : <link>static ;
