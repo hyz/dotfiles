@@ -19,3 +19,6 @@ RFC文档中的Chunked解码过程如下：
 　　Remove "chunked" from Transfer-Encoding
 
 
+=== https://nghttp2.org/documentation/libnghttp2_asio.html
+=== https://curl.haxx.se/docs/http2.html
+
