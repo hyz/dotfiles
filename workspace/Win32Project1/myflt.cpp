@@ -37,7 +37,7 @@ BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\excls");
+    static codes_set excls_(PATH_PREFIX"\\_excls");
     static codes_set s(str(boost::format(PATH_PREFIX"\\%02d") % args[1]));
     int c = atoi(Code);
     return (s.exist(c) && !excls_.exist(c));
@@ -47,7 +47,7 @@ BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\excls");
+    static codes_set excls_(PATH_PREFIX"\\_excls");
 
     int icode = atoi(Code);
     if (excls_.exist(icode)) {
@@ -69,7 +69,7 @@ BOOL myflt1(char const* Code, short nSetCode
         }
     }
     if (!args[2]) {
-        his.resize(args[1] ? args[1]*20 : 50);
+        his.resize(args[1] ? args[1]*10 : 50);
         int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
         if (n < 1)/*(n < (int)his.size())*/ {
             //LOG << Code << "PER_DAY error"<< n;
@@ -120,7 +120,6 @@ BOOL myflt1(char const* Code, short nSetCode
         //float       J_zjhhy;			//证监会行业
         //float		J_mgsy;				//每股收益(折算成全年的)
         //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
-
     }
     if (!his.empty()) {
         boost::filesystem::ofstream ofs(fp/Code, std::ios::trunc);
@@ -147,7 +146,7 @@ struct Dump2
     FILE* fp_ = 0;
     codes_set excls_;
 
-    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX"\\excls")
+    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX"\\_excls")
     {
         sh_.resize(args[1]>0 ? args[1] : 15);
 		if (GDef::read(&sh_[0], sh_.size(), PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
@@ -277,7 +276,7 @@ BOOL myflt3(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\excls");
+    static codes_set excls_(PATH_PREFIX"\\_excls");
     int icode = atoi(Code);
     if (excls_.exist(icode))
         return 0;
@@ -315,11 +314,14 @@ BOOL myflt4(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
+    if ((unsigned)atoi(Code) > 999999)
+        return 1;
 	STOCKINFO si = {};
     int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
     if (n > 0) {
-        static boost::filesystem::path fp = PATH_PREFIX"\\sname";
+        static boost::filesystem::path fp = PATH_PREFIX"\\_sname";
         static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
+        si.Name[8]='\0';
         ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
     }
     return 0;

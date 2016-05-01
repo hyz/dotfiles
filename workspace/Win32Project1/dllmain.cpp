@@ -44,7 +44,7 @@
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	GDef::ref();
-	LOG << hModule << ul_reason_for_call << lpReserved;
+	//LOG << hModule << ul_reason_for_call << lpReserved;
 
 	switch (ul_reason_for_call)
 	{
@@ -64,7 +64,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 PLUGIN_API void RegisterDataInterface(PDATAIOFUNC pfn)
 {
-	LOG << pfn;
+	//LOG << pfn;
 	GDef::ref().tdx_read_ = pfn;
 }
 
@@ -350,8 +350,8 @@ BOOL myflt9(char const* Code, short, int Value[4] , short DataType, NTime, NTime
 
 GDef::GDef()
 {
-	logging::logfile( fopen("D:/home/wood/_tdx.log", "w") );
-    LOG << "INIT";
+	logging::logfile( fopen("C:\\_tdx.log", "w") );
+    //LOG << "INIT";
 
 	for (auto& f : funcs_)
 		f = defaf;
@@ -370,7 +370,7 @@ GDef::GDef()
 }
 GDef::~GDef()
 {
-    LOG << "UNINIT";
+    //LOG << "UNINIT";
     fclose(logging::logfile());
 }
 

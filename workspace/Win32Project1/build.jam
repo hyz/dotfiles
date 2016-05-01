@@ -1,0 +1,15 @@
+project mingw
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+        <threading>multi
+        <linkflags>-static-libgcc <linkflags>-static-libstdc++ # <runtime-link>static <link>static
+    : default-build release
+    ;
+
+alias boost-lib : /boost//system /boost//filesystem /boost//date_time : <link>static ;
+
+lib mys : dfcf.cpp dllmain.cpp myflt.cpp StdAfx.cpp boost-lib
+    : <define>PLUGIN_EXPORTS=1
+    ;
+
+install bin : mys ;
+
