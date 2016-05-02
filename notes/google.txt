@@ -14,3 +14,5 @@ nameserver 202.96.134.133
 nameserver 58.250.87.149
 nameserver 202.67.222.222
 
+
+https://www.google.com/chrome/browser/desktop/index.html?standalone=1
