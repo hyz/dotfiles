@@ -29,7 +29,9 @@ qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
     -boot order=c \
     -daemonize
 #
+spicy -h 127.0.0.1 -p 5900
 exit 0
+
 -vga qxl -full-screen \
 -vga qxl -global qxl.vram_size=128000 -spice port=5900,addr=127.0.0.1,disable-ticketing -chardev spicevmc,id=spicechannel0,name=vdagent
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent

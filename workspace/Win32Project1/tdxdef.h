@@ -76,17 +76,17 @@ typedef struct tag_NTime
 		boost::format ft("%u%02u%02u");
 		return os << ft % a.year % (int)a.month % (int)a.day;// % (int)a.hour % (int)a.minute % (int)a.second;
 	}
-	bool operator<(const tag_NTime& o) const {
-		return year < o.year
-			|| year==o.year && (month < o.month
-			|| month==o.month && (day < o.day
-			|| day==o.day && (hour < o.hour
-			|| hour ==o.hour && (minute < o.minute
-			|| minute==o.minute && second < o.second))));
-	}
-	bool operator >(const tag_NTime& o) const { return o < *this; }
-	bool operator!=(const tag_NTime& o) const { return (*this<o || *this>o); }
-	bool operator==(const tag_NTime& o) const { return !(*this!=o); }
+	//bool operator<(const tag_NTime& o) const {
+	//	return year < o.year
+	//		|| year==o.year && (month < o.month
+    //            || month==o.month && (day < o.day
+    //                || day==o.day && (hour < o.hour
+    //                    || hour ==o.hour && (minute < o.minute
+    //                        || minute==o.minute && second < o.second))));
+	//}
+	//bool operator >(const tag_NTime& o) const { return o < *this; }
+	//bool operator!=(const tag_NTime& o) const { return (*this<o || *this>o); }
+	//bool operator==(const tag_NTime& o) const { return !(*this!=o); }
 } NTime;
 
 //分析数据

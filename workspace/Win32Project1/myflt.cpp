@@ -3,6 +3,8 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include <array>
+#include <unordered_set>
 //#include <algorithm>
 //#include <numeric>
 #include <boost/config/warning_disable.hpp>
@@ -11,22 +13,70 @@
 //#include <iostream>
 //#include "log.h"
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+//#include <boost/filesystem/path.hpp>
+//#include <boost/filesystem/fstream.hpp>
 
 #include "tdxif.h"
 
 #define PATH_PREFIX "C:\\cygwin64\\home\\wood\\_"
+static char* c_trim_right(char* h, const char* cs)
+{
+    char* end = h + strlen(h);
+    char* p = end;
+    while (p > h && strchr(cs, *(p-1)))
+        --p;
+    *p = '\0';
+    return h;
+}
+template <typename... V> struct Path_join ;
+template <typename T, typename... V>
+struct Path_join<T,V...> { static void concat(char*beg,char*end, T&& a, V const&... v) {
+    Path_join<typename std::decay<T>::type>::concat(beg,end, a);
+    Path_join<typename std::decay<V>::type...>::concat(beg,end, v...);
+}};
+template <> struct Path_join<char*> { static void concat(char*beg,char*end, char const* src) {
+    char* p = beg + strlen(beg); // char* src = a;
+    if (p != beg && p != end)
+        *p++ = '/';
+    while (p != end && *src)
+        *p++ = *src++;
+    *p = '\0';
+    c_trim_right(beg, "/\\");
+}}; 
+template <> struct Path_join<char const*> { static void concat(char*beg,char*end, char const* src) {
+    Path_join<char*>::concat(beg,end, src);
+}};
+template <> struct Path_join<std::string> { static void concat(char*beg,char*end, std::string const& src) {
+    Path_join<char*>::concat(beg,end, src.c_str());
+}};
+template <> struct Path_join<boost::format> { static void concat(char*beg,char*end, boost::format const& src) {
+    auto s = str(src);
+    Path_join<char*>::concat(beg,end, s.c_str());
+}};
+
+template <int N>
+struct makepath : std::array<char,N> {
+    template <typename ...V>
+    makepath(V&&... v) {
+        this->front() = this->back() = '\0';
+        char* end = &this->back(); //+1;
+        char* beg = c_str();
+        Path_join<typename std::decay<V>::type...>::concat(beg,end, v...);
+    }
+    char* c_str() const { return const_cast<char*>(this->data()); }
+};
 
 struct codes_set : std::unordered_set<int>
 {
-    codes_set(boost::filesystem::path fp)
+    template <typename ...V>
+    codes_set(V&& ... v) //(char const* fn)
     {
-        if (boost::filesystem::exists(fp)) {
-            boost::filesystem::ifstream ifs(fp);
-            std::string s;
-            while (getline(ifs, s)) {
-                this->insert(atoi(s.c_str()));
+        makepath<128> fn(v...);
+        if (FILE* fp = fopen(fn.c_str(), "r")) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+            char linebuf[1024];
+            while (fgets(linebuf, sizeof(linebuf), fp)) {
+                this->insert(atoi(linebuf));
             }
         }
     }
@@ -37,8 +87,8 @@ BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\_excls");
-    static codes_set s(str(boost::format(PATH_PREFIX"\\%02d") % args[1]));
+    static codes_set excls_(PATH_PREFIX, "_excls"); //(PATH_PREFIX"\\_excls");
+    static codes_set s(PATH_PREFIX, boost::format("_%02d") % args[1]); //(str(boost::format(PATH_PREFIX"\\_%02d") % args[1]).c_str());
     int c = atoi(Code);
     return (s.exist(c) && !excls_.exist(c));
 }
@@ -47,91 +97,90 @@ BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\_excls");
+    //static codes_set excls_(PATH_PREFIX"\\_excls");
 
-    int icode = atoi(Code);
-    if (excls_.exist(icode)) {
-        return 0;
-    }
+    //int icode = atoi(Code);
+    //if (excls_.exist(icode)) {
+    //    return 0;
+    //}
 
-	STOCKINFO si = {};
-	REPORTDAT2 rp = {};
-	std::vector<HISDAT> his;
+	//STOCKINFO si = {};
+	//REPORTDAT2 rp = {};
+	//std::vector<HISDAT> his;
 
-    {
-        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
-        if (n < 0) {
-            //LOG << Code << "STKINFO_DAT error" << n;
-            return 0;
-        }
-        if (si.ActiveCapital < 1) {
-            return 0;
-        }
-    }
-    if (!args[2]) {
-        his.resize(args[1] ? args[1]*10 : 50);
-        int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-        if (n < 1)/*(n < (int)his.size())*/ {
-            //LOG << Code << "PER_DAY error"<< n;
-            return 0;
-        }
-        his.resize(n);
-    }
-    if(false){
-        int n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &rp, 1, t0, t1, nTQ, 0);
-        if (n < 0 || rp.Volume*100 < 1) {
-            //LOG << Code << "REPORT_DAT2 error" << n << "Vol" << rp.Volume <<"Price"<< rp.Now << rp.Close;
-            return 0;
-        }
-    }
+    //{
+    //    int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
+    //    if (n < 0) {
+    //        //LOG << Code << "STKINFO_DAT error" << n;
+    //        return 0;
+    //    }
+    //    if (si.ActiveCapital < 1) {
+    //        return 0;
+    //    }
+    //}
+    //if (!args[2]) {
+    //    his.resize(args[1] ? args[1]*10 : 50);
+    //    int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+    //    if (n < 1)/*(n < (int)his.size())*/ {
+    //        //LOG << Code << "PER_DAY error"<< n;
+    //        return 0;
+    //    }
+    //    his.resize(n);
+    //}
+    //if(false){
+    //    int n = GDef::tdx_read(Code, nSetCode, REPORT_DAT2, &rp, 1, t0, t1, nTQ, 0);
+    //    if (n < 0 || rp.Volume*100 < 1) {
+    //        //LOG << Code << "REPORT_DAT2 error" << n << "Vol" << rp.Volume <<"Price"<< rp.Now << rp.Close;
+    //        return 0;
+    //    }
+    //}
 
-	using boost::format;
-	boost::filesystem::path fp = PATH_PREFIX"";
-	fp /= str(format("%02d") % args[3]);
+	//using boost::format;
+    //makepath<128> path(PATH_PREFIX, str(format("%02d") % args[3]).c_str()); //= boost::filesystem::path(PATH_PREFIX) / str(format("%02d") % args[3]);
 
-	if (!boost::filesystem::exists(fp)) {
-		boost::filesystem::create_directories(fp);
-	}
+	//if (!boost::filesystem::exists(path.c_str())) {
+	//	boost::filesystem::create_directories(path.c_str());
+	//}
 
-    {
-		static boost::filesystem::ofstream ofs(fp/"lis", std::ios::trunc);
-        ofs << Code<<' '<<nSetCode
-            //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
-            <<'\t'<< format("%.0f %.0f %.0f %.0f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
-            <<'\t'<< format("%.0f %.0f") % (si.J_mgsy*100) % (100*si.J_mgsy2)
-            //<<'\t'<< format("%.2f\t%.2f\t%.2f""\t""%.2f\t%.2f\t%.2f\t%.2f")
-            //            % si.J_yysy % si.J_yycb % si.J_yyly
-            //            % si.J_lyze % si.J_shly % si.J_jly % si.J_jyl
-            <<'\t'<< int(si.J_hy) // <<'\t'<< int(si.J_zjhhy *100)
-			<<'\n'<< std::flush;
-        //float       J_yysy;			//营业收入 # 营业收入(元)
-        //float       J_yycb;			//营业成本
-        //float       J_yyly;			//营业利润
-        //
-        //float       J_lyze;			//利益总额
-        //float       J_shly;			//税后利益
-        //float       J_jly;			//净利益   # 归属净利润(元)
-        //float		J_jyl;				//净益率%  # 摊薄净资产收益率(%)
-        //
-        //float       J_bg;				//B股
-        //float       J_hg;				//H股
-        //
-        //short       J_hy;				//所属行业
-        //float       J_zjhhy;			//证监会行业
-        //float		J_mgsy;				//每股收益(折算成全年的)
-        //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
-    }
-    if (!his.empty()) {
-        boost::filesystem::ofstream ofs(fp/Code, std::ios::trunc);
-        for (auto it=his.begin(); it!=his.end(); ++it) {
-            auto& a = *it;
-            ofs //    << Code <<'\t'
-                << a.Time
-                <<'\t'<< format("%.0f %.0f")% a.fVolume % a.a.Amount 
-                <<'\t'<< format("%.0f %.0f %.0f %.0f") % (100*a.Open) % (100*a.Close) % (100*a.High) % (100*a.Low)
-                <<'\n';
-        }
-    }
+    //{
+	//	static boost::filesystem::ofstream ofs(path/"lis", std::ios::trunc);
+    //    ofs << Code<<' '<<nSetCode
+    //        //<<'\t'<< format("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f") % rp.Close % rp.Open % rp.Max % rp.Min % rp.Now % rp.Amount
+    //        <<'\t'<< format("%.0f %.0f %.0f %.0f") % si.ActiveCapital % si.J_zgb % si.J_bg % si.J_hg
+    //        <<'\t'<< format("%.0f %.0f") % (si.J_mgsy*100) % (100*si.J_mgsy2)
+    //        //<<'\t'<< format("%.2f\t%.2f\t%.2f""\t""%.2f\t%.2f\t%.2f\t%.2f")
+    //        //            % si.J_yysy % si.J_yycb % si.J_yyly
+    //        //            % si.J_lyze % si.J_shly % si.J_jly % si.J_jyl
+    //        <<'\t'<< int(si.J_hy) // <<'\t'<< int(si.J_zjhhy *100)
+	//		<<'\n'<< std::flush;
+    //    //float       J_yysy;			//营业收入 # 营业收入(元)
+    //    //float       J_yycb;			//营业成本
+    //    //float       J_yyly;			//营业利润
+    //    //
+    //    //float       J_lyze;			//利益总额
+    //    //float       J_shly;			//税后利益
+    //    //float       J_jly;			//净利益   # 归属净利润(元)
+    //    //float		J_jyl;				//净益率%  # 摊薄净资产收益率(%)
+    //    //
+    //    //float       J_bg;				//B股
+    //    //float       J_hg;				//H股
+    //    //
+    //    //short       J_hy;				//所属行业
+    //    //float       J_zjhhy;			//证监会行业
+    //    //float		J_mgsy;				//每股收益(折算成全年的)
+    //    //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
+    //}
+    //if (!his.empty()) {
+    //    boost::filesystem::ofstream ofs(path/Code, std::ios::trunc);
+    //    for (auto it=his.begin(); it!=his.end(); ++it) {
+    //        auto& a = *it;
+    //        ofs //    << Code <<'\t'
+    //            << a.Time
+    //            <<'\t'<< format("%.0f %.0f")% a.fVolume % a.a.Amount 
+    //            <<'\t'<< format("%.0f %.0f %.0f %.0f") % (100*a.Open) % (100*a.Close) % (100*a.High) % (100*a.Low)
+    //            <<'\n';
+    //    }
+    //}
 
     return 0;
 }
@@ -145,16 +194,20 @@ struct Dump2
     std::vector<HISDAT> sh_;
     FILE* fp_ = 0;
     codes_set excls_;
+    BYTE nTQ_;
 
-    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX"\\_excls")
+    bool tdxread(std::vector<HISDAT>& vh, char const* c) {
+        return (GDef::read(&vh[0], vh.size(), PER_DAY, c, 1, NTime{}, NTime{}, nTQ_, 0) == (int)vh.size());
+    }
+    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX, "_excls") //(PATH_PREFIX"\\_excls")
     {
-        sh_.resize(args[1]>0 ? args[1] : 15);
-		if (GDef::read(&sh_[0], sh_.size(), PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ, 0) == (int)sh_.size()) {
-            char fn[128];
-			auto & t0 = sh_.front().Time;
+        nTQ_ = nTQ;
+        sh_.resize(args[1]>0 ? args[1] : 30);
+        if (tdxread(sh_, "999999")) {
+			//auto & t0 = sh_.front().Time;
 			auto & t1 = sh_.back().Time;
-            sprintf(fn,PATH_PREFIX"\\fx\\%02d%02d-%02d%02d", t0.month,t0.day, t1.month,t1.day);
-            fp_ = fopen(fn, "w");
+            makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d-%d.d") % t1.month % t1.day % (int)sh_.size()); // char fn[128]; sprintf(fn,PATH_PREFIX"\\%02d%02d-%d.d", t1.month,t1.day, (int)sh_.size());
+            fp_ = fopen(fn.c_str(), "w");
         }
     }
     ~Dump2() {
@@ -162,13 +215,13 @@ struct Dump2
             fclose(fp_);
     }
 
-    void operator()(char const* Code, short nSetCode, BYTE nTQ)
+    void operator()(char const* Code, short nSetCode)
     {
         if (!fp_ || excls_.exist(atoi(Code)))
             return;
 		std::vector<HISDAT> ls(sh_.size());
         int n;
-		if ((n = GDef::read(&ls[0], ls.size(), PER_DAY, Code, nSetCode, NTime{}, NTime{}, nTQ, 0)) > 3) {
+		if ((n = GDef::read(&ls[0], ls.size(), PER_DAY, Code, nSetCode, NTime{}, NTime{}, nTQ_, 0)) > 3) {
             if (ls.back().fVolume < 1)
                 return;
             ls.resize(n);
@@ -193,9 +246,8 @@ struct Dump3
     {
         rd_(sh_, "999999", 1, a...);
         auto& t = sh_.front().Time;
-        char fn[128];
-        sprintf(fn,PATH_PREFIX"\\fx\\%02d%02d", t.month, t.day);
-        fp_ = fopen(fn, "w");
+        makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d.M") % t.month % t.day); // char fn[128]; sprintf(fn,PATH_PREFIX"\\%02d%02d.M", t.month, t.day);
+        fp_ = fopen(fn.c_str(), "w");
     }
 
     ~Dump3() {
@@ -262,13 +314,73 @@ struct Dump3
         return 0;
     }
 };
+struct Dump4
+{
+    codes_set excls_;
+    std::vector<HISDAT> sh_;
+    FILE* fp_ = 0;
+    bool multi_file_ = 1;
+    std::pair<NTime,NTime> time_range_ = {};
+    BYTE nTQ_;
 
+    bool multi_open(char const* c, char const* om) {
+        if (fp_)
+            fclose(fp_);
+        auto path = boost::filesystem::path(PATH_PREFIX) / c;
+        fp_ = fopen(path.generic_string().c_str(), om);
+        return bool(fp_);
+    }
+
+    Dump4(int args[4], BYTE nTQ) : excls_(PATH_PREFIX, "_excls") //(PATH_PREFIX"\\_excls")
+    {
+        nTQ_ = nTQ;
+        multi_file_ = args[3];
+        int len = args[1]>0 ? args[1] : 30;
+        sh_.resize(len);
+        if (GDef::read(&sh_[0], len, PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ_, 0) == len) {
+            if (!multi_file_) {
+                auto tb = sh_.back().Time;
+                auto path = boost::filesystem::path(PATH_PREFIX) / str(boost::format("%02d%02d-%d.d") % tb.month % tb.day % (int)sh_.size());
+                fp_ = fopen(path.generic_string().c_str(), "w");
+            }
+            time_range_ = std::make_pair(sh_.front().Time, sh_.back().Time);
+        }
+    }
+    ~Dump4() {
+        if (fp_) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
+            (void)xclose;
+        }
+    }
+
+    void operator()(char const* Code, short nSetCode)
+    {
+        if (excls_.exist(atoi(Code)))
+            return;
+        int len = (int)sh_.size();
+        if ((len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, time_range_.first, NTime{}, nTQ_, 0)) > 3) {
+            if (sh_.back().fVolume < 1)
+                return;
+            if (!multi_file_ || multi_open(Code, "w")) {
+                if (!multi_file_)
+                    fprintf(fp_, "%s %d\t", Code, nSetCode);
+                for (int i=0; i < len; ++i) {
+                    auto& a = sh_[i];
+                    fprintf(fp_, "%s" "%.0f %.0f" " %.0f %.0f %.0f %.0f", "\t"+(i<1)
+                            , a.fVolume, a.a.Amount
+                            , 100*a.Open, 100*a.Close, 100*a.Low, 100*a.High);
+                }
+                fprintf(fp_, "\n");
+            }
+        }
+    }
+};
 BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
     static Dump2 print(args, nTQ);
-    print(Code, nSetCode, nTQ);
+    print(Code, nSetCode);
 	return 0;
 }
 
@@ -276,7 +388,7 @@ BOOL myflt3(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX"\\_excls");
+    static codes_set excls_(PATH_PREFIX, "_excls"); //(PATH_PREFIX"\\_excls");
     int icode = atoi(Code);
     if (excls_.exist(icode))
         return 0;
@@ -302,29 +414,13 @@ BOOL myflt3(char const* Code, short nSetCode
     return 0;
 }
 
-BOOL myflt9(char const* Code, short nSetCode
-	, int args[4]
-	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
-{
-    return 0;
-}
-
-
 BOOL myflt4(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    if ((unsigned)atoi(Code) > 999999)
-        return 1;
-	STOCKINFO si = {};
-    int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
-    if (n > 0) {
-        static boost::filesystem::path fp = PATH_PREFIX"\\_sname";
-        static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
-        si.Name[8]='\0';
-        ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
-    }
-    return 0;
+    static Dump4 print(args, nTQ);
+    print(Code, nSetCode);
+	return 0;
 }
 
 BOOL myflt5(char const* Code, short nSetCode // 复p
@@ -359,55 +455,138 @@ BOOL myflt5(char const* Code, short nSetCode // 复p
 	////return rbeg->Time.date().day_of_year() - rnext->Time.date().day_of_year() > 3;
 }
 
+BOOL myflt9(char const* Code, short nSetCode
+	, int args[4]
+	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
+{
+    return 0;
+}
+
+struct Dump6
+{
+    FILE* fp_ = 0;
+    BYTE nTQ_;
+
+    Dump6(int args[4], BYTE nTQ) {
+        nTQ_ = nTQ;
+        makepath<128> fn(PATH_PREFIX, "_names"); //auto fn = boost::filesystem::path(PATH_PREFIX) / "_names";
+        ERR_MSG("%s", fn.c_str());
+        fp_ = fopen(fn.c_str(), "w");
+    }
+    ~Dump6() {
+        if (fp_) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
+            (void)xclose;
+        }
+    }
+    void operator()(char const* Code, short nSetCode) {
+        STOCKINFO si = {};
+        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
+        if (n > 0) {
+            si.Name[8]='\0';
+            fprintf(fp_, "%s %d\t%s\n" , Code, nSetCode, si.Name);
+        }
+    }
+};
+
+struct Dump7
+{
+    FILE* fp_ = 0;
+    BYTE nTQ_;
+
+    Dump7(int args[4], BYTE nTQ) //: excls_(PATH_PREFIX, "_excls")
+    {
+        ERR_MSG("%s", __FUNCTION__);
+        nTQ_ = nTQ;
+        char tmp[8];
+        sprintf(tmp, "_%02d", args[3]); // auto s = str(boost::format("_%02d") % args[3]);
+        makepath<128> fn(PATH_PREFIX, tmp); // using boost::format; auto fn = boost::filesystem::path(PATH_PREFIX) / str(format("_%02d") % args[3]);
+        ERR_MSG("%s", fn.c_str());
+        fp_ = fopen(fn.c_str(), "w");
+    }
+    ~Dump7() {
+        if (fp_) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
+            (void)xclose;
+        }
+    }
+
+    int operator()(char const* Code, short nSetCode)
+    {
+        STOCKINFO si = {};
+        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
+        if (n < 0) {
+            return 0;
+        }
+        if (si.ActiveCapital < 1) {
+            return 0;
+        }
+        fprintf(fp_, "%s %d" "\t%.0f %.0f %.0f %.0f" "\t%.0f %.0f" "\t%d" "\n"
+                , Code, int(nSetCode)
+                , si.ActiveCapital, si.J_zgb, si.J_bg, si.J_hg
+                , si.J_mgsy*100, 100*si.J_mgsy2
+                , int(si.J_hy)
+               );
+        return 0;
+        //float       J_yysy;			//营业收入 # 营业收入(元)
+        //float       J_yycb;			//营业成本
+        //float       J_yyly;			//营业利润
+        //
+        //float       J_lyze;			//利益总额
+        //float       J_shly;			//税后利益
+        //float       J_jly;			//净利益   # 归属净利润(元)
+        //float		J_jyl;				//净益率%  # 摊薄净资产收益率(%)
+        //
+        //float       J_bg;				//B股
+        //float       J_hg;				//H股
+        //
+        //short       J_hy;				//所属行业
+        //float       J_zjhhy;			//证监会行业
+        //float		J_mgsy;				//每股收益(折算成全年的)
+        //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
+    }
+};
+
 BOOL myflt6(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-	std::vector<HISDAT> his(5); // typedef std::vector<HISDAT>::reverse_iterator itertype;
-	int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-	if (n < 3)
-		return 0;
-	auto last = his.end() - 1;
-	auto lasp = last - 1;
-	auto laspp = lasp - 1;
-	//auto inr = [](float x, float y){ return (y - x) / x;  };
-	if (int(lasp->Close * 100) < int(laspp->Close * 1.1 * 100 + 0.5))
-		return 0;
-	return int(lasp->Close*1.1 * 100 + 0.5) > int(last->Close * 100);
-}
-
-static float tvolume(boost::gregorian::date const& date)
-{
-	using namespace boost::posix_time;
-
-	auto lt = second_clock::local_time();
-	if (lt.date() != date)
-		return 1;
-
-	auto tod = lt.time_of_day();
-    if (tod < hours(12))
-        tod += hours(1) + minutes(30);
-    return float(tod.total_seconds() - 3600*11) / 3600*4;
+    static Dump6 print(args, nTQ);
+    //ERR_MSG("%d, %s %hd", args[0], Code, nSetCode);
+    print(Code, nSetCode);
+	return 0;
+	//STOCKINFO si = {};
+    //int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
+    //if (n > 0) {
+    //    static boost::filesystem::path fp = PATH_PREFIX"\\_sname";
+    //    static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
+    //    si.Name[8]='\0';
+    //    ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
+    //}
+    //return 0;
 }
 
 BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-	std::vector<HISDAT> his(5);
-	int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
-	if (n < (int)his.size())
-		return 0;
-	auto last = his.end() - 1;
-	auto lasp = last - 1;
+    static Dump7 print(args, nTQ);
+    print(Code, nSetCode);
+	return 0;
+	//std::vector<HISDAT> his(5);
+	//int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
+	//if (n < (int)his.size())
+	//	return 0;
+	//auto last = his.end() - 1;
+	//auto lasp = last - 1;
 
-    float afvol = 0;
-    for (auto it=his.begin(); it != last; ++it)
-        afvol += it->fVolume;
-    afvol /= (his.size()-1);
-    float fvol = last->fVolume/tvolume(last->Time.date());
+    //float afvol = 0;
+    //for (auto it=his.begin(); it != last; ++it)
+    //    afvol += it->fVolume;
+    //afvol /= (his.size()-1);
+    //float fvol = last->fVolume/tvolume(last->Time.date());
 
-    return last->Close/lasp->Close > (1-0.02) && fvol/afvol < (1+0.1);
+    //return last->Close/lasp->Close > (1-0.02) && fvol/afvol < (1+0.1);
 }
 
 BOOL myflt8(char const* Code, short nSetCode
@@ -429,5 +608,19 @@ BOOL myflt10(char const* Code, short nSetCode
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
 	return 0;
+}
+
+static float tvolume(boost::gregorian::date const& date)
+{
+	using namespace boost::posix_time;
+
+	auto lt = second_clock::local_time();
+	if (lt.date() != date)
+		return 1;
+
+	auto tod = lt.time_of_day();
+    if (tod < hours(12))
+        tod += hours(1) + minutes(30);
+    return float(tod.total_seconds() - 3600*11) / 3600*4;
 }
 

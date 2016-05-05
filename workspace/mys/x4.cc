@@ -45,6 +45,7 @@ template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
 template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
 {
     fprintf(stderr, fmt, lin_, a...);
+    fprintf(stderr, "\n");
     //fflush(stderr);
 }
 
@@ -214,7 +215,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 
     void loadsi(char const* dir, char const* fn);
     Elem* address(int code);
-    void prep(filesystem::path const& path);
+    void prep(char const* path);
     template <typename F> void fun (F read, int, int);
 };
 
@@ -224,16 +225,15 @@ int main(int argc, char* const argv[])
         Main a(argc, argv);
         return a.run(argc, argv);
     } catch (std::exception const& e) {
-        fprintf(stderr, "%s\n", e.what());
+        ERR_EXIT("%s", e.what());
     }
     return 1;
 }
 
 void Main::init_::loadsi(char const* dir, char const* fn)
 {
-    char ph[128];
-    snprintf(ph,sizeof(ph), "%s/%s", dir, fn);
-    if (FILE* fp = fopen(ph, "r")) {
+    auto path = (filesystem::path(dir)/fn).string();
+    if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
@@ -253,7 +253,7 @@ void Main::init_::loadsi(char const* dir, char const* fn)
             if (si.gbx > 0)
                 this->emplace(make_code(szsh,code), si);
             else
-                fprintf(stderr, "%d\n", code);
+                ERR_MSG("%d", code);
         }
     } else
         ERR_EXIT("fopen: %s", fn);
@@ -290,7 +290,7 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
-            prep( p);
+            prep( p.c_str() );
             m_->date = std::min(m_->date, _date(p.generic_string()));
         }
     } else for (int i=1; i<argc; ++i) {
@@ -301,11 +301,11 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
     }
 }
 
-void Main::init_::prep(filesystem::path const& path)
+void Main::init_::prep(char const* path)
 {
-    if (FILE* fp = fopen(path.generic_string().c_str(), "r")) {
+    if (FILE* fp = fopen(path, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        auto reader = [fp](std::vector<Avsb>& vec, int lohi[2]) {
+        auto reader = [fp,path](std::vector<Avsb>& vec, int lohi[2]) {
             vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
@@ -313,7 +313,7 @@ void Main::init_::prep(filesystem::path const& path)
             char linebuf[1024*16]; //[(60*4+15)*16+256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
-                    ERR_EXIT("fgets");
+                    ERR_EXIT("%s", path);
                 return 0u;
             }
             int szsh=0, code = 0;
@@ -338,13 +338,13 @@ void Main::init_::prep(filesystem::path const& path)
                         }
                     }
 
-                    First(avsb).amount; // /= 100;
-                    Second(avsb).amount; // /= 100;
+                    //First(avsb).amount; // /= 100;
+                    //Second(avsb).amount; // /= 100;
                     vec.push_back(avsb);
                 }
                 //if (nonx && *nonx) ERR_MSG("%d %d: volume=0\n", code, nonx);
             } else {
-                ERR_EXIT("qi::parse: %s", pos);
+                ERR_EXIT("parse: %s: %s", path, pos);
                 return 0u;
             }
             return make_code(szsh,code);
@@ -365,7 +365,7 @@ template <typename F> void Main::init_::fun(F read, int, int)
             continue;
         Elem* vss = this->address(code);
         if (!vss) {
-            fprintf(stderr, "%d address-fail\n", code);
+            ERR_MSG("%d address-fail\n", code);
             continue;
         }
         vss->lohi = lohi;
