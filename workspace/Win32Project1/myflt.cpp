@@ -12,7 +12,7 @@
 //#include <set>
 //#include <iostream>
 //#include "log.h"
-#include <boost/filesystem/operations.hpp>
+//#include <boost/filesystem/operations.hpp>
 //#include <boost/filesystem/path.hpp>
 //#include <boost/filesystem/fstream.hpp>
 
@@ -30,7 +30,7 @@ static char* c_trim_right(char* h, const char* cs)
 }
 template <typename... V> struct Path_join ;
 template <typename T, typename... V>
-struct Path_join<T,V...> { static void concat(char*beg,char*end, T&& a, V const&... v) {
+struct Path_join<T,V...> { static void concat(char*beg,char*end, T const& a, V const&... v) {
     Path_join<typename std::decay<T>::type>::concat(beg,end, a);
     Path_join<typename std::decay<V>::type...>::concat(beg,end, v...);
 }};
@@ -326,8 +326,8 @@ struct Dump4
     bool multi_open(char const* c, char const* om) {
         if (fp_)
             fclose(fp_);
-        auto path = boost::filesystem::path(PATH_PREFIX) / c;
-        fp_ = fopen(path.generic_string().c_str(), om);
+        makepath<128> fn(PATH_PREFIX, c); //auto path = boost::filesystem::path(PATH_PREFIX) / c;
+        fp_ = fopen(fn.c_str(), om);
         return bool(fp_);
     }
 
@@ -340,8 +340,8 @@ struct Dump4
         if (GDef::read(&sh_[0], len, PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ_, 0) == len) {
             if (!multi_file_) {
                 auto tb = sh_.back().Time;
-                auto path = boost::filesystem::path(PATH_PREFIX) / str(boost::format("%02d%02d-%d.d") % tb.month % tb.day % (int)sh_.size());
-                fp_ = fopen(path.generic_string().c_str(), "w");
+                makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d-%d.d") % tb.month % tb.day % (int)sh_.size());
+                fp_ = fopen(fn.c_str(), "w");
             }
             time_range_ = std::make_pair(sh_.front().Time, sh_.back().Time);
         }
@@ -443,7 +443,7 @@ BOOL myflt5(char const* Code, short nSetCode // 复p
 		return 1;
 	auto t = his.end()-1;
 	auto y = t-1;
-	return y->Time.date() != hs[3].Time.date() || t->Time.date() != hs[4].Time.date();
+	return 0;// y->Time.date() != hs[3].Time.date() || t->Time.date() != hs[4].Time.date();
 	//auto rnext = rbeg + 1;
 	////if (atoi(Code) < 40) { // help info
 	////	LOG << Code
@@ -610,17 +610,17 @@ BOOL myflt10(char const* Code, short nSetCode
 	return 0;
 }
 
-static float tvolume(boost::gregorian::date const& date)
-{
-	using namespace boost::posix_time;
-
-	auto lt = second_clock::local_time();
-	if (lt.date() != date)
-		return 1;
-
-	auto tod = lt.time_of_day();
-    if (tod < hours(12))
-        tod += hours(1) + minutes(30);
-    return float(tod.total_seconds() - 3600*11) / 3600*4;
-}
+//static float tvolume(boost::gregorian::date const& date)
+//{
+//	using namespace boost::posix_time;
+//
+//	auto lt = second_clock::local_time();
+//	if (lt.date() != date)
+//		return 1;
+//
+//	auto tod = lt.time_of_day();
+//    if (tod < hours(12))
+//        tod += hours(1) + minutes(30);
+//    return float(tod.total_seconds() - 3600*11) / 3600*4;
+//}
 

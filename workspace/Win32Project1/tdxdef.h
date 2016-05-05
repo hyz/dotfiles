@@ -4,8 +4,8 @@
 #include "stdafx.h"
 
 #pragma pack(push,1)
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/date_time/gregorian/gregorian.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
 //#include "date/date.h"
 #include <boost/format.hpp>
 #include <ostream>
@@ -31,21 +31,21 @@ typedef struct tag_NTime
 	uint8_t	minute;
 	uint8_t	second;
 
-	boost::posix_time::ptime ptime() const{
-		return boost::posix_time::ptime(this->date());
-	}
-	boost::gregorian::date date() const{
-		return boost::gregorian::date(year, month, day);
-	}
+	//boost::posix_time::ptime ptime() const{
+	//	return boost::posix_time::ptime(this->date());
+	//}
+	//boost::gregorian::date date() const{
+	//	return boost::gregorian::date(year, month, day);
+	//}
 
-    static tag_NTime init(boost::gregorian::date d) {
-        tag_NTime nt ={0};
-		// auto d = boost::posix_time::second_clock::local_time().date();
-		nt.year = d.year(); // 1900 + tm->tm_year;
-        nt.month = (uint8_t)d.month();
-		nt.day = (uint8_t)d.day();
-        return nt;
-    }
+ //   static tag_NTime init(boost::gregorian::date d) {
+ //       tag_NTime nt ={0};
+	//	// auto d = boost::posix_time::second_clock::local_time().date();
+	//	nt.year = d.year(); // 1900 + tm->tm_year;
+ //       nt.month = (uint8_t)d.month();
+	//	nt.day = (uint8_t)d.day();
+ //       return nt;
+ //   }
     static tag_NTime init(int y, int m, int d) {
         tag_NTime nt ={0};
         nt.year = y;

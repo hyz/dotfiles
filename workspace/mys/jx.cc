@@ -38,14 +38,12 @@
 //#include <boost/multi_index/ordered_index.hpp>
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
 #define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     //fflush(stderr);
 }
@@ -156,7 +154,7 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     int run(int argc, char* const argv[]);
 
     gregorian::date date;
-    struct init_;
+    struct initialize;
 };
 
 struct SInfo
@@ -165,13 +163,13 @@ struct SInfo
     int eov;
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
-struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
+struct Main::initialize : std::unordered_map<int,SInfo> , boost::noncopyable
 {
     Main* m_ = 0;
     Elem tmp_ = {};
-    init_(Main* p, int argc, char* const argv[]);
+    initialize(Main* p, int argc, char* const argv[]);
 
-    void loadsi(char const* fn);
+    void loadsi(char const* dir, char const* fn);
     void prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/);
     void fun(code_t code, std::vector<Pa>& v);
 };
@@ -187,9 +185,10 @@ int main(int argc, char* const argv[])
     return 1;
 }
 
-void Main::init_::loadsi(char const* fn)
+void Main::initialize::loadsi(char const* dir, char const* fn)
 {
-    if (FILE* fp = fopen(fn, "r")) {
+    std::string path = (filesystem::path(dir) / fn).string();
+    if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
@@ -215,13 +214,13 @@ void Main::init_::loadsi(char const* fn)
         ERR_EXIT("fopen: %s", fn);
 }
 
-Main::init_::init_(Main* p, int argc, char* const argv[])
+Main::initialize::initialize(Main* p, int argc, char* const argv[])
     : m_(p)
 {
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
-    loadsi("/cygdrive/d/home/wood/._sinfo");
+    loadsi(getenv("HOME"),"._sinfo");
 
     if (filesystem::is_directory(argv[1])) {
         for (auto& di : filesystem::directory_iterator(argv[1])) {
@@ -251,7 +250,7 @@ Avsb operator+(Avsb const& x, Avsb const& y) {
 
 struct XClear { template<typename T> void operator()(T*v)const{ v->clear(); } };
 
-void Main::init_::prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/)
+void Main::initialize::prep(gregorian::date d, char const* fn/*, int xbeg, int xend*/)
 {
     //ERR_MSG("info: %d,%d\n", xbeg, xend);
     if (FILE* fp = fopen(fn, "r")) {
@@ -333,7 +332,7 @@ void walk(I b, I end, F&& fn)
 }
 
 
-void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
+void Main::initialize::fun(code_t code, std::vector<Pa>& vpa)
 {
     //Elem* vss = this->address(code);
     //if (!vss) {
@@ -421,7 +420,7 @@ void Main::init_::fun(code_t code, std::vector<Pa>& vpa)
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
 {
-    init_ ini(this, argc, argv);
+    initialize ini(this, argc, argv);
     (void)ini;
 }
 
