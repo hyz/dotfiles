@@ -8,6 +8,7 @@
 //#include <algorithm>
 //#include <numeric>
 #include <boost/config/warning_disable.hpp>
+#include <boost/format.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <set>
 //#include <iostream>
@@ -18,7 +19,20 @@
 
 #include "tdxif.h"
 
-#define PATH_PREFIX "C:\\cygwin64\\home\\wood\\_"
+#define HOME "E:/home/wood"
+#define DIR_OUT HOME"/_"
+#define FN_EXCLS HOME"/._excls"
+
+struct ymd_type
+{
+    int y,m,d;
+    ymd_type(NTime const& t) {
+        y = t.year;
+        m = t.month;
+        d = t.day;
+    }
+};
+
 static char* c_trim_right(char* h, const char* cs)
 {
     char* end = h + strlen(h);
@@ -68,8 +82,7 @@ struct makepath : std::array<char,N> {
 
 struct codes_set : std::unordered_set<int>
 {
-    template <typename ...V>
-    codes_set(V&& ... v) //(char const* fn)
+    template <typename ...V> codes_set(V&& ... v)
     {
         makepath<128> fn(v...);
         if (FILE* fp = fopen(fn.c_str(), "r")) {
@@ -83,21 +96,76 @@ struct codes_set : std::unordered_set<int>
     bool exist(int c) const { return find(c)!=end(); }
 };
 
+struct _999999 :  std::vector<HISDAT>
+{
+    _999999(BYTE nTQ, int len=5) {
+        std::vector<HISDAT>& v = *this;
+        v.resize(len<1 ? 1:len);
+		int n = GDef::tdx_read("999999", 1, PER_DAY, &v[0], (int)v.size(), NTime{}, NTime{}, nTQ, 0);
+        if (n != len)
+            ERR_EXIT("999999: %d: %d", len, n);
+    }
+	ymd_type ymd(int x = -1) const { return ymd_type(Time(x)); }
+	NTime const& Time(int x = -1) const { return (x == 0 ? front().Time : back().Time); }
+};
+
 BOOL myflt0(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX, "_excls"); //(PATH_PREFIX"\\_excls");
-    static codes_set s(PATH_PREFIX, boost::format("_%02d") % args[1]); //(str(boost::format(PATH_PREFIX"\\_%02d") % args[1]).c_str());
+    static codes_set excls_(FN_EXCLS); //(FN_EXCLS);
+    static codes_set s(HOME, boost::format("_%02d") % args[1]); //(str(boost::format(DIR_OUT"\\_%02d") % args[1]).c_str());
     int c = atoi(Code);
     return (s.exist(c) && !excls_.exist(c));
 }
 
+struct Out1 : _999999
+{
+    codes_set excls_;
+    FILE* fp_ = 0;
+    BYTE nTQ_;
+    std::vector<HISDAT> sh_; //std::pair<NTime,NTime> time_range_ = {};
+
+    Out1(int args[4], BYTE nTQ) : _999999(nTQ, args[1]>0 ? args[1]:30), excls_(FN_EXCLS) {
+        nTQ_ = nTQ;
+        sh_.resize(_999999::size());
+        auto t = ymd(); //ymd_type(sh_.back().Time);
+        makepath<128> fn(DIR_OUT, boost::format("%d.%02d%02d-%d") % args[3] % t.m % t.d % (int)sh_.size());
+        fp_ = fopen(fn.c_str(), "w");
+    }
+    ~Out1() {
+        if (fp_) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
+            (void)xclose;
+        }
+    }
+
+    void print(char const* Code, short nSetCode)
+    {
+        if (!fp_ || excls_.exist(atoi(Code)))
+            return;
+        int len = (int)sh_.size();
+        if ( (len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ_, 0)) > 3) {
+            if (sh_[len-1].fVolume < 1)
+                return;
+            fprintf(fp_, "%s %d", Code, nSetCode);
+            for (int i=0; i < len; ++i) {
+                auto& a = sh_[i];
+                fprintf(fp_, "\t" "%.0f %.0f" " %.0f %.0f %.0f %.0f"
+                        , a.fVolume, a.a.Amount
+                        , 100*a.Open, 100*a.Close, 100*a.Low, 100*a.High);
+            }
+            fprintf(fp_, "\n");
+        }
+    }
+};
 BOOL myflt1(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    //static codes_set excls_(PATH_PREFIX"\\_excls");
+    static Out1 out(args, nTQ);
+    out.print(Code, nSetCode);
+    //static codes_set excls_(FN_EXCLS);
 
     //int icode = atoi(Code);
     //if (excls_.exist(icode)) {
@@ -136,7 +204,7 @@ BOOL myflt1(char const* Code, short nSetCode
     //}
 
 	//using boost::format;
-    //makepath<128> path(PATH_PREFIX, str(format("%02d") % args[3]).c_str()); //= boost::filesystem::path(PATH_PREFIX) / str(format("%02d") % args[3]);
+    //makepath<128> path(DIR_OUT, str(format("%02d") % args[3]).c_str()); //= boost::filesystem::path(DIR_OUT) / str(format("%02d") % args[3]);
 
 	//if (!boost::filesystem::exists(path.c_str())) {
 	//	boost::filesystem::create_directories(path.c_str());
@@ -189,7 +257,7 @@ inline unsigned make_code(int szsh, int numb) { return ((szsh << 24) | numb); }
 inline int numb(unsigned v_) { return v_ & 0x0ffffff; }
 inline int szsh(unsigned v_) { return (v_ >> 24) & 0xff; }
 
-struct Dump2
+struct Out2
 {
     std::vector<HISDAT> sh_;
     FILE* fp_ = 0;
@@ -199,23 +267,23 @@ struct Dump2
     bool tdxread(std::vector<HISDAT>& vh, char const* c) {
         return (GDef::read(&vh[0], vh.size(), PER_DAY, c, 1, NTime{}, NTime{}, nTQ_, 0) == (int)vh.size());
     }
-    Dump2(int args[4], BYTE nTQ) : excls_(PATH_PREFIX, "_excls") //(PATH_PREFIX"\\_excls")
+    Out2(int args[4], BYTE nTQ) : excls_(FN_EXCLS) //(FN_EXCLS)
     {
         nTQ_ = nTQ;
         sh_.resize(args[1]>0 ? args[1] : 30);
         if (tdxread(sh_, "999999")) {
 			//auto & t0 = sh_.front().Time;
-			auto & t1 = sh_.back().Time;
-            makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d-%d.d") % t1.month % t1.day % (int)sh_.size()); // char fn[128]; sprintf(fn,PATH_PREFIX"\\%02d%02d-%d.d", t1.month,t1.day, (int)sh_.size());
+			auto t1 = ymd_type(sh_.back().Time);
+            makepath<128> fn(DIR_OUT, boost::format("%02d%02d-%d.d") % t1.m % t1.d % (int)sh_.size()); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d-%d.d", t1.month,t1.day, (int)sh_.size());
             fp_ = fopen(fn.c_str(), "w");
         }
     }
-    ~Dump2() {
+    ~Out2() {
         if (fp_)
             fclose(fp_);
     }
 
-    void operator()(char const* Code, short nSetCode)
+    void print(char const* Code, short nSetCode)
     {
         if (!fp_ || excls_.exist(atoi(Code)))
             return;
@@ -237,25 +305,29 @@ struct Dump2
     }
 };
 
-struct Dump3
+struct Out3
 {
     std::vector<HISDAT> sh_;
+    codes_set excls_;
     FILE* fp_ = 0;
 
-    template <typename ...A> Dump3(int args[4], A... a)
+    template <typename ...A> Out3(int args[4], A... a) : excls_(FN_EXCLS)
     {
         rd_(sh_, "999999", 1, a...);
-        auto& t = sh_.front().Time;
-        makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d.M") % t.month % t.day); // char fn[128]; sprintf(fn,PATH_PREFIX"\\%02d%02d.M", t.month, t.day);
+        auto t = ymd_type(sh_.front().Time);
+        makepath<128> fn(DIR_OUT, boost::format("%02d%02d.M") % t.m % t.d); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d.M", t.month, t.day);
         fp_ = fopen(fn.c_str(), "w");
     }
 
-    ~Dump3() {
+    ~Out3() {
         if (fp_)
             fclose(fp_);
     }
 
-    template <typename ...A> void operator()(char const* Code, short nSetCode, A&&... a) {
+    template <typename ...A> void print(char const* Code, short nSetCode, A&&... a) {
+        if (excls_.exist(atoi(Code)))
+            return;
+
         std::vector<HISDAT> ls;
         if (fp_ && rd_(ls, Code, nSetCode, a...) > 0) {
             fprintf(fp_, "%s %d", Code, nSetCode);
@@ -314,73 +386,12 @@ struct Dump3
         return 0;
     }
 };
-struct Dump4
-{
-    codes_set excls_;
-    std::vector<HISDAT> sh_;
-    FILE* fp_ = 0;
-    bool multi_file_ = 1;
-    std::pair<NTime,NTime> time_range_ = {};
-    BYTE nTQ_;
-
-    bool multi_open(char const* c, char const* om) {
-        if (fp_)
-            fclose(fp_);
-        makepath<128> fn(PATH_PREFIX, c); //auto path = boost::filesystem::path(PATH_PREFIX) / c;
-        fp_ = fopen(fn.c_str(), om);
-        return bool(fp_);
-    }
-
-    Dump4(int args[4], BYTE nTQ) : excls_(PATH_PREFIX, "_excls") //(PATH_PREFIX"\\_excls")
-    {
-        nTQ_ = nTQ;
-        multi_file_ = args[3];
-        int len = args[1]>0 ? args[1] : 30;
-        sh_.resize(len);
-        if (GDef::read(&sh_[0], len, PER_DAY, "999999", 1, NTime{}, NTime{}, nTQ_, 0) == len) {
-            if (!multi_file_) {
-                auto tb = sh_.back().Time;
-                makepath<128> fn(PATH_PREFIX, boost::format("%02d%02d-%d.d") % tb.month % tb.day % (int)sh_.size());
-                fp_ = fopen(fn.c_str(), "w");
-            }
-            time_range_ = std::make_pair(sh_.front().Time, sh_.back().Time);
-        }
-    }
-    ~Dump4() {
-        if (fp_) {
-            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
-            (void)xclose;
-        }
-    }
-
-    void operator()(char const* Code, short nSetCode)
-    {
-        if (excls_.exist(atoi(Code)))
-            return;
-        int len = (int)sh_.size();
-        if ((len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, time_range_.first, NTime{}, nTQ_, 0)) > 3) {
-            if (sh_.back().fVolume < 1)
-                return;
-            if (!multi_file_ || multi_open(Code, "w")) {
-                if (!multi_file_)
-                    fprintf(fp_, "%s %d\t", Code, nSetCode);
-                for (int i=0; i < len; ++i) {
-                    auto& a = sh_[i];
-                    fprintf(fp_, "%s" "%.0f %.0f" " %.0f %.0f %.0f %.0f", "\t"+(i<1)
-                            , a.fVolume, a.a.Amount
-                            , 100*a.Open, 100*a.Close, 100*a.Low, 100*a.High);
-                }
-                fprintf(fp_, "\n");
-            }
-        }
-    }
-};
 BOOL myflt2(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Dump2 print(args, nTQ);
-    print(Code, nSetCode);
+    static Out2 out(args, nTQ);
+    out.print(Code, nSetCode);
 	return 0;
 }
 
@@ -388,13 +399,8 @@ BOOL myflt3(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static codes_set excls_(PATH_PREFIX, "_excls"); //(PATH_PREFIX"\\_excls");
-    int icode = atoi(Code);
-    if (excls_.exist(icode))
-        return 0;
-
-    static Dump3 print(args, t0, t1, nTQ, 0);
-    print(Code, nSetCode, t0, t1, nTQ, 0);
+    static Out3 out(args, t0, t1, nTQ, 0);
+    out.print(Code, nSetCode, t0, t1, nTQ, 0);
 
     //if (args[1]==0)
     //    args[1] = PER_MIN1;
@@ -418,8 +424,6 @@ BOOL myflt4(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Dump4 print(args, nTQ);
-    print(Code, nSetCode);
 	return 0;
 }
 
@@ -462,24 +466,25 @@ BOOL myflt9(char const* Code, short nSetCode
     return 0;
 }
 
-struct Dump6
+struct Out6 : _999999
 {
     FILE* fp_ = 0;
     BYTE nTQ_;
 
-    Dump6(int args[4], BYTE nTQ) {
+    Out6(int args[4], BYTE nTQ) : _999999(nTQ) {
         nTQ_ = nTQ;
-        makepath<128> fn(PATH_PREFIX, "_names"); //auto fn = boost::filesystem::path(PATH_PREFIX) / "_names";
+        auto t = ymd();
+        makepath<128> fn(DIR_OUT, boost::format("names.%02d%02d") % t.m % t.d); //auto fn = boost::filesystem::path(DIR_OUT) / "_names";
         ERR_MSG("%s", fn.c_str());
         fp_ = fopen(fn.c_str(), "w");
     }
-    ~Dump6() {
+    ~Out6() {
         if (fp_) {
             std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
             (void)xclose;
         }
     }
-    void operator()(char const* Code, short nSetCode) {
+    void print(char const* Code, short nSetCode) {
         STOCKINFO si = {};
         int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
         if (n > 0) {
@@ -489,29 +494,28 @@ struct Dump6
     }
 };
 
-struct Dump7
+struct Out7 : _999999
 {
     FILE* fp_ = 0;
     BYTE nTQ_;
 
-    Dump7(int args[4], BYTE nTQ) //: excls_(PATH_PREFIX, "_excls")
+    Out7(int args[4], BYTE nTQ) : _999999(nTQ)
     {
-        ERR_MSG("%s", __FUNCTION__);
         nTQ_ = nTQ;
-        char tmp[8];
-        sprintf(tmp, "_%02d", args[3]); // auto s = str(boost::format("_%02d") % args[3]);
-        makepath<128> fn(PATH_PREFIX, tmp); // using boost::format; auto fn = boost::filesystem::path(PATH_PREFIX) / str(format("_%02d") % args[3]);
+        //char tmp[8]; sprintf(tmp, "_%02d", args[3]); // auto s = str(boost::format("_%02d") % args[3]);
+        auto t = ymd();
+        makepath<128> fn(DIR_OUT, boost::format("s.%02d%02d") % t.m % t.d); // using boost::format; auto fn = boost::filesystem::path(DIR_OUT) / str(format("_%02d") % args[3]);
         ERR_MSG("%s", fn.c_str());
         fp_ = fopen(fn.c_str(), "w");
     }
-    ~Dump7() {
+    ~Out7() {
         if (fp_) {
             std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
             (void)xclose;
         }
     }
 
-    int operator()(char const* Code, short nSetCode)
+    int print(char const* Code, short nSetCode)
     {
         STOCKINFO si = {};
         int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
@@ -551,14 +555,13 @@ BOOL myflt6(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Dump6 print(args, nTQ);
-    //ERR_MSG("%d, %s %hd", args[0], Code, nSetCode);
-    print(Code, nSetCode);
+    static Out6 out(args, nTQ); //ERR_MSG("%d, %s %hd", args[0], Code, nSetCode);
+    out.print(Code, nSetCode);
 	return 0;
 	//STOCKINFO si = {};
     //int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, t0, t1, nTQ, 0);
     //if (n > 0) {
-    //    static boost::filesystem::path fp = PATH_PREFIX"\\_sname";
+    //    static boost::filesystem::path fp = DIR_OUT"\\_sname";
     //    static boost::filesystem::ofstream ofs(fp, std::ios::trunc);
     //    si.Name[8]='\0';
     //    ofs << Code <<' '<< nSetCode <<' '<< si.Name <<'\n';
@@ -570,8 +573,8 @@ BOOL myflt7(char const* Code, short nSetCode
 	, int args[4]
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
-    static Dump7 print(args, nTQ);
-    print(Code, nSetCode);
+    static Out7 out(args, nTQ);
+    out.print(Code, nSetCode);
 	return 0;
 	//std::vector<HISDAT> his(5);
 	//int n = GDef::tdx_read(Code, nSetCode, PER_DAY, &his[0], his.size(), t0, t1, nTQ, 0);
