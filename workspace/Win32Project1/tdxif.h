@@ -11,9 +11,24 @@
 #define PLUGIN_API extern "C" __declspec(dllimport)
 #endif
 
+#include <stdlib.h>
+#include <string.h>
 #include "tdxdef.h"
 
 #pragma pack(push,1)
+extern FILE* logfile_;
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
+    fprintf(logfile_, fmt, lin_, a...);
+    fflush(logfile_);
+    exit(127);
+}
+template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) {
+    fprintf(logfile_, fmt, lin_, a...);
+    fputc('\n', logfile_);
+    fflush(logfile_);
+}
+#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
+#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
 
 typedef struct PluginInfo_Param_Type //参数信息的结构定义
 {
@@ -40,6 +55,7 @@ typedef struct PluginInfo_Type
 typedef long (CALLBACK * PDATAIOFUNC)
     (char* Code,short nSetCode,short DataType,void* pData,short nDataNum,NTime,NTime,BYTE nTQ,unsigned long);
 
+extern "C" {
 //注册回调函数
 PLUGIN_API void  RegisterDataInterface(PDATAIOFUNC pfn);
 
@@ -52,7 +68,9 @@ PLUGIN_API BOOL	 InputInfoThenCalc1(char* Code,short nSetCode,int Value[4],short
 //选取区段计算
 PLUGIN_API BOOL	 InputInfoThenCalc2(char* Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
 
-#include <unordered_set>
+} // extern "C"
+
+//#include <unordered_set>
 
 //struct codes_set : std::unordered_set<int>
 //{
@@ -71,6 +89,9 @@ PLUGIN_API BOOL	 InputInfoThenCalc2(char* Code,short nSetCode,int Value[4],short
 //    }
 //}
 
+//#include <vector>
+//#include <ptr_container/vector.hpp>
+
 struct GDef
 {
 	template <typename ...T> static long tdx_read(const char* c, T&&... a) { return (*ref().tdx_read_)(const_cast<char*>(c), a...); }
@@ -87,6 +108,8 @@ struct GDef
 		, short DataType, NTime time1, NTime time2, BYTE nTQ, unsigned long unused);
 
 	FuncType funcs_[24];
+
+    //std::vector<std::function<void()>> at_exists_;
 	
 	~GDef();
 private:

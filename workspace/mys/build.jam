@@ -1,11 +1,11 @@
 #import boost ; 
 #boost.use-project 1.59 ; 
 
-import os ;
-path-constant HOME : [ os.environ HOME ] ;
-path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+#import os ;
+#path-constant HOME : [ os.environ HOME ] ;
+#path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
-use-project boost : $(BOOST_ROOT) ; 
+#use-project boost : $(BOOST_ROOT) ; 
 # /boost//headers
 
 project mys
@@ -38,8 +38,8 @@ exe x6 : x6.cc /boost//filesystem : <link>static ;
 exe jx : jx.cc /boost//filesystem : <link>static ;
 
 install bin : x-minute ls-dczxg s-diff s-inters # f1 f2 f5 f8 f9 f6 fx f7
-    jx
     x3 x4 x5 x6
+    jx
     fx
     ;
 

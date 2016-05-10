@@ -70,7 +70,7 @@ struct Flags {
 	static FILE* fp;
 };
 template <typename T> bool Flags<T>::syslog = 0;
-template <typename T> FILE* Flags<T>::fp = stderr;
+template <typename T> FILE* Flags<T>::fp = NULL;
 
 template<typename Container>
 struct logger2_sink
@@ -97,26 +97,24 @@ private:
 
 template<class Tag>
 struct logger_stream : boost::noncopyable
-    , boost::iostreams::stream<logger2_sink<boost::container::static_vector<char,Tag::capacity> > >
-    , boost::container::static_vector<char,Tag::capacity>
 {
-    typedef boost::container::static_vector<char,Tag::capacity> bufs_t;
-    typedef boost::iostreams::stream<logger2_sink<boost::container::static_vector<char,Tag::capacity> > > stream_base;
+    typedef boost::container::static_vector<char,Tag::capacity> buffer_type;
+    typedef boost::iostreams::stream<logger2_sink<boost::container::static_vector<char,Tag::capacity> > > stream_type;
+    buffer_type buffer_;
+    stream_type stream_; // boost::iostreams::stream<logger2_sink<boost::container::static_vector<char,Tag::capacity> > >
 
-    logger_stream() : stream_base(*this) // ( static_cast<bufs_t&>(*this) )
+    logger_stream() : stream_(buffer_) // ( static_cast<buffer_type&>(*this) )
         { sizepfx=0; }
 
     void commit(int line, char const *name)
     {
-		bufs_t& bufs = *this;
-		stream_base& stream = *this;
-		stream.flush(); // flush to sink bufs
+		this->stream_.flush(); // flush to sink bufs
 
         // std::cout << &bufs <<" "<< bufs.capacity() <<" "<< bufs.size() <<" "<< sizepfx <<"\n";
-        if (bufs.size() > sizepfx)
+        if (buffer_.size() > sizepfx)
         {
-            int len = bufs.size();
-            char *p = &bufs[0];
+            int len = buffer_.size();
+            char *p = &buffer_[0];
             if (Flags<>::syslog) {
 #               if defined(LOG_USER) && defined(LOG_INFO) && defined(LOG_PID) && defined(LOG_CONS)
 				char const* fmt = "%.*s";
@@ -124,7 +122,8 @@ struct logger_stream : boost::noncopyable
 					fmt = "%.*s #%d:%s";
                 ::syslog(LOG_USER|LOG_INFO, fmt, len, p, line, name);
 #               endif
-            } else {
+            }
+            if (Flags<>::fp) {
 				std::fwrite(p, len, 1, Flags<>::fp);
 				if (line && name)
 					std::fprintf(Flags<>::fp, "\t#%d:%s\n", line, name);
@@ -132,20 +131,19 @@ struct logger_stream : boost::noncopyable
 					std::fwrite("\n", 1, 1, Flags<>::fp);
 				std::fflush(Flags<>::fp);
             }
-            bufs.resize(sizepfx); // clear(); seekp(sizepfx, std::ios::beg);
+            buffer_.resize(sizepfx); // clear(); seekp(sizepfx, std::ios::beg);
         }
     }
 
     template <typename T>
     void prefix(T const& t)
     {
-        bufs_t& bufs = *this;
         if (sizepfx >= 1) {
-            bufs.resize(bufs.size() - 1);
-            *this << " ";
+            buffer_.resize(buffer_.size() - 1);
+            this->stream_ << " ";
         }
-        *this << t << ":";
-        sizepfx = bufs.size();
+        this->stream_ << t << ":";
+        sizepfx = buffer_.size();
     }
 
     template <typename T, typename ...Args>
@@ -172,7 +170,7 @@ struct lock_helper : boost::unique_lock<boost::mutex>
         , ls_(&ls)
     {}
 
-    std::ostream& stream() const { return *ls_; }
+    std::ostream& stream() const { return ls_->stream_; }
     void commit(int ln, char const* nm) const {
         ls_->commit(ln, nm);
     }
@@ -184,25 +182,20 @@ template <typename T>
 struct logger_helper : lock_helper<T>
 {
     int line_;
-    const char* name_;
+    const char* fname_;
 
     template <typename X>
-    logger_helper<T> const& operator<<(X const& x) const
-    {
+    logger_helper<T> const& operator<<(X const& x) const {
         static_cast<std::ostream&>(this->stream()) <<" "<< x;
         return *this;
     }
-
-    ~logger_helper()
-    {
-        this->commit(line_, name_);
+    ~logger_helper() {
+        this->commit(line_, fname_);
     }
-
     logger_helper(int line, const char* nm)
-        : lock_helper<T>(logger_stream<T>::instance)
-    {
+        : lock_helper<T>(logger_stream<T>::instance) {
         line_ = line;
-        name_ = nm;
+        fname_ = nm;
     }
 };
 
@@ -219,11 +212,10 @@ template <typename Int> void syslog(Int opt, Int facility)
     ::openlog(0, opt, facility);
 #endif
 }
-inline FILE* logfile(FILE* fp = 0)
+inline FILE* logfile(FILE* fp)
 {
 	FILE* prev = Flags<>::fp;
-	if (fp)
-		Flags<>::fp = fp;
+    Flags<>::fp = fp;
 	return prev;
 }
 
@@ -236,6 +228,5 @@ struct info
 } // namespace logging
 
 #define LOG if(1)logging::logger_helper<logging::info>(__LINE__,__FUNCTION__)
-#define LOG_I LOG
 
 #endif

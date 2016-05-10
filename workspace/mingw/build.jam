@@ -8,26 +8,30 @@ project mingw
 lib rt : librt-empty.c : <link>static ;
 ### cp -t /usr/i686-w64-mingw32/lib/ bin/gcc-mingw-4.8/release/link-static/threading-multi/librt.a
 ###
+### http://www.mingw.org/wiki/sampledll
+###
 ### /usr/i686-w64-mingw32/lib   libwinpthread-1.dll
 ### https://bbs.archlinux.org/viewtopic.php?id=208166
 ### http://stackoverflow.com/questions/13768515/how-to-do-static-linking-of-libwinpthread-1-dll-in-mingw
 ###    ... The apt-get version is old
 ###
+### pacman -Ql mingw-w64-winpthreads |grep dll
+###    ... rename all these
+###
 
-alias boost-lib : /boost//system /boost//regex /boost//filesystem : <link>static ;
+alias boost-lib : /boost//system : <link>static ;
 
 # lib pthread : : <file>/usr/i686-w64-mingw32/lib/libpthread.a ;
-# lib pthread : : <link>static ;
+#lib pthread : : <runtime-link>static <link>static : <runtime-link>static <link>static ;
 
-obj xobj : xobj.cpp boost-lib
-    : <runtime-link>static <link>static
-      <define>BUILDING_EXAMPLE_DLL=1
+obj xobj : xobj.cpp boost-lib 
+    : <define>BUILDING_EXAMPLE_DLL=1
     ;
 lib xlib : xobj
     ;
 exe a : a.cpp xlib 
-    : <runtime-link>static <link>static
+    #: <runtime-link>static <link>static
     ;
 
-install /mnt/hgfs/home : xlib a ;
+install $(HOME)/smb : xlib a ;
 

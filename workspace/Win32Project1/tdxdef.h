@@ -4,12 +4,12 @@
 #include "stdafx.h"
 
 #pragma pack(push,1)
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/date_time/gregorian/gregorian.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
 //#include "date/date.h"
-#include <boost/format.hpp>
-#include <ostream>
-#include <iomanip>
+//#include <boost/format.hpp>
+//#include <ostream>
+//#include <iomanip>
 #include <stdint.h>
 #include <time.h>
 
@@ -31,28 +31,28 @@ typedef struct tag_NTime
 	uint8_t	minute;
 	uint8_t	second;
 
-	boost::posix_time::ptime ptime() const{
-		return boost::posix_time::ptime(this->date());
-	}
-	boost::gregorian::date date() const{
-		return boost::gregorian::date(year, month, day);
-	}
+	//boost::posix_time::ptime ptime() const{
+	//	return boost::posix_time::ptime(this->date());
+	//}
+	//boost::gregorian::date date() const{
+	//	return boost::gregorian::date(year, month, day);
+	//}
 
-    static tag_NTime init(boost::gregorian::date d) {
-        tag_NTime nt ={0};
-		// auto d = boost::posix_time::second_clock::local_time().date();
-		nt.year = d.year(); // 1900 + tm->tm_year;
-        nt.month = (uint8_t)d.month();
-		nt.day = (uint8_t)d.day();
-        return nt;
-    }
-    static tag_NTime init(int y, int m, int d) {
-        tag_NTime nt ={0};
-        nt.year = y;
-        nt.month = m;
-        nt.day = d;
-        return nt;
-    }
+ //   static tag_NTime init(boost::gregorian::date d) {
+ //       tag_NTime nt ={0};
+	//	// auto d = boost::posix_time::second_clock::local_time().date();
+	//	nt.year = d.year(); // 1900 + tm->tm_year;
+ //       nt.month = (uint8_t)d.month();
+	//	nt.day = (uint8_t)d.day();
+ //       return nt;
+ //   }
+    //static tag_NTime init(int y, int m, int d) {
+    //    tag_NTime nt ={0};
+    //    nt.year = y;
+    //    nt.month = m;
+    //    nt.day = d;
+    //    return nt;
+    //}
   //  time_t time() const {
   //      boost::posix_time::ptime pt(boost::gregorian::date(year,month,day));
   //      //struct tm tm = {0};
@@ -72,21 +72,21 @@ typedef struct tag_NTime
     //    return int(seconds_fr(y,m,d)/60*60*24);
     //}
 
-	friend std::ostream& operator<<(std::ostream& os, tag_NTime const& a) {
-		boost::format ft("%u%02u%02u");
-		return os << ft % a.year % (int)a.month % (int)a.day;// % (int)a.hour % (int)a.minute % (int)a.second;
-	}
-	bool operator<(const tag_NTime& o) const {
-		return year < o.year
-			|| year==o.year && (month < o.month
-			|| month==o.month && (day < o.day
-			|| day==o.day && (hour < o.hour
-			|| hour ==o.hour && (minute < o.minute
-			|| minute==o.minute && second < o.second))));
-	}
-	bool operator >(const tag_NTime& o) const { return o < *this; }
-	bool operator!=(const tag_NTime& o) const { return (*this<o || *this>o); }
-	bool operator==(const tag_NTime& o) const { return !(*this!=o); }
+	//friend std::ostream& operator<<(std::ostream& os, tag_NTime const& a) {
+	//	boost::format ft("%u%02u%02u");
+	//	return os << ft % a.year % (int)a.month % (int)a.day;// % (int)a.hour % (int)a.minute % (int)a.second;
+	//}
+	//bool operator<(const tag_NTime& o) const {
+	//	return year < o.year
+	//		|| year==o.year && (month < o.month
+    //            || month==o.month && (day < o.day
+    //                || day==o.day && (hour < o.hour
+    //                    || hour ==o.hour && (minute < o.minute
+    //                        || minute==o.minute && second < o.second))));
+	//}
+	//bool operator >(const tag_NTime& o) const { return o < *this; }
+	//bool operator!=(const tag_NTime& o) const { return (*this<o || *this>o); }
+	//bool operator==(const tag_NTime& o) const { return !(*this!=o); }
 } NTime;
 
 //分析数据
@@ -111,13 +111,13 @@ typedef struct tag_HISDAT
 		} zd;
 	} b;
 
-	friend std::ostream& operator<<(std::ostream& os, tag_HISDAT const& a) {
-		return os << a.Time
-			<< boost::format(" %.2f %.2f %.2f %.2f %.2fw %dh")
-					% a.Open % a.High % a.Low % a.Close
-					% (a.a.Amount/10000) % int(a.fVolume/100)
-			;
-	}
+	//friend std::ostream& operator<<(std::ostream& os, tag_HISDAT const& a) {
+	//	return os << a.Time
+	//		<< boost::format(" %.2f %.2f %.2f %.2f %.2fw %dh")
+	//				% a.Open % a.High % a.Low % a.Close
+	//				% (a.a.Amount/10000) % int(a.fVolume/100)
+	//		;
+	//}
 } HISDAT,*LPHISDAT;
 
 //行情数据(第二版)
@@ -159,32 +159,32 @@ typedef struct tag_REPORTDAT2
 	} Other;
 	char	ununsed[20];		//备用
 
-	template <typename F, typename D, int N> struct Rp {
-		F const* fs;
-		D const* ns;
-		friend std::ostream& operator<<(std::ostream& os, Rp const& x) {
-			os << "[" << x.fs[0] << "x" << x.ns[0];
-			for (int i = 1; i < N; ++i)
-				os << "," << x.fs[i] << "x" << x.ns[i];
-			return os << "]";
-		}
-	};
-	template <typename T, typename V, int N>
-	static Rp<T, V, N> makep(T const(&x)[N], V const(&y)[N]) {
-		return Rp<T, V, N>{x, y};
-	}
+	//template <typename F, typename D, int N> struct Rp {
+	//	F const* fs;
+	//	D const* ns;
+	//	friend std::ostream& operator<<(std::ostream& os, Rp const& x) {
+	//		os << "[" << x.fs[0] << "x" << x.ns[0];
+	//		for (int i = 1; i < N; ++i)
+	//			os << "," << x.fs[i] << "x" << x.ns[i];
+	//		return os << "]";
+	//	}
+	//};
+	//template <typename T, typename V, int N>
+	//static Rp<T, V, N> makep(T const(&x)[N], V const(&y)[N]) {
+	//	return Rp<T, V, N>{x, y};
+	//}
 
-	friend std::ostream& operator<<(std::ostream& os, tag_REPORTDAT2 const& a) {
-		os.setf(std::ios::fixed, std::ios::floatfield);
-		os.precision(2);
-		return os << a.ItemNum
-			<< boost::format("\n%.2f %.2f %.2f %.2f %.2f Amount(w) %.2f") % a.Close % a.Open % a.Max % a.Min % a.Now % (a.Amount/10000)
-			<< "\nVolume " << a.NowVol << " " << a.Volume
-			<< "\nInside/Outside " << a.Inside << " " << a.Outside << " " << (int)a.InOutFlag
-			<< "\nTickDiff " << a.TickDiff << " CJBS " << a.CJBS
-			<< "\n" << makep(a.Other.Ggpv.Sellp, a.Other.Ggpv.Sellv) << makep(a.Other.Ggpv.Buyp, a.Other.Ggpv.Buyv)
-			;
-	}
+	//friend std::ostream& operator<<(std::ostream& os, tag_REPORTDAT2 const& a) {
+	//	os.setf(std::ios::fixed, std::ios::floatfield);
+	//	os.precision(2);
+	//	return os << a.ItemNum
+	//		<< boost::format("\n%.2f %.2f %.2f %.2f %.2f Amount(w) %.2f") % a.Close % a.Open % a.Max % a.Min % a.Now % (a.Amount/10000)
+	//		<< "\nVolume " << a.NowVol << " " << a.Volume
+	//		<< "\nInside/Outside " << a.Inside << " " << a.Outside << " " << (int)a.InOutFlag
+	//		<< "\nTickDiff " << a.TickDiff << " CJBS " << a.CJBS
+	//		<< "\n" << makep(a.Other.Ggpv.Sellp, a.Other.Ggpv.Sellv) << makep(a.Other.Ggpv.Buyp, a.Other.Ggpv.Buyv)
+	//		;
+	//}
 
 } REPORTDAT2, *LPREPORTDAT2;
 
@@ -251,16 +251,16 @@ typedef struct tag_STOCKINFO
 	float		J_mgjzc;			//每股净资产
 	float		J_gdqyb;			//股东权益比
 
-	friend std::ostream& operator<<(std::ostream& os, tag_STOCKINFO const& a) {
-		os.setf(std::ios::fixed, std::ios::floatfield);
-		os.precision(2);
-		return os << a.Name << " hy " << a.J_hy
-			<< "\nsy " << a.J_mgsy2 << " " << a.J_mgsy << " " << a.J_oldzysy << " " << a.J_oldjly
-			<< "\nsr(w) " << a.J_yyly / 10000 << " " << a.J_yysy / 10000 << " " << a.J_yycb / 10000
-			<< "\ngb(w) " << a.ActiveCapital / 10000 << " " << a.J_zgb / 10000
-			<< "\nzc(y) " << a.J_jzc / 100000000 << " " << a.J_ldzc / 100000000 << " " << a.J_gdzc / 100000000 << " " << a.J_wxzc / 100000000
-			;
-	}
+	//friend std::ostream& operator<<(std::ostream& os, tag_STOCKINFO const& a) {
+	//	os.setf(std::ios::fixed, std::ios::floatfield);
+	//	os.precision(2);
+	//	return os << a.Name << " hy " << a.J_hy
+	//		<< "\nsy " << a.J_mgsy2 << " " << a.J_mgsy << " " << a.J_oldzysy << " " << a.J_oldjly
+	//		<< "\nsr(w) " << a.J_yyly / 10000 << " " << a.J_yysy / 10000 << " " << a.J_yycb / 10000
+	//		<< "\ngb(w) " << a.ActiveCapital / 10000 << " " << a.J_zgb / 10000
+	//		<< "\nzc(y) " << a.J_jzc / 100000000 << " " << a.J_ldzc / 100000000 << " " << a.J_gdzc / 100000000 << " " << a.J_wxzc / 100000000
+	//		;
+	//}
 
 } STOCKINFO,*LPSTOCKINFO;
 

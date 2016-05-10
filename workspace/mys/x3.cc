@@ -37,14 +37,12 @@
 //#include <boost/multi_index/ordered_index.hpp>
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
 #define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     //fflush(stderr);
 }
