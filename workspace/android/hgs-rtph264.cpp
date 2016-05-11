@@ -275,9 +275,9 @@ struct rtcp_report_block // report block
 
 struct rtcp_sdes_item // source description RTCP packet
 {
-    unsigned char pt; // chunk type
-    unsigned char len;
-    unsigned char data[1];
+    uint8_t pt; // chunk type
+    uint8_t len;
+    uint8_t data[1];
 };
 
 struct h264nal : boost::noncopyable
@@ -315,7 +315,7 @@ struct h264nal : boost::noncopyable
     }
 
     size_t totsiz_ = 0, sizprint_=0;
-    void data_coming(uint8_t* data, uint8_t* end) //const
+    void data_incoming(uint8_t* data, uint8_t* end) //const
     {
         output_helper out(dump_fp_);
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
@@ -463,7 +463,7 @@ struct h264file_printer : boost::noncopyable
     int setup(int, char*[])
     {
         for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            nalu_.data_coming(p.first+4, p.second);
+            nalu_.data_incoming(p.first+4, p.second);
         }
         return 0;
     }
@@ -655,15 +655,14 @@ private: // rtsp communication
                     ERR_EXIT("rtp_header::cast"); return;
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    nalu_.data_coming(bufptr()+h->length(), bufptr()+bytes_recvd);
                     rtcp_update_(rtcp_, h, bufptr()+h->length(), bufptr()+bytes_recvd);
+                    nalu_.data_incoming(bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
             }
             using namespace boost::asio;
             udpsock_.async_receive_from(
                     boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
                     boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
-            LOGD("udpsock %d", bytes_recvd);
         }
     }
 
@@ -701,7 +700,8 @@ struct rtcp_client
             struct { // rtcp_sdes_item, source description RTCP packet
                 uint8_t pt;
                 uint8_t len;
-                uint8_t data[6];
+                char data[6];
+                //uint32_t zeros_;
             } c;
         };
         source_description sdes;
@@ -755,11 +755,11 @@ struct rtcp_client
     };
     source source_;
 
-    static int64_t stimestamp(bool init=0)
+    static int64_t stimestamp(int init=0)
     {
         static chrono::system_clock::time_point base = chrono::system_clock::now();
         if (init)
-            base = chrono::system_clock::now();
+            base = chrono::system_clock::now()-chrono::milliseconds(30);
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
     }
     static void init_seq(source *s, u_int16 seq)
@@ -845,17 +845,17 @@ struct rtcp_client
         rr_.h.p = 0;
         rr_.h.v = 2; // version
         rr_.h.pt = RTCP_RR;
-        rr_.h.length = ntohs( (sizeof(receiver_report)-4)/4 );
-        rr_.ssrc = ntohl( rand() );
+        rr_.h.length = htons( (sizeof(receiver_report)-4)/4 );
+        rr_.ssrc = ( rand() );
 
         auto& sdes = rr_.sdes;
         sdes.h = rr_.h;
         sdes.h.pt = RTCP_SDES;
-        sdes.h.length = 3;
+        sdes.h.length = htons(3);
         sdes.ssrc = rr_.ssrc;
         sdes.c.pt = RTCP_SDES_CNAME;
-        sdes.c.len = 4;
-        snprintf((char*)sdes.c.data,6, "%04d", rtp_->local_port()); //strcpy(sdes.c.data, "helo");
+        sdes.c.len = 6;
+        snprintf(sdes.c.data,6, "N%04d.", rtp_->local_port()); //strcpy(sdes.c.data, "helo");
 
         //udpsock_.connect(remote_ep);
         handle_receive_from(boost::system::error_code(), 0);
@@ -869,7 +869,6 @@ struct rtcp_client
             s->cycles = 1;
             s->base_seq = s->max_seq = h->seq;
             s->received = 1;
-            stimestamp(1);
         } else {
             if (h->seq < s->max_seq) {
                 s->cycles++;
@@ -880,7 +879,7 @@ struct rtcp_client
 
         {
             uint32_t arrival = stimestamp();
-            arrival = std::min(arrival, h->timestamp+1);
+            arrival = std::max(arrival, h->timestamp+30);
             int transit = arrival - h->timestamp;
             int d = transit - s->transit;
             s->transit = transit;
@@ -905,7 +904,7 @@ struct rtcp_client
                 rr_.rb.ssrc = htonl( si->ssrc );
                 rr_.rb.lsr = htonl( ((si->ntpmsw&0xFFFF)<<16) | ((si->ntplsw>>16) & 0xFFFF) ); //uint32_t lsr; // last SR
                 si->rtpts;
-                ts_sr_ = stimestamp();
+                ts_sr_ = stimestamp( source_.received==0 );
             } else {
                 LOGD("pt %d", (int)h->pt);
             }
@@ -927,16 +926,16 @@ struct rtcp_client
 
     void rreport()
     {
-        if (ts_sr_ == 0) {
-            if (ts_rr_ == 0 || stimestamp() - ts_rr_ > 1500) {
-                static uint32_t u4 = 0xfeedface; // ce fa ed fe
-                udpsock_.async_send_to(
-                        boost::asio::buffer(&u4, 4), peer_endpoint_,
-                        boost::bind(&This::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-                ts_rr_ = stimestamp();
-            }
-            return;
-        }
+        //if (ts_sr_ == 0) {
+        //    if (ts_rr_ == 0 || stimestamp() - ts_rr_ > 1500) {
+        //        static uint32_t u4 = 0xfeedface; // ce fa ed fe
+        //        udpsock_.async_send_to(
+        //                boost::asio::buffer(&u4, 4), peer_endpoint_,
+        //                boost::bind(&This::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        //        ts_rr_ = stimestamp();
+        //    }
+        //    return;
+        //}
 
         // http://www.ece.rutgers.edu/~marsic/books/CN/projects/wireshark/ws-project-4.html
         //  J(i)  =  J(i–1)  +  ( |D(i–1, i)| – J(i–1) ) / 16 
@@ -982,18 +981,17 @@ struct rtcp_client
                     fraction = (lost_interval << 8) / expected_interval;
             }
 
-            rr_.rb.jitter = ntohl( s->jitter >> 4 );
+            rr_.rb.jitter = htonl( s->jitter >> 4 );
             rr_.rb.fraction = fraction;
-            lost = ntohl(lost);
+            lost = htonl(lost);
             rr_.rb.cumulative = lost>>8;
-            //uint8_t* p = reinterpret_cast<uint8_t*>(&lost);
-            //memcpy(&rr_.rb.cumulative, p, 3); //rr_.rb.cumulative = (p[0]<<16) | (p[1]<<8) | p[2];
 
-            rr_.rb.exthsn = ntohl(extended_max); // extended highest sequence number received
-            rr_.rb.dlsr = ntohl( uint32_t(stimestamp() - ts_sr_) );
+            rr_.rb.exthsn = htonl(extended_max); // extended highest sequence number received
+            rr_.rb.dlsr = htonl( uint32_t(stimestamp() - ts_sr_) );
             udpsock_.async_send_to(
                     boost::asio::buffer(&rr_, sizeof(rr_)), peer_endpoint_,
                     boost::bind(&This::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            ts_rr_ = stimestamp();
         }
     }
 
@@ -1272,7 +1270,7 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
     LOGD("init %s:%s %s", ip, port, path);
 
     hgs_.io_service = new boost::asio::io_service();
-    hgs_.rtp = new rtp_receiver(*hgs_.io_service, 0); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
+    hgs_.rtp = new rtp_receiver(*hgs_.io_service, fopen("/tmp/1.rtp.h264","w")); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
     hgs_.rtcp = new rtcp_client(*hgs_.io_service, hgs_.rtp);
     hgs_.rtsp = new rtsp_client(*hgs_.io_service, hgs_.rtp, endp, path);
 
