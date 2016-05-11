@@ -25,7 +25,7 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <chrono> //#include <boost/chrono.hpp>
 namespace chrono = std::chrono;
-#if defined(__android__)
+#if defined(__ANDROID__)
 #  include <regex> //<boost/regex.hpp>
 namespace re = std;
 #else
@@ -33,13 +33,13 @@ namespace re = std;
 namespace re = boost;
 #endif
 
-#if defined(__android__)
+#if defined(__ANDROID__)
 #  include <android/log.h>
-#  define  LOG_TAG    "HGSX"
+#  define  LOG_TAG    "HGSC"
 #  define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #  define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #  define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-
+#  define NOT_PRINT_PROTO 1
 #else
 
 template <typename... As> void err_exit_(int lin_, char const* fmt, As... a)
@@ -62,7 +62,7 @@ extern "C" {
     void hgs_h264slice_commit(int flags);
 
     void hgs_poll_once();
-    void hgs_exit();
+    void hgs_exit(int);
     void hgs_init();
 }
 
@@ -140,7 +140,7 @@ struct rtp_header
     unsigned length() const { return sizeof(rtp_header)-4 + 4*this->cc; }
 
     void print(uint8_t* data, uint8_t* end) {
-#if !defined(__android__)
+#if !defined(NOT_PRINT_PROTO)
         char xs[128] = {};
         printf("%4u:%u: version %d p %d x %d cc %d pt %d seq %d: %s\n"
                 , int(end-data), this->length()
@@ -164,7 +164,7 @@ struct nal_unit_header
     unsigned length() const { return 1; }
 
     void print(uint8_t* data, uint8_t* end) {
-#if !defined(__android__)
+#if !defined(NOT_PRINT_PROTO)
         char xs[128] = {};
         printf("%4u:%u: f %d nri %d type %d: %s\n"
                 , int(end-data), this->length()
@@ -189,7 +189,7 @@ struct fu_header
     unsigned length() const { return 1; }
 
     void print(uint8_t* data, uint8_t* end) {
-#if !defined(__android__)
+#if !defined(NOT_PRINT_PROTO)
         char const* se = "";
         if (this->s)
             se = "\t:FU-A START";
@@ -280,6 +280,14 @@ struct rtcp_sdes_item // source description RTCP packet
     uint8_t data[1];
 };
 
+static int64_t stimestamp(int init=0)
+{
+    static chrono::system_clock::time_point base = chrono::system_clock::now();
+    if (init)
+        base = chrono::system_clock::now()-chrono::milliseconds(30);
+    return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
+}
+
 struct h264nal : boost::noncopyable
 {
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
@@ -322,7 +330,7 @@ struct h264nal : boost::noncopyable
         if (!h1)
             return;
 
-        if (totsiz_-sizprint_ > 1024*10) {
+        if (totsiz_-sizprint_ > 1024*1024) {
             LOGD("totsiz %u", totsiz_);
             sizprint_=totsiz_;
         }
@@ -417,8 +425,16 @@ struct h264nal : boost::noncopyable
         // void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
         void commit(int flags) {
             hgs_h264slice_commit(flags);
-            if (flags) {
-                LOGD("BUFFER_FLAG_CODEC_CONFIG %d", flags);
+
+            static unsigned ncommit_ = 0; // test-only
+            static unsigned ts_ = 0;
+
+            ++ncommit_;
+            unsigned ts = stimestamp();
+            if (ts - ts_ >= 1000) {
+                LOGD("F-RATE %u/%u", ncommit_, (ts-ts_)); //("BUFFER_FLAG_CODEC_CONFIG");
+                ts_ = ts;
+                ncommit_ = 0;
             }
         }
         // void commit(uint8_t const* data, uint8_t const* end, int flags) { return commit(1, data, end, flags); }
@@ -578,8 +594,9 @@ struct rtsp_connection
             << "Session: " << session_ << "\r\n"
             << "\r\n";
         }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Teardown>{derived()} );
-        // sync-write ?
+        boost::asio::write(tcpsock_, request_);//(, Action_helper<Teardown>{derived()} ); // sync-write ?
+        boost::system::error_code ec;
+        tcpsock_.close(ec);
     }
 private:
     Derived* derived() { return static_cast<Derived*>(this); }
@@ -621,6 +638,11 @@ struct rtp_receiver : boost::noncopyable
         LOGD("rtp_receiver");
     }
 
+    void teardown() {
+        boost::system::error_code ec;
+        udpsock_.close(ec);
+    }
+
     void sprop_parameter_sets(std::string const& sps, std::string const& pps) {
         nalu_.sprop_parameter_sets(sps, pps);
     }
@@ -644,7 +666,7 @@ private: // rtsp communication
             LOGE("%d(%s)", ec.value(), ec.message().c_str());
         } else {
             if (bytes_recvd > 0) {
-                static size_t max_recvd = 0, mrecvd;
+                static size_t max_recvd = 0, mrecvd; // test-only
                 if ( (mrecvd = std::max(max_recvd, bytes_recvd)) > max_recvd) {
                     max_recvd = mrecvd;
                     LOGD("max recvd bytes: %u", mrecvd);
@@ -755,13 +777,6 @@ struct rtcp_client
     };
     source source_;
 
-    static int64_t stimestamp(int init=0)
-    {
-        static chrono::system_clock::time_point base = chrono::system_clock::now();
-        if (init)
-            base = chrono::system_clock::now()-chrono::milliseconds(30);
-        return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
-    }
     static void init_seq(source *s, u_int16 seq)
     {
         s->base_seq = seq;
@@ -861,6 +876,11 @@ struct rtcp_client
         handle_receive_from(boost::system::error_code(), 0);
     }
 
+    void teardown() {
+        boost::system::error_code ec;
+        udpsock_.close(ec);
+    }
+
     // rtp callback
     static int rtp_update(rtcp_client* self, rtp_header* h, uint8_t*, uint8_t*)
     {
@@ -913,7 +933,7 @@ struct rtcp_client
         udpsock_.async_receive_from(
                 boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
                 boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
-        LOGD("udpsock %d", bytes_recvd);
+        //LOGD("udpsock %d", bytes_recvd);
     }
 
     void handle_send_to(const boost::system::error_code& ec, size_t )
@@ -1020,10 +1040,12 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
         connect();
         return 0;
     }
-    //void teardown() {
-    //    //boost::asio::io_service& io_s = udpsock_.get_io_service();
-    //    //rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
-    //}
+
+    void teardown() {
+        rtsp_connection<rtsp_client>::teardown();
+        //boost::asio::io_service& io_s = udpsock_.get_io_service();
+        //rtsp_client_.sig_teardown.connect(boost::bind(&boost::asio::io_service::stop, &io_s));
+    }
 
     void on_success(Connect) {
         options();
@@ -1228,7 +1250,7 @@ void hgs_poll_once()
     }
 }
 
-void hgs_exit()
+void hgs_exit(int)
 {
     LOGD("exit");
     auto* hf = reinterpret_cast<h264file_mmap*>(&objmem_);
@@ -1261,8 +1283,8 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
 
     char const *path;
     path="rtsp://192.168.2.3/live/ch00_2";
-    path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
     path="rtsp://192.168.2.3/live/ch00_0"; //320x240
+    path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
     auto *ip="192.168.2.3";
     auto *port = "554";
     auto endp = ip::tcp::endpoint(ip::address::from_string(ip),atoi(port));
@@ -1270,7 +1292,7 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
     LOGD("init %s:%s %s", ip, port, path);
 
     hgs_.io_service = new boost::asio::io_service();
-    hgs_.rtp = new rtp_receiver(*hgs_.io_service, fopen("/tmp/1.rtp.h264","w")); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
+    hgs_.rtp = new rtp_receiver(*hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
     hgs_.rtcp = new rtcp_client(*hgs_.io_service, hgs_.rtp);
     hgs_.rtsp = new rtsp_client(*hgs_.io_service, hgs_.rtp, endp, path);
 
@@ -1280,17 +1302,23 @@ void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
     LOGD("init ok");
 }
 
-void hgs_exit()
+void hgs_exit(int preexit)
 {
-    LOGD("exit");
+    if (preexit) {
+        LOGD("teardown");
+        hgs_.rtp->teardown();
+        hgs_.rtcp->teardown();
+        hgs_.rtsp->teardown();
+        hgs_.io_service->poll_one();
+    } else {
+        LOGD("exit:stop");
+        hgs_.io_service->stop();
 
-    hgs_.rtsp->teardown();
-    hgs_.io_service->stop();
-
-    delete hgs_.rtsp;       hgs_.rtsp = 0;
-    delete hgs_.rtcp;       hgs_.rtcp = 0;
-    delete hgs_.rtp;        hgs_.rtp = 0;
-    delete hgs_.io_service; hgs_.io_service = 0;
+        delete hgs_.rtsp;       hgs_.rtsp = 0;
+        delete hgs_.rtcp;       hgs_.rtcp = 0;
+        delete hgs_.rtp;        hgs_.rtp = 0;
+        delete hgs_.io_service; hgs_.io_service = 0;
+    }
 }
 
 void hgs_poll_once()

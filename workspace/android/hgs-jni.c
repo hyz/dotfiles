@@ -11,7 +11,7 @@ void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
 void hgs_h264slice_commit(int flags);
 
 void hgs_poll_once();
-void hgs_exit();
+void hgs_exit(int);
 void hgs_init();
 // }
 
@@ -55,7 +55,8 @@ JNIEXPORT void JNICALL
 Java_com_hg_streaming_RtpH264_exitJNI( JNIEnv* env, jobject thiz )
 {
     LOGD("exitJNI");
-    hgs_exit();
+    hgs_exit(1);
+    hgs_exit(0);
     (*env)->DeleteGlobalRef(env, oRtpH264);
 }
 
