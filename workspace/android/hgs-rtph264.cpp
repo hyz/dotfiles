@@ -303,8 +303,11 @@ struct h264nal : boost::noncopyable
 
     void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
+        BOOST_STATIC_ASSERT(sizeof(int)==4);
+        if (sps.empty())
+            return;
         //sps_ = std::move(sps); pps_ = std::move(pps);
-        std::vector<int> buf(1 + (sps.size()+4+pps.size())/sizeof(int)+1 );
+        std::vector<int> buf(1 + (sps.length()+4+pps.length())/sizeof(int)+1 );
         uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[1] );
 
         memcpy(beg, sps.data(), sps.length());
@@ -724,7 +727,6 @@ struct rtcp_client
                 uint8_t pt;
                 uint8_t len;
                 char data[6];
-                //uint32_t zeros_;
             } c;
         };
         source_description sdes;
@@ -900,7 +902,7 @@ struct rtcp_client
 
         {
             uint32_t arrival = stimestamp();
-            arrival = std::max(arrival, h->timestamp+30);
+            arrival = std::max(arrival, h->timestamp +100);
             int transit = arrival - h->timestamp;
             int d = transit - s->transit;
             s->transit = transit;
@@ -1008,7 +1010,7 @@ struct rtcp_client
             rr_.rb.cumulative = lost>>8;
 
             rr_.rb.exthsn = htonl(extended_max); // extended highest sequence number received
-            rr_.rb.dlsr = htonl( uint32_t(stimestamp() - ts_sr_) );
+            rr_.rb.dlsr = htonl( uint32_t(stimestamp() - ts_sr_ +100) );
             udpsock_.async_send_to(
                     boost::asio::buffer(&rr_, sizeof(rr_)), peer_endpoint_,
                     boost::bind(&This::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
