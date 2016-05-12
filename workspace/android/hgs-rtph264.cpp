@@ -304,21 +304,21 @@ struct h264nal : boost::noncopyable
     void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
         //sps_ = std::move(sps); pps_ = std::move(pps);
-        std::vector<int> buf( (sps.size()+pps.size())/sizeof(int)+1 );
-        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
+        std::vector<int> buf(1 + (sps.size()+4+pps.size())/sizeof(int)+1 );
+        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[1] );
 
         memcpy(beg, sps.data(), sps.length());
         int len = sps.length();
-        // write(beg, beg+sps.length());
 
         if (!pps.empty()) {
-            memcpy(beg+len, pps.data(), pps.length());
-            len += pps.length();
+            static uint8_t sbytes[4] = {0,0,0,1};
+            memcpy(beg+len, sbytes, 4);
+            memcpy(beg+len+4, pps.data(), pps.length());
+            len += 4+pps.length();
         }
-        //write(beg, beg+pps.length());
 
         output_helper out(dump_fp_);
-        out.put(0, beg,beg+len);
+        out.put(1, beg,beg+len);
         out.commit(BUFFER_FLAG_CODEC_CONFIG);
     }
 
@@ -526,6 +526,7 @@ struct rtsp_connection
     void connect()
     {
         auto handler = [this](boost::system::error_code ec) {
+            LOGD("connect: %d:%s", ec.value(), ec.message().c_str());
             if (ec) {
                 derived()->on_error(ec, Connect{});
             } else {
@@ -559,7 +560,7 @@ struct rtsp_connection
         boost::asio::async_write(tcpsock_, request_, Action_helper<Describe>{derived()} );
     }
 
-    void setup(std::string streamid, std::string transport)
+    void setup(std::string streamid, std::string transport) //Setup
     {
         LOGD("setup: %s/%s\n\t%s", path_.c_str(), streamid.c_str(), transport.c_str());
         {
@@ -663,7 +664,7 @@ private: // rtsp communication
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
         if (ec) {
-            LOGE("%d(%s)", ec.value(), ec.message().c_str());
+            LOGE("rtp recvd: %d:%s", ec.value(), ec.message().c_str());
         } else {
             if (bytes_recvd > 0) {
                 static size_t max_recvd = 0, mrecvd; // test-only
@@ -912,7 +913,7 @@ struct rtcp_client
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
         if (ec) {
-            LOGE("%d(%s)", ec.value(), ec.message().c_str());
+            LOGE("rtcp recvd: %d:%s", ec.value(), ec.message().c_str());
             return;
         }
         if (bytes_recvd > 0) {
@@ -1056,17 +1057,17 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
     }
     void on_success(Describe)
     {
-        LOGD("Describe");
+        LOGD("success:Describe");
         std::string sps, pps, streamid;
         std::istream ins(&response_);
         std::string line;
-        bool v = 0;
+        bool m_v = 0;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%s", line.c_str());
+            LOGD("| %s", line.c_str());
             if (boost::starts_with(line, "m=")) {
-                v = boost::starts_with(line, "m=video");
-            } else if (v) {
+                m_v = boost::starts_with(line, "m=video");
+            } else if (m_v) {
                 if (boost::starts_with(line, "a=fmtp:")) {
                     re::smatch m; // fmtp:96 profile-level-id=42A01E;packetization-mode=1;sprop-parameter-sets=
                     re::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
@@ -1095,12 +1096,12 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
 
     void on_success(Setup)
     {
-        LOGD("Setup");
+        LOGD("success:Setup");
         std::istream ins(&response_);
         std::string line;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%s", line.c_str());
+            LOGD("%d: %s", __LINE__, line.c_str());
             if (boost::starts_with(line, "Session:")) {
                 re::smatch m;
                 re::regex re("Session:[[:space:]]*([^[:space:]]+)");
@@ -1125,7 +1126,7 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
 
     template <typename A>
     void on_error(boost::system::error_code ec, A) {
-        LOGE(">Error: %d(%s)", ec.value(), ec.message().c_str());
+        LOGE("rtsp error: %d:%s", ec.value(), ec.message().c_str());
         // TODO : deadline_timer reconnect
     }
 
@@ -1276,17 +1277,19 @@ static struct {
     rtsp_client* rtsp = 0;
 } hgs_;
 
-    /// rtsp://192.168.2.3/live/ch00_2
+/// rtsp://127.0.0.1:7654/rtp1
+/// rtsp://192.168.2.3/live/ch00_2
 void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
 {
     srand( time(0) );
 
-    char const *path;
-    path="rtsp://192.168.2.3/live/ch00_2";
+    char const *ip, *port, *path;
+    path="rtsp://192.168.2.3/live/ch00_2"; //1920x1080
     path="rtsp://192.168.2.3/live/ch00_0"; //320x240
     path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
-    auto *ip="192.168.2.3";
-    auto *port = "554";
+    ip="192.168.2.3"; port = "554";
+    ip="192.168.2.172"; port = "7654"; path="rtsp://192.168.2.172:7654/rtp1";
+
     auto endp = ip::tcp::endpoint(ip::address::from_string(ip),atoi(port));
 
     LOGD("init %s:%s %s", ip, port, path);
