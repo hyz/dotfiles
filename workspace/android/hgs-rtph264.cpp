@@ -58,12 +58,13 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 extern "C" {
-    void hgs_h264slice_inflate(int timestamp, char* p, size_t len);
-    void hgs_h264slice_commit(int timestamp, int flags);
+    int  hgs_buffer_obtain(int timeout);
+    void hgs_buffer_inflate(int idx, char* p, size_t len);
+    void hgs_buffer_release(int idx, unsigned timestamp, int flags);
 
     void hgs_poll_once();
     void hgs_exit(int);
-    void hgs_init();
+    void hgs_init(char const* ip, int port, char const* path, int w, int h);
 }
 
 template <typename I1, typename I2>
@@ -288,6 +289,8 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
+struct rtcp_client;
+
 struct h264nal : boost::noncopyable
 {
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
@@ -307,36 +310,30 @@ struct h264nal : boost::noncopyable
         if (sps.empty())
             return;
         //sps_ = std::move(sps); pps_ = std::move(pps);
-        std::vector<int> buf(1 + (sps.length()+4+pps.length())/sizeof(int)+1 );
-        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[1] );
+        std::vector<int32_t> buf(2 + (sps.length()+pps.length())/sizeof(int32_t) +1);
+        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
 
-        memcpy(beg, sps.data(), sps.length());
-        int len = sps.length();
+        beg[0] = beg[1] = beg[2] = 0; beg[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
+        memcpy(beg+4, sps.data(), sps.length());
 
+        int len = 4+sps.length();
+        uint8_t* p = beg + len;
         if (!pps.empty()) {
-            static uint8_t sbytes[4] = {0,0,0,1};
-            memcpy(beg+len, sbytes, 4);
-            memcpy(beg+len+4, pps.data(), pps.length());
+            p[0] = p[1] = p[2] = 0; p[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
+            memcpy(p+4, pps.data(), pps.length());
             len += 4+pps.length();
         }
 
-        output_helper out(dump_fp_);
-        out.put(1, beg,beg+len);
-        out.commit(BUFFER_FLAG_CODEC_CONFIG);
+        out_.put(beg, beg+len);
+        out_.commit(0, BUFFER_FLAG_CODEC_CONFIG);
     }
 
-    size_t totsiz_ = 0, sizprint_=0;
-    void data_incoming(uint8_t* data, uint8_t* end) //const
+    void data_incoming(unsigned timestamp, uint8_t* data, uint8_t* end) //const
     {
-        output_helper out(dump_fp_);
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
             return;
 
-        if (totsiz_-sizprint_ > 1024*1024) {
-            LOGD("totsiz %u", totsiz_);
-            sizprint_=totsiz_;
-        }
         h1->print(data,end);
 
         switch (h1->type) {
@@ -349,8 +346,8 @@ struct h264nal : boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        out.put(1, data, data+len); totsiz_ += len;
-                        out.commit(0);
+                        out_.put(fill_start_bytes(data-4), data+len);
+                        out_.commit(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -365,19 +362,20 @@ struct h264nal : boost::noncopyable
                         h->nri = h1->nri;
                         h->f = h1->f;
                         h->print(data,end);
-                    }
-                    if (fuh.e) {
-                        out.put(fuh.s, data + !fuh.s, end); totsiz_ += (end-data);
-                        out.commit(0);
+                        data = fill_start_bytes(data-4);
                     } else {
-                        out.put(fuh.s, data + !fuh.s, end); totsiz_ += (end-data);
+                        ++data;
+                    }
+                    out_.put(data, end);
+                    if (fuh.e) {
+                        out_.commit(timestamp, 0);
                     }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    out.put(1, data,end); totsiz_ += (end-data);
-                    out.commit((h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
+                    out_.put(fill_start_bytes(data-4), end);
+                    out_.commit(timestamp, (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -385,63 +383,48 @@ struct h264nal : boost::noncopyable
         }
     }
 
-    struct output_helper
-    {
-        FILE* fp_;
-        //uint8_t* opos_; uint8_t* oend_; uint8_t* ohead_;
+    static uint8_t* fill_start_bytes(uint8_t* data) {
+        data[0] = data[1] = data[2] = '\0';
+        data[3] = 1;
+        return data;
+    }
 
-        output_helper(FILE* fp, uint8_t* b=0, uint8_t* e=0) {
-            fp_ = fp;
-            //ohead_ = opos_ = b; oend_ = e;
-        }
+    struct output_helper {
+        //rtcp_client* rtcp_;
+        //int (*put_)(rtcp_client*, rtp_header*, uint8_t*, uint8_t*);
+        int bufindex_ = -1; // unsigned timestamp_ = 0;
+
         ~output_helper() {
-            ;
+            if (bufindex_ >= 0) {
+                hgs_buffer_release(bufindex_, 0, 0);
+            }
         }
-        // unsigned avails() const { return unsigned(oend_ - opos_); }
 
-        void put(bool start_bytes, uint8_t const* data, uint8_t const* end)
+        void put(uint8_t const* data, uint8_t const* end)
         {
-            static uint8_t sbytes[4] = {0,0,0,1};
-
-            if (fp_) {
-                if (start_bytes)
-                    fwrite(sbytes, sizeof(sbytes), 1, fp_);
-                fwrite(data, end-data, 1, fp_);
+            if (bufindex_ < 0 && (bufindex_ = hgs_buffer_obtain(10)) < 0) {
+                LOGE("buffer obtain: %d", bufindex_);
+                return;
             }
-            if (start_bytes) {
-                data -= 4;
-                memcpy((void*)data, sbytes, sizeof(sbytes));
-            }
-            hgs_h264slice_inflate(0x0ff, (char*)data, end-data);
+            hgs_buffer_inflate(bufindex_, (char*)data, end-data);
 
-            //if (avails() < 4u*start_bytes + (end - data)) {
-            //    ERR_MSG("size %u<%u", avails(), 4u*start_bytes + (end - data));
-            //    return;
-            //}
-            // if (start_bytes) {
-            //     std::copy(&start_bytes4[0], &start_bytes4[4], opos_);
-            //     opos_ += 4;
-            // }
-            // std::copy(data, end, opos_);
-            // opos_ += (end - data);
+            totsiz_ += (end-data);
         }
-        // void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
-        void commit(int flags) {
-            hgs_h264slice_commit(0x0ff, flags);
-
-            static unsigned ncommit_ = 0; // test-only
-            static unsigned ts_ = 0;
+        void commit(unsigned timestamp, int flags) {
+            hgs_buffer_release(bufindex_, timestamp, flags);
+            bufindex_ = -1;
 
             ++ncommit_;
             unsigned ts = stimestamp();
             if (ts - ts_ >= 1000) {
-                LOGD("F-RATE %u/%u", ncommit_, (ts-ts_)); //("BUFFER_FLAG_CODEC_CONFIG");
+                LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
                 ts_ = ts;
                 ncommit_ = 0;
             }
         }
-        // void commit(uint8_t const* data, uint8_t const* end, int flags) { return commit(1, data, end, flags); }
-    };
+        unsigned ts_ = 0, ncommit_ = 0; // test-only
+        size_t totsiz_ = 0;
+    } out_;
 };
 
 struct h264file_mmap 
@@ -476,161 +459,19 @@ struct h264file_printer : boost::noncopyable
 {
     h264nal nalu_;
     h264file_mmap h264f_;
+    unsigned ts_ = 0;
 
     h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd)
     {}
     int setup(int, char*[])
     {
         for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            nalu_.data_incoming(p.first+4, p.second);
+            nalu_.data_incoming(50*ts_++, p.first+4, p.second);
         }
         return 0;
     }
 };
 
-template <typename Derived>
-struct rtsp_connection
-{
-    typedef rtsp_connection<Derived> This;
-
-    ip::tcp::socket tcpsock_;
-    ip::tcp::endpoint endpoint_;
-    std::string path_;
-    std::string session_;
-    boost::asio::streambuf request_;
-    boost::asio::streambuf response_;
-    int cseq_ = 1;
-
-    rtsp_connection(boost::asio::io_service& io_s, ip::tcp::endpoint ep, std::string path)
-        : tcpsock_(io_s), endpoint_(ep), path_(path)
-    {
-        BOOST_STATIC_ASSERT(std::is_base_of<This, Derived>::value);
-        LOGD("rtsp_connection");
-    }
-
-    struct Options {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
-    struct Describe {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
-    struct Setup {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
-    struct Play {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
-    struct Teardown {
-        void operator()(Derived* d) const { d->on_success(*this); }
-    };
-
-    struct Connect {};
-
-    void connect()
-    {
-        auto handler = [this](boost::system::error_code ec) {
-            LOGD("connect: %d:%s", ec.value(), ec.message().c_str());
-            if (ec) {
-                derived()->on_error(ec, Connect{});
-            } else {
-                derived()->on_success(Connect{});
-            }
-        };
-        LOGD("connect %s:%d", endpoint_.address().to_string().c_str(), endpoint_.port());
-        tcpsock_.async_connect( endpoint_, handler );
-    }
-
-    void options()
-    {
-        {
-        std::ostream outs(&request_);
-        outs << "OPTIONS " << path_ << " RTSP/1.0\r\n"
-            << "CSeq: " << cseq_++ << "\r\n"
-            << "\r\n";
-        }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Options>{derived()} );
-    }
-
-    void describe()
-    {
-        {
-        std::ostream outs(&request_);
-        outs << "DESCRIBE " << path_ << " RTSP/1.0\r\n"
-            << "CSeq: " << cseq_++ << "\r\n"
-            << "Accept: application/sdp\r\n"
-            << "\r\n";
-        }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Describe>{derived()} );
-    }
-
-    void setup(std::string streamid, std::string transport) //Setup
-    {
-        LOGD("setup: %s/%s\n\t%s", path_.c_str(), streamid.c_str(), transport.c_str());
-        {
-        std::ostream outs(&request_);
-        outs << "SETUP " << path_ <<"/"<< streamid << " RTSP/1.0\r\n"
-            << "CSeq: " << cseq_++ << "\r\n"
-            << "Transport: "<< transport << "\r\n"
-            << "Range: 0.00-\r\n"
-            << "\r\n";
-        }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Setup>{derived()} );
-    }
-
-    void play()
-    {
-        {
-        std::ostream outs(&request_);
-        outs << "PLAY " << path_ << " RTSP/1.0\r\n"
-            << "CSeq: " << cseq_++ << "\r\n"
-            << "Session: " << session_ << "\r\n"
-            << "\r\n";
-        }
-        boost::asio::async_write(tcpsock_, request_, Action_helper<Play>{derived()} );
-    }
-
-    void teardown()
-    {
-        {
-        std::ostream outs(&request_);
-        outs << "TEARDOWN " << path_ << " RTSP/1.0\r\n"
-            << "CSeq: " << cseq_++ << "\r\n"
-            << "Session: " << session_ << "\r\n"
-            << "\r\n";
-        }
-        boost::asio::write(tcpsock_, request_);//(, Action_helper<Teardown>{derived()} ); // sync-write ?
-        boost::system::error_code ec;
-        tcpsock_.close(ec);
-    }
-private:
-    Derived* derived() { return static_cast<Derived*>(this); }
-
-    template <typename Action>
-    struct Action_helper
-    {
-        void operator()(boost::system::error_code ec, size_t) const {
-            auto* derived = derived_;
-            if (ec) {
-                derived->on_error(ec, Action{});
-            } else {
-                derived->response_.consume(derived->response_.size());
-                boost::asio::async_read_until(derived->tcpsock_, derived->response_, "\r\n\r\n"
-                        , [derived](boost::system::error_code ec, size_t){
-                            if (ec) {
-                                derived->on_error(ec, Action{});
-                            } else {
-                                // "RTSP/1.0 200 OK"; // TODO
-                                Action fn;
-                                fn(derived);
-                            }
-                    });
-            }
-        }
-        Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
-    };
-};
-
-struct rtcp_client;
 struct rtp_receiver : boost::noncopyable
 {
     typedef rtp_receiver This;
@@ -681,8 +522,8 @@ private: // rtsp communication
                     ERR_EXIT("rtp_header::cast"); return;
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    rtcp_update_(rtcp_, h, bufptr()+h->length(), bufptr()+bytes_recvd);
-                    nalu_.data_incoming(bufptr()+h->length(), bufptr()+bytes_recvd);
+                    rtcp_update_(rtcp_, h           , bufptr()+h->length(), bufptr()+bytes_recvd);
+                    nalu_.data_incoming(h->timestamp, bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
             }
             using namespace boost::asio;
@@ -1029,6 +870,148 @@ struct rtcp_client
     int32_t buf_[BufSiz/sizeof(int32_t)];
 };
 
+template <typename Derived>
+struct rtsp_connection
+{
+    typedef rtsp_connection<Derived> This;
+
+    ip::tcp::socket tcpsock_;
+    ip::tcp::endpoint endpoint_;
+    std::string path_;
+    std::string session_;
+    boost::asio::streambuf request_;
+    boost::asio::streambuf response_;
+    int cseq_ = 1;
+
+    rtsp_connection(boost::asio::io_service& io_s, ip::tcp::endpoint ep, std::string path)
+        : tcpsock_(io_s), endpoint_(ep), path_(path)
+    {
+        BOOST_STATIC_ASSERT(std::is_base_of<This, Derived>::value);
+        LOGD("rtsp_connection");
+    }
+
+    struct Options {
+        void operator()(Derived* d) const { d->on_success(*this); }
+    };
+    struct Describe {
+        void operator()(Derived* d) const { d->on_success(*this); }
+    };
+    struct Setup {
+        void operator()(Derived* d) const { d->on_success(*this); }
+    };
+    struct Play {
+        void operator()(Derived* d) const { d->on_success(*this); }
+    };
+    struct Teardown {
+        void operator()(Derived* d) const { d->on_success(*this); }
+    };
+
+    struct Connect {};
+
+    void connect()
+    {
+        auto handler = [this](boost::system::error_code ec) {
+            LOGD("connect: %d:%s", ec.value(), ec.message().c_str());
+            if (ec) {
+                derived()->on_error(ec, Connect{});
+            } else {
+                derived()->on_success(Connect{});
+            }
+        };
+        LOGD("connect %s:%d", endpoint_.address().to_string().c_str(), endpoint_.port());
+        tcpsock_.async_connect( endpoint_, handler );
+    }
+
+    void options()
+    {
+        {
+        std::ostream outs(&request_);
+        outs << "OPTIONS " << path_ << " RTSP/1.0\r\n"
+            << "CSeq: " << cseq_++ << "\r\n"
+            << "\r\n";
+        }
+        boost::asio::async_write(tcpsock_, request_, Action_helper<Options>{derived()} );
+    }
+
+    void describe()
+    {
+        {
+        std::ostream outs(&request_);
+        outs << "DESCRIBE " << path_ << " RTSP/1.0\r\n"
+            << "CSeq: " << cseq_++ << "\r\n"
+            << "Accept: application/sdp\r\n"
+            << "\r\n";
+        }
+        boost::asio::async_write(tcpsock_, request_, Action_helper<Describe>{derived()} );
+    }
+
+    void setup(std::string streamid, std::string transport) //Setup
+    {
+        LOGD("setup: %s/%s\n\t%s", path_.c_str(), streamid.c_str(), transport.c_str());
+        {
+        std::ostream outs(&request_);
+        outs << "SETUP " << path_ <<"/"<< streamid << " RTSP/1.0\r\n"
+            << "CSeq: " << cseq_++ << "\r\n"
+            << "Transport: "<< transport << "\r\n"
+            << "Range: 0.00-\r\n"
+            << "\r\n";
+        }
+        boost::asio::async_write(tcpsock_, request_, Action_helper<Setup>{derived()} );
+    }
+
+    void play()
+    {
+        {
+        std::ostream outs(&request_);
+        outs << "PLAY " << path_ << " RTSP/1.0\r\n"
+            << "CSeq: " << cseq_++ << "\r\n"
+            << "Session: " << session_ << "\r\n"
+            << "\r\n";
+        }
+        boost::asio::async_write(tcpsock_, request_, Action_helper<Play>{derived()} );
+    }
+
+    void teardown()
+    {
+        {
+        std::ostream outs(&request_);
+        outs << "TEARDOWN " << path_ << " RTSP/1.0\r\n"
+            << "CSeq: " << cseq_++ << "\r\n"
+            << "Session: " << session_ << "\r\n"
+            << "\r\n";
+        }
+        boost::asio::write(tcpsock_, request_);//(, Action_helper<Teardown>{derived()} ); // sync-write ?
+        boost::system::error_code ec;
+        tcpsock_.close(ec);
+    }
+private:
+    Derived* derived() { return static_cast<Derived*>(this); }
+
+    template <typename Action>
+    struct Action_helper
+    {
+        void operator()(boost::system::error_code ec, size_t) const {
+            auto* derived = derived_;
+            if (ec) {
+                derived->on_error(ec, Action{});
+            } else {
+                derived->response_.consume(derived->response_.size());
+                boost::asio::async_read_until(derived->tcpsock_, derived->response_, "\r\n\r\n"
+                        , [derived](boost::system::error_code ec, size_t){
+                            if (ec) {
+                                derived->on_error(ec, Action{});
+                            } else {
+                                // "RTSP/1.0 200 OK"; // TODO
+                                Action fn;
+                                fn(derived);
+                            }
+                    });
+            }
+        }
+        Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
+    };
+};
+
 struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
 {
     rtp_receiver* thiz;
@@ -1239,11 +1222,11 @@ void hgs_poll_once()
         char* p = (char*)test_.range_.first;
         char* end = (char*)test_.range_.second;
         for (; p+64 < end; p += 64) {
-            hgs_h264slice_inflate(0, p, 64);
+            hgs_buffer_inflate(0, p, 64);
         }
         if (p < end)
-            hgs_h264slice_inflate(0, p, end-p);
-        hgs_h264slice_commit(test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
+            hgs_buffer_inflate(0, p, end-p);
+        hgs_buffer_release(test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
 
         test_.range_ = hf->next(test_.range_);
         test_.ncommit_++;
@@ -1282,20 +1265,19 @@ static struct {
 
 /// rtsp://127.0.0.1:7654/rtp1
 /// rtsp://192.168.2.3/live/ch00_2
-void hgs_init() //(int ac, char* const av[]) // 640*480 1280X720 1920X1080
+void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*480 1280X720 1920X1080
 {
     srand( time(0) );
 
-    char const *ip, *port, *path;
     path="rtsp://192.168.2.3/live/ch00_2"; //1920x1080
     path="rtsp://192.168.2.3/live/ch00_0"; //320x240
     path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
-    ip="192.168.2.3"; port = "554";
-    ip="192.168.2.172"; port = "7654"; path="rtsp://192.168.2.172:7654/rtp1";
+    ip="192.168.2.3"; port = 554;
+    ip="192.168.2.172"; port = 7654; path="rtsp://192.168.2.172:7654/rtp1";
 
-    auto endp = ip::tcp::endpoint(ip::address::from_string(ip),atoi(port));
+    auto endp = ip::tcp::endpoint(ip::address::from_string(ip), (port));
 
-    LOGD("init %s:%s %s", ip, port, path);
+    LOGD("init %s:%d %s", ip, port, path);
 
     hgs_.io_service = new boost::asio::io_service();
     hgs_.rtp = new rtp_receiver(*hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);

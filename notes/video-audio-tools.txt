@@ -40,6 +40,7 @@ mplayer -dumpstream -dumpfile output.rm -cache 4096 rtsp://example.com/file.rm
 
 
 ### http://www.rushis.com/2015/07/extract-part-of-audiovideo-file-using-ffmpeg-or-avconv/
+### https://libav.org/avconv.html
 avconv -i v.mkv -ss 00:05:00 -t 30 -vcodec copy -acodec copy v.mp4
 avconv -i v.mkv -ss 00:13:00 -t 30 -vcodec copy -an v.mp4
 
