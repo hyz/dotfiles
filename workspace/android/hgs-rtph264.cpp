@@ -58,8 +58,8 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 extern "C" {
-    void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
-    void hgs_h264slice_commit(int flags);
+    void hgs_h264slice_inflate(int timestamp, char* p, size_t len);
+    void hgs_h264slice_commit(int timestamp, int flags);
 
     void hgs_poll_once();
     void hgs_exit(int);
@@ -412,7 +412,7 @@ struct h264nal : boost::noncopyable
                 data -= 4;
                 memcpy((void*)data, sbytes, sizeof(sbytes));
             }
-            hgs_h264slice_inflate(0, (char*)data, end-data);
+            hgs_h264slice_inflate(0x0ff, (char*)data, end-data);
 
             //if (avails() < 4u*start_bytes + (end - data)) {
             //    ERR_MSG("size %u<%u", avails(), 4u*start_bytes + (end - data));
@@ -427,7 +427,7 @@ struct h264nal : boost::noncopyable
         }
         // void put(uint8_t const* data, uint8_t const* end) { return put(1, data, end); }
         void commit(int flags) {
-            hgs_h264slice_commit(flags);
+            hgs_h264slice_commit(0x0ff, flags);
 
             static unsigned ncommit_ = 0; // test-only
             static unsigned ts_ = 0;
@@ -902,7 +902,7 @@ struct rtcp_client
 
         {
             uint32_t arrival = stimestamp();
-            arrival = std::max(arrival, h->timestamp +100);
+            arrival = std::max(arrival, h->timestamp);
             int transit = arrival - h->timestamp;
             int d = transit - s->transit;
             s->transit = transit;
@@ -982,7 +982,7 @@ struct rtcp_client
     //- if (d < 0) d = -d;
     //-| s->jitter += d - ((s->jitter + 8) >> 4); ... rr->jitter = s->jitter >> 4;
     //
-        if (ts_rr_ < ts_sr_ && source_.received > 0) {
+        if (ts_rr_ +100 < ts_sr_ && source_.received > 0) {
             auto* s = &source_;
 
             uint8_t fraction;
@@ -1009,12 +1009,13 @@ struct rtcp_client
             lost = htonl(lost);
             rr_.rb.cumulative = lost>>8;
 
+            auto ts = stimestamp();
             rr_.rb.exthsn = htonl(extended_max); // extended highest sequence number received
-            rr_.rb.dlsr = htonl( uint32_t(stimestamp() - ts_sr_ +100) );
+            rr_.rb.dlsr = htonl( uint32_t(ts - ts_sr_) );
             udpsock_.async_send_to(
                     boost::asio::buffer(&rr_, sizeof(rr_)), peer_endpoint_,
                     boost::bind(&This::handle_send_to, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-            ts_rr_ = stimestamp();
+            ts_rr_ = ts;
         }
     }
 

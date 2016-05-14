@@ -7,8 +7,8 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 // extern "C" {
-void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
-void hgs_h264slice_commit(int flags);
+void hgs_h264slice_inflate(int timestamp, char* p, size_t len);
+void hgs_h264slice_commit(int timestamp, int flags);
 
 void hgs_poll_once();
 void hgs_exit(int);
@@ -20,7 +20,7 @@ static jobject oRtpH264 = NULL;
 static jmethodID MID_inflate = 0;
 static jmethodID MID_commit = 0;
 
-void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
+void hgs_h264slice_inflate(int timestamp, char* p, size_t len)
 {
     jobject byteBuffer = (*env_)->NewDirectByteBuffer(env_, p, len);
     (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, (int)need_start_bytes, byteBuffer);
@@ -31,10 +31,11 @@ void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
         (*env_)->ExceptionClear(env_);
     }
 }
-void hgs_h264slice_commit(int flags)
+void hgs_h264slice_commit(int timestamp, int flags)
 {
     //hgs_h264slice_inflate(need_start_bytes, p, len);
-    (*env_)->CallVoidMethod(env_, oRtpH264, MID_commit, flags);
+    //int timestamp=1;
+    (*env_)->CallVoidMethod(env_, oRtpH264, MID_commit, timestamp, flags);
 
     jthrowable ex = (*env_)->ExceptionOccurred(env_);
     if (ex != NULL) {
@@ -76,7 +77,7 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     oRtpH264 = (*env)->NewGlobalRef(env, thiz);
 
     MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(ILjava/nio/ByteBuffer;)V");
-    MID_commit  = (*env)->GetMethodID(env, cls, "commit", "(I)V");
+    MID_commit  = (*env)->GetMethodID(env, cls, "commit", "(II)V");
 
     hgs_init();
 #if defined(__arm__)
