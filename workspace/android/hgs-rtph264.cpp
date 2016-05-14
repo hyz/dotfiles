@@ -1207,28 +1207,35 @@ private:
 //width = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_left_offset*2 - frame_crop_right_offset*2;
 //height= ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_top_offset * 2) - (frame_crop_bottom_offset * 2);
 
-#if 0
+#if 1
 static struct test_h264file {
     int h264file_fd = -1;
     std::pair<uint8_t*,uint8_t*> range_ = {};
     int ncommit_ = 0;
+    h264file_mmap* fmap_;
+    int bufindex_;
+    int findex_;
 } test_;
 
 void hgs_poll_once()
 {
-    //static char tmpbuf[1024*64];
-    auto* hf = reinterpret_cast<h264file_mmap*>(&objmem_);
-    if (test_.range_.first < test_.range_.second) {
-        char* p = (char*)test_.range_.first;
-        char* end = (char*)test_.range_.second;
+    auto r = test_.range_;
+    if (r.first < r.second) {
+        while ( (test_.bufindex_ = hgs_buffer_obtain(1000)) < 0)
+            ;
+
+        char* p = (char*)r.first;
+        char* end = (char*)r.second;
+
         for (; p+64 < end; p += 64) {
-            hgs_buffer_inflate(0, p, 64);
+            hgs_buffer_inflate(test_.bufindex_, p, 64);
         }
         if (p < end)
-            hgs_buffer_inflate(0, p, end-p);
-        hgs_buffer_release(test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
+            hgs_buffer_inflate(test_.bufindex_, p, end-p);
+        hgs_buffer_release(test_.bufindex_, 50*test_.findex_++, test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
 
-        test_.range_ = hf->next(test_.range_);
+        auto* hf = test_.fmap_;
+        test_.range_ = hf->next(r);
         test_.ncommit_++;
         if (test_.ncommit_ == 400) {
             test_.ncommit_ = 0;
@@ -1237,22 +1244,23 @@ void hgs_poll_once()
     }
 }
 
-void hgs_exit(int)
+void hgs_exit(int preexit)
 {
-    LOGD("exit");
-    auto* hf = reinterpret_cast<h264file_mmap*>(&objmem_);
-    hf->~h264file_mmap();
-
-    close(test_.h264file_fd);
-    test_.h264file_fd = -1;
+    if (preexit==0) {
+        LOGD("exit 0");
+        delete test_.fmap_;
+        close(test_.h264file_fd);
+        test_.h264file_fd = -1;
+    }
 }
 
-void hgs_init()
+void hgs_init(char const* ip, int port, char const* path, int w, int h)
 {
     LOGD("init");
     test_.h264file_fd = open("/sdcard/a.h264", O_RDONLY);
-    auto* hf = new (&objmem_) h264file_mmap(test_.h264file_fd);
-    test_.range_ = hf->begin();
+    test_.fmap_ = new h264file_mmap(test_.h264file_fd);
+    test_.range_ = test_.fmap_->begin();
+    test_.bufindex_ = test_.findex_ = 0;
 }
 #else
 
