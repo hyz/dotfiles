@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #coding:utf-8
 import sys, os, time, random
+import signal
 import requests
 from html.parser import HTMLParser
 # import gzip
@@ -66,24 +67,32 @@ def parse_html(code,market, html):
     #visit.extend(third.findall(html))
     #visit.extend(last.findall(html))
 
-_URL     = os.environ['EM_URL']
-_REFERER = os.environ['EM_REFERER']
+# http://m.10jqka.com.cn/stockpage/hs_600460/
+# http://basic.10jqka.com.cn/mobile/600338/profilen.html
+# http://basic.10jqka.com.cn/mobile/600460/companyn.html
+#
+#Host: basic.10jqka.com.cn
+#_URL     = os.environ['EM_URL']
+#_REFERER = os.environ['EM_REFERER']
+_URL = 'http://basic.10jqka.com.cn/mobile/%(code)06d/profilen.html'
+_URL = 'http://basic.10jqka.com.cn/mobile/%(code)06d/companyn.html'
+_REFERER = 'http://m.10jqka.com.cn/stockpage/%(market)s_%(code)06d/'
+_Marks = ('sz', 'hs')
 
-def GET(code, market, outfilename):
-    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
+def GET(session, code, market, outfilename):
+    fmtd = { 'code':code, 'market':_Marks[market] } # locals()
     url = _URL % fmtd
     headers = {
         "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
         "Referer": _REFERER % fmtd,
         "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language":"en-US,en;q=0.5",
+        "Accept-Language":"en-US,zh-CN;q=0.8,en;q=0.5,zh;q=0.3",
         "Accept-Encoding":"gzip, deflate",
         "Connection":"keep-alive",
         "Content-Type":"application/x-www-form-urlencoded",
     }
 
-    s = requests.Session()
-    rsp = s.get(url, params={}, headers=headers)
+    rsp = session.get(url, params={}, headers=headers)
 
     print('=', rsp.status_code, code,market, rsp.url)
     if rsp.status_code == 200:
@@ -106,10 +115,17 @@ def download(filename):
     if len(lis) > 0:
         print()
         print(time.ctime(), 'count', len(lis))
+
         random.shuffle(lis)
+        session = requests.Session()
         for code,market in lis:
-            GET(code,market, '%06d.%d.html' % (code,market))
+            GET(session, code,market, '%06d.%d.html' % (code,market))
+
             time.sleep( random.randint(1,5) )
+            if _STOP:
+                break
+            if random.randint(1,100) >70:
+                session = requests.Session()
 
 def parse():
     global _NAMES
@@ -133,8 +149,22 @@ def parse():
                 parse_html(code, market, f.read())
         break
 
+def main():
+    code, market = int(sys.argv[1]), int(sys.argv[2])
+    session = requests.Session()
+    GET(session, code,market, '%06d.%d.html' % (code,market))
+    #download(sys.argv[1])
+
 if __name__ == '__main__':
-    download(sys.argv[1])
+    _STOP = 0
+    def sig_handler(signal, frame):
+        global _STOP
+        _STOP = 1
+    signal.signal(signal.SIGINT, sig_handler)
+    try:
+        main()
+    except Exception as e:
+        print(e, file=sys.stderr)
 
 # >>> import requests
 # >>> help(requests.get)
