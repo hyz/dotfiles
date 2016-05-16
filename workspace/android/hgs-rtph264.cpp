@@ -23,6 +23,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/intrusive/slist.hpp>
 #include <chrono> //#include <boost/chrono.hpp>
 namespace chrono = std::chrono;
 #if defined(__ANDROID__)
@@ -289,49 +290,170 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
+struct buffer_ref : boost::intrusive::slist_base_hook<> {
+    rtp_header rtp_h;
+    nal_unit_header nal_h;
+      signed char bufindex = -1;
+    unsigned char flags = 0;
+    bool used = 0;
+};
+
 struct data_sink
 {
+    signed char nri_ = -1;
+    buffer_ref bufarray_[6];
+    boost::intrusive::slist<buffer_ref> blis_, blis_ready_;
+
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
 
     virtual ~data_sink() {
-        if (bufindex_ >= 0) {
-            hgs_buffer_release(bufindex_, 0, 0);
+        //if (bufindex_ >= 0) {
+        //    hgs_buffer_release(bufindex_, 0, 0);
+        //}
+    }
+
+    void release_buf(buffer_ref* bp) {
+        hgs_buffer_release(bp->bufindex, 0, 0xf7);
+        bp->used = 0;
+    }
+
+    buffer_ref* locate_buf(rtp_header* rh, nal_unit_header* nh)
+    {
+        if (blis_.empty()) {
+            if (blis_ready_.empty()) {
+                for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
+                    int idx;
+                    while ( (idx = hgs_buffer_obtain(1000)) < 0) {
+                        LOGE("buffer obtain: %d", idx);
+                    }
+                    bufarray_[x].bufindex = idx;
+                    blis_.push_front(bufarray_[x]);
+                }
+            } else { // discard
+#define NRI(h) (int((h)->nri)&0x3)
+                int nri = NRI(nh);
+                if (nri < 0x3 && nri <= nri_)
+                    return 0;
+                auto min_it = blis_ready_.before_begin();
+                auto min_p = min_it++;
+                auto it = blis_ready_.begin();
+                auto p = it++;
+                while (it != blis_ready_.end()) {
+                    if (NRI(&it->nal_h) <= NRI(&min_it->nal_h)) {
+                        min_it = it;
+                        min_p = p;
+                    }
+                    p = it++;
+                }
+                nri_ = NRI(&min_it->nal_h);
+                min_it->rtp_h = *rh;
+                min_it->nal_h = *nh;
+                hgs_buffer_release(min_it->bufindex, 0, 0xf7);
+                //min_it->used = 0;
+                blis_.splice_after(blis_.before_begin(), blis_ready_, min_p);
+                return &blis_.front();
+            }
+        }
+        if (NRI(nh) <= nri_)
+            return 0;
+        {
+            auto it = blis_.before_begin();
+            auto p = it++;
+            for (; it != blis_.end(); p=it++) {
+                if (!it->used || ((rh->seq < it->rtp_h.seq ? 0x10000u:0u) + rh->seq - it->rtp_h.seq) >= 6)
+                    break;
+            }
+            if (it == blis_.end()) {
+                LOGE("locate_buf: None");
+                return 0;
+            }
+            blis_.splice_after(blis_.before_begin(), blis_, p);
+        }
+        nri_ = -1;
+        auto& o = blis_.front();
+        o.rtp_h = *rh;
+        o.nal_h = *nh;
+        o.used = 1;
+        return &o;
+    }
+    void put(buffer_ref* bp, uint8_t const* data, uint8_t const* end)
+    {
+        this->statis(&bp->rtp_h, data, end);
+        //totsiz_ += (end-data);
+
+        hgs_buffer_inflate(bp->bufindex, (char*)data, end-data);
+    }
+    void commit(buffer_ref* bp, int flags)
+    {
+        auto it = iterator_before(blis_, *bp);
+        auto p = it++;
+        it->flags = flags;
+        blis_ready_.splice_after(blis_ready_.empty() ? blis_ready_.before_begin() : blis_ready_.last()
+                , blis_, p);
+    }
+
+    void commit(rtp_header* rh, nal_unit_header* nh, uint8_t const* data, uint8_t const* end, int flags)
+    {
+        auto* bp = locate_buf(rh,nh);
+        if (bp) {
+            bp->rtp_h = *rh; //bp->timestamp = rh->timestamp;
+            bp->nal_h = *nh;
+            put(bp, data, end);
+            commit(bp, flags);
         }
     }
 
-    void put(rtp_header* rh, uint8_t const* data, uint8_t const* end)
+    void input_queue_swap()
     {
-        this->statis(rh, data, end);
+        if (blis_ready_.empty())
+            return;
 
-        if (bufindex_ < 0 && (bufindex_ = hgs_buffer_obtain(10)) < 0) {
-            LOGE("buffer obtain: %d", bufindex_);
+        int idx = hgs_buffer_obtain(10);
+        if (idx >= 0) {
+            buffer_ref& b = blis_ready_.front(); // blis_ready_.pop_front();
+
+            hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
+
+            b.bufindex = idx;
+            b.used = 0;
+            blis_.splice_after(blis_.empty() ? blis_.before_begin() : blis_.last()
+                    , blis_ready_, blis_ready_.before_begin());
+        }
+
+        //++ncommit_;
+        //unsigned ts = stimestamp();
+        //if (ts - ts_ >= 1000) {
+        //    LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
+        //    ts_ = ts;
+        //    ncommit_ = 0;
+        //}
+    }
+
+    void commit0(uint8_t* data, uint8_t* end, unsigned timestamp, int flags)
+    {
+        int idx;
+        if ((idx = hgs_buffer_obtain(1000)) < 0) {
+            LOGE("buffer obtain: %d", idx);
             return;
         }
-        hgs_buffer_inflate(bufindex_, (char*)data, end-data);
-
-        totsiz_ += (end-data);
+        hgs_buffer_inflate(idx, (char*)data, end-data);
+        hgs_buffer_release(idx, timestamp, flags);
     }
 
-    void commit(rtp_header* rh, int flags)
+    static boost::intrusive::slist<buffer_ref>::iterator
+    iterator_before(boost::intrusive::slist<buffer_ref>& blis, buffer_ref& b)
     {
-        hgs_buffer_release(bufindex_, timestamp, flags);
-        bufindex_ = -1;
-
-        ++ncommit_;
-        unsigned ts = stimestamp();
-        if (ts - ts_ >= 1000) {
-            LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
-            ts_ = ts;
-            ncommit_ = 0;
+        auto it = blis.before_begin();
+        auto p = it++;
+        for (; it != blis.end(); p=it++) {
+            if (it.operator->() == &b)
+                break;
         }
+        return p;
     }
 
-    int bufindex_ = -1; // unsigned timestamp_ = 0;
-
-    unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
+    // unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
 };
-
-struct rtcp_client;
 
 struct h264nal : boost::noncopyable
 {
@@ -359,11 +481,11 @@ struct h264nal : boost::noncopyable
             len += 4+pps.length();
         }
 
-        sink_->put(beg, beg+len);
-        sink_->commit(0, BUFFER_FLAG_CODEC_CONFIG);
+        //sink_->put(beg, beg+len);
+        sink_->commit0(beg, beg+len, 0, BUFFER_FLAG_CODEC_CONFIG);
     }
 
-    void nalu_incoming(rtp_header* rtph, uint8_t* data, uint8_t* end) //const
+    void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end) //const
     {
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
@@ -381,8 +503,7 @@ struct h264nal : boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_->put(rtph, fill_start_bytes(data-4), data+len);
-                        sink_->commit(rtph, timestamp, 0);
+                        sink_->commit(rtp_h, h2, fill_start_bytes(data-4), data+len, 0); //sink_->commit(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -392,25 +513,30 @@ struct h264nal : boost::noncopyable
                 if (fu_header* h2 = fu_header::cast(data,end)) {
                     h2->print(data,end);
                     fu_header fuh = *h2;
+                    nal_unit_header* h3 = nal_unit_header::cast(data,end);
                     if (fuh.s) {
-                        nal_unit_header* h = nal_unit_header::cast(data,end);
-                        h->nri = h1->nri;
-                        h->f = h1->f;
-                        h->print(data,end);
+                        h3->nri = h1->nri;
+                        h3->f = h1->f;
+                        h3->print(data,end);
                         data = fill_start_bytes(data-4);
+                        if (bufp_)
+                            sink_->release_buf(bufp_);
+                        bufp_ = sink_->locate_buf(rtp_h, h3);
                     } else {
                         ++data;
                     }
-                    sink_->put(rtph, data, end);
+                    sink_->put(bufp_, data, end);
                     if (fuh.e) {
-                        sink_->commit(rtph, timestamp, 0);
+                        sink_->commit(bufp_, 0);
+                        bufp_ = 0;
                     }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    sink_->put(rtph, fill_start_bytes(data-4), end);
-                    sink_->commit(rtph, (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
+                    //sink_->put(rtp_h, fill_start_bytes(data-4), end);
+                    sink_->commit(rtp_h, h1, fill_start_bytes(data-4), end
+                            , (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -429,6 +555,7 @@ struct h264nal : boost::noncopyable
     }
 
     data_sink* sink_ = 0;
+    buffer_ref* bufp_ = 0;
 };
 
 struct rtp_receiver : h264nal , boost::noncopyable
@@ -474,8 +601,8 @@ private: // rtsp communication
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
                     //rtcp_update_(rtcp_, h           , bufptr()+h->length(), bufptr()+bytes_recvd);
-                    rtp_header rtph = *h;
-                    this->nalu_incoming(&rtph, bufptr()+h->length(), bufptr()+bytes_recvd);
+                    rtp_header rtp_h = *h;
+                    this->nalu_incoming(&rtp_h, bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
             }
             using namespace boost::asio;
@@ -575,20 +702,20 @@ struct rtcp_client : boost::noncopyable
             auto* s = this;
             if (s->cycles == 0) {
                 s->cycles = 1;
-                s->base_seq = s->max_seq = h->seq;
+                s->base_seq = s->max_seq = rh->seq;
                 s->received = 1;
             } else {
-                if (h->seq < s->max_seq) {
+                if (rh->seq < s->max_seq) {
                     s->cycles++;
                 }
-                s->max_seq = h->seq;
+                s->max_seq = rh->seq;
                 s->received++;
             }
 
             {
                 uint32_t arrival = stimestamp();
-                arrival = std::max(arrival, h->timestamp);
-                int transit = arrival - h->timestamp;
+                arrival = std::max(arrival, rh->timestamp);
+                int transit = arrival - rh->timestamp;
                 int d = transit - s->transit;
                 s->transit = transit;
                 if (d < 0) d = -d;
@@ -605,8 +732,6 @@ struct rtcp_client : boost::noncopyable
         BOOST_STATIC_ASSERT(sizeof(rtcp_report_block)%4==0);
         BOOST_STATIC_ASSERT(sizeof(receiver_report)%4==0);
 
-        memset(&sink_, 0, sizeof(sink_));
-
         memset(&rr_, 0, sizeof(rr_));
         rr_.h.rc = 1;
         rr_.h.p = 0;
@@ -622,7 +747,7 @@ struct rtcp_client : boost::noncopyable
         sdes.ssrc = rr_.ssrc;
         sdes.c.pt = RTCP_SDES_CNAME;
         sdes.c.len = 6;
-        snprintf(sdes.c.data,6, "V%04d.", rtp->local_port()); //strcpy(sdes.c.data, "helo");
+        snprintf(sdes.c.data,6, "%c%04d.", char(rand()%26+'A'), rtp->local_port()); //strcpy(sdes.c.data, "helo");
 
         //rtp_ = rtp; // sink_.rtcp_ = this;
         rtp->set_data_sink(&sink_);
@@ -1100,11 +1225,20 @@ struct h264file_mmap
     h264file_mmap(int fd) {
         struct stat st; // fd = open(fn, O_RDONLY);
         fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
-        begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-        end_ = begin_ + st.st_size;
+
+        void* p = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+            void* m = malloc(st.st_size);
+            memcpy(m, p, st.st_size);
+            begin_ = (uint8_t*)m;
+            end_ = begin_ + st.st_size;
+        munmap(p, st.st_size);
+
         assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
     }
-    //~h264file_mmap() { close(fd); }
+    ~h264file_mmap() {
+        //close(fd);
+        if (begin_) free(begin_);
+    }
 
     range begin() const { return find_(begin_); }
     range next(range const& prev) const { return find_(prev.second); }
@@ -1122,67 +1256,60 @@ struct h264file_mmap
 
 struct h264file_printer : boost::noncopyable, data_sink
 {
-    h264nal nalu_;
     h264file_mmap h264f_;
-    unsigned ts_ = 0;
+    h264file_mmap::range range_ = {};
+    h264nal nalu_;
+    rtp_header rtp_h = {}; // unsigned ts_ = 0;
 
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) {}
 
-    h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd) {
+    h264file_printer(int fd) : h264f_(fd) {
         nalu_.sink_ = this;
     }
 
-    int setup(int, char*[])
-    {
-        for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            nalu_.nalu_incoming(50*ts_++, p.first+4, p.second);
-        }
+    int setup(int, char*[]) {
         return 0;
+    }
+
+    void pump() {
+        if (range_.first == range_.second)
+            range_ = h264f_.begin();
+
+        if (range_.first < range_.second) {
+            nalu_.nalu_incoming(&rtp_h, range_.first, range_.second);
+
+            rtp_h.seq = htons(ntohs(rtp_h.seq)+1);
+            rtp_h.timestamp = htonl(ntohl(rtp_h.timestamp)+20);
+        }
+
+        range_ = h264f_.next(range_);
+
+        //ntohl(rtp_h.timestamp)
+        //if (ts_++ == 400) {
+        //    ts_ = 0;
+        //    range_ = h264f_.begin();
+        //}
     }
 };
 
->>>>>>> 32eb7e445844dd6121fac56be601089a4f5c34ff
 static struct test_h264file {
     int h264file_fd = -1;
-    std::pair<uint8_t*,uint8_t*> range_ = {};
-    int ncommit_ = 0;
-    h264file_mmap* fmap_;
-    int bufindex_;
-    int findex_;
+    // std::pair<uint8_t*,uint8_t*> range_ = {};
+    h264file_printer* hfile_; //h264file_mmap* fmap_;
+    // int ncommit_ = 0;
+    // int bufindex; int frindex;
 } test_;
 
 void hgs_poll_once()
 {
-    auto r = test_.range_;
-    if (r.first < r.second) {
-        while ( (test_.bufindex_ = hgs_buffer_obtain(1000)) < 0)
-            ;
-
-        char* p = (char*)r.first;
-        char* end = (char*)r.second;
-
-        for (; p+64 < end; p += 64) {
-            hgs_buffer_inflate(test_.bufindex_, p, 64);
-        }
-        if (p < end)
-            hgs_buffer_inflate(test_.bufindex_, p, end-p);
-        hgs_buffer_release(test_.bufindex_, 50*test_.findex_++, test_.ncommit_==0?BUFFER_FLAG_CODEC_CONFIG:0);
-
-        auto* hf = test_.fmap_;
-        test_.range_ = hf->next(r);
-        test_.ncommit_++;
-        if (test_.ncommit_ == 400) {
-            test_.ncommit_ = 0;
-            test_.range_ = hf->begin();
-        }
-    }
+    test_.hfile_->input_queue_swap();
+    test_.hfile_->pump();
 }
 
 void hgs_exit(int preexit)
 {
     if (preexit==0) {
         LOGD("exit 0");
-        delete test_.fmap_;
         close(test_.h264file_fd);
         test_.h264file_fd = -1;
     }
@@ -1190,12 +1317,17 @@ void hgs_exit(int preexit)
 
 void hgs_init(char const* ip, int port, char const* path, int w, int h)
 {
+#   ifdef __ANDROID__
+    path = "/sdcard/a.h264";
+#   else
+    path = "a.h264";
+#   endif
     LOGD("init");
-    test_.h264file_fd = open("/sdcard/a.h264", O_RDONLY);
-    test_.fmap_ = new h264file_mmap(test_.h264file_fd);
-    test_.range_ = test_.fmap_->begin();
-    test_.bufindex_ = test_.findex_ = 0;
+    test_.h264file_fd = open(path, O_RDONLY);
+    test_.hfile_ = new h264file_printer(test_.h264file_fd);
+    // test_.fmap_ = new h264file_mmap(test_.h264file_fd);
 }
+
 #else
 
 static struct {

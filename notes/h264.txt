@@ -1,3 +1,6 @@
+https://en.wikipedia.org/wiki/Network_Abstraction_Layer
+https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC
+
 Single-time aggregation packet (STAP)
 http://tools.ietf.org/html/rfc3984#section-5.7
 
@@ -90,3 +93,10 @@ to construct the NAL unit you should take "Type" from "FU Header" and "F" and "N
 
       Figure 7.  An example of an RTP packet including an STAP-A and two
                  single-time aggregation units
+
+
+### http://blog.csdn.net/dxpqxb/article/details/7625652
+    在H264协议里定义了三种帧，完整编码的帧叫I帧，参考之前的I帧生成的只包含差异部分编码的帧叫P帧，还有一种参考前后的帧编码的帧叫B帧。
+    H264采用的核心算法是帧内压缩和帧间压缩，帧内压缩是生成I帧的算法，帧间压缩是生成B帧和P帧的算法。
+    一个序列的第一个图像叫做 IDR 图像（立即刷新图像），IDR 图像都是 I 帧图像。H.264 引入 IDR 图像是为了解码的重同步，当解码器解码到 IDR 图像时，立即将参考帧队列清空，将已解码的数据全部输出或抛弃，重新查找参数集，开始一个新的序列
+
