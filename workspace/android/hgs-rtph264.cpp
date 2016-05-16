@@ -289,20 +289,55 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
+struct data_sink
+{
+    virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
+
+    virtual ~data_sink() {
+        if (bufindex_ >= 0) {
+            hgs_buffer_release(bufindex_, 0, 0);
+        }
+    }
+
+    void put(rtp_header* rh, uint8_t const* data, uint8_t const* end)
+    {
+        this->statis(rh, data, end);
+
+        if (bufindex_ < 0 && (bufindex_ = hgs_buffer_obtain(10)) < 0) {
+            LOGE("buffer obtain: %d", bufindex_);
+            return;
+        }
+        hgs_buffer_inflate(bufindex_, (char*)data, end-data);
+
+        totsiz_ += (end-data);
+    }
+
+    void commit(rtp_header* rh, int flags)
+    {
+        hgs_buffer_release(bufindex_, timestamp, flags);
+        bufindex_ = -1;
+
+        ++ncommit_;
+        unsigned ts = stimestamp();
+        if (ts - ts_ >= 1000) {
+            LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
+            ts_ = ts;
+            ncommit_ = 0;
+        }
+    }
+
+    int bufindex_ = -1; // unsigned timestamp_ = 0;
+
+    unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
+};
+
 struct rtcp_client;
 
 struct h264nal : boost::noncopyable
 {
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
+    //FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
     // std::string sps_, pps_;
-    FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
-
-    explicit h264nal(FILE* fp=0) : dump_fp_(fp) {}
-
-    ~h264nal() {
-        if (dump_fp_)
-            fclose(dump_fp_);
-    }
 
     void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
@@ -324,11 +359,11 @@ struct h264nal : boost::noncopyable
             len += 4+pps.length();
         }
 
-        out_.put(beg, beg+len);
-        out_.commit(0, BUFFER_FLAG_CODEC_CONFIG);
+        sink_->put(beg, beg+len);
+        sink_->commit(0, BUFFER_FLAG_CODEC_CONFIG);
     }
 
-    void data_incoming(unsigned timestamp, uint8_t* data, uint8_t* end) //const
+    void nalu_incoming(rtp_header* rtph, uint8_t* data, uint8_t* end) //const
     {
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
@@ -346,8 +381,8 @@ struct h264nal : boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        out_.put(fill_start_bytes(data-4), data+len);
-                        out_.commit(timestamp, 0);
+                        sink_->put(rtph, fill_start_bytes(data-4), data+len);
+                        sink_->commit(rtph, timestamp, 0);
                         data += len; //
                     }
                 }
@@ -366,16 +401,16 @@ struct h264nal : boost::noncopyable
                     } else {
                         ++data;
                     }
-                    out_.put(data, end);
+                    sink_->put(rtph, data, end);
                     if (fuh.e) {
-                        out_.commit(timestamp, 0);
+                        sink_->commit(rtph, timestamp, 0);
                     }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    out_.put(fill_start_bytes(data-4), end);
-                    out_.commit(timestamp, (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
+                    sink_->put(rtph, fill_start_bytes(data-4), end);
+                    sink_->commit(rtph, (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -389,96 +424,19 @@ struct h264nal : boost::noncopyable
         return data;
     }
 
-    struct output_helper {
-        //rtcp_client* rtcp_;
-        //int (*put_)(rtcp_client*, rtp_header*, uint8_t*, uint8_t*);
-        int bufindex_ = -1; // unsigned timestamp_ = 0;
+    void set_data_sink(data_sink* sink) {
+        sink_ = sink;
+    }
 
-        ~output_helper() {
-            if (bufindex_ >= 0) {
-                hgs_buffer_release(bufindex_, 0, 0);
-            }
-        }
-
-        void put(uint8_t const* data, uint8_t const* end)
-        {
-            if (bufindex_ < 0 && (bufindex_ = hgs_buffer_obtain(10)) < 0) {
-                LOGE("buffer obtain: %d", bufindex_);
-                return;
-            }
-            hgs_buffer_inflate(bufindex_, (char*)data, end-data);
-
-            totsiz_ += (end-data);
-        }
-        void commit(unsigned timestamp, int flags) {
-            hgs_buffer_release(bufindex_, timestamp, flags);
-            bufindex_ = -1;
-
-            ++ncommit_;
-            unsigned ts = stimestamp();
-            if (ts - ts_ >= 1000) {
-                LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
-                ts_ = ts;
-                ncommit_ = 0;
-            }
-        }
-        unsigned ts_ = 0, ncommit_ = 0; // test-only
-        size_t totsiz_ = 0;
-    } out_;
+    data_sink* sink_ = 0;
 };
 
-struct h264file_mmap 
-{
-    typedef std::pair<uint8_t*,uint8_t*> range;
-    uint8_t *begin_, *end_;
-
-    h264file_mmap(int fd) {
-        struct stat st; // fd = open(fn, O_RDONLY);
-        fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
-        begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-        end_ = begin_ + st.st_size;
-        assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
-    }
-    //~h264file_mmap() { close(fd); }
-
-    range begin() const { return find_(begin_); }
-    range next(range const& prev) const { return find_(prev.second); }
-
-    range find_(uint8_t* e) const {
-        uint8_t* b = e;
-        if (e+4 < end_) {
-            uint8_t dx[] = {0, 0, 0, 1};
-            b = e + 4;
-            e = std::search(b, end_, &dx[0], &dx[4]);
-        }
-        return std::make_pair(b,e);
-    }
-};
-
-struct h264file_printer : boost::noncopyable
-{
-    h264nal nalu_;
-    h264file_mmap h264f_;
-    unsigned ts_ = 0;
-
-    h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd)
-    {}
-    int setup(int, char*[])
-    {
-        for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
-            nalu_.data_incoming(50*ts_++, p.first+4, p.second);
-        }
-        return 0;
-    }
-};
-
-struct rtp_receiver : boost::noncopyable
+struct rtp_receiver : h264nal , boost::noncopyable
 {
     typedef rtp_receiver This;
 
     rtp_receiver(boost::asio::io_service& io_s, FILE* dump_fp)
-        : nalu_(dump_fp) //(outfile, sps, pps)
-        , udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
+        : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
     {
         LOGD("rtp_receiver");
     }
@@ -488,9 +446,6 @@ struct rtp_receiver : boost::noncopyable
         udpsock_.close(ec);
     }
 
-    void sprop_parameter_sets(std::string const& sps, std::string const& pps) {
-        nalu_.sprop_parameter_sets(sps, pps);
-    }
     void start_playing() { handle_receive_from(boost::system::error_code(), 0); }
 
     static int local_port(int p=0) {
@@ -500,11 +455,7 @@ struct rtp_receiver : boost::noncopyable
         return port+p;
     }
 
-    int (*rtcp_update_)(rtcp_client*, rtp_header*, uint8_t*, uint8_t*);
-    rtcp_client* rtcp_;
 private: // rtsp communication
-    h264nal nalu_;
-
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
         if (ec) {
@@ -522,8 +473,9 @@ private: // rtsp communication
                     ERR_EXIT("rtp_header::cast"); return;
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    rtcp_update_(rtcp_, h           , bufptr()+h->length(), bufptr()+bytes_recvd);
-                    nalu_.data_incoming(h->timestamp, bufptr()+h->length(), bufptr()+bytes_recvd);
+                    //rtcp_update_(rtcp_, h           , bufptr()+h->length(), bufptr()+bytes_recvd);
+                    rtp_header rtph = *h;
+                    this->nalu_incoming(&rtph, bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
             }
             using namespace boost::asio;
@@ -541,7 +493,7 @@ private: // rtsp communication
     int buf_[BufSiz/sizeof(int)+1];
 };
 
-struct rtcp_client
+struct rtcp_client : boost::noncopyable
 {
     typedef rtcp_client This;
     //boost::asio::deadline_timer timer_;
@@ -604,7 +556,7 @@ struct rtcp_client
     enum{ MIN_SEQUENTIAL = 2 };
     typedef uint16_t u_int16;
 
-    struct source {
+    struct rtcp_data_sink : data_sink {
         uint32_t base_seq;       /* base seq number */
         uint16_t max_seq;        /* highest seq. number seen */
         uint16_t cycles;         /* shifted count of seq. number cycles */
@@ -618,73 +570,33 @@ struct rtcp_client
          int32_t transit;        /* relative trans time for prev pkt */
         uint32_t jitter;         /* estimated jitter */
         /* ... */
-    };
-    source source_;
 
-    static void init_seq(source *s, u_int16 seq)
-    {
-        s->base_seq = seq;
-        s->max_seq = seq;
-        s->bad_seq = RTP_SEQ_MOD + 1;   /* so seq == bad_seq is false */
-        s->cycles = 0;
-        s->received = 0;
-        s->received_prior = 0;
-        s->expected_prior = 0;
-        /* other initialization */
-
-        s->probation = 0;
-    }
-    static int update_seq(source *s, u_int16 seq)
-    {
-        u_int16 udelta = seq - s->max_seq;
-        /*
-         * Source is not valid until MIN_SEQUENTIAL packets with
-         * sequential sequence numbers have been received.
-         */
-        if (s->probation) {
-            /* packet is in sequence */
-            if (seq == s->max_seq + 1) {
-                s->probation--;
-                s->max_seq = seq;
-                if (s->probation == 0) {
-                    init_seq(s, seq);
-                    s->received++;
-                    return 1;
-                }
+        virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) {
+            auto* s = this;
+            if (s->cycles == 0) {
+                s->cycles = 1;
+                s->base_seq = s->max_seq = h->seq;
+                s->received = 1;
             } else {
-                s->probation = MIN_SEQUENTIAL - 1;
-                s->max_seq = seq;
+                if (h->seq < s->max_seq) {
+                    s->cycles++;
+                }
+                s->max_seq = h->seq;
+                s->received++;
             }
-            return 0;
-        } else if (udelta < MAX_DROPOUT) {
-            /* in order, with permissible gap */
-            if (seq < s->max_seq) {
-                /*
-                 * Sequence number wrapped - count another 64K cycle.
-                 */
-                s->cycles += RTP_SEQ_MOD;
+
+            {
+                uint32_t arrival = stimestamp();
+                arrival = std::max(arrival, h->timestamp);
+                int transit = arrival - h->timestamp;
+                int d = transit - s->transit;
+                s->transit = transit;
+                if (d < 0) d = -d;
+                s->jitter += d - ((s->jitter + 8) >> 4); // ... rr->jitter = s->jitter >> 4;
             }
-            s->max_seq = seq;
-        } else if (udelta <= RTP_SEQ_MOD - MAX_MISORDER) {
-            /* the sequence number made a very large jump */
-            if (seq == s->bad_seq) {
-                /*
-                 * Two sequential packets -- assume that the other side
-                 * restarted without telling us so just re-sync
-                 * (i.e., pretend this was the first packet).
-                 */
-                init_seq(s, seq);
-            }
-            else {
-                s->bad_seq = (seq + 1) & (RTP_SEQ_MOD-1);
-                return 0;
-            }
-        } else {
-            /* duplicate or reordered packet */
         }
-        s->received++;
-        return 1;
-    }
+    };
+    rtcp_data_sink sink_;
 
     rtcp_client(boost::asio::io_service& io_s, rtp_receiver* rtp/*, ip::udp::endpoint const& remote_ep*/)
         : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), rtp->local_port(+1)))
@@ -693,11 +605,7 @@ struct rtcp_client
         BOOST_STATIC_ASSERT(sizeof(rtcp_report_block)%4==0);
         BOOST_STATIC_ASSERT(sizeof(receiver_report)%4==0);
 
-        rtp_ = rtp;
-        rtp_->rtcp_update_ = &rtcp_client::rtp_update;
-        rtp_->rtcp_ = this;
-
-        memset(&source_, 0, sizeof(source_));
+        memset(&sink_, 0, sizeof(sink_));
 
         memset(&rr_, 0, sizeof(rr_));
         rr_.h.rc = 1;
@@ -714,7 +622,10 @@ struct rtcp_client
         sdes.ssrc = rr_.ssrc;
         sdes.c.pt = RTCP_SDES_CNAME;
         sdes.c.len = 6;
-        snprintf(sdes.c.data,6, "N%04d.", rtp_->local_port()); //strcpy(sdes.c.data, "helo");
+        snprintf(sdes.c.data,6, "V%04d.", rtp->local_port()); //strcpy(sdes.c.data, "helo");
+
+        //rtp_ = rtp; // sink_.rtcp_ = this;
+        rtp->set_data_sink(&sink_);
 
         //udpsock_.connect(remote_ep);
         handle_receive_from(boost::system::error_code(), 0);
@@ -723,34 +634,6 @@ struct rtcp_client
     void teardown() {
         boost::system::error_code ec;
         udpsock_.close(ec);
-    }
-
-    // rtp callback
-    static int rtp_update(rtcp_client* self, rtp_header* h, uint8_t*, uint8_t*)
-    {
-        auto* s = &self->source_;
-        if (s->cycles == 0) {
-            s->cycles = 1;
-            s->base_seq = s->max_seq = h->seq;
-            s->received = 1;
-        } else {
-            if (h->seq < s->max_seq) {
-                s->cycles++;
-            }
-            s->max_seq = h->seq;
-            s->received++;
-        }
-
-        {
-            uint32_t arrival = stimestamp();
-            arrival = std::max(arrival, h->timestamp);
-            int transit = arrival - h->timestamp;
-            int d = transit - s->transit;
-            s->transit = transit;
-            if (d < 0) d = -d;
-            s->jitter += d - ((s->jitter + 8) >> 4); // ... rr->jitter = s->jitter >> 4;
-        }
-        return 0;
     }
 
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
@@ -768,7 +651,7 @@ struct rtcp_client
                 rr_.rb.ssrc = htonl( si->ssrc );
                 rr_.rb.lsr = htonl( ((si->ntpmsw&0xFFFF)<<16) | ((si->ntplsw>>16) & 0xFFFF) ); //uint32_t lsr; // last SR
                 si->rtpts;
-                ts_sr_ = stimestamp( source_.received==0 );
+                ts_sr_ = stimestamp( sink_.received==0 );
             } else {
                 LOGD("pt %d", (int)h->pt);
             }
@@ -823,8 +706,8 @@ struct rtcp_client
     //- if (d < 0) d = -d;
     //-| s->jitter += d - ((s->jitter + 8) >> 4); ... rr->jitter = s->jitter >> 4;
     //
-        if (ts_rr_ +100 < ts_sr_ && source_.received > 0) {
-            auto* s = &source_;
+        if (ts_rr_ +100 < ts_sr_ && sink_.received > 0) {
+            auto* s = &sink_;
 
             uint8_t fraction;
             int32_t lost;
@@ -860,7 +743,7 @@ struct rtcp_client
         }
     }
 
-    rtp_receiver* rtp_;
+    // rtp_receiver* rtp_;
 
     ip::udp::socket udpsock_;
     ip::udp::endpoint peer_endpoint_;
@@ -1207,7 +1090,58 @@ private:
 //width = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_left_offset*2 - frame_crop_right_offset*2;
 //height= ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_top_offset * 2) - (frame_crop_bottom_offset * 2);
 
+
 #if 1
+struct h264file_mmap 
+{
+    typedef std::pair<uint8_t*,uint8_t*> range;
+    uint8_t *begin_, *end_;
+
+    h264file_mmap(int fd) {
+        struct stat st; // fd = open(fn, O_RDONLY);
+        fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
+        begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+        end_ = begin_ + st.st_size;
+        assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
+    }
+    //~h264file_mmap() { close(fd); }
+
+    range begin() const { return find_(begin_); }
+    range next(range const& prev) const { return find_(prev.second); }
+
+    range find_(uint8_t* e) const {
+        uint8_t* b = e;
+        if (e+4 < end_) {
+            uint8_t dx[] = {0, 0, 0, 1};
+            b = e + 4;
+            e = std::search(b, end_, &dx[0], &dx[4]);
+        }
+        return std::make_pair(b,e);
+    }
+};
+
+struct h264file_printer : boost::noncopyable, data_sink
+{
+    h264nal nalu_;
+    h264file_mmap h264f_;
+    unsigned ts_ = 0;
+
+    virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) {}
+
+    h264file_printer(int fd, FILE* dumpfd) : nalu_(dumpfd), h264f_(fd) {
+        nalu_.sink_ = this;
+    }
+
+    int setup(int, char*[])
+    {
+        for (auto p = h264f_.begin(); p.first < p.second; p = h264f_.next(p)) {
+            nalu_.nalu_incoming(50*ts_++, p.first+4, p.second);
+        }
+        return 0;
+    }
+};
+
+>>>>>>> 32eb7e445844dd6121fac56be601089a4f5c34ff
 static struct test_h264file {
     int h264file_fd = -1;
     std::pair<uint8_t*,uint8_t*> range_ = {};

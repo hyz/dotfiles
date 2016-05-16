@@ -18,7 +18,7 @@
 
 static JNIEnv * env_= NULL;
 static jobject oRtpH264 = NULL;
-static jmethodID MID_obtain = 0;
+static jmethodID MID_obtain  = 0;
 static jmethodID MID_inflate = 0;
 static jmethodID MID_release = 0;
 

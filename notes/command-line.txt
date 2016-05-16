@@ -164,8 +164,7 @@ ip link set wlan0 up
 ip addr
 ip route
 
-### curl ###
-curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://127.0.0.1:9909/hello
+### 
 
 tpx="`date +'%F %T'`"
 tps="`perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$tpx"`"
