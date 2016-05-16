@@ -350,7 +350,7 @@ struct Main : boost::asio::io_service, boost::noncopyable
                 b64dec(av[3], sps);
                 b64dec(av[4], pps);
             } else {
-                ERR_EXIT("Usage: %s <port>", av[0]);
+                ERR_EXIT("Usage: %s ...", av[0]);
             }
         }
         static void b64dec(char const* cs, std::string& out) {

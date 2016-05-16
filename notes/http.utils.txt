@@ -14,3 +14,8 @@ python3 -m http.server
 
 curl -#4 -D- http://192.168.1.48:8000/a.cgi --data-binary @-
 
+### curl ###
+curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://127.0.0.1:9909/hello
+--compressed
+-A "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0"
+

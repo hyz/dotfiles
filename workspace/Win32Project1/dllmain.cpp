@@ -3,7 +3,7 @@
 #include "tdxif.h"
 
 FILE* logfile_ = stderr;
-//static std::pair<int, char const*> DataTypes_[] = {
+
 //	{ PER_MIN5, "5分钟数据" }
 //	, { PER_MIN15, "15分钟数据" }
 //	, { PER_MIN30, "30分钟数据" }
@@ -24,7 +24,6 @@ FILE* logfile_ = stderr;
 //	, { GBINFO_DAT, "股本信息" }
 //	, { STKINFO_DAT, "股票相关数据 STOCKINFO" }
 //	, { TPPRICE_DAT, "涨跌停数据" }
-//};
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -34,14 +33,20 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
+            ERR_MSG("DLL_PROCESS_ATTACH");
 			break;
 		case DLL_PROCESS_DETACH:
+            ERR_MSG("DLL_PROCESS_DETACH");
             // for (auto& f : at_exists_) f();
 			break;
 		case DLL_THREAD_ATTACH:
+            ERR_MSG("DLL_THREAD_ATTACH");
 			break;
 		case DLL_THREAD_DETACH:
+            ERR_MSG("DLL_THREAD_DETACH");
 			break;
+        default:
+            ERR_MSG("DLL_X %d", ul_reason_for_call);
     }
 
     return TRUE;
@@ -103,7 +108,7 @@ PLUGIN_API BOOL InputInfoThenCalc2(char* Code, short nSetCode
 	//if (t0 != NTime{ 0 })
 	//	nDataNum = 8;
 	//return (*GDef::ref().funcs_[Value[0]]) (Code, nSetCode, Value, DataType, t0, t1, nTQ, nDataNum);
-    return 0;
+	return atoi(Code) == 600570;
 }
 
 //用通达信本地保存的所有数据进行选股，函数原型必须保持不变，系统会自动将需要的参数传递到本函数名字空间内
@@ -223,9 +228,8 @@ BOOL myflt9(char const* Code, short, int Value[4] , short DataType, NTime, NTime
 
 GDef::GDef()
 {
-#define PATH_PREFIX "C:\\cygwin64\\home\\wood"
-	logfile_ = fopen(PATH_PREFIX"\\xg.log", "w");
-    ERR_MSG( "%s", ctime(0) );
+	logfile_ = fopen("E:\\xg.log", "w");
+    ERR_MSG( "Begin %s", __FUNCTION__ );
 
 	for (auto& f : funcs_)
 		f = defaf;
@@ -241,11 +245,9 @@ GDef::GDef()
 	funcs_[9] = myflt9;
 	//funcs_[22] = dfcf_read_ZXG; //dfcf::read_dfcf_ZXG;
 	funcs_[23] = help_info_dump; //log helper
-    ERR_MSG( "%s", PATH_PREFIX );
 }
 GDef::~GDef()
 {
-    //LOG << "UNINIT";
     ERR_MSG( "End" );
     if (logfile_ != stderr)
         fclose(logfile_); //(logging::logfile());

@@ -52,16 +52,22 @@ ip addr add 172.16.0.1/24 dev tap0
 
 # activate ip forwarding
 echo 1 > /proc/sys/net/ipv4/ip_forward
+## sysctl
 
 # Create forwarding rules, where
 # tap0 - virtual interface
 # eth0 - net connected interface
 
-##iptables --flush -t nat
-##iptables --flush
+## iptables --flush -t nat
+## iptables --flush
 iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
 iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
+iptables -nvL -t nat
+
+modprobe tun
+ip tuntap add dev tap0 mode tap user wood
+ip link set tap0 up promisc on
 
 ### http://www.funtoo.org/Windows_7_Virtualization_with_KVM
 #   -vga qxl -device virtio-serial-pci -spice port=5900,password=abc123 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent

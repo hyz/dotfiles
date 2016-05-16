@@ -7,23 +7,36 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 // extern "C" {
-void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len);
-void hgs_h264slice_commit(int flags);
+    int  hgs_buffer_obtain(int timeout);
+    void hgs_buffer_inflate(int idx, char* p, size_t len);
+    void hgs_buffer_release(int idx, unsigned timestamp, int flags);
 
-void hgs_poll_once();
-void hgs_exit();
-void hgs_init();
+    void hgs_poll_once();
+    void hgs_exit(int);
+    void hgs_init(char const* ip, int port, char const* path, int w, int h);
 // }
 
 static JNIEnv * env_= NULL;
 static jobject oRtpH264 = NULL;
+static jmethodID MID_obtain  = 0;
 static jmethodID MID_inflate = 0;
-static jmethodID MID_commit = 0;
+static jmethodID MID_release = 0;
 
-void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
+int hgs_buffer_obtain(int timeout)
+{
+    int idx = (*env_)->CallIntMethod(env_, oRtpH264, MID_obtain, timeout);
+
+    jthrowable ex = (*env_)->ExceptionOccurred(env_);
+    if (ex != NULL) {
+        (*env_)->ExceptionDescribe(env_);
+        (*env_)->ExceptionClear(env_);
+    }
+    return idx;
+}
+void hgs_buffer_inflate(int idx, char* p, size_t len)
 {
     jobject byteBuffer = (*env_)->NewDirectByteBuffer(env_, p, len);
-    (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, (int)need_start_bytes, byteBuffer);
+    (*env_)->CallVoidMethod(env_, oRtpH264, MID_inflate, idx, byteBuffer);
 
     jthrowable ex = (*env_)->ExceptionOccurred(env_);
     if (ex != NULL) {
@@ -31,10 +44,9 @@ void hgs_h264slice_inflate(int need_start_bytes, char* p, size_t len)
         (*env_)->ExceptionClear(env_);
     }
 }
-void hgs_h264slice_commit(int flags)
+void hgs_buffer_release(int idx, unsigned timestamp, int flags)
 {
-    //hgs_h264slice_inflate(need_start_bytes, p, len);
-    (*env_)->CallVoidMethod(env_, oRtpH264, MID_commit, flags);
+    (*env_)->CallVoidMethod(env_, oRtpH264, MID_release, idx, timestamp, flags);
 
     jthrowable ex = (*env_)->ExceptionOccurred(env_);
     if (ex != NULL) {
@@ -55,7 +67,8 @@ JNIEXPORT void JNICALL
 Java_com_hg_streaming_RtpH264_exitJNI( JNIEnv* env, jobject thiz )
 {
     LOGD("exitJNI");
-    hgs_exit();
+    hgs_exit(1);
+    hgs_exit(0);
     (*env)->DeleteGlobalRef(env, oRtpH264);
 }
 
@@ -74,10 +87,12 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     env_ = env;
     oRtpH264 = (*env)->NewGlobalRef(env, thiz);
 
+    MID_obtain  = (*env)->GetMethodID(env, cls, "obtain" , "(I)I");
     MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(ILjava/nio/ByteBuffer;)V");
-    MID_commit  = (*env)->GetMethodID(env, cls, "commit", "(I)V");
+    MID_release = (*env)->GetMethodID(env, cls, "release", "(III)V");
 
-    hgs_init();
+    hgs_init("", 1, "", 480, 320);
+
 #if defined(__arm__)
   #if defined(__ARM_ARCH_7A__)
     #if defined(__ARM_NEON__)
@@ -109,7 +124,7 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
 #else
    #define ABI "unknown"
 #endif
-    LOGD("%s", ABI);
+    LOGD("ABI %s", ABI);
     //return (*env)->NewStringUTF(env, "Hello from JNI !  Compiled with ABI " ABI ".");
 }
 

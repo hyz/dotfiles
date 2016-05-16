@@ -11,7 +11,8 @@
 #define PLUGIN_API extern "C" __declspec(dllimport)
 #endif
 
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "tdxdef.h"
 
 #pragma pack(push,1)
@@ -54,6 +55,7 @@ typedef struct PluginInfo_Type
 typedef long (CALLBACK * PDATAIOFUNC)
     (char* Code,short nSetCode,short DataType,void* pData,short nDataNum,NTime,NTime,BYTE nTQ,unsigned long);
 
+extern "C" {
 //注册回调函数
 PLUGIN_API void  RegisterDataInterface(PDATAIOFUNC pfn);
 
@@ -65,6 +67,8 @@ PLUGIN_API BOOL	 InputInfoThenCalc1(char* Code,short nSetCode,int Value[4],short
 
 //选取区段计算
 PLUGIN_API BOOL	 InputInfoThenCalc2(char* Code,short nSetCode,int Value[4],short DataType,NTime time1,NTime time2,BYTE nTQ,unsigned long unused); 
+
+} // extern "C"
 
 //#include <unordered_set>
 
