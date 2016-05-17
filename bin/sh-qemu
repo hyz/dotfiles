@@ -2,7 +2,7 @@
 
 ####
 hda=/dev/sda9 ### Windows7
-hdb=$HOME/u128
+hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 
@@ -24,6 +24,7 @@ qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
     -acpitable sig=SLIC,file=$SLIC \
     -rtc base=localtime,clock=host \
     -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
+    -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
     -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \
     -boot order=c \
