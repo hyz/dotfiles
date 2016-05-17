@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <boost/static_assert.hpp>
+#define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
@@ -36,9 +37,10 @@ namespace re = boost;
 
 #if defined(__ANDROID__)
 #  include <android/log.h>
-#  define  LOG_TAG    "HGSC"
-#  define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#  define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#  define LOG_TAG    "HGSC"
+#  define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#  define LOGW(...)  __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#  define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #  define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #  define NOT_PRINT_PROTO 1
 #else
@@ -54,6 +56,7 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 }
 #  define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 #  define LOGD(...) err_msg_(__LINE__, "D:%d: " __VA_ARGS__)
+#  define LOGW(...) err_msg_(__LINE__, "W:%d: " __VA_ARGS__)
 #  define LOGE(...) err_msg_(__LINE__, "E:%d: " __VA_ARGS__)
 #endif
 
@@ -302,7 +305,8 @@ struct data_sink
 {
     signed char nri_ = -1;
     buffer_ref bufarray_[6];
-    boost::intrusive::slist<buffer_ref> blis_, blis_ready_;
+    typedef boost::intrusive::slist<buffer_ref,boost::intrusive::cache_last<true>> slist_type;
+    slist_type blis_, blis_ready_;
 
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
 
@@ -312,70 +316,117 @@ struct data_sink
         //}
     }
 
-    void release_buf(buffer_ref* bp) {
-        hgs_buffer_release(bp->bufindex, 0, 0xf7);
-        bp->used = 0;
+    void release_buf(buffer_ref& b) {
+        hgs_buffer_release(b.bufindex, 0, 0xf7);
+        b.used = 0;
     }
 
     buffer_ref* locate_buf(rtp_header* rh, nal_unit_header* nh)
     {
-        if (blis_.empty()) {
-            if (blis_ready_.empty()) {
-                for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
-                    int idx;
-                    while ( (idx = hgs_buffer_obtain(1000)) < 0) {
-                        LOGE("buffer obtain: %d", idx);
+        auto head_not_used = [this](slist_type& lis) {
+            if (!lis.empty()) {
+                auto it = lis.before_begin();
+                auto prev_it = it++;
+                for (; it != lis.end(); prev_it=it++) {
+                    if (!it->used) {
+                        lis.splice_after(lis.before_begin(), lis, prev_it);
+                        return lis.begin();
                     }
-                    bufarray_[x].bufindex = idx;
-                    blis_.push_front(bufarray_[x]);
                 }
-            } else { // discard
+            }
+            LOGE("locate_buf:head_not_used: None");
+            return lis.end();
+        };
+        //auto discard_byseq = [this](slist_type& lis, rtp_header* rh/*slist_type::iterator& prev_it*/) {
+        //    if (lis.empty())
+        //        return lis.end();
+        //    auto it = lis.before_begin();
+        //    auto prev_it = it++;
+        //    while (it != lis.end()) {
+        //        if (((rh->seq < it->rtp_h.seq ? 0x10000u:0u) + rh->seq - it->rtp_h.seq) >= 6) {
+        //            LOGD("seq %d discard: %d", rh->seq, it->rtp_h.seq);
+        //            release_buf(*it++);
+        //            //lis.splice_after(lis.before_begin(), lis, prev_it);
+        //        } else 
+        //            prev_it=it++;
+        //    }
+        //    if (it == lis.end()) {
+        //        LOGE("locate_buf:discard_byseq: None");
+        //        return it;
+        //    }
+        //    lis.splice_after(lis.before_begin(), lis, prev_it);
+        //    return lis.begin();
+        //};
 #define NRI(h) (int((h)->nri)&0x3)
-                int nri = NRI(nh);
-                if (nri < 0x3 && nri <= nri_)
-                    return 0;
-                auto min_it = blis_ready_.before_begin();
-                auto min_p = min_it++;
-                auto it = blis_ready_.begin();
-                auto p = it++;
-                while (it != blis_ready_.end()) {
-                    if (NRI(&it->nal_h) <= NRI(&min_it->nal_h)) {
-                        min_it = it;
-                        min_p = p;
-                    }
-                    p = it++;
-                }
-                nri_ = NRI(&min_it->nal_h);
-                min_it->rtp_h = *rh;
-                min_it->nal_h = *nh;
-                hgs_buffer_release(min_it->bufindex, 0, 0xf7);
-                //min_it->used = 0;
-                blis_.splice_after(blis_.before_begin(), blis_ready_, min_p);
-                return &blis_.front();
-            }
-        }
-        if (NRI(nh) <= nri_)
-            return 0;
-        {
-            auto it = blis_.before_begin();
-            auto p = it++;
-            for (; it != blis_.end(); p=it++) {
-                if (!it->used || ((rh->seq < it->rtp_h.seq ? 0x10000u:0u) + rh->seq - it->rtp_h.seq) >= 6)
-                    break;
-            }
-            if (it == blis_.end()) {
-                LOGE("locate_buf: None");
+        auto discard_bynri = [this](slist_type& lis, int nri) {
+            if (lis.empty())
                 return 0;
+            auto min_it = lis.before_begin();
+            auto prev_min_it = min_it++;
+            auto it = lis.begin();
+            auto prev_it = it++;
+            while (it != lis.end()) {
+                if (NRI(&it->nal_h) <= NRI(&min_it->nal_h)) {
+                    min_it = it;
+                    prev_min_it = prev_it;
+                }
+                prev_it = it++;
             }
-            blis_.splice_after(blis_.before_begin(), blis_, p);
+            if (NRI(&min_it->nal_h) >= nri)
+                return 0;
+            hgs_buffer_release(min_it->bufindex, 0, 0xf7);
+            blis_.splice_after(blis_.before_begin(), lis, prev_min_it);
+            return 1;
+        };
+
+        if (blis_.empty() && blis_ready_.empty()) { // init
+            for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
+                int idx;
+                while ( (idx = hgs_buffer_obtain(1000)) < 0) {
+                    LOGE("buffer obtain: %d", idx);
+                }
+                bufarray_[x].bufindex = idx;
+                blis_.push_front(bufarray_[x]);
+            }
         }
-        nri_ = -1;
-        auto& o = blis_.front();
-        o.rtp_h = *rh;
-        o.nal_h = *nh;
-        o.used = 1;
-        return &o;
+        BOOST_ASSERT(nri_ < 0x3);
+
+        int nri = NRI(nh);
+        if (nri <= nri_) {
+            LOGD("nri %d discard: %d", nri_, nri);
+            return 0;
+        }
+
+        slist_type::iterator it = head_not_used(blis_);
+        BOOST_SCOPE_EXIT(this,&it) {
+            if (nri_>=0 && it != blis_.end()) { //(nri_ >= 0 && nri >= 0x3)
+                LOGD("reset nri_");
+                this->nri_ = -1;
+            }
+        };
+
+        if (it != blis_.end()) {
+            it->rtp_h = *rh;
+            it->nal_h = *nh;
+            it->used = 1;
+            return it.operator->();
+        }
+
+        if (!discard_bynri(blis_, nri) && !discard_bynri(blis_ready_, nri)) {
+            BOOST_ASSERT(nri < 0x3);
+            LOGW("discard_bynri fail: nri %d", nri);
+            nri_ = nri;
+            return 0;
+        }
+
+        BOOST_ASSERT(!blis_.empty() && !blis_.front().used);
+        it = blis_.begin();
+        it->rtp_h = *rh;
+        it->nal_h = *nh;
+        it->used = 1;
+        return it.operator->();
     }
+
     void put(buffer_ref* bp, uint8_t const* data, uint8_t const* end)
     {
         this->statis(&bp->rtp_h, data, end);
@@ -388,8 +439,7 @@ struct data_sink
         auto it = iterator_before(blis_, *bp);
         auto p = it++;
         it->flags = flags;
-        blis_ready_.splice_after(blis_ready_.empty() ? blis_ready_.before_begin() : blis_ready_.last()
-                , blis_, p);
+        blis_ready_.splice_after(blis_ready_.last(), blis_, p);
     }
 
     void commit(rtp_header* rh, nal_unit_header* nh, uint8_t const* data, uint8_t const* end, int flags)
@@ -405,19 +455,15 @@ struct data_sink
 
     void input_queue_swap()
     {
-        if (blis_ready_.empty())
-            return;
-
-        int idx = hgs_buffer_obtain(10);
-        if (idx >= 0) {
+        int idx;
+        while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
             buffer_ref& b = blis_ready_.front(); // blis_ready_.pop_front();
 
             hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
 
             b.bufindex = idx;
             b.used = 0;
-            blis_.splice_after(blis_.empty() ? blis_.before_begin() : blis_.last()
-                    , blis_ready_, blis_ready_.before_begin());
+            blis_.splice_after(blis_.last(), blis_ready_, blis_ready_.before_begin());
         }
 
         //++ncommit_;
@@ -440,8 +486,7 @@ struct data_sink
         hgs_buffer_release(idx, timestamp, flags);
     }
 
-    static boost::intrusive::slist<buffer_ref>::iterator
-    iterator_before(boost::intrusive::slist<buffer_ref>& blis, buffer_ref& b)
+    static slist_type::iterator iterator_before(slist_type& blis, buffer_ref& b)
     {
         auto it = blis.before_begin();
         auto p = it++;
@@ -455,7 +500,7 @@ struct data_sink
     // unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
 };
 
-struct h264nal : boost::noncopyable
+struct h264nal : private boost::noncopyable
 {
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
     //FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
@@ -520,7 +565,7 @@ struct h264nal : boost::noncopyable
                         h3->print(data,end);
                         data = fill_start_bytes(data-4);
                         if (bufp_)
-                            sink_->release_buf(bufp_);
+                            sink_->release_buf(*bufp_);
                         bufp_ = sink_->locate_buf(rtp_h, h3);
                     } else {
                         ++data;
@@ -558,7 +603,7 @@ struct h264nal : boost::noncopyable
     buffer_ref* bufp_ = 0;
 };
 
-struct rtp_receiver : h264nal , boost::noncopyable
+struct rtp_receiver : h264nal //, private boost::noncopyable
 {
     typedef rtp_receiver This;
 
@@ -1302,8 +1347,8 @@ static struct test_h264file {
 
 void hgs_poll_once()
 {
-    test_.hfile_->input_queue_swap();
     test_.hfile_->pump();
+    test_.hfile_->input_queue_swap();
 }
 
 void hgs_exit(int preexit)
