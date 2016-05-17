@@ -19,7 +19,7 @@
 
 #include "tdxif.h"
 
-#define HOME "E:/home/wood"
+#define HOME "D:/home/wood"
 #define DIR_OUT HOME"/_"
 #define FN_EXCLS HOME"/._excls"
 
@@ -103,7 +103,7 @@ struct _999999 :  std::vector<HISDAT>
         v.resize(len<1 ? 1:len);
 		int n = GDef::tdx_read("999999", 1, PER_DAY, &v[0], (int)v.size(), NTime{}, NTime{}, nTQ, 0);
         if (n != len)
-            ERR_EXIT("999999: %d: %d", len, n);
+            ERR_EXIT("999999: %d: %d", (int)v.size(), n);
     }
 	ymd_type ymd(int x = -1) const { return ymd_type(Time(x)); }
 	NTime const& Time(int x = -1) const { return (x == 0 ? front().Time : back().Time); }
