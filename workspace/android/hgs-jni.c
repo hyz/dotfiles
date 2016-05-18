@@ -14,9 +14,12 @@
     void hgs_buffer_inflate(int idx, char* p, size_t len);
     void hgs_buffer_release(int idx, unsigned timestamp, int flags);
 
-    void hgs_poll_once();
+    void hgs_poll_once(int);
     void hgs_exit(int);
     void hgs_init(char const* ip, int port, char const* path, int w, int h);
+
+    void hgs_run();
+    void hgs_pump();
 // }
 
 static JNIEnv * env_= NULL;
@@ -92,7 +95,13 @@ Java_com_hg_streaming_RtpH264_exitJNI( JNIEnv* env, jobject thiz )
 JNIEXPORT void JNICALL
 Java_com_hg_streaming_RtpH264_loopJNI( JNIEnv* env, jobject thiz )
 {
-    hgs_poll_once();
+    hgs_run();//hgs_poll_once(0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_hg_streaming_RtpH264_pumpJNI( JNIEnv* env, jobject thiz )
+{
+    hgs_pump();//hgs_poll_once(1);
 }
 
 JNIEXPORT void JNICALL

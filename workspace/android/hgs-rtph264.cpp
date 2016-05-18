@@ -26,6 +26,8 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/intrusive/slist.hpp>
+#include <thread>
+#include <mutex>
 #include <chrono> //#include <boost/chrono.hpp>
 namespace chrono = std::chrono;
 #if defined(__ANDROID__)
@@ -69,7 +71,10 @@ extern "C" {
     void hgs_buffer_inflate(int idx, char* p, size_t len);
     void hgs_buffer_release(int idx, unsigned timestamp, int flags);
 
-    void hgs_poll_once();
+    void hgs_poll_once(int);
+    void hgs_run();
+    void hgs_pump();
+
     void hgs_exit(int);
     void hgs_init(char const* ip, int port, char const* path, int w, int h);
 }
@@ -497,6 +502,8 @@ struct data_sink
     }
     void commit(buffer_ref&& bp)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
+
         if (!qs_.empty() && qs_.size() % 10 == 0) {
             LOGD("qs.size %d", (int)qs_.size());
         }
@@ -538,16 +545,23 @@ struct data_sink
 
     void input_queue_swap()
     {
-        int idx;
-        if (qs_.empty())
-            return;
-        if ( (idx = hgs_buffer_obtain(1000)) < 0) {
-            LOGW("buffer obtain: %d", idx);
-            return;
-        }
+        int idx = -1;
+        buffer_ref buf;
 
-        buffer_ref buf = std::move(qs_.front()); // blis_ready_.pop_front();
-        qs_.pop_front();
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (qs_.empty())
+                return;
+
+            idx = hgs_buffer_obtain(50);
+            if (idx < 0) {
+                LOGW("buffer obtain: %d", idx);
+                return;
+            }
+
+            buf = std::move(qs_.front()); // blis_ready_.pop_front();
+            qs_.pop_front();
+        }
 
         int flags = 0;
         switch (buf.base_ptr->nal_h.type) {
@@ -589,6 +603,8 @@ struct data_sink
     //}
 
     // unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
+
+    std::mutex mutex_;
 };
 
 struct h264nal : private boost::noncopyable
@@ -666,13 +682,13 @@ struct h264nal : private boost::noncopyable
                         h3->print(data,end);
                         // data = fill_start_bytes(data-4);
                         if (bufp_.ok()) {
-                            LOGE("FU-A loss");
+                            LOGE("FU-A e loss");
                         }
                         bufp_ = sink_->locate_buf(*rtp_h);
                     } else {
                         BOOST_ASSERT(bufp_.size > 0);
                         if (bufp_.size <= 0) {
-                            LOGE("FU-A buf.size error");
+                            LOGE("FU-A b.size error");
                             return;
                         }
                         ++data;
@@ -753,10 +769,18 @@ private: // rtsp communication
 
                 rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
                 if (!h) {
-                    ERR_EXIT("rtp_header::cast"); return;
+                    LOGE("rtp_header"); return;
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    //if (rtp_h.seq == expseq_) {}
+                    if (h->seq == (expseq_&0xffff)) {
+                        ++expseq_;
+                    } else {
+                        LOGE("exp-seq %d:%d", expseq_, h->seq);
+                        if (h->seq < (expseq_&0xffff)) {
+                            return;
+                        }
+                        expseq_ = h->seq+1;
+                    }
                     rtp_header rtp_h = *h;
                     this->nalu_incoming(&rtp_h, bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
@@ -770,7 +794,7 @@ private: // rtsp communication
 
     ip::udp::socket udpsock_;
     ip::udp::endpoint peer_endpoint_;
-    //unsigned short expseq_ = 0;
+    unsigned expseq_ = 0;
     //std::array<uint8_t*,8> bufs_ = {};
 
     uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_)+4; }
@@ -1458,7 +1482,7 @@ static struct test_h264file {
     // int bufindex; int frindex;
 } test_;
 
-void hgs_poll_once()
+void hgs_poll_once(int)
 {
     test_.hfile_->pump();
     test_.hfile_->input_queue_swap();
@@ -1488,12 +1512,25 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h)
 
 #else
 
-static struct {
+// #include <boost/thread/mutex.hpp>
+
+struct App {
+    bool running = 0;
     boost::asio::io_service* io_service = 0;
     rtp_receiver* rtp = 0;
     rtcp_client* rtcp = 0;
     rtsp_client* rtsp = 0;
-} hgs_;
+
+    ~App() {
+        delete rtsp;       rtsp = 0;
+        delete rtcp;       rtcp = 0;
+        delete rtp;        rtp = 0;
+        delete io_service; io_service = 0;
+    }
+
+    std::thread thread;
+};
+static App hgs_;
 
 /// rtsp://127.0.0.1:7654/rtp1
 /// rtsp://192.168.2.3/live/ch00_2
@@ -1516,39 +1553,54 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*4
     hgs_.rtcp = new rtcp_client(*hgs_.io_service, hgs_.rtp);
     hgs_.rtsp = new rtsp_client(*hgs_.io_service, hgs_.rtp, endp, path);
 
-    hgs_.rtsp->setup(0,0);
-
     // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
     LOGD("init ok");
 }
 
 void hgs_exit(int preexit)
 {
-    if (preexit) {
-        LOGD("teardown");
-        hgs_.rtp->teardown();
-        hgs_.rtcp->teardown();
-        hgs_.rtsp->teardown();
-        hgs_.io_service->poll_one();
-    } else {
-        LOGD("exit:stop");
-        hgs_.io_service->stop();
-
-        delete hgs_.rtsp;       hgs_.rtsp = 0;
-        delete hgs_.rtcp;       hgs_.rtcp = 0;
-        delete hgs_.rtp;        hgs_.rtp = 0;
-        delete hgs_.io_service; hgs_.io_service = 0;
-    }
+    hgs_.running = 0;
+    hgs_.io_service->post([preexit](){
+            if (preexit) {
+                LOGD("teardown");
+                hgs_.rtp->teardown();
+                hgs_.rtcp->teardown();
+                hgs_.rtsp->teardown();
+                hgs_.io_service->poll_one();
+            } else {
+                LOGD("exit:stop");
+                hgs_.io_service->stop();
+                LOGD("exit:join thread");
+            }
+        });
+    if (preexit == 0)
+        hgs_.thread.join();
 }
 
-void hgs_poll_once()
+void hgs_poll_once(int)
 {
     //LOGD("poll_one");
     //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
 
     hgs_.io_service->poll_one();
-    hgs_.rtcp->sink_.input_queue_swap();
-    hgs_.rtcp->rreport();
+    // if (codec) hgs_.rtcp->sink_.input_queue_swap();
+}
+
+void hgs_run()
+{
+    LOGD("run: %d %d", !!hgs_.rtsp, !!hgs_.io_service);
+    hgs_.running = 1;
+    hgs_.rtsp->setup(0,0);
+
+    hgs_.thread = std::thread([]() { hgs_.io_service->run(); });
+}
+
+void hgs_pump()
+{
+    if (hgs_.running) {
+        hgs_.io_service->post([](){ hgs_.rtcp->rreport(); });
+        hgs_.rtcp->sink_.input_queue_swap();
+    }
 }
 
 #endif
