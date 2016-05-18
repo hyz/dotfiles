@@ -29,7 +29,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 {
 	GDef::ref();
 	//LOG << hModule << ul_reason_for_call << lpReserved;
-
+	fprintf(logfile_, "\n");
 	switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -228,7 +228,7 @@ BOOL myflt9(char const* Code, short, int Value[4] , short DataType, NTime, NTime
 
 GDef::GDef()
 {
-	logfile_ = fopen("E:\\xg.log", "w");
+	logfile_ = fopen("D:\\xg.log", "w");
     ERR_MSG( "Begin %s", __FUNCTION__ );
 
 	for (auto& f : funcs_)
@@ -258,5 +258,5 @@ GDef& GDef::ref() {
 	return def;
 }
 
-#include <boost/regex/pending/unicode_iterator.hpp>
+//#include <boost/regex/pending/unicode_iterator.hpp>
 

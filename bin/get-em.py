@@ -120,7 +120,7 @@ def download(filename):
             if random.randint(1,100) >70:
                 session = requests.Session()
 
-def parse():
+def parse(dir, files):
     global _NAMES
     def sdic():
         names = {}
@@ -131,24 +131,22 @@ def parse():
         return names
     _NAMES = sdic()
 
-    top = '.'
-    if len(sys.argv) > 1:
-        top = sys.argv[1]
-    for top, dirs, files in os.walk( top ):
-        for fn in files:
-            bn,ext = os.path.splitext( fn.strip() )
-            if ext == '.html':
-                v = bn.split('.')
-                code,market = int(v[0]), int(v[1])
-                with open( os.path.join(top,fn) ) as f:
-                    try:
-                        parse_html(code, market, f.read())
-                    except Exception:
-                        print('parse fail:', fn, file=sys.stderr)
-        break
+    for fn in files:
+        bn,ext = os.path.splitext( fn.strip() )
+        if ext != '.html':
+            continue
+        v = bn.split('.')
+        code,market = int(v[0]), int(v[1])
+        with open( os.path.join(dir,fn) ) as f:
+            try:
+                parse_html(code, market, f.read())
+            except Exception:
+                print('parse fail:', fn, file=sys.stderr)
 
 def main():
-    parse()
+    for top, dirs, files in os.walk( len(sys.argv)>1 and sys.argv[1] or '.' ):
+        parse(top,files)
+        break
     #download(sys.argv[1])
 
 if __name__ == '__main__':
