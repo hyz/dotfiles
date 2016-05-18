@@ -497,6 +497,9 @@ struct data_sink
     }
     void commit(buffer_ref&& bp)
     {
+        if (!qs_.empty() && qs_.size() % 10 == 0) {
+            LOGD("qs.size %d", (int)qs_.size());
+        }
         qs_.push_back(std::move(bp));
         //auto it = iterator_before(blis_, *bp);
         //auto p = it++;
@@ -531,7 +534,7 @@ struct data_sink
     //    //hgs_buffer_release(idx, timestamp, flags);
     //}
 
-    int size() const { return qs_.size(); }
+    //int size() const { return qs_.size(); }
 
     void input_queue_swap()
     {
@@ -662,7 +665,9 @@ struct h264nal : private boost::noncopyable
                         h3->f = h1->f;
                         h3->print(data,end);
                         // data = fill_start_bytes(data-4);
-                        // if (bufp_) sink_->free_buf(*bufp_);
+                        if (bufp_.ok()) {
+                            LOGE("FU-A loss");
+                        }
                         bufp_ = sink_->locate_buf(*rtp_h);
                     } else {
                         BOOST_ASSERT(bufp_.size > 0);
@@ -1369,7 +1374,7 @@ private:
 //height= ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_top_offset * 2) - (frame_crop_bottom_offset * 2);
 
 
-#if 1
+#if 0
 struct h264file_mmap 
 {
     typedef std::pair<uint8_t*,uint8_t*> range;
@@ -1542,6 +1547,7 @@ void hgs_poll_once()
     //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
 
     hgs_.io_service->poll_one();
+    hgs_.rtcp->sink_.input_queue_swap();
     hgs_.rtcp->rreport();
 }
 
