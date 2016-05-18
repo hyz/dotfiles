@@ -301,56 +301,54 @@ struct buffer_ref /*: boost::intrusive::slist_base_hook<>*/ {
     struct Nal {
         uint32_t _4bytes;
         nal_unit_header nal_h;
-        uint8_t begin[1];
-    } *objptr = 0;
+        uint8_t data[1];
+    } *base_ptr = 0;
     unsigned size, capacity;
 
     ~buffer_ref() {
-        if (objptr)
-            free(objptr);
+        if (base_ptr)
+            free(base_ptr);
     }
     buffer_ref() {
         size = capacity = 0;
-        objptr = 0; // rtp_h = rtp_header{};
+        base_ptr = 0; // rtp_h = rtp_header{};
     }
-    buffer_ref(rtp_header const& rh, nal_unit_header const& nh, uint8_t* data=0, uint8_t* end=0) {
+    buffer_ref(rtp_header const& rh, uint8_t* data=0, uint8_t* end=0) {
         capacity = 2048;
-        objptr = (Nal*)malloc(capacity);
-        size = sizeof(Nal)-1;
+        size = 0; //+sizeof(nal_unit_header); //sizeof(Nal)-1;
+        base_ptr = (Nal*)malloc(capacity);
         rtp_h = rh;
-        objptr->nal_h = nh;
-        objptr->_4bytes = htonl(0x01000000);
-        if (data && end)
+        base_ptr->_4bytes = htonl(0x00000001); // base_ptr->nal_h = nh;
+
+        if (data && data<end)
             put(data, end);
     }
 
     buffer_ref(buffer_ref&& rhs) {
         memcpy(this, &rhs, sizeof(*this));
         rhs.size = rhs.capacity = 0;
-        rhs.objptr = 0;
+        rhs.base_ptr = 0;
     }
     buffer_ref& operator=(buffer_ref&& rhs) {
         if (this != &rhs) {
-            if (objptr)
-                free(objptr);
+            if (base_ptr)
+                free(base_ptr);
             memcpy(this, &rhs, sizeof(*this));
             rhs.size = rhs.capacity = 0;
-            rhs.objptr = 0;
+            rhs.base_ptr = 0;
         }
         return *this;
     }
 
-    uint8_t* addr(int pos) const { return (uint8_t*)objptr+pos; }
-    bool ok() const { return !!objptr; }
+    uint8_t* addr(int offs) const { return base_ptr->data +(-1 + offs); }
+    bool ok() const { return !!base_ptr; }
 
     void put(uint8_t const* p, uint8_t const* end) {
-        if (!objptr) {
-            ERR_EXIT("put"); return;
-        }
+        BOOST_ASSERT( base_ptr );
         unsigned siz = end - p;
         if (capacity - size < siz) {
             capacity += (siz+2047)/1024*1024;
-            objptr = (Nal*)realloc(objptr, capacity);
+            base_ptr = (Nal*)realloc(base_ptr, capacity);
         }
         memcpy(addr(size), p, siz);
         size += siz;
@@ -384,9 +382,9 @@ struct data_sink
         //b.used = 0;
     }
 
-    buffer_ref locate_buf(rtp_header* rh, nal_unit_header* nh)
+    buffer_ref locate_buf(rtp_header const& rh)
     {
-        return buffer_ref(*rh, *nh);
+        return buffer_ref(rh);
 #if 0
         auto head_not_used = [this](slist_type& lis) {
             if (!lis.empty()) {
@@ -505,9 +503,9 @@ struct data_sink
         //blis_ready_.splice_after(blis_ready_.last(), blis_, p);
     }
 
-    void commit(rtp_header* rh, nal_unit_header* nh, uint8_t* data, uint8_t* end)
+    void commit(rtp_header const& rh, uint8_t* data, uint8_t* end)
     {
-        commit(buffer_ref(*rh, *nh, data, end));
+        commit(buffer_ref(rh, data, end));
         //auto* bp = locate_buf(rh,nh);
         //if (bp) {
         //    put(bp, data, end);
@@ -549,11 +547,11 @@ struct data_sink
         qs_.pop_front();
 
         int flags = 0;
-        switch (buf.objptr->nal_h.type) {
+        switch (buf.base_ptr->nal_h.type) {
             case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
         }
 
-        hgs_buffer_inflate(idx, (char*)buf.addr(0), buf.size);
+        hgs_buffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
         hgs_buffer_release(idx, 1, flags);
 
         //=int idx;
@@ -599,7 +597,7 @@ struct h264nal : private boost::noncopyable
         //if (bufp_) sink_->free_buf(*bufp_);
     }
 
-    void sprop_parameter_sets(std::string const& sps, std::string const& pps)
+    void sprop_parameter_sets(std::string sps, std::string pps)
     {
         BOOST_STATIC_ASSERT(sizeof(int)==4);
         if (sps.empty())
@@ -623,14 +621,12 @@ struct h264nal : private boost::noncopyable
         //=sink_->commit0(beg, beg+len, 0, BUFFER_FLAG_CODEC_CONFIG);
 
         uint8_t sbytes[4] = {0,0,0,1};
-        rtp_header rtp_h = {};
-        nal_unit_header nal_h = {};
 
-        auto bp = sink_->locate_buf(&rtp_h, &nal_h);
-        sink_->put(bp, (uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
-        sink_->put(bp, &sbytes[0], &sbytes[4]);
-        sink_->put(bp, (uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
-        sink_->commit(std::move(bp));
+        buffer_ref b = sink_->locate_buf( rtp_header{} );
+        b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
+        b.put(&sbytes[0], &sbytes[4]);
+        b.put((uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
+        sink_->commit(std::move(b));
     }
 
     void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end) //const
@@ -650,7 +646,7 @@ struct h264nal : private boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_->commit(rtp_h, h2, data/*fill_start_bytes(data-4)*/, data+len); //sink_->commit(timestamp, 0);
+                        sink_->commit(*rtp_h, data/*fill_start_bytes(data-4)*/, data+len); //sink_->commit(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -667,10 +663,13 @@ struct h264nal : private boost::noncopyable
                         h3->print(data,end);
                         // data = fill_start_bytes(data-4);
                         // if (bufp_) sink_->free_buf(*bufp_);
-                        bufp_ = sink_->locate_buf(rtp_h, h3);
+                        bufp_ = sink_->locate_buf(*rtp_h);
                     } else {
-                        if (!bufp_.ok())
+                        BOOST_ASSERT(bufp_.size > 0);
+                        if (bufp_.size <= 0) {
+                            LOGE("FU-A buf.size error");
                             return;
+                        }
                         ++data;
                     }
                     sink_->put(bufp_, data, end);
@@ -681,7 +680,7 @@ struct h264nal : private boost::noncopyable
                 break;
             default:
                 if (h1->type < 24) {
-                    sink_->commit(rtp_h, h1, data/*fill_start_bytes(data-4)*/, end);
+                    sink_->commit(*rtp_h, data/*fill_start_bytes(data-4)*/, end);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
