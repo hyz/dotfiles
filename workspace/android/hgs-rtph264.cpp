@@ -2,7 +2,8 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <cstdlib>
-#include <iostream>
+#include <deque>
+//#include <iostream>
 #include <boost/static_assert.hpp>
 #define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
 #include <boost/scope_exit.hpp>
@@ -62,6 +63,8 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 extern "C" {
+    //int  hgs_queue_input(uint8_t*data, uint8_t*end, int flags, unsigned);
+
     int  hgs_buffer_obtain(int timeout);
     void hgs_buffer_inflate(int idx, char* p, size_t len);
     void hgs_buffer_release(int idx, unsigned timestamp, int flags);
@@ -293,20 +296,80 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
-struct buffer_ref : boost::intrusive::slist_base_hook<> {
+struct buffer_ref /*: boost::intrusive::slist_base_hook<>*/ {
     rtp_header rtp_h;
-    nal_unit_header nal_h;
-      signed char bufindex = -1;
-    unsigned char flags = 0;
-    bool used = 0;
+    struct Nal {
+        uint32_t _4bytes;
+        nal_unit_header nal_h;
+        uint8_t begin[1];
+    } *objptr = 0;
+    unsigned size, capacity;
+
+    ~buffer_ref() {
+        if (objptr)
+            free(objptr);
+    }
+    buffer_ref() {
+        size = capacity = 0;
+        objptr = 0; // rtp_h = rtp_header{};
+    }
+    buffer_ref(rtp_header const& rh, nal_unit_header const& nh, uint8_t* data=0, uint8_t* end=0) {
+        capacity = 2048;
+        objptr = (Nal*)malloc(capacity);
+        size = sizeof(Nal)-1;
+        rtp_h = rh;
+        objptr->nal_h = nh;
+        objptr->_4bytes = htonl(0x01000000);
+        if (data && end)
+            put(data, end);
+    }
+
+    buffer_ref(buffer_ref&& rhs) {
+        memcpy(this, &rhs, sizeof(*this));
+        rhs.size = rhs.capacity = 0;
+        rhs.objptr = 0;
+    }
+    buffer_ref& operator=(buffer_ref&& rhs) {
+        if (this != &rhs) {
+            if (objptr)
+                free(objptr);
+            memcpy(this, &rhs, sizeof(*this));
+            rhs.size = rhs.capacity = 0;
+            rhs.objptr = 0;
+        }
+        return *this;
+    }
+
+    uint8_t* addr(int pos) const { return (uint8_t*)objptr+pos; }
+    bool ok() const { return !!objptr; }
+
+    void put(uint8_t const* p, uint8_t const* end) {
+        if (!objptr) {
+            ERR_EXIT("put"); return;
+        }
+        unsigned siz = end - p;
+        if (capacity - size < siz) {
+            capacity += (siz+2047)/1024*1024;
+            objptr = (Nal*)realloc(objptr, capacity);
+        }
+        memcpy(addr(size), p, siz);
+        size += siz;
+    }
+
+private:
+    buffer_ref(buffer_ref const&);// = delete;
+    buffer_ref& operator=(buffer_ref const&);// = delete;
 };
 
 struct data_sink
 {
-    signed char nri_ = -1;
-    buffer_ref bufarray_[6];
-    typedef boost::intrusive::slist<buffer_ref,boost::intrusive::cache_last<true>> slist_type;
-    slist_type blis_, blis_ready_;
+    // uint8_t *begin_, *end_;
+    std::deque<buffer_ref> qs_;
+
+    //signed char nri_ = -1;
+    //buffer_ref bufarray_[6];
+    //typedef boost::intrusive::slist<buffer_ref,boost::intrusive::cache_last<true>> slist_type;
+    //slist_type blis_, blis_ready_;
 
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
 
@@ -316,13 +379,15 @@ struct data_sink
         //}
     }
 
-    void release_buf(buffer_ref& b) {
-        hgs_buffer_release(b.bufindex, 0, 0xf7);
-        b.used = 0;
+    void free_buf(buffer_ref& b) {
+        //hgs_buffer_release(b.bufindex, 0, 0xf7);
+        //b.used = 0;
     }
 
-    buffer_ref* locate_buf(rtp_header* rh, nal_unit_header* nh)
+    buffer_ref locate_buf(rtp_header* rh, nal_unit_header* nh)
     {
+        return buffer_ref(*rh, *nh);
+#if 0
         auto head_not_used = [this](slist_type& lis) {
             if (!lis.empty()) {
                 auto it = lis.before_begin();
@@ -345,7 +410,7 @@ struct data_sink
         //    while (it != lis.end()) {
         //        if (((rh->seq < it->rtp_h.seq ? 0x10000u:0u) + rh->seq - it->rtp_h.seq) >= 6) {
         //            LOGD("seq %d discard: %d", rh->seq, it->rtp_h.seq);
-        //            release_buf(*it++);
+        //            free_buf(*it++);
         //            //lis.splice_after(lis.before_begin(), lis, prev_it);
         //        } else 
         //            prev_it=it++;
@@ -378,17 +443,27 @@ struct data_sink
             blis_.splice_after(blis_.before_begin(), lis, prev_min_it);
             return 1;
         };
-
-        if (blis_.empty() && blis_ready_.empty()) { // init
-            for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
-                int idx;
-                while ( (idx = hgs_buffer_obtain(1000)) < 0) {
-                    LOGE("buffer obtain: %d", idx);
-                }
-                bufarray_[x].bufindex = idx;
-                blis_.push_front(bufarray_[x]);
+        auto found = [this,rh,nh](slist_type::iterator it) { //BOOST_SCOPE_EXIT(this,&it,rh,nh);
+            if (nri_>=0) { //(nri_ >= 0 && nri >= 0x3)
+                LOGD("reset nri_");
+                this->nri_ = -1;
             }
-        }
+            it->rtp_h = *rh;
+            it->nal_h = *nh;
+            it->used = 1;
+            return it.operator->();
+        };
+
+        //if (blis_.empty() && blis_ready_.empty()) { // init
+        //    for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
+        //        int idx;
+        //        while ( (idx = hgs_buffer_obtain(1000)) < 0) {
+        //            LOGE("buffer obtain x: %d", idx);
+        //        }
+        //        bufarray_[x].bufindex = idx;
+        //        blis_.push_front(bufarray_[x]);
+        //    }
+        //}
         BOOST_ASSERT(nri_ < 0x3);
 
         int nri = NRI(nh);
@@ -398,18 +473,8 @@ struct data_sink
         }
 
         slist_type::iterator it = head_not_used(blis_);
-        BOOST_SCOPE_EXIT(this,&it) {
-            if (nri_>=0 && it != blis_.end()) { //(nri_ >= 0 && nri >= 0x3)
-                LOGD("reset nri_");
-                this->nri_ = -1;
-            }
-        };
-
         if (it != blis_.end()) {
-            it->rtp_h = *rh;
-            it->nal_h = *nh;
-            it->used = 1;
-            return it.operator->();
+            return found(it);
         }
 
         if (!discard_bynri(blis_, nri) && !discard_bynri(blis_ready_, nri)) {
@@ -420,51 +485,87 @@ struct data_sink
         }
 
         BOOST_ASSERT(!blis_.empty() && !blis_.front().used);
-        it = blis_.begin();
-        it->rtp_h = *rh;
-        it->nal_h = *nh;
-        it->used = 1;
-        return it.operator->();
+        return found(blis_.begin());
+#endif
     }
 
-    void put(buffer_ref* bp, uint8_t const* data, uint8_t const* end)
+    void put(buffer_ref& bp, uint8_t const* data, uint8_t const* end)
     {
-        this->statis(&bp->rtp_h, data, end);
-        //totsiz_ += (end-data);
+        bp.put(data, end);
+        this->statis(&bp.rtp_h, data, end);
 
-        hgs_buffer_inflate(bp->bufindex, (char*)data, end-data);
+        //hgs_buffer_inflate(bp->bufindex, (char*)data, end-data);
+        //return bp;
     }
-    void commit(buffer_ref* bp, int flags)
+    void commit(buffer_ref&& bp)
     {
-        auto it = iterator_before(blis_, *bp);
-        auto p = it++;
-        it->flags = flags;
-        blis_ready_.splice_after(blis_ready_.last(), blis_, p);
+        qs_.push_back(std::move(bp));
+        //auto it = iterator_before(blis_, *bp);
+        //auto p = it++;
+        //blis_ready_.splice_after(blis_ready_.last(), blis_, p);
     }
 
-    void commit(rtp_header* rh, nal_unit_header* nh, uint8_t const* data, uint8_t const* end, int flags)
+    void commit(rtp_header* rh, nal_unit_header* nh, uint8_t* data, uint8_t* end)
     {
-        auto* bp = locate_buf(rh,nh);
-        if (bp) {
-            bp->rtp_h = *rh; //bp->timestamp = rh->timestamp;
-            bp->nal_h = *nh;
-            put(bp, data, end);
-            commit(bp, flags);
-        }
+        commit(buffer_ref(*rh, *nh, data, end));
+        //auto* bp = locate_buf(rh,nh);
+        //if (bp) {
+        //    put(bp, data, end);
+        //    commit(bp, flags);
+        //}
+
+        //int flags = 0;
+        //switch (nh->type) {
+        //    case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
+        //}
+        //int idx = hgs_queue_input(data, end, flags, rh->timestamp);
     }
+
+    //void commit0(uint8_t* data, uint8_t* end, unsigned timestamp, int flags)
+    //{
+    //    int idx = hgs_queue_input(data, end, flags, 0);
+    //    //int idx;
+    //    //if ((idx = hgs_buffer_obtain(1000)) < 0) {
+    //    //    LOGE("buffer obtain: %d", idx);
+    //    //    return;
+    //    //}
+    //    //hgs_buffer_inflate(idx, (char*)data, end-data);
+    //    //hgs_buffer_release(idx, timestamp, flags);
+    //}
+
+    int size() const { return qs_.size(); }
 
     void input_queue_swap()
     {
         int idx;
-        while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
-            buffer_ref& b = blis_ready_.front(); // blis_ready_.pop_front();
-
-            hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
-
-            b.bufindex = idx;
-            b.used = 0;
-            blis_.splice_after(blis_.last(), blis_ready_, blis_ready_.before_begin());
+        if (qs_.empty())
+            return;
+        if ( (idx = hgs_buffer_obtain(1000)) < 0) {
+            LOGW("buffer obtain: %d", idx);
+            return;
         }
+
+        buffer_ref buf = std::move(qs_.front()); // blis_ready_.pop_front();
+        qs_.pop_front();
+
+        int flags = 0;
+        switch (buf.objptr->nal_h.type) {
+            case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
+        }
+
+        hgs_buffer_inflate(idx, (char*)buf.addr(0), buf.size);
+        hgs_buffer_release(idx, 1, flags);
+
+        //=int idx;
+        //=while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
+        //=    buffer_ref& b = blis_ready_.front(); // blis_ready_.pop_front();
+
+        //=    hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
+
+        //=    b.bufindex = idx;
+        //=    b.used = 0;
+        //=    blis_.splice_after(blis_.last(), blis_ready_, blis_ready_.before_begin());
+        //=}
 
         //++ncommit_;
         //unsigned ts = stimestamp();
@@ -475,27 +576,16 @@ struct data_sink
         //}
     }
 
-    void commit0(uint8_t* data, uint8_t* end, unsigned timestamp, int flags)
-    {
-        int idx;
-        if ((idx = hgs_buffer_obtain(1000)) < 0) {
-            LOGE("buffer obtain: %d", idx);
-            return;
-        }
-        hgs_buffer_inflate(idx, (char*)data, end-data);
-        hgs_buffer_release(idx, timestamp, flags);
-    }
-
-    static slist_type::iterator iterator_before(slist_type& blis, buffer_ref& b)
-    {
-        auto it = blis.before_begin();
-        auto p = it++;
-        for (; it != blis.end(); p=it++) {
-            if (it.operator->() == &b)
-                break;
-        }
-        return p;
-    }
+    //static slist_type::iterator iterator_before(slist_type& blis, buffer_ref& b)
+    //{
+    //    auto it = blis.before_begin();
+    //    auto p = it++;
+    //    for (; it != blis.end(); p=it++) {
+    //        if (it.operator->() == &b)
+    //            break;
+    //    }
+    //    return p;
+    //}
 
     // unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
 };
@@ -505,29 +595,42 @@ struct h264nal : private boost::noncopyable
     //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
     //FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
     // std::string sps_, pps_;
+    ~h264nal() {
+        //if (bufp_) sink_->free_buf(*bufp_);
+    }
 
     void sprop_parameter_sets(std::string const& sps, std::string const& pps)
     {
         BOOST_STATIC_ASSERT(sizeof(int)==4);
         if (sps.empty())
             return;
-        //sps_ = std::move(sps); pps_ = std::move(pps);
-        std::vector<int32_t> buf(2 + (sps.length()+pps.length())/sizeof(int32_t) +1);
-        uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
+        //=//sps_ = std::move(sps); pps_ = std::move(pps);
+        //=std::vector<int32_t> buf(2 + (sps.length()+pps.length())/sizeof(int32_t) +1);
+        //=uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
 
-        beg[0] = beg[1] = beg[2] = 0; beg[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
-        memcpy(beg+4, sps.data(), sps.length());
+        //=beg[0] = beg[1] = beg[2] = 0; beg[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
+        //=memcpy(beg+4, sps.data(), sps.length());
 
-        int len = 4+sps.length();
-        uint8_t* p = beg + len;
-        if (!pps.empty()) {
-            p[0] = p[1] = p[2] = 0; p[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
-            memcpy(p+4, pps.data(), pps.length());
-            len += 4+pps.length();
-        }
+        //=int len = 4+sps.length();
+        //=uint8_t* p = beg + len;
+        //=if (!pps.empty()) {
+        //=    p[0] = p[1] = p[2] = 0; p[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
+        //=    memcpy(p+4, pps.data(), pps.length());
+        //=    len += 4+pps.length();
+        //=}
 
-        //sink_->put(beg, beg+len);
-        sink_->commit0(beg, beg+len, 0, BUFFER_FLAG_CODEC_CONFIG);
+        //=//sink_->put(beg, beg+len);
+        //=sink_->commit0(beg, beg+len, 0, BUFFER_FLAG_CODEC_CONFIG);
+
+        uint8_t sbytes[4] = {0,0,0,1};
+        rtp_header rtp_h = {};
+        nal_unit_header nal_h = {};
+
+        auto bp = sink_->locate_buf(&rtp_h, &nal_h);
+        sink_->put(bp, (uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
+        sink_->put(bp, &sbytes[0], &sbytes[4]);
+        sink_->put(bp, (uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
+        sink_->commit(std::move(bp));
     }
 
     void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end) //const
@@ -535,7 +638,6 @@ struct h264nal : private boost::noncopyable
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
             return;
-
         h1->print(data,end);
 
         switch (h1->type) {
@@ -548,7 +650,7 @@ struct h264nal : private boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_->commit(rtp_h, h2, fill_start_bytes(data-4), data+len, 0); //sink_->commit(timestamp, 0);
+                        sink_->commit(rtp_h, h2, data/*fill_start_bytes(data-4)*/, data+len); //sink_->commit(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -563,25 +665,23 @@ struct h264nal : private boost::noncopyable
                         h3->nri = h1->nri;
                         h3->f = h1->f;
                         h3->print(data,end);
-                        data = fill_start_bytes(data-4);
-                        if (bufp_)
-                            sink_->release_buf(*bufp_);
+                        // data = fill_start_bytes(data-4);
+                        // if (bufp_) sink_->free_buf(*bufp_);
                         bufp_ = sink_->locate_buf(rtp_h, h3);
                     } else {
+                        if (!bufp_.ok())
+                            return;
                         ++data;
                     }
                     sink_->put(bufp_, data, end);
                     if (fuh.e) {
-                        sink_->commit(bufp_, 0);
-                        bufp_ = 0;
+                        sink_->commit(std::move(bufp_));
                     }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    //sink_->put(rtp_h, fill_start_bytes(data-4), end);
-                    sink_->commit(rtp_h, h1, fill_start_bytes(data-4), end
-                            , (h1->type==7 || h1->type==8) ? BUFFER_FLAG_CODEC_CONFIG : 0);
+                    sink_->commit(rtp_h, h1, data/*fill_start_bytes(data-4)*/, end);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -589,18 +689,22 @@ struct h264nal : private boost::noncopyable
         }
     }
 
-    static uint8_t* fill_start_bytes(uint8_t* data) {
-        data[0] = data[1] = data[2] = '\0';
-        data[3] = 1;
-        return data;
+    void lose(unsigned seq) {
+        bufp_ = buffer_ref();
     }
+
+    //static uint8_t* fill_start_bytes(uint8_t* data) {
+    //    data[0] = data[1] = data[2] = '\0';
+    //    data[3] = 1;
+    //    return data;
+    //}
 
     void set_data_sink(data_sink* sink) {
         sink_ = sink;
     }
 
     data_sink* sink_ = 0;
-    buffer_ref* bufp_ = 0;
+    buffer_ref bufp_;
 };
 
 struct rtp_receiver : h264nal //, private boost::noncopyable
@@ -611,6 +715,9 @@ struct rtp_receiver : h264nal //, private boost::noncopyable
         : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
     {
         LOGD("rtp_receiver");
+    }
+    ~rtp_receiver() {
+        // for (auto* p : bufs_) if(p) free(p);
     }
 
     void teardown() {
@@ -645,20 +752,22 @@ private: // rtsp communication
                     ERR_EXIT("rtp_header::cast"); return;
                 } else {
                     h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    //rtcp_update_(rtcp_, h           , bufptr()+h->length(), bufptr()+bytes_recvd);
+                    //if (rtp_h.seq == expseq_) {}
                     rtp_header rtp_h = *h;
                     this->nalu_incoming(&rtp_h, bufptr()+h->length(), bufptr()+bytes_recvd);
                 }
             }
             using namespace boost::asio;
-            udpsock_.async_receive_from(
-                    boost::asio::buffer(bufptr(), BufSiz), peer_endpoint_,
-                    boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
+            udpsock_.async_receive_from( boost::asio::buffer(bufptr(), BufSiz)
+                    , peer_endpoint_
+                    , boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
         }
     }
 
     ip::udp::socket udpsock_;
     ip::udp::endpoint peer_endpoint_;
+    //unsigned short expseq_ = 0;
+    //std::array<uint8_t*,8> bufs_ = {};
 
     uint8_t* bufptr() const { return reinterpret_cast<uint8_t*>(&const_cast<This*>(this)->buf_)+4; }
     enum { BufSiz = (1024*32-4) };
@@ -1310,6 +1419,7 @@ struct h264file_printer : boost::noncopyable, data_sink
 
     h264file_printer(int fd) : h264f_(fd) {
         nalu_.sink_ = this;
+        range_ = h264f_.begin();
     }
 
     int setup(int, char*[]) {
@@ -1317,16 +1427,15 @@ struct h264file_printer : boost::noncopyable, data_sink
     }
 
     void pump() {
-        if (range_.first == range_.second)
-            range_ = h264f_.begin();
+        if (this->size() > 10) {
+            return;
+        }
 
         if (range_.first < range_.second) {
             nalu_.nalu_incoming(&rtp_h, range_.first, range_.second);
-
             rtp_h.seq = htons(ntohs(rtp_h.seq)+1);
             rtp_h.timestamp = htonl(ntohl(rtp_h.timestamp)+20);
         }
-
         range_ = h264f_.next(range_);
 
         //ntohl(rtp_h.timestamp)

@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 #include <jni.h>
 
 #include <android/log.h>
@@ -7,6 +8,8 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 // extern "C" {
+    int  hgs_queue_input(uint8_t*data, uint8_t*end, int flags, unsigned);
+
     int  hgs_buffer_obtain(int timeout);
     void hgs_buffer_inflate(int idx, char* p, size_t len);
     void hgs_buffer_release(int idx, unsigned timestamp, int flags);
@@ -18,9 +21,23 @@
 
 static JNIEnv * env_= NULL;
 static jobject oRtpH264 = NULL;
+static jmethodID MID_queue_input  = 0;
 static jmethodID MID_obtain  = 0;
 static jmethodID MID_inflate = 0;
 static jmethodID MID_release = 0;
+
+int hgs_queue_input(uint8_t*data, uint8_t*end, int flags, unsigned ts)
+{
+    jobject buf = (*env_)->NewDirectByteBuffer(env_, data, end-data);
+    int idx = (*env_)->CallIntMethod(env_, oRtpH264, MID_queue_input, buf, flags, ts);
+
+    jthrowable ex = (*env_)->ExceptionOccurred(env_);
+    if (ex != NULL) {
+        (*env_)->ExceptionDescribe(env_);
+        (*env_)->ExceptionClear(env_);
+    }
+    return idx;
+}
 
 int hgs_buffer_obtain(int timeout)
 {
@@ -87,6 +104,7 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     env_ = env;
     oRtpH264 = (*env)->NewGlobalRef(env, thiz);
 
+    MID_queue_input  = (*env)->GetMethodID(env, cls, "queueInput", "(Ljava/nio/ByteBuffer;II)I");
     MID_obtain  = (*env)->GetMethodID(env, cls, "obtain" , "(I)I");
     MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(ILjava/nio/ByteBuffer;)V");
     MID_release = (*env)->GetMethodID(env, cls, "release", "(III)V");
