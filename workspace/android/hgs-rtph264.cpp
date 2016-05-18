@@ -29,7 +29,7 @@
 #include <thread>
 #include <mutex>
 #include <chrono> //#include <boost/chrono.hpp>
-namespace chrono = std::chrono;
+
 #if defined(__ANDROID__)
 #  include <regex> //<boost/regex.hpp>
 namespace re = std;
@@ -37,6 +37,8 @@ namespace re = std;
 #  include <boost/regex.hpp>
 namespace re = boost;
 #endif
+namespace chrono = std::chrono;
+namespace ip = boost::asio::ip;
 
 #if defined(__ANDROID__)
 #  include <android/log.h>
@@ -46,10 +48,10 @@ namespace re = boost;
 #  define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #  define ERR_EXIT(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #  define NOT_PRINT_PROTO 1
-#else
 
-template <typename... As> void err_exit_(int lin_, char const* fmt, As... a)
-{
+#else // !__ANDROID__
+
+template <typename... As> void err_exit_(int lin_, char const* fmt, As... a) {
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
@@ -109,8 +111,6 @@ template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
     memcpy(&val, data, sizeof(Int));
     return Ntoh_<Int,sizeof(Int)>::cast(val);
 }
-
-namespace ip = boost::asio::ip;
 
 static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
 {
@@ -301,24 +301,24 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
-struct buffer_ref /*: boost::intrusive::slist_base_hook<>*/ {
+struct mbuffer /*: boost::intrusive::slist_base_hook<>*/ {
     rtp_header rtp_h;
     struct Nal {
         uint32_t _4bytes;
-        nal_unit_header nal_h;
+        nal_unit_header nal_h; // size 0 pos
         uint8_t data[1];
     } *base_ptr = 0;
     unsigned size, capacity;
 
-    ~buffer_ref() {
+    ~mbuffer() {
         if (base_ptr)
             free(base_ptr);
     }
-    buffer_ref() {
+    mbuffer() {
         size = capacity = 0;
         base_ptr = 0; // rtp_h = rtp_header{};
     }
-    buffer_ref(rtp_header const& rh, uint8_t* data=0, uint8_t* end=0) {
+    mbuffer(rtp_header const& rh, uint8_t* data=0, uint8_t* end=0) {
         capacity = 2048;
         size = 0; //+sizeof(nal_unit_header); //sizeof(Nal)-1;
         base_ptr = (Nal*)malloc(capacity);
@@ -329,12 +329,12 @@ struct buffer_ref /*: boost::intrusive::slist_base_hook<>*/ {
             put(data, end);
     }
 
-    buffer_ref(buffer_ref&& rhs) {
+    mbuffer(mbuffer&& rhs) {
         memcpy(this, &rhs, sizeof(*this));
         rhs.size = rhs.capacity = 0;
         rhs.base_ptr = 0;
     }
-    buffer_ref& operator=(buffer_ref&& rhs) {
+    mbuffer& operator=(mbuffer&& rhs) {
         if (this != &rhs) {
             if (base_ptr)
                 free(base_ptr);
@@ -360,36 +360,32 @@ struct buffer_ref /*: boost::intrusive::slist_base_hook<>*/ {
     }
 
 private:
-    buffer_ref(buffer_ref const&);// = delete;
-    buffer_ref& operator=(buffer_ref const&);// = delete;
+    mbuffer(mbuffer const&);// = delete;
+    mbuffer& operator=(mbuffer const&);// = delete;
 };
 
 struct data_sink
 {
     // uint8_t *begin_, *end_;
-    std::deque<buffer_ref> qs_;
+    std::deque<mbuffer> bufs_;
 
     //signed char nri_ = -1;
-    //buffer_ref bufarray_[6];
-    //typedef boost::intrusive::slist<buffer_ref,boost::intrusive::cache_last<true>> slist_type;
+    //mbuffer bufarray_[6];
+    //typedef boost::intrusive::slist<mbuffer,boost::intrusive::cache_last<true>> slist_type;
     //slist_type blis_, blis_ready_;
 
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
 
-    virtual ~data_sink() {
-        //if (bufindex_ >= 0) {
-        //    hgs_buffer_release(bufindex_, 0, 0);
-        //}
-    }
+    virtual ~data_sink() {}
 
-    void free_buf(buffer_ref& b) {
+    void free_buf(mbuffer& b) {
         //hgs_buffer_release(b.bufindex, 0, 0xf7);
         //b.used = 0;
     }
 
-    buffer_ref locate_buf(rtp_header const& rh)
+    mbuffer locate_buf(rtp_header const& rh)
     {
-        return buffer_ref(rh);
+        return mbuffer(rh);
 #if 0
         auto head_not_used = [this](slist_type& lis) {
             if (!lis.empty()) {
@@ -492,7 +488,7 @@ struct data_sink
 #endif
     }
 
-    void put(buffer_ref& bp, uint8_t const* data, uint8_t const* end)
+    void put(mbuffer& bp, uint8_t const* data, uint8_t const* end)
     {
         bp.put(data, end);
         this->statis(&bp.rtp_h, data, end);
@@ -500,14 +496,14 @@ struct data_sink
         //hgs_buffer_inflate(bp->bufindex, (char*)data, end-data);
         //return bp;
     }
-    void commit(buffer_ref&& bp)
+    void commit(mbuffer&& bp)
     {
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (!qs_.empty() && qs_.size() % 10 == 0) {
-            LOGD("qs.size %d", (int)qs_.size());
+        if (!bufs_.empty() && bufs_.size() % 10) {
+            LOGD("bufs.size %d", (int)bufs_.size());
         }
-        qs_.push_back(std::move(bp));
+        bufs_.push_back(std::move(bp));
         //auto it = iterator_before(blis_, *bp);
         //auto p = it++;
         //blis_ready_.splice_after(blis_ready_.last(), blis_, p);
@@ -515,7 +511,7 @@ struct data_sink
 
     void commit(rtp_header const& rh, uint8_t* data, uint8_t* end)
     {
-        commit(buffer_ref(rh, data, end));
+        commit(mbuffer(rh, data, end));
         //auto* bp = locate_buf(rh,nh);
         //if (bp) {
         //    put(bp, data, end);
@@ -541,16 +537,16 @@ struct data_sink
     //    //hgs_buffer_release(idx, timestamp, flags);
     //}
 
-    //int size() const { return qs_.size(); }
+    //int size() const { return bufs_.size(); }
 
     void input_queue_swap()
     {
         int idx = -1;
-        buffer_ref buf;
+        mbuffer buf;
 
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (qs_.empty())
+            if (bufs_.empty())
                 return;
 
             idx = hgs_buffer_obtain(50);
@@ -559,8 +555,8 @@ struct data_sink
                 return;
             }
 
-            buf = std::move(qs_.front()); // blis_ready_.pop_front();
-            qs_.pop_front();
+            buf = std::move(bufs_.front()); // blis_ready_.pop_front();
+            bufs_.pop_front();
         }
 
         int flags = 0;
@@ -573,7 +569,7 @@ struct data_sink
 
         //=int idx;
         //=while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
-        //=    buffer_ref& b = blis_ready_.front(); // blis_ready_.pop_front();
+        //=    mbuffer& b = blis_ready_.front(); // blis_ready_.pop_front();
 
         //=    hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
 
@@ -591,7 +587,7 @@ struct data_sink
         //}
     }
 
-    //static slist_type::iterator iterator_before(slist_type& blis, buffer_ref& b)
+    //static slist_type::iterator iterator_before(slist_type& blis, mbuffer& b)
     //{
     //    auto it = blis.before_begin();
     //    auto p = it++;
@@ -609,39 +605,16 @@ struct data_sink
 
 struct h264nal : private boost::noncopyable
 {
-    //struct Fclose { void operator()(FILE* fp) const { if(fp)fclose(fp); } };
-    //FILE* dump_fp_; //std::unique_ptr<FILE,decltype(&fclose)> fp_;
     // std::string sps_, pps_;
-    ~h264nal() {
-        //if (bufp_) sink_->free_buf(*bufp_);
-    }
 
     void sprop_parameter_sets(std::string sps, std::string pps)
     {
         BOOST_STATIC_ASSERT(sizeof(int)==4);
         if (sps.empty())
             return;
-        //=//sps_ = std::move(sps); pps_ = std::move(pps);
-        //=std::vector<int32_t> buf(2 + (sps.length()+pps.length())/sizeof(int32_t) +1);
-        //=uint8_t* beg = reinterpret_cast<uint8_t*>( &buf[0] );
-
-        //=beg[0] = beg[1] = beg[2] = 0; beg[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
-        //=memcpy(beg+4, sps.data(), sps.length());
-
-        //=int len = 4+sps.length();
-        //=uint8_t* p = beg + len;
-        //=if (!pps.empty()) {
-        //=    p[0] = p[1] = p[2] = 0; p[3] = 1; // static uint8_t sbytes[4] = {0,0,0,1}; //memcpy(beg+len, sbytes, 4);
-        //=    memcpy(p+4, pps.data(), pps.length());
-        //=    len += 4+pps.length();
-        //=}
-
-        //=//sink_->put(beg, beg+len);
-        //=sink_->commit0(beg, beg+len, 0, BUFFER_FLAG_CODEC_CONFIG);
-
         uint8_t sbytes[4] = {0,0,0,1};
 
-        buffer_ref b = sink_->locate_buf( rtp_header{} );
+        mbuffer b = sink_->locate_buf( rtp_header{} );
         b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
         b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
@@ -665,7 +638,7 @@ struct h264nal : private boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_->commit(*rtp_h, data/*fill_start_bytes(data-4)*/, data+len); //sink_->commit(timestamp, 0);
+                        sink_->commit(*rtp_h, data, data+len); //sink_->commit(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -680,7 +653,6 @@ struct h264nal : private boost::noncopyable
                         h3->nri = h1->nri;
                         h3->f = h1->f;
                         h3->print(data,end);
-                        // data = fill_start_bytes(data-4);
                         if (bufp_.ok()) {
                             LOGE("FU-A e loss");
                         }
@@ -701,7 +673,7 @@ struct h264nal : private boost::noncopyable
                 break;
             default:
                 if (h1->type < 24) {
-                    sink_->commit(*rtp_h, data/*fill_start_bytes(data-4)*/, end);
+                    sink_->commit(*rtp_h, data, end);
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -710,21 +682,15 @@ struct h264nal : private boost::noncopyable
     }
 
     void lose(unsigned seq) {
-        bufp_ = buffer_ref();
+        bufp_ = mbuffer();
     }
-
-    //static uint8_t* fill_start_bytes(uint8_t* data) {
-    //    data[0] = data[1] = data[2] = '\0';
-    //    data[3] = 1;
-    //    return data;
-    //}
 
     void set_data_sink(data_sink* sink) {
         sink_ = sink;
     }
 
     data_sink* sink_ = 0;
-    buffer_ref bufp_;
+    mbuffer bufp_;
 };
 
 struct rtp_receiver : h264nal //, private boost::noncopyable
@@ -735,9 +701,6 @@ struct rtp_receiver : h264nal //, private boost::noncopyable
         : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), local_port()))
     {
         LOGD("rtp_receiver");
-    }
-    ~rtp_receiver() {
-        // for (auto* p : bufs_) if(p) free(p);
     }
 
     void teardown() {
@@ -837,8 +800,6 @@ struct rtcp_client : boost::noncopyable
     int64_t ts_sr_ = 0;
     int64_t ts_rr_ = 0;
 
-    //unsigned char framerate_=30;
-
     /// https://tools.ietf.org/html/rfc3550#appendix-A.3
     typedef enum {
         RTCP_SR   = 200,
@@ -931,7 +892,6 @@ struct rtcp_client : boost::noncopyable
         sdes.c.len = 6;
         snprintf(sdes.c.data,6, "%c%04d.", char(rand()%26+'A'), rtp->local_port()); //strcpy(sdes.c.data, "helo");
 
-        //rtp_ = rtp; // sink_.rtcp_ = this;
         rtp->set_data_sink(&sink_);
 
         //udpsock_.connect(remote_ep);
@@ -1516,7 +1476,9 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h)
 
 struct App {
     bool running = 0;
-    boost::asio::io_service* io_service = 0;
+    std::thread thread;
+    boost::asio::io_service io_service;
+
     rtp_receiver* rtp = 0;
     rtcp_client* rtcp = 0;
     rtsp_client* rtsp = 0;
@@ -1525,10 +1487,7 @@ struct App {
         delete rtsp;       rtsp = 0;
         delete rtcp;       rtcp = 0;
         delete rtp;        rtp = 0;
-        delete io_service; io_service = 0;
     }
-
-    std::thread thread;
 };
 static App hgs_;
 
@@ -1538,20 +1497,13 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*4
 {
     srand( time(0) );
 
-    path="rtsp://192.168.2.3/live/ch00_2"; //1920x1080
-    path="rtsp://192.168.2.3/live/ch00_0"; //320x240
-    path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
-    ip="192.168.2.3"; port = 554;
-    ip="192.168.2.172"; port = 7654; path="rtsp://192.168.2.172:7654/rtp1";
-
     auto endp = ip::tcp::endpoint(ip::address::from_string(ip), (port));
 
     LOGD("init %s:%d %s", ip, port, path);
 
-    hgs_.io_service = new boost::asio::io_service();
-    hgs_.rtp = new rtp_receiver(*hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
-    hgs_.rtcp = new rtcp_client(*hgs_.io_service, hgs_.rtp);
-    hgs_.rtsp = new rtsp_client(*hgs_.io_service, hgs_.rtp, endp, path);
+    hgs_.rtp = new rtp_receiver(hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
+    hgs_.rtcp = new rtcp_client(hgs_.io_service, hgs_.rtp);
+    hgs_.rtsp = new rtsp_client(hgs_.io_service, hgs_.rtp, endp, path);
 
     // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
     LOGD("init ok");
@@ -1560,16 +1512,16 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*4
 void hgs_exit(int preexit)
 {
     hgs_.running = 0;
-    hgs_.io_service->post([preexit](){
+    hgs_.io_service.post([preexit](){
             if (preexit) {
                 LOGD("teardown");
                 hgs_.rtp->teardown();
                 hgs_.rtcp->teardown();
                 hgs_.rtsp->teardown();
-                hgs_.io_service->poll_one();
+                // hgs_.io_service.poll_one();
             } else {
                 LOGD("exit:stop");
-                hgs_.io_service->stop();
+                hgs_.io_service.stop();
                 LOGD("exit:join thread");
             }
         });
@@ -1582,25 +1534,26 @@ void hgs_poll_once(int)
     //LOGD("poll_one");
     //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
 
-    hgs_.io_service->poll_one();
+    hgs_.io_service.poll_one();
     // if (codec) hgs_.rtcp->sink_.input_queue_swap();
 }
 
 void hgs_run()
 {
-    LOGD("run: %d %d", !!hgs_.rtsp, !!hgs_.io_service);
+    LOGD("run: %d", !!hgs_.rtsp);
     hgs_.running = 1;
     hgs_.rtsp->setup(0,0);
 
-    hgs_.thread = std::thread([]() { hgs_.io_service->run(); });
+    hgs_.thread = std::thread([]() { hgs_.io_service.run(); });
 }
 
 void hgs_pump()
 {
     if (hgs_.running) {
-        hgs_.io_service->post([](){ hgs_.rtcp->rreport(); });
+        hgs_.io_service.post([](){ hgs_.rtcp->rreport(); });
         hgs_.rtcp->sink_.input_queue_swap();
     }
 }
 
 #endif
+

@@ -118,7 +118,14 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     MID_inflate = (*env)->GetMethodID(env, cls, "inflate", "(ILjava/nio/ByteBuffer;)V");
     MID_release = (*env)->GetMethodID(env, cls, "release", "(III)V");
 
-    hgs_init("", 1, "", 480, 320);
+    // TEST
+    char const *path, *ip;
+    int port;
+    ip="192.168.2.3"; port = 554; path="rtsp://192.168.2.3/live/ch00_2"; //1920x1080
+    ip="192.168.2.3"; port = 554; path="rtsp://192.168.2.3/live/ch00_1"; //1280x720
+    ip="192.168.2.3"; port = 554; path="rtsp://192.168.2.3/live/ch00_0"; //320x240
+    ip="192.168.2.172"; port = 7654; path="rtsp://192.168.2.172:7654/rtp0";
+    hgs_init(ip, port, path, 480, 320);
 
 #if defined(__arm__)
   #if defined(__ARM_ARCH_7A__)
