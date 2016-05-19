@@ -353,8 +353,9 @@ struct Liuhc : boost::noncopyable
 {
     typedef Liuhc This;
 
-    std::vector< std::string > his_; // std::vector<int> counts_; // int last_year_count_ = 0;
-    std::vector<std::vector<std::string>> vhis_; // std::vector<int> counts_; // int last_year_count_ = 0;
+    //std::vector< std::string > his_; // std::vector<int> counts_; // int last_year_count_ = 0;
+    std::vector<std::string> vhis0_;
+    std::vector<std::vector<std::string>> vhis1_; // std::vector<int> counts_; // int last_year_count_ = 0;
 
     template <typename Args>
     Liuhc(boost::asio::io_service& io_s, Args&& a) //, std::string remote_host, std::string remote_path
@@ -362,11 +363,11 @@ struct Liuhc : boost::noncopyable
     {}
 
     void setup(int, char*[]) {
-        http_client_.change_n_years(3);
+        http_client_.change_n_years(6);
         if (http_client_._download_data() == 0) {
-            his_ = http_client_.prepare_history_data(vhis_);
+            vhis0_ = http_client_.prepare_history_data(vhis1_);
         }
-        DBG_MSG("his: %u", his_.size());
+        DBG_MSG("his: %u", vhis0_.size());
     }
 
     void teardown() {
@@ -408,8 +409,8 @@ private: // rtsp communication
             if (year_ >= oldest_year_) {
                 return std::vector<std::string>();
             }
-            std::vector<std::string> his;
-            std::vector<std::string> tmp;
+            std::vector<std::string> his0;
+            std::vector<std::string> his1;
             for (int y = current_year(); y >= oldest_year_; --y) {
                 std::string fn = (".year." + std::to_string(y) + ".txt");
 
@@ -433,13 +434,13 @@ private: // rtsp communication
                                 , c[0], c[1], c[2], c[3], c[4], c[5], c[6])) {
                         ERR_EXIT("parse: %s: %s", fn.c_str(), pos);
                     }
-                    his.push_back( make_string(c.begin(),c.end()) );
-                    tmp.push_back(his.back());
+                    his1.push_back( make_string(c.begin(),c.end()) );
                 }
-                vhis.push_back(std::move(tmp));
+                his0.insert(his0.end(), his1.begin(), his1.end());
+                vhis.push_back(std::move(his1));
             }
             //this->get_io_service().post([this](){ this->on_success(http_stages::Prepare{}); });
-            return std::move(his);
+            return std::move(his0);
         }
 
         int _download_data() // Resolve
@@ -565,60 +566,69 @@ struct VMain : boost::asio::io_service , Liuhc
     }
     void teardown() { Liuhc::teardown(); DBG_MSG("VMain:teardown"); }
 
+    static std::map<int,std::vector<std::string>> _comb(int marks, std::vector<std::string> const& his)
+    {
+        std::map<int,std::vector<std::string>> mres;
+        auto combr = Combination(marks);
 
-	const char* genlist(int marks)
-	{
-		if (his_.empty()) {
-			his_ = http_client_.prepare_history_data(vhis_);
-			if (his_.empty()) {
-				DBG_MSG("downloading...");
-			}
-			DBG_MSG("his: %u", his_.size());
-		}
-		mlis_.clear();
-		comb_ = Combination(marks);
-
-		std::string res;
-		comb_.first(std::back_inserter(res));
+        std::string res;
+        combr.first(std::back_inserter(res));
         if (!res.empty()) {
-            int cnt = his_travel(his_, res);
-            mlis_[cnt].push_back(res);
+            int cnt = his_travel(his, res);
+            mres[cnt].push_back(res);
             res.clear();
         }
 
-		//int sa = 1;
-		while (comb_.next(std::back_inserter(res))) {
-            int cnt = his_travel(his_, res);
-            mlis_[cnt].push_back(res);
+        //int sa = 1;
+        while (combr.next(std::back_inserter(res))) {
+            int cnt = his_travel(his, res);
+            mres[cnt].push_back(res);
             res.clear();
-			//++sa;
+            //++sa;
+        }
+        return std::move(mres);
+    }
+
+	const char* genlist(int marks)
+	{
+		if (vhis1_.empty()) {
+			vhis0_ = http_client_.prepare_history_data(vhis1_);
+			if (vhis1_.empty()) {
+				DBG_MSG("downloading...");
+                return nullptr;
+			}
+			DBG_MSG("his: %u", vhis0_.size());
 		}
 
-		static char resfn[32];
-        snprintf(resfn,sizeof(resfn), "result-%02d.txt", marks);
-		{
-			if (FILE* fp = fopen(resfn, "w")) {
-				std::unique_ptr<FILE, decltype(&fclose)> xclose(fp, fclose);
+        static char resfn[32] = {};
+        /*for (unsigned i = vhis1_.size(); i>0; --i) */{
+            std::map<int,std::vector<std::string>> mres = _comb(marks, vhis0_);//(marks, vhis1_[i-1]);
 
-				int first_n = 0;
-				for (auto& p : mlis_) {
-					for (auto& s : p.second) {
-                        fprintf(fp, "%3d: ", p.first);
-						for (int c : s)
-							fprintf(fp, "%.2d ", c);
-						fprintf(fp, ":");
-                        for (auto& yh : vhis_)
-                            fprintf(fp, "\t%d", his_travel(yh, s));
-						fprintf(fp, "\r\n");
-                        if (++first_n >= 1000)
+            snprintf(resfn,sizeof(resfn), "result-%02d.txt", marks);//(, 2011+i);
+            {
+                if (FILE* fp = fopen(resfn, "w")) {
+                    std::unique_ptr<FILE, decltype(&fclose)> xclose(fp, fclose);
+
+                    int first_n = 0;
+                    for (auto& p : mres) {
+                        for (auto& s : p.second) {
+                            fprintf(fp, "%3d: ", p.first);
+                            for (int c : s)
+                                fprintf(fp, "%.2d ", c);
+                            fprintf(fp, ":");
+                            for (auto& y1 : vhis1_)
+                                fprintf(fp, "\t%d", his_travel(y1, s));
+                            fprintf(fp, "\r\n");
+                            if (++first_n >= 1000)
+                                break;
+                        }
+                        fprintf(fp, "\r\n");
+                        if (first_n >= 1000)
                             break;
-					}
-					fprintf(fp, "\r\n");
-                    if (first_n >= 1000)
-                        break;
-				}
-			}
-			DBG_MSG("Done marks %d", marks);
+                    }
+                }
+                DBG_MSG("Done marks %d", marks);
+            }
 		}
 		return resfn;
 	}
@@ -668,7 +678,7 @@ private:
     Combination comb_;
     std::map<int,std::vector<std::string>> mlis_;
 
-    int his_travel(std::vector< std::string >& his, std::string const& s) {
+    static int his_travel(std::vector<std::string> const& his, std::string const& s) {
         int nm = 0;
         std::string tmp;
         for (auto& v : his) {
