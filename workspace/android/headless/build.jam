@@ -1,0 +1,17 @@
+project headless-test
+    : requirements
+        <include>$(BOOST_ROOT)
+        <threading>multi
+    : default-build release
+    ;
+
+exe hgs : hgs-test.cpp hgs-rtph264.cpp /boost//system /boost//regex # /boost//thread
+    : #<define>NOT_PRINT_PROTO=1 #<link>static
+    ;
+
+exe rtsp_cli : rtsp_cli.cpp /boost//system /boost//regex /boost//coroutine
+    : #<define>NOT_PRINT_PROTO=1 #<link>static
+    ;
+
+#install bin : a ;
+
