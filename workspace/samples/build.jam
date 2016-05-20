@@ -1,13 +1,20 @@
 use-project boost : $(BOOST_ROOT) ;
 
 project 
-    : requirements <architecture>x86 <runtime-link>static #<link>static
+    : requirements <architecture>x86 # <runtime-link>static #<link>static
         <include>$(BOOST_ROOT)
         <threading>multi
     : default-build release
     ;
 
-# exe http_client : http_client.cc : <link>static <library>/boost//system ;
+exe telnet_client
+    : telnet_client.cpp /boost//system /boost//coroutine
+    : <link>static
+    ;
+exe http_client
+    : http_client.cc /boost//system /boost//coroutine /boost//regex
+    : <link>static
+    ;
 exe async_condition_variable
     : async_condition_variable.cpp
         /boost//system
