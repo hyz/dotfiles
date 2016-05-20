@@ -35,7 +35,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
-//#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
 //#include <boost/multi_index/ordered_index.hpp>
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
@@ -280,7 +280,7 @@ struct Elem : SInfo, Unit, std::vector<Unit> {
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
-              sequenced<>
+              random_access<> //sequenced<>
             , hashed_unique<member<Elem,int,&Elem::code>> >> // , boost::noncopyable
 {
     Main(int argc, char* const argv[]);
@@ -468,6 +468,12 @@ int Main::run(int argc, char* const argv[])
 {
     constexpr int Wn=10000;
     constexpr int Yi=Wn * Wn;
+
+    //auto beg = this->begin(), end = this->end();
+    //auto max = std::max_element(beg, end, [](auto l, auto r){return l->volume < r->volume;});
+    //for (auto it=beg; it != end; ++it) {
+    //    ;
+    //}
 
     for (Elem const & el : *this) {
         Av av = std::accumulate(el.rbegin()+1, el.rend(), Av{});
