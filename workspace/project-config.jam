@@ -5,14 +5,14 @@
 path-constant BOOST_ROOT : /opt/boost_1_60_0 ;
 #path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
-#use-project boost : $(BOOST_ROOT) ; # /boost//headers
+use-project boost : $(BOOST_ROOT) ; # /boost//headers
 
 #using msvc ; #: : : <architecture>x86 <runtime-link>static <link>static ;
 #
 
 #using clang : : clang++-3.6 : <cxxflags>-std=c++1y ;
 
-using gcc : : : <cxxflags>-std=c++11 ;
+using gcc : : : <cxxflags>-std=c++1y ;
 
 # ./bjam --build-type=complete --layout=tagged
 #  variant=debug|release            Select the build variant

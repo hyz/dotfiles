@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <array>
 #include <vector>
 #include <algorithm>
@@ -28,7 +29,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 //#include <boost/filesystem/fstream.hpp>
-//#include <boost/format.hpp>
+#include <boost/format.hpp>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -38,18 +39,65 @@
 //#include <boost/multi_index/ordered_index.hpp>
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
 #define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
-template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a)
-{
+template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
+    fputc('\n', stderr);
     //fflush(stderr);
 }
+template <typename Iter>
+static boost::iterator_range<Iter> c_trim(Iter h, Iter end, const char* cs)
+{
+    while (end > h && strchr(cs, *(end-1)))
+        --end;
+    while (h < end && strchr(cs, *h))
+        ++h;
+    return boost::make_iterator_range(h,end);
+}
+static boost::iterator_range<char*> c_trim(char* s, const char* cs) {
+    return c_trim(s, s + strlen(s), cs);
+}
 
+template <typename... V> struct Path_join ;
+template <typename T, typename... V>
+struct Path_join<T,V...> { static void concat(char*beg,char*end, T const& a, V const&... v) {
+    Path_join<typename std::decay<T>::type>::concat(beg,end, a);
+    Path_join<typename std::decay<V>::type...>::concat(beg,end, v...);
+}};
+template <> struct Path_join<char*> { static void concat(char*beg,char*end, char const* src) {
+    char* p = beg + strlen(beg); // char* src = a;
+    if (p != beg && p != end)
+        *p++ = '/';
+    while (p != end && (*p++ = *src++))
+        ;
+    c_trim(beg, "/\\").back() = '\0';
+}}; 
+template <> struct Path_join<char const*> { static void concat(char*beg,char*end, char const* src) {
+    Path_join<char*>::concat(beg,end, src);
+}};
+template <> struct Path_join<std::string> { static void concat(char*beg,char*end, std::string const& src) {
+    Path_join<char*>::concat(beg,end, src.c_str());
+}};
+template <> struct Path_join<boost::format> { static void concat(char*beg,char*end, boost::format const& src) {
+    auto s = str(src);
+    Path_join<char*>::concat(beg,end, s.c_str());
+}};
+
+template <int L=128>
+struct joinp : std::array<char,L> {
+    template <typename ...V>
+    joinp(V&&... v) {
+        this->front() = this->back() = '\0';
+        char* end = &this->back(); //+1;
+        char* beg = c_str();
+        Path_join<typename std::decay<V>::type...>::concat(beg,end, v...);
+    }
+    char* c_str() const { return const_cast<char*>(this->data()); }
+};
 
 //namespace phoenix = boost::phoenix;
 namespace filesystem = boost::filesystem;
@@ -216,48 +264,39 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
     return ret;
 }
 
-struct SInfo
-{
+struct SInfo {
     long gbx, gbtotal;
     int eov;
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
 
-struct Summary : Av
-{
-    array<int,2> oc, lohi= {}; //, oc= {};
-    //Avsb sums = {}, vless = {} , vmass = {} , voths = {};
+struct Unit : Av {
+    array<int,2> oc = {}, lohi = {};
 };
 
-struct Elem : SInfo, Summary, std::vector<Summary>
-{
+struct Elem : SInfo, Unit, std::vector<Unit> {
     int code = 0;
-
-    //Avsb sum = {}; //Av av = {}; //long volume = 0; long amount = 0;
-    //array<int,2> lohi= {}, oc= {};
-
-    void extend(Elem const& o) {}
+    //void extend(Elem const& o) {}
 };
 
 struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
               sequenced<>
-            , hashed_unique<member<Elem,int,&Elem::code>> >>
+            , hashed_unique<member<Elem,int,&Elem::code>> >> // , boost::noncopyable
 {
-    struct init_;
-
     Main(int argc, char* const argv[]);
     int run(int argc, char* const argv[]);
 
     gregorian::date date;
+    struct initializer;
 };
 
-struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
+struct Main::initializer : std::unordered_map<int,SInfo>, boost::noncopyable
 {
-    Main* m_ = 0;
+    Main* a_ = 0;
     int igntail_ = 0;
-    init_(Main* p, int argc, char* const argv[]);
+    initializer(Main* p, int argc, char* const argv[]);
 
-    void loadsi(char const* fn);
+    void loadsi(char const* dir, char const* fn);
     Elem* add(int code, Elem&& d);
     void prep(char const* path);
     template <typename F> void fun(F read);
@@ -265,6 +304,7 @@ struct Main::init_ : std::unordered_map<int,SInfo> , boost::noncopyable
 
 int main(int argc, char* const argv[])
 {
+    BOOST_STATIC_ASSERT(sizeof(long)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -274,9 +314,9 @@ int main(int argc, char* const argv[])
     return 1;
 }
 
-void Main::init_::loadsi(char const* fn)
+void Main::initializer::loadsi(char const* dir, char const* fn)
 {
-    if (FILE* fp = fopen(fn, "r")) {
+    if (FILE* fp = fopen(joinp<>(dir,fn).c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
@@ -296,39 +336,40 @@ void Main::init_::loadsi(char const* fn)
             if (si.gbx > 0)
                 this->emplace(make_code(szsh,code), si);
             else
-                fprintf(stderr, "%d\n", code);
+                ERR_MSG("%d gbx %ld", code, si.gbx);
         }
     } else
         ERR_EXIT("fopen: %s", fn);
 }
 
-Elem* Main::init_::add(int code, Elem&& el)
+Elem* Main::initializer::add(int code, Elem&& el)
 {
-    auto & idc = m_->get<1>();
-    auto it = idc.find(code);
-    if (it == idc.end()) {
-        auto si = this->find(code);
-        if (si == this->end())
-            return 0;
-        static_cast<SInfo&>(el) = si->second;
-        el.code = code;
-        auto p = m_->push_back( std::move(el) );
-        if (!p.second)
-            ERR_EXIT("%d", numb(code));
-        return &const_cast<Elem&>(*p.first);
+    //auto & idc = a_->get<1>();
+    //auto it = idc.find(code);
+    //if (it != idc.end()) {
+    //    ERR_EXIT("add: %d", numb(code));
+    //}
+    auto si = this->find(code);
+    if (si == this->end()) {
+        ERR_MSG("%d: find", numb(code));
+        return 0;
     }
-    Elem& o = const_cast<Elem&>(*it);
-    o.extend(el);
-    return &o;
+    static_cast<SInfo&>(el) = si->second;
+    el.code = code;
+    auto p = a_->push_back( std::move(el) );
+    if (!p.second)
+        ERR_EXIT("%d: push_back", numb(code));
+    return &const_cast<Elem&>(*p.first);
 }
 
-Main::init_::init_(Main* p, int argc, char* const argv[])
-    : m_(p)
+Main::initializer::initializer(Main* p, int argc, char* const argv[])
+    : a_(p)
 {
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
-    loadsi("/cygdrive/d/home/wood/._sinfo");
+    
+    loadsi(getenv("HOME"), "_/_sinfo");
 
     while ( getopt(argc, argv, "b:") != -1) {
         igntail_ = atoi(optarg);
@@ -340,21 +381,20 @@ Main::init_::init_(Main* p, int argc, char* const argv[])
                 continue;
             auto & p = di.path();
             prep( p.generic_string().c_str() );
-            //m_->date = std::min(m_->date, _date(p.generic_string()));
+            //a_->date = std::min(a_->date, _date(p.generic_string()));
         }
     } else for (int i=optind; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
         prep( argv[i] );
-        //m_->date = std::min(m_->date, _date(argv[i]));
+        //a_->date = std::min(a_->date, _date(argv[i]));
     }
 }
 
-void Main::init_::prep(char const* path)
+void Main::initializer::prep(char const* path)
 {
     if (FILE* fp = fopen(path, "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        auto reader = [fp](std::vector<Summary>& vec, Summary& sa) {
+        auto read = [fp](std::vector<Unit>& vec, Unit& sa) {
             // vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
             qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
             //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
@@ -362,54 +402,57 @@ void Main::init_::prep(char const* path)
             char linebuf[1024*16]; //[(60*4+15)*16+256];
             if (!fgets(linebuf, sizeof(linebuf), fp)) {
                 if (!feof(fp))
-                    ERR_EXIT("fgets");
+                    ERR_EXIT("feof");
                 return 0u;
             }
             int szsh=0, code = 0;
             char*const end = &linebuf[sizeof(linebuf)];
             char* pos = linebuf;
             if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
-                Summary sm = {};
-                Av & av = sm;
+                Unit un = {};
+                Av & av = un;
 
                 using qi::int_;
                 while (qi::phrase_parse(pos,end, R_Av>>int_>>int_>>int_>>int_, qi::space
-                            , av, sm.oc[0], sm.oc[1], sm.lohi[0], sm.lohi[1])) {
+                            , av, un.oc[0], un.oc[1], un.lohi[0], un.lohi[1])) {
                     if (av.volume) {
                         if (vec.empty()) {
-                            sa = sm;
+                            sa = un;
                         } else { 
-                            if (sa.lohi[0] > sm.lohi[0])
-                                sa.lohi[0] = sm.lohi[0];
-                            if (sa.lohi[1] < sm.lohi[1])
-                                sa.lohi[1] = sm.lohi[1];
-                            sa.oc[1] = sm.oc[1];
+                            if (sa.lohi[0] > un.lohi[0])
+                                sa.lohi[0] = un.lohi[0];
+                            if (sa.lohi[1] < un.lohi[1])
+                                sa.lohi[1] = un.lohi[1];
+                            sa.oc[1] = un.oc[1];
                             static_cast<Av&>(sa) += av;
                         }
-                        vec.push_back(sm);
+                        vec.push_back(un);
+                    } else {
+                        ERR_MSG("%d vol %ld", code, av.volume);
                     }
                 }
             } else
                 ERR_EXIT("qi::parse: %s", pos);
             return make_code(szsh,code);
         };
-        fun(reader);
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+        fun(read);
+    } else {
+        ERR_EXIT("fopen: %s", path);
     }
 }
 
-struct XClear { template<typename T> void operator()(T*v)const{v->clear();} };
-
-template <typename F> void Main::init_::fun(F read)
+template <typename F> void Main::initializer::fun(F read)
 {
-    Elem el = {}; //Summary sa = {};
+    Elem el = {}; //Unit sa = {};
     while (code_t code = read(el, el)) {
         if (el.size() < 3) {
-            ERR_MSG("%d :size<3\n", numb(code));
+            ERR_MSG("%d :size<3", numb(code));
             continue;
         }
         el.resize(el.size() - igntail_);
         if (!this->add(code, std::move(el))) {
-            ERR_MSG("%d :add-fail\n", numb(code));
+            ERR_MSG("%d :add-fail", numb(code));
         }
     }
 }
@@ -417,7 +460,7 @@ template <typename F> void Main::init_::fun(F read)
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
 {
-    init_ ini(this, argc, argv);
+    initializer ini(this, argc, argv);
     (void)ini;
 }
 

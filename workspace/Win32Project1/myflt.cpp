@@ -68,8 +68,8 @@ template <> struct Path_join<boost::format> { static void concat(char*beg,char*e
     Path_join<char*>::concat(beg,end, s.c_str());
 }};
 
-template <int N>
-struct makepath : std::array<char,N> {
+template <int L=128>
+struct makepath : std::array<char,L> {
     template <typename ...V>
     makepath(V&&... v) {
         this->front() = this->back() = '\0';
@@ -471,35 +471,7 @@ struct Out6 : _999999
     FILE* fp_ = 0;
     BYTE nTQ_;
 
-    Out6(int args[4], BYTE nTQ) : _999999(nTQ) {
-        nTQ_ = nTQ;
-        auto t = ymd();
-        makepath<128> fn(DIR_OUT, boost::format("names.%02d%02d") % t.m % t.d); //auto fn = boost::filesystem::path(DIR_OUT) / "_names";
-        ERR_MSG("%s", fn.c_str());
-        fp_ = fopen(fn.c_str(), "w");
-    }
-    ~Out6() {
-        if (fp_) {
-            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
-            (void)xclose;
-        }
-    }
-    void print(char const* Code, short nSetCode) {
-        STOCKINFO si = {};
-        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
-        if (n > 0) {
-            si.Name[8]='\0';
-            fprintf(fp_, "%s %d\t%s\n" , Code, nSetCode, si.Name);
-        }
-    }
-};
-
-struct Out7 : _999999
-{
-    FILE* fp_ = 0;
-    BYTE nTQ_;
-
-    Out7(int args[4], BYTE nTQ) : _999999(nTQ)
+    Out6(int args[4], BYTE nTQ) : _999999(nTQ)
     {
         nTQ_ = nTQ;
         //char tmp[8]; sprintf(tmp, "_%02d", args[3]); // auto s = str(boost::format("_%02d") % args[3]);
@@ -508,7 +480,7 @@ struct Out7 : _999999
         ERR_MSG("%s", fn.c_str());
         fp_ = fopen(fn.c_str(), "w");
     }
-    ~Out7() {
+    ~Out6() {
         if (fp_) {
             std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
             (void)xclose;
@@ -550,6 +522,34 @@ struct Out7 : _999999
         //float       J_mgsy2;			//季报每股收益 (财报中提供的每股收益,有争议的才填)
     }
 };
+struct Out7 : _999999
+{
+    FILE* fp_ = 0;
+    BYTE nTQ_;
+
+    Out7(int args[4], BYTE nTQ) : _999999(nTQ) {
+        nTQ_ = nTQ;
+        auto t = ymd();
+        makepath<128> fn(DIR_OUT, boost::format("names.%02d%02d") % t.m % t.d); //auto fn = boost::filesystem::path(DIR_OUT) / "_names";
+        ERR_MSG("%s", fn.c_str());
+        fp_ = fopen(fn.c_str(), "w");
+    }
+    ~Out7() {
+        if (fp_) {
+            std::unique_ptr<FILE,decltype(&fclose)> xclose(fp_, fclose);
+            (void)xclose;
+        }
+    }
+    void print(char const* Code, short nSetCode) {
+        STOCKINFO si = {};
+        int n = GDef::tdx_read(Code, nSetCode, STKINFO_DAT, &si, 1, NTime{}, NTime{}, nTQ_, 0);
+        if (n > 0) {
+            si.Name[8]='\0';
+            fprintf(fp_, "%s %d\t%s\n" , Code, nSetCode, si.Name);
+        }
+    }
+};
+
 
 BOOL myflt6(char const* Code, short nSetCode
 	, int args[4]
