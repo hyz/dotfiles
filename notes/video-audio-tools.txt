@@ -50,3 +50,40 @@ avconv -i v.mkv -ss 00:13:00 -t 30 -vcodec copy -an v.mp4
 https://wiki.archlinux.org/index.php/MEncoder
 https://wiki.archlinux.org/index.php/FFmpeg
 
+
+### apt-get install libav-tools
+    /usr/bin/qt-faststart
+    /usr/bin/avconv
+    /usr/bin/avplay
+    /usr/bin/avserver
+    /usr/bin/avprobe
+
+### apt-get install mp4v2-utils
+    /usr/bin/mp4subtitle
+    /usr/bin/mp4chaps
+    /usr/bin/mp4trackdump
+    /usr/bin/mp4extract
+    /usr/bin/mp4art
+    /usr/bin/mp4track
+    /usr/bin/mp4info
+    /usr/bin/mp4tags
+    /usr/bin/mp4file
+
+### dpkg-query -L quicktime-utils
+    /usr/bin/lqt_transcode
+    /usr/bin/qtyuv4toyuv
+    /usr/bin/qtrechunk
+    /usr/bin/qtinfo
+    /usr/bin/qt2text
+    /usr/bin/lqtremux
+    /usr/bin/qtstreamize
+    /usr/bin/qtdump
+    /usr/bin/qtdechunk
+
+### dpkg-query -L gpac
+    /usr/bin/MP4Box
+    /usr/bin/MP4Client
+
+
+https://github.com/danielgtaylor/qtfaststart
+
