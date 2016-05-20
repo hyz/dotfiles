@@ -26,15 +26,14 @@ struct http_client : boost::asio::io_service
         using boost::asio::ip::tcp;
         namespace asio = boost::asio;
 
-        tcp::resolver::query query(server, "80", boost::asio::ip::resolver_query_base::numeric_service);
-
+        tcp::resolver::query rq(server, "80");
         tcp::resolver resolver(*this);
-        tcp::resolver::iterator iter = resolver.resolve(query);
+        tcp::resolver::iterator iter = resolver.resolve(rq);
 
         //// Start a new Stackful Coroutine.
-        ////boost::asio::spawn(io_service, [ q = std::move(query), this ](auto yield) {});
-        //boost::asio::spawn(io_service, [ query, this ](boost::asio::yield_context yield) {
-        //        do_resolve(query, yield);
+        ////boost::asio::spawn(io_service, [ q = std::move(rq), this ](auto yield) {});
+        //boost::asio::spawn(io_service, [ rq, this ](boost::asio::yield_context yield) {
+        //        do_resolve(rq, yield);
         //    });
 
         //boost::asio::async_connect(iter, ...);
@@ -63,30 +62,29 @@ private:
     void query() {
         boost::asio::io_service& io_s = *this;
         boost::asio::spawn(io_s, [this](boost::asio::yield_context yield) {
-                do_write_req(yield); //do_connect(iterator, yield); // do_resolve(query, yield);
+                if (do_write_req(yield)
+                        && do_read_status(yield)
+                        && do_read_headers(yield))
+                    do_content();
             });
     }
 
-    void do_write_req(boost::asio::yield_context yield) {
+    bool do_write_req(boost::asio::yield_context yield) {
         boost::system::error_code ec;
-
-        // The connection was successful. Send the request.
         boost::asio::async_write(socket_, request_buf_, yield[ec]);
-
         if (ec) {
             std::cerr << "failed to do_write_req: " << ec.message() << "\n";
-            return;
+            return 0;
         }
-
-        do_read_status(yield);
+        return 1;
     }
 
-    void do_read_status(boost::asio::yield_context yield) {
+    bool do_read_status(boost::asio::yield_context yield) {
         boost::system::error_code ec;
         boost::asio::async_read_until(socket_, response_buf_, "\r\n", yield[ec]);
         if (ec) {
             std::cerr << "failed to do_read_status: " << ec.message() << "\n";
-            return;
+            return 0;
         }
         auto bufs = response_buf_.data();
         auto* beg = boost::asio::buffer_cast<const char*>(bufs);
@@ -96,22 +94,20 @@ private:
             auto* e = eol++;
             while (e >= p && isspace(*e))
                 --e;
-            std::cout << boost::make_iterator_range(p,e) << "\n";
+            std::cout << boost::make_iterator_range(p,e+1) << "\n";
         }
         response_buf_.consume(eol - beg);
-
-        do_read_header(yield);
+        return 1;
     }
 
-    void do_read_header(boost::asio::yield_context yield) {
+    bool do_read_headers(boost::asio::yield_context yield) {
         boost::system::error_code ec;
-
         boost::asio::async_read_until(socket_, response_buf_, "\r\n\r\n", yield[ec]);
         if (ec) {
-            std::cerr << "failed to do_read_header: " << ec.message() << "\n";
-            return;
+            std::cerr << "failed to do_read_headers: " << ec.message() << "\n";
+            return 0;
         }
-        size_t content_length_ = size_t(-1);
+        size_t clen = size_t(-1);
         auto bufs = response_buf_.data();
         auto* beg = boost::asio::buffer_cast<const char*>(bufs);
         auto* end = beg + boost::asio::buffer_size(bufs);
@@ -125,8 +121,8 @@ private:
                 boost::regex re_header_("^([^:]+):\\s+(.+)$");
                 boost::cmatch m;
                 if (boost::regex_match(p,e, m, re_header_)) {
-                    content_length_ = atoi(m[2].first);
-            //std::clog << "Content-Length " << content_length_ << "\n";
+                    clen = atoi(m[2].first);
+            //std::clog << "Content-Length " << clen << "\n";
                 }
             }
             std::cout << line << "\n";
@@ -135,23 +131,27 @@ private:
             p = eol;
         }
         response_buf_.consume(eol - beg);
+        return do_read_content(clen, yield);
+    }
 
-        size_t n_bytes = content_length_ - response_buf_.size();
-        if (n_bytes > 0) {
+    bool do_read_content(size_t clen, boost::asio::yield_context yield)
+    {
+        if (response_buf_.size() < clen) {
+            size_t n_bytes = clen - response_buf_.size();
             boost::system::error_code ec;
-            if (content_length_ == size_t(-1)) {
+            if (clen == size_t(-1)) {
                 boost::asio::async_read(socket_, response_buf_, boost::asio::transfer_all(), yield[ec]);
             } else {
-                n_bytes = boost::asio::async_read(socket_, response_buf_.prepare(n_bytes), yield[ec]);
+                boost::asio::async_read(socket_, response_buf_.prepare(n_bytes), yield[ec]);
                 if (!ec)
                     response_buf_.commit(n_bytes);
             }
             if (ec) {
                 std::cerr << "failed to read_content: " << ec.message() << "\n";
-                return;
+                return 0;
             }
         }
-        do_content();
+        return 1;
     }
 
     void do_content() {
