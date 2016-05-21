@@ -9,3 +9,7 @@ android --help update sdk
 android update sdk --no-ui --filter android-18,platform,source # Android 4.3.1, API 18, revision 3
 
 
+###
+android.bat list targets
+android.bat update project --path . --target android-18
+

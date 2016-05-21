@@ -676,7 +676,6 @@ private:
     };
 
     Combination comb_;
-    std::map<int,std::vector<std::string>> mlis_;
 
     static int his_travel(std::vector<std::string> const& his, std::string const& s) {
         int nm = 0;
