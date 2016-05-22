@@ -23,6 +23,8 @@
 #define DIR_OUT HOME"/_"
 #define FN_EXCLS HOME"/._excls"
 
+using boost::format;
+
 struct ymd_type
 {
     int y,m,d;
@@ -114,7 +116,7 @@ BOOL myflt0(char const* Code, short nSetCode
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
     static codes_set excls_(FN_EXCLS); //(FN_EXCLS);
-    static codes_set s(HOME, boost::format("_%02d") % args[1]); //(str(boost::format(DIR_OUT"\\_%02d") % args[1]).c_str());
+    static codes_set s(HOME, format("_%02d") % args[1]); //(str(format(DIR_OUT"\\_%02d") % args[1]).c_str());
     int c = atoi(Code);
     return (s.exist(c) && !excls_.exist(c));
 }
@@ -130,7 +132,7 @@ struct Out1 : _999999
         nTQ_ = nTQ;
         sh_.resize(_999999::size());
         auto t = ymd(); //ymd_type(sh_.back().Time);
-        makepath<128> fn(DIR_OUT, boost::format("%d.%02d%02d-%d") % args[3] % t.m % t.d % (int)sh_.size());
+        makepath<128> fn(DIR_OUT, format("%d.%02d%02d-%d") % args[3] % t.m % t.d % (int)sh_.size());
         fp_ = fopen(fn.c_str(), "w");
     }
     ~Out1() {
@@ -274,7 +276,7 @@ struct Out2
         if (tdxread(sh_, "999999")) {
 			//auto & t0 = sh_.front().Time;
 			auto t1 = ymd_type(sh_.back().Time);
-            makepath<128> fn(DIR_OUT, boost::format("%02d%02d-%d.d") % t1.m % t1.d % (int)sh_.size()); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d-%d.d", t1.month,t1.day, (int)sh_.size());
+            makepath<128> fn(DIR_OUT, format("%02d%02d-%d.d") % t1.m % t1.d % (int)sh_.size()); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d-%d.d", t1.month,t1.day, (int)sh_.size());
             fp_ = fopen(fn.c_str(), "w");
         }
     }
@@ -315,7 +317,7 @@ struct Out3
     {
         rd_(sh_, "999999", 1, a...);
         auto t = ymd_type(sh_.front().Time);
-        makepath<128> fn(DIR_OUT, boost::format("%02d%02d.M") % t.m % t.d); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d.M", t.month, t.day);
+        makepath<128> fn(DIR_OUT, format("%02d%02d.M") % t.m % t.d); // char fn[128]; sprintf(fn,DIR_OUT"\\%02d%02d.M", t.month, t.day);
         fp_ = fopen(fn.c_str(), "w");
     }
 
@@ -476,7 +478,7 @@ struct Out6 : _999999
         nTQ_ = nTQ;
         //char tmp[8]; sprintf(tmp, "_%02d", args[3]); // auto s = str(boost::format("_%02d") % args[3]);
         auto t = ymd();
-        makepath<128> fn(DIR_OUT, boost::format("s.%02d%02d") % t.m % t.d); // using boost::format; auto fn = boost::filesystem::path(DIR_OUT) / str(format("_%02d") % args[3]);
+        makepath<128> fn(DIR_OUT, format("s.%02d%02d") % t.m % t.d); // using boost::format; auto fn = boost::filesystem::path(DIR_OUT) / str(format("_%02d") % args[3]);
         ERR_MSG("%s", fn.c_str());
         fp_ = fopen(fn.c_str(), "w");
     }
@@ -530,7 +532,7 @@ struct Out7 : _999999
     Out7(int args[4], BYTE nTQ) : _999999(nTQ) {
         nTQ_ = nTQ;
         auto t = ymd();
-        makepath<128> fn(DIR_OUT, boost::format("names.%02d%02d") % t.m % t.d); //auto fn = boost::filesystem::path(DIR_OUT) / "_names";
+        makepath<128> fn(DIR_OUT, format("names.%02d%02d.gbk") % t.m % t.d); //auto fn = boost::filesystem::path(DIR_OUT) / "_names";
         ERR_MSG("%s", fn.c_str());
         fp_ = fopen(fn.c_str(), "w");
     }

@@ -7,7 +7,13 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
-#include <boost/signals2/detail/null_output_iterator.hpp>
+#include <boost/generator_iterator.hpp>
+#include <boost/iterator/reverse_iterator.hpp>
+#include <boost/iterator/function_input_iterator.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/function_output_iterator.hpp>
+#include <boost/range/iterator_range.hpp>
+#include <boost/operators.hpp>
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_repeat.hpp>
@@ -22,15 +28,11 @@
 //#include <boost/spirit/include/phoenix_core.hpp>
 //#include <boost/spirit/include/phoenix_operator.hpp>
 //#include <boost/container/static_vector.hpp>
-#include <boost/function_output_iterator.hpp>
-#include <boost/range/iterator_range.hpp>
-
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 //#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
-
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
@@ -50,16 +52,16 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) 
     //fflush(stderr);
 }
 template <typename Iter>
-static boost::iterator_range<Iter> c_trim(Iter h, Iter end, const char* cs)
+static boost::iterator_range<Iter> c_trim_right(Iter h, Iter end, const char* cs)
 {
     while (end > h && strchr(cs, *(end-1)))
         --end;
-    while (h < end && strchr(cs, *h))
-        ++h;
+    //while (h < end && strchr(cs, *h))
+    //    ++h;
     return boost::make_iterator_range(h,end);
 }
-static boost::iterator_range<char*> c_trim(char* s, const char* cs) {
-    return c_trim(s, s + strlen(s), cs);
+static boost::iterator_range<char*> c_trim_right(char* s, const char* cs) {
+    return c_trim_right(s, s + strlen(s), cs);
 }
 
 template <typename... V> struct Path_join ;
@@ -74,7 +76,7 @@ template <> struct Path_join<char*> { static void concat(char*beg,char*end, char
         *p++ = '/';
     while (p != end && (*p++ = *src++))
         ;
-    c_trim(beg, "/\\").back() = '\0';
+    *c_trim_right(beg, "/\\").end() = '\0';
 }}; 
 template <> struct Path_join<char const*> { static void concat(char*beg,char*end, char const* src) {
     Path_join<char*>::concat(beg,end, src);
@@ -130,67 +132,42 @@ namespace boost { namespace spirit { namespace traits
 //typedef gregorian::date::ymd_type ymd_type;
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
-struct Av {
+struct Av : boost::addable<Av,boost::subtractable<Av,boost::dividable2<Av,int>>> {
     long volume = 0;
     long amount = 0;
 
-    Av& operator+=(Av const& lhs) {
-        amount += lhs.amount;
-        volume += lhs.volume;
-        return *this;
-    }
-    Av operator+(Av const& lhs) const {
-        Av x = *this;
-        return (x+=lhs);
-    }
-    Av& operator-=(Av const& lhs) {
-        amount -= lhs.amount;
-        volume -= lhs.volume;
-        return *this;
-    }
-    Av operator-(Av const& lhs) const {
-        Av x = *this;
-        return (x-=lhs);
-    }
-    Av& operator/=(int x) {
-        volume /= x;
-        amount /= x;
-        return *this;
-    }
-    Av operator/(int x) const {
-        Av tmp = *this;
-        return (tmp /= x);
-    }
+    Av& operator+=(Av const& lhs) { amount += lhs.amount; volume += lhs.volume; return *this; }
+    Av& operator-=(Av const& lhs) { amount -= lhs.amount; volume -= lhs.volume; return *this; }
+    Av& operator/=(int x) { volume /= x; amount /= x; return *this; }
 };
 BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 
-typedef fusion::vector<Av,Av> Avsb;
-auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
-auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
-
-static const auto Sum = [](Avsb const& avsb) { return fusion::at_c<0>(avsb) + fusion::at_c<1>(avsb); };
-static const auto Plus = [](Avsb const& x, Avsb const& y) {
-    Av const a = fusion::at_c<0>(x) + fusion::at_c<0>(y);
-    Av const b = fusion::at_c<1>(x) + fusion::at_c<1>(y);
-    return fusion::make_vector(a, b);
-};
+//typedef fusion::vector<Av,Av> Avsb;
+//auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
+//auto Second = [](auto&& x) -> auto& { return fusion::at_c<1>(x); };
+//
+//static const auto Sum = [](Avsb const& avsb) { return fusion::at_c<0>(avsb) + fusion::at_c<1>(avsb); };
+//static const auto Plus = [](Avsb const& x, Avsb const& y) {
+//    Av const a = fusion::at_c<0>(x) + fusion::at_c<0>(y);
+//    Av const b = fusion::at_c<1>(x) + fusion::at_c<1>(y);
+//    return fusion::make_vector(a, b);
+//};
 //[](auto&& x) -> decltype(fusion::at_c<0>(x))& { return fusion::at_c<0>(x); };
-
-static auto Lohi = [](auto& rng) {
-    auto cheap = [](auto&x, auto&y) {
-        Av a = Sum(x);
-        Av b = Sum(y);
-        return (a.amount/a.volume) < (b.amount/b.volume);
-    };
-    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
-};
-
-inline int Price(Av const& v) {
-    if (!v.volume)
-        return 1;
-    return int(v.amount*100/v.volume);
-};
-inline int Price(Avsb const& x) { return Price(Sum(x)); };
+//static auto Lohi = [](auto& rng) {
+//    auto cheap = [](auto&x, auto&y) {
+//        Av a = Sum(x);
+//        Av b = Sum(y);
+//        return (a.amount/a.volume) < (b.amount/b.volume);
+//    };
+//    return std::minmax_element(std::begin(rng), std::end(rng), cheap);
+//};
+//
+//inline int Price(Av const& v) {
+//    if (!v.volume)
+//        return 1;
+//    return int(v.amount*100/v.volume);
+//};
+//inline int Price(Avsb const& x) { return Price(Sum(x)); };
 
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
@@ -316,7 +293,8 @@ int main(int argc, char* const argv[])
 
 void Main::initializer::loadsi(char const* dir, char const* fn)
 {
-    if (FILE* fp = fopen(joinp<>(dir,fn).c_str(), "r")) {
+    joinp<> path(dir,fn);
+    if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
@@ -333,13 +311,14 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                         , qi::space, code, szsh, si)) {
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
-            if (si.gbx > 0)
+            if (si.gbx > 0) {
+                //if (si.eov < 0) si.eov = 0;
                 this->emplace(make_code(szsh,code), si);
-            else
-                ERR_MSG("%d gbx %ld", code, si.gbx);
+            } else
+                ERR_MSG("%06d gbx %ld", code, si.gbx);
         }
     } else
-        ERR_EXIT("fopen: %s", fn);
+        ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
 }
 
 Elem* Main::initializer::add(int code, Elem&& el)
@@ -351,14 +330,14 @@ Elem* Main::initializer::add(int code, Elem&& el)
     //}
     auto si = this->find(code);
     if (si == this->end()) {
-        ERR_MSG("%d: find", numb(code));
+        ERR_MSG("%06d: sinfo not found", numb(code));
         return 0;
     }
     static_cast<SInfo&>(el) = si->second;
     el.code = code;
     auto p = a_->push_back( std::move(el) );
     if (!p.second)
-        ERR_EXIT("%d: push_back", numb(code));
+        ERR_EXIT("%06d: push_back", numb(code));
     return &const_cast<Elem&>(*p.first);
 }
 
@@ -428,7 +407,7 @@ void Main::initializer::prep(char const* path)
                         }
                         vec.push_back(un);
                     } else {
-                        ERR_MSG("%d vol %ld", code, av.volume);
+                        ERR_MSG("%06d vol %ld", code, av.volume);
                     }
                 }
             } else
@@ -447,12 +426,12 @@ template <typename F> void Main::initializer::fun(F read)
     Elem el = {}; //Unit sa = {};
     while (code_t code = read(el, el)) {
         if (el.size() < 3) {
-            ERR_MSG("%d :size<3", numb(code));
+            ERR_MSG("%06d :size<3", numb(code));
             continue;
         }
         el.resize(el.size() - igntail_);
         if (!this->add(code, std::move(el))) {
-            ERR_MSG("%d :add-fail", numb(code));
+            ERR_MSG("%06d :add-fail", numb(code));
         }
     }
 }
@@ -466,43 +445,61 @@ Main::Main(int argc, char* const argv[])
 
 int Main::run(int argc, char* const argv[])
 {
+    auto null_iter = boost::make_function_output_iterator([](auto&){});
     constexpr int Wn=10000;
     constexpr int Yi=Wn * Wn;
 
-    //auto beg = this->begin(), end = this->end();
-    //auto max = std::max_element(beg, end, [](auto l, auto r){return l->volume < r->volume;});
-    //for (auto it=beg; it != end; ++it) {
-    //    ;
-    //}
-
     for (Elem const & el : *this) {
-        Av av = std::accumulate(el.rbegin()+1, el.rend(), Av{});
-        auto last = el.end()-1;
-        auto lasp = last-1;;
-        long volx = 0;
-        long vola = (av.volume+last->volume)/el.size();
+        if (el.size() < 20)
+            continue;
+        typedef Elem::const_iterator iterator;
+        iterator const end = el.end();
+        iterator const begin0 = el.begin();
+        iterator const begin = el.end() - 20;
+        iterator const last = el.end()-1;
+        iterator const lasp = last-1;;
+        // boost::reverse_iterator<iterator> rend(begin), rbegin(end);
 
-        for (auto& x : el) {
-            volx += ::labs(x.volume - vola);
-        }
-        volx /= el.size();
+        std::vector<iterator> ivec(end - begin);
+        //boost::generator_iterator_generator<my_generator>::type it = boost::make_generator_iterator(gen);
+        //boost::make_generator_iterator([b=begin]()mutable{return b++;});
+        //make_function_input_iterator(f,0), make_function_input_iterator(f,10),
+        std::generate(ivec.begin(),ivec.end(), [b=begin]()mutable{return b++;});
+        std::nth_element(ivec.begin(), ivec.begin()+3, ivec.end(), [](auto&l,auto&r){return l->volume < r->volume;});
+        std::nth_element(ivec.begin()+3, ivec.begin()+3+5, ivec.end(), [](auto&l,auto&r){return l->volume > r->volume;});
+        ivec.resize(3+5);
+        iterator near0 = *std::min_element(ivec.begin(),ivec.begin()+3, [end](auto&l,auto&r){return (end-l) < (end-r);});
+        ivec.erase(std::remove_if(ivec.begin()+3, ivec.end(), [near0](auto&x){return x>near0;}), ivec.end());
+        //auto const beg0 = ivec.begin();
+        auto const beg1 = boost::make_indirect_iterator(ivec.begin()+3); //ivec.begin()+3;
+        auto const end1 = boost::make_indirect_iterator(ivec.end()); //ivec.begin()+3;
+        // auto const end1 = ivec.end();
+        //iterator near1 = *std::max_element(beg1,end1, [end](auto&l,auto&r){return (end-l) < (end-r);});
+        //std::sort(beg1, end1);
+        //long volM = std::accumulate(beg1,end1, long{},[](long a,auto&x){return a+x->volume;});
+        long volM = std::accumulate(beg1,end1, Av{}).volume;
+        long volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //long volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
 
-        auto vlh = Ma(2, el.rbegin()+1, el.rend(), boost::signals2::detail::null_output_iterator()
-                , [](Av const& l, Av const& r){ return l.volume<r.volume; });
-                //, boost::make_function_output_iterator( [&last](Av const& a) { if (a.volume < last->volume) last->volume; } )
+        //long vola = std::accumulate(begin,end, Av{}).volume/el.size();
+        //long volx = std::accumulate(begin,end, long{}, [vola](long a,auto&x){return a+labs(x.volume-vola);})/15;
+        //auto vlohi = Ma(3, rbegin,rend, null_iter, [](auto&l,auto&r){return l.volume<r.volume;});
 
         printf("%06d", numb(el.code));
         {
             long lsz = el.gbx*el.oc[1]/100;
-            printf("\t%6.2f %5.2f %.3ld", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz);
-            printf(" %.3ld", 1000*volx/vola);
+            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eov?last->oc[1]/el.eov:-1);
         } {
-            printf("\t%.3ld %.3ld %.3ld %.3ld"
-                    , 100*lasp->volume/last->volume
-                    , 100*vlh[0].volume/last->volume, 100*vola/last->volume, 100*vlh[1].volume/last->volume);
+//601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
+            printf("\t%ld %ld %.3ld %.3ld", (end-near0), (end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
+            //printf("\t%.3ld %.3ld %.3ld %.3ld"
+            //        , 100*lasp->volume/last->volume
+            //        , 100*vlohi[0].volume/last->volume, 100*vola/last->volume, 100*vlohi[1].volume/last->volume);
+            //printf(" %.3ld", 1000*volx/vola);
         } {
             auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
-            printf("\t% .3d % .3d %.3d", Chr(lasp->oc[1],last->oc[1]), Chr(el.oc[0],el.oc[1]), Chr(el.lohi[0],el.lohi[1]));
+            auto lh = std::minmax_element(begin,end, [](auto&l,auto&r){return l.oc[1]<r.oc[1];});
+            printf("\t% .3d % .3d %.3d", Chr(lasp->oc[1],last->oc[1]), Chr(begin->oc[0],end->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
         }
         printf("\t%d\n", (int)el.size());
     }
