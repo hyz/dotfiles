@@ -10,7 +10,7 @@ def toutf8(Fn, encoding):
 
 def sdic():
     names = {}
-    with open(os.path.join(HOME,'_/names.0517'), encoding='gbk') as sf:
+    with open(os.path.join(HOME,'_/_sname'), encoding='gbk') as sf:
         for x in sf:
             v = x.strip().split(None,2)
             names[v[0]] = v[-1]

@@ -242,10 +242,11 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
 }
 
 struct SInfo {
-    long gbx, gbtotal;
-    int eov;
+    long capital1; // capital stock in circulation
+    long capital0; // general capital
+    int eps; // earnings per share(EPS)
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,gbx)(long,gbtotal)(int,eov))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,capital1)(long,capital0)(int,eps))
 
 struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
@@ -264,13 +265,13 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     int run(int argc, char* const argv[]);
 
     gregorian::date date;
+    short n_ign_ = 0, n_day_ = 15;
     struct initializer;
 };
 
 struct Main::initializer : std::unordered_map<int,SInfo>, boost::noncopyable
 {
     Main* a_ = 0;
-    int igntail_ = 0;
     initializer(Main* p, int argc, char* const argv[]);
 
     void loadsi(char const* dir, char const* fn);
@@ -311,11 +312,11 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                         , qi::space, code, szsh, si)) {
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
-            if (si.gbx > 0) {
-                //if (si.eov < 0) si.eov = 0;
+            if (si.capital1 > 0) {
+                //if (si.eps < 0) si.eps = 0;
                 this->emplace(make_code(szsh,code), si);
             } else
-                ERR_MSG("%06d gbx %ld", code, si.gbx);
+                ERR_MSG("%06d capital1 %ld", code, si.capital1);
         }
     } else
         ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
@@ -350,8 +351,12 @@ Main::initializer::initializer(Main* p, int argc, char* const argv[])
     
     loadsi(getenv("HOME"), "_/_sinfo");
 
-    while ( getopt(argc, argv, "b:") != -1) {
-        igntail_ = atoi(optarg);
+    int opt;
+    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
+        switch (opt) {
+            case 'e': a_->n_ign_ = atoi(optarg); break;
+            case 'n': a_->n_day_ = atoi(optarg); break;
+        }
     }
 
     if (filesystem::is_directory(argv[optind])) {
@@ -429,7 +434,8 @@ template <typename F> void Main::initializer::fun(F read)
             ERR_MSG("%06d :size<3", numb(code));
             continue;
         }
-        el.resize(el.size() - igntail_);
+        //if (600898 == numb(code)) { ERR_MSG("600898 %d %d %d", n_ign_, int(el.size()), int(el.back().volume) ); }
+        // el.resize(el.size() - n_ign_);
         if (!this->add(code, std::move(el))) {
             ERR_MSG("%06d :add-fail", numb(code));
         }
@@ -450,13 +456,13 @@ int Main::run(int argc, char* const argv[])
     constexpr int Yi=Wn * Wn;
 
     for (Elem const & el : *this) {
-        if (el.size() < 20)
+        if (el.size() < unsigned(n_day_) + n_ign_)
             continue;
         typedef Elem::const_iterator iterator;
-        iterator const end = el.end();
+        iterator const end = el.end() - n_ign_;
         iterator const begin0 = el.begin();
-        iterator const begin = el.end() - 20;
-        iterator const last = el.end()-1;
+        iterator const begin = end - n_day_;
+        iterator const last = end-1;
         iterator const lasp = last-1;;
         // boost::reverse_iterator<iterator> rend(begin), rbegin(end);
 
@@ -487,8 +493,8 @@ int Main::run(int argc, char* const argv[])
 
         printf("%06d", numb(el.code));
         {
-            long lsz = el.gbx*el.oc[1]/100;
-            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eov?last->oc[1]/el.eov:-1);
+            long lsz = el.capital1*el.oc[1]/100;
+            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
 //601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
             printf("\t%ld %ld %.3ld %.3ld", (end-near0), (end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
@@ -499,7 +505,9 @@ int Main::run(int argc, char* const argv[])
         } {
             auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
             auto lh = std::minmax_element(begin,end, [](auto&l,auto&r){return l.oc[1]<r.oc[1];});
-            printf("\t% .3d % .3d %.3d", Chr(lasp->oc[1],last->oc[1]), Chr(begin->oc[0],end->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
+            if (lh.first > lh.second)
+                std::swap(lh.first,lh.second);
+            printf("\t% .3d % .3d", Chr(lasp->oc[1],last->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
         }
         printf("\t%d\n", (int)el.size());
     }

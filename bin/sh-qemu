@@ -18,7 +18,6 @@ export QEMU_AUDIO_DRV=alsa
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-
 qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
     -cpu host -smp cores=2 -m 3072M \
     -acpitable sig=SLIC,file=$SLIC \
@@ -39,6 +38,8 @@ exit 0
     -drive file=$HOME/qemu/vmware-tools.iso,index=2,media=cdrom \
     -drive file=$HOME/qemu/virtio-win-0.1.117.iso,index=2,media=cdrom \
     -usbdevice tablet -soundhw ac97
+#http://www.spice-space.org/spice-user-manual.html#_gl_acceleration_virgl
+#-device virtio-vga,virgl=on -spice gl=on,unix,addr=/run/user/1000/spice.sock
 
 ### https://www.segfault.digital/it/general/kvm-and-windows-vms/
 # windows drivers: -vga vmware
@@ -55,20 +56,16 @@ ip addr add 172.16.0.1/24 dev tap0
 echo 1 > /proc/sys/net/ipv4/ip_forward
 ## sysctl
 
-# Create forwarding rules, where
-# tap0 - virtual interface
-# eth0 - net connected interface
-
+## iptables -nL -t nat
 ## iptables --flush -t nat
 ## iptables --flush
+### Create forwarding rules, where
+### tap0 - virtual interface
+### eth0 - net connected interface
 iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
 iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
 iptables -nvL -t nat
-
-modprobe tun
-ip tuntap add dev tap0 mode tap user wood
-ip link set tap0 up promisc on
 
 ### http://www.funtoo.org/Windows_7_Virtualization_with_KVM
 #   -vga qxl -device virtio-serial-pci -spice port=5900,password=abc123 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent

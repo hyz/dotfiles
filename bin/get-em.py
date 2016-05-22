@@ -10,6 +10,14 @@ from html.parser import HTMLParser
 
 HOME = os.environ.get('HOME')
 
+def read_names():
+    names = {}
+    with open(os.path.join(HOME,'_/_sname'), encoding='gbk') as sf:
+        for x in sf:
+            v = x.strip().split(None,2)
+            names[ int(v[0]) ] = v[-1]
+    return names
+
 def getval(pairs, k):
     for x,y in pairs:
         if x==k:
@@ -21,45 +29,58 @@ def parse_html(code,market, html):
         def handle_starttag(self, tag, attrs):
             self.stacks.append( (tag,attrs,'') )
         def handle_data(self, data):
-            if self.stacks:
+            data = data.strip()
+            if self.stacks and data:
                 x,y,_ = self.stacks[-1]
-                self.stacks[-1] = (x,y,data.strip())
+                self.stacks[-1] = (x,y,data)
         def handle_endtag(self, tag):
             _,attrs,data = self.stacks[-1]
-            if tag == 'input' and getval(attrs, 'name') == 'hdRpt':
-                self.results[0] = getval(attrs,'value') #self.temps.append( self.stacks[:] )
-            elif len(self.stacks) >= 4:
-                t,a,d = self.stacks[-4] # table [('class', 'srgc'), ('id', 'srgca')] 
-                if t == 'table' and tag == 'td' and data and getval(a,'id') in ('srgcc','srgca','srgcb'):
-                    self.temps.append( self.stacks[:] )
-                    #print(len(self.temps, self.temps))
-            if tag == 'tr' and p.temps:
-                self.results[1].append([ x[-1][-1] for x in p.temps ])
-                p.temps = []
+            if tag == 'input':
+                if getval(attrs, 'name') == 'hdRpt':
+                    self.hdRpt = getval(attrs,'value')
+            elif tag == 'td' and data and self._scoped(-4):
+                self.temps.append( data )
+            elif tag == 'tr' and self.temps:
+                srgc = self._scoped(-3)
+                if srgc and len(self.temps) == 4:
+                    self.results.setdefault(srgc,[]).append( self.prep(self.temps) )
+                self.temps = []
             self.stacks.pop()
-    p = MyHTMLParser()
-    p.stacks, p.temps, p.results = [], [], {1:[]}
-    p.feed(html)
+        def prep(self, lis):
+            a,b,c,d = [ x.rstrip('-%') for x in lis ]
+            m = 1
+            if b.endswith('亿'):
+                m = 10000
+            elif b.endswith('万亿'):
+                m = 10000 * 10000
+            b = int( m*float(b.rstrip('-亿万') or '0') )
+            c, d = float(c or '0'), float(d or '0')
+            return (c, d, b, a)
+            # print('%06d %d' % (code,market), c,d, b, a, k, sep='\t')
+        def _scoped(self, x):
+            if len(self.stacks) > abs(x):
+                tag,attrs,_ = self.stacks[x]
+                srgc = getval(attrs,'id')
+                idcs = ('srgca','srgcb','srgcc')
+                if tag == 'table' and srgc in idcs:
+                    return idcs.index(srgc)+1
+            return None
+    par = MyHTMLParser()
+    par.stacks, par.temps, par.results, par.hdRpt = [], [], {}, None
+    par.feed(html)
 
-    for x,y in p.results.items():
-        if x==0:
-            print(y)
-            continue
-        for g in y: # '亿' '万'
-            if len(g) == 4:
-                a,b,c,d = g
-                if b.endswith('万'):
-                    n,_,_ = b.partition('万')
-                    b = int( float(n) )
-                else:
-                    n,_,_ = b.partition('亿')
-                    b = int( float(n)*10000 )
-                s = '%06d %d %s' % (code,market, _NAMES.get(code))
-                print(s, c.strip('%'),d.strip('%'), b, a, sep='\t')
-                continue
-            print(g)
+    #print(par.hdRpt)
+    for k,ds in par.results.items(): # '亿' '万'
+        ea, ic, toks = 0.0, 0, []
+        for a,b,c,s in sorted(ds, key=lambda v:v[0], reverse=True):
+            ea += b * c
+            ic += c
+            if a > 10:
+                toks.append('%.0f:%.0f:%s'%(a,b,s))
+            #print('%06d %d %s' % (code,market,_NAMES.get(code)), c,d, b, a, k, sep='\t')
+        print('%06d %d' % (code,market), k, int(10*ea/ic), ic, ';'.join(toks), sep='\t')
 
-    p.close()
+    par.close()
     #first = re.compile('</span><span class="time-tip first-tip"><span class="tip-content">(.*?)</span>')
     #second = re.compile('</span><span class="time-tip"><span class="tip-content">(.*?)</span>')
     #third = re.compile('</span><span class="time-tip last-second-tip"><span class="tip-content">(.*?)</span>')
@@ -69,10 +90,10 @@ def parse_html(code,market, html):
     #visit.extend(third.findall(html))
     #visit.extend(last.findall(html))
 
-_URL     = os.environ['EM_URL']
-_REFERER = os.environ['EM_REFERER']
-
 def GET(session, code, market, outfilename):
+    _URL     = os.environ['EM_URL']
+    _REFERER = os.environ['EM_REFERER']
+
     fmtd = { 'code':code, 'market':1+(market==0) } # locals()
     url = _URL % fmtd
     headers = {
@@ -120,33 +141,32 @@ def download(filename):
             if random.randint(1,100) >70:
                 session = requests.Session()
 
-def parse(dir, files):
-    global _NAMES
-    def sdic():
-        names = {}
-        with open(os.path.join(HOME,'._sname'), encoding='gbk') as sf:
-            for x in sf:
-                v = x.strip().split(None,2)
-                names[ int(v[0]) ] = v[-1]
-        return names
-    _NAMES = sdic()
+def parse(fp):
+    bn,ext = os.path.splitext( fp )
+    if ext != '.html':
+        return
+    code,market = [ int(x) for x in os.path.basename(bn).split('.') ]
+    with open( fp ) as f:
+        try:
+            parse_html(code, market, f.read())
+        except Exception as e:
+            print('parse', fp, 'fail:', e, file=sys.stderr)
 
-    for fn in files:
-        bn,ext = os.path.splitext( fn.strip() )
-        if ext != '.html':
-            continue
-        v = bn.split('.')
-        code,market = int(v[0]), int(v[1])
-        with open( os.path.join(dir,fn) ) as f:
-            try:
-                parse_html(code, market, f.read())
-            except Exception:
-                print('parse fail:', fn, file=sys.stderr)
+def each_file(path):
+    if os.path.isdir(path):
+        for top, dirs, files in os.walk( path ):
+            for bn in files:
+                yield os.path.join(top,bn)
+            break
+    else:
+        yield path
 
 def main():
-    for top, dirs, files in os.walk( len(sys.argv)>1 and sys.argv[1] or '.' ):
-        parse(top,files)
-        break
+    #for top, dirs, files in os.walk( len(sys.argv)>1 and sys.argv[1] or '.' ):
+    #    parse(top,files)
+    #    break
+    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
+        parse(fp)
     #download(sys.argv[1])
 
 if __name__ == '__main__':
@@ -156,6 +176,7 @@ if __name__ == '__main__':
         _STOP = 1
     signal.signal(signal.SIGINT, sig_handler)
     try:
+        _NAMES = read_names()
         main()
     except Exception as e:
         print(e, file=sys.stderr)
