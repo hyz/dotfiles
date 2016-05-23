@@ -87,6 +87,13 @@ boost::iterator_range<I> iter_trim(I beg, I end) {
     return boost::make_iterator_range(beg,end);
 };
 
+static void print_streambuf(boost::asio::streambuf const& buf) {
+    auto  data = buf.data();
+    auto* beg = boost::asio::buffer_cast<const char*>(data);
+    size_t len = boost::asio::buffer_size(data);
+    LOGD("%.*s", len, beg);
+}
+
 struct Make_head //: std::ostream
 {
     struct OLineh_ {
@@ -105,17 +112,11 @@ struct Make_head //: std::ostream
     void end_head() {
         os_ << "\r\n";
         os_.flush();
-        printbuf(*static_cast<boost::asio::streambuf*>(os_.rdbuf()));
+        print_streambuf(*static_cast<boost::asio::streambuf*>(os_.rdbuf()));
     }
     Make_head(boost::asio::streambuf&buf) : os_(&buf) {}
 
 private:
-    static void printbuf(boost::asio::streambuf& buf) {
-        auto  data = buf.data();
-        auto* beg = boost::asio::buffer_cast<const char*>(data);
-        size_t len = boost::asio::buffer_size(data);
-        LOGD("%.*s", len, beg);
-    }
     std::ostream os_;
     template <typename A0> void _params(A0 const& a0) { os_ <<" "<< a0; }
     template <typename A0, typename... A> void _params(A0 const& a0, A const& ... a) {
@@ -297,7 +298,7 @@ private:
         bool m_v = 0;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%s", line.c_str());
+            // LOGD("%s", line.c_str());
             if (boost::starts_with(line, "m=")) {
                 m_v = boost::starts_with(line, "m=video");
             } else if (m_v) {
@@ -325,7 +326,7 @@ private:
         std::string line;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%s", line.c_str());
+            // LOGD("%s", line.c_str());
             if (boost::starts_with(line, "Session:")) {
                 re::smatch m;
                 re::regex re("Session:[[:space:]]*([^[:space:]]+)");
@@ -356,7 +357,7 @@ private:
                 auto* e = eol++;
                 while (e != p && isspace(*(e-1)))
                     --e;
-                LOGD("%.*s", int(e-p), p);
+                // LOGD("%.*s", int(e-p), p);
                 auto linr = boost::make_iterator_range(p,e);
                 if (boost::istarts_with(linr, "Content-Length")) {
                     re::regex rexp("^([^:]+):\\s+(.+)$");
@@ -391,6 +392,7 @@ private:
                     return ec;
                 }
             }
+            print_streambuf(response_);
         }
         return ec;
     }
