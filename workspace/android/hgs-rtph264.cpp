@@ -717,7 +717,7 @@ struct rtp_receiver : h264nal //, private boost::noncopyable
         return port+p;
     }
 
-private: // rtsp communication
+private: // rtp communication
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
         if (ec) {

@@ -127,6 +127,10 @@ private:
 
 struct rtsp_client
 {
+    int local_port(int x=0) const { return 1234+x; }
+    void start_playing() {}
+    void sprop_parameter_sets(std::string sps, std::string pps) {}
+
     ip::tcp::socket tcpsock_;
     ip::tcp::endpoint endpoint_;
     std::string path_;
@@ -135,31 +139,31 @@ struct rtsp_client
     std::string session_;
 
     unsigned char cseq_ = 1;
-    unsigned char state_ = 0;
-    enum { Stopped=0, Setting=1, Ready, Playing, Error };
+    unsigned char state_ = 1;
+    enum { Error=0, Stopped=1, Setting, Ready, Playing };
 
     rtsp_client(boost::asio::io_service& io_s, ip::tcp::endpoint ep, std::string path)
         : tcpsock_(io_s), endpoint_(ep), path_(path)
     {
         //BOOST_STATIC_ASSERT(std::is_base_of<This, Derived>::value);
-        LOGD("rtsp_client");
+        LOGD("RTSP");
     }
 
     void setup(int, char* const[]) {
         state_ = Setting;
         auto& io_s = tcpsock_.get_io_service();
         boost::asio::spawn(io_s, [this](boost::asio::yield_context yield) {
-            LOGD("setup ...");
+            LOGD("spawn setup");
             boost::system::error_code ec;
             if ( !(ec = do_connect(ec, yield))
                     && !(ec = do_options(ec, yield))
                     && !(ec = do_describe(ec, yield))
                     && !(ec = do_setup(ec, yield)) ) {
                 state_ = Ready;
-                LOGD("setup OK"); //;
+                // LOGD("setup OK"); //;
             } else {
                 state_ = Error;
-                LOGD("setup Fail: %d:%s", ec.value(), ec.message().c_str());
+                LOGE("setup Fail: %d:%s", ec.value(), ec.message().c_str());
             }
         });
     }
@@ -167,12 +171,13 @@ struct rtsp_client
     void play() {
         auto& io_s = tcpsock_.get_io_service();
         boost::asio::spawn(io_s, [this](boost::asio::yield_context yield) {
+            LOGD("spawn play");
             boost::system::error_code ec;
             if ( !(ec = do_play(ec, yield)) ) {
                 state_ = Playing;
             } else {
                 state_ = Error;
-                LOGD("setup fail: %d:%s", ec.value(), ec.message().c_str());
+                LOGE("play fail: %d:%s", ec.value(), ec.message().c_str());
             }
         });
     }
@@ -180,12 +185,13 @@ struct rtsp_client
     void teardown() {
         auto& io_s = tcpsock_.get_io_service();
         boost::asio::spawn(io_s, [this](boost::asio::yield_context yield) {
+            LOGD("spawn teardown");
             boost::system::error_code ec;
             if ( !(ec = do_teardown(ec, yield)) ) {
                 state_ = Stopped;
             } else {
                 state_ = Error;
-                LOGD("setup fail: %d:%s", ec.value(), ec.message().c_str());
+                LOGE("teardown fail: %d:%s", ec.value(), ec.message().c_str());
             }
             tcpsock_.close(ec);
         });
@@ -209,7 +215,7 @@ private:
             qh.header("CSeq") << int(cseq_++);
             qh.end_head();
 
-            LOGD("<=OPTIONS");
+            //LOGD("<=OPTIONS");
             boost::asio::async_write(tcpsock_, request_, yield[ec] );
         }
         return read_response(ec, yield);
@@ -224,14 +230,11 @@ private:
             qh.header("Accept") << "application/sdp";
             qh.end_head();
 
-            LOGD("<=DESCRIBE %s", path_.c_str());
+            //LOGD("<=DESCRIBE %s", path_.c_str());
             boost::asio::async_write(tcpsock_, request_, yield[ec] );
         }
         return read_response(ec, yield);
     }
-
-    int local_port(int x=0) { return 1234+x; }
-    void start_playing() {}
 
     boost::system::error_code do_setup(boost::system::error_code ec, boost::asio::yield_context yield) //Setup
     {
@@ -244,8 +247,10 @@ private:
                 qh.header("Transport") << "RTP/AVP;unicast;client_port="<< local_port() <<"-"<< local_port(+1);
                 qh.end_head();
 
-                this; //sps, pps;
-                LOGD("<=SETUP %s %s", path_.c_str(), streamid.c_str());
+                if (!sps.empty())
+                    this->sprop_parameter_sets(std::move(sps), std::move(pps));
+
+                //LOGD("<=SETUP %s %s", path_.c_str(), streamid.c_str());
                 boost::asio::async_write(tcpsock_, request_, yield[ec] );
             }
         }
@@ -265,7 +270,7 @@ private:
 
                 this->start_playing();
 
-                LOGD("<=PLAY %s, session %s", path_.c_str(), session_.c_str());
+                //LOGD("<=PLAY %s, session %s", path_.c_str(), session_.c_str());
                 boost::asio::async_write(tcpsock_, request_, yield[ec] );
             }
         }
@@ -281,13 +286,11 @@ private:
             if (!session_.empty()) qh.header("Session") << session_;
             qh.end_head();
 
-            LOGD("<=TEARDOWN session %s", session_.c_str());
+            //LOGD("<=TEARDOWN session %s", session_.c_str());
             boost::asio::async_write(tcpsock_, request_, yield[ec] ); // boost::asio::write(tcpsock_, request_);
         }
         return ec;
     }
-
-    //std::string sps_, pps_;
 
     boost::system::error_code parse_rsp_describe(std::string& streamid, std::string& sps, std::string& pps)
     {
@@ -302,8 +305,9 @@ private:
             if (boost::starts_with(line, "m=")) {
                 m_v = boost::starts_with(line, "m=video");
             } else if (m_v) {
+                //a=fmtp:96 profile-level-id=42E01E; packetization-mode=1; sprop-parameter-sets=J0LgHqkYFAX/LgDUGAQa2wrXvfAQ,KN4JyA==
                 if (boost::starts_with(line, "a=fmtp:")) {
-                    re::smatch m; // fmtp:96 profile-level-id=42A01E;packetization-mode=1;sprop-parameter-sets=
+                    re::smatch m;
                     re::regex re("sprop-parameter-sets=([^=,]+)=*,([^=,;]+)");
                     if (re::regex_search(line, m, re)) {
                         base64dec(m[1].first, m[1].second, std::back_inserter(sps));
@@ -322,19 +326,19 @@ private:
     }
     boost::system::error_code parse_rsp_setup()
     {
-        std::istream ins(&response_);
-        std::string line;
-        while (std::getline(ins, line)) {
-            boost::trim_right(line);
-            // LOGD("%s", line.c_str());
-            if (boost::starts_with(line, "Session:")) {
-                re::smatch m;
-                re::regex re("Session:[[:space:]]*([^[:space:]]+)");
-                if (re::regex_search(line, m, re)) {
-                    session_.assign(m[1].first, m[1].second);
-                }
-            }
-        }
+        //std::istream ins(&response_);
+        //std::string line;
+        //while (std::getline(ins, line)) {
+        //    boost::trim_right(line);
+        //    // LOGD("%s", line.c_str());
+        //    if (boost::starts_with(line, "Session:")) {
+        //        re::smatch m;
+        //        re::regex re("Session:[[:space:]]*([^[:space:]]+)");
+        //        if (re::regex_search(line, m, re)) {
+        //            session_.assign(m[1].first, m[1].second);
+        //        }
+        //    }
+        //}
         LOGD("parse:SETUP, session %s", session_.c_str());
         return boost::system::error_code();
     }
@@ -342,7 +346,8 @@ private:
     boost::system::error_code read_response(boost::system::error_code ec, boost::asio::yield_context yield)
     {
         if (!ec) {
-            response_.consume(response_.size());
+            response_.consume(response_.size()); // clear streambuf
+
             boost::asio::async_read_until(tcpsock_, response_, "\r\n\r\n", yield[ec]);
             if (ec) {
                 LOGD("resp: %d:%s", ec.value(), ec.message().c_str());
@@ -379,7 +384,7 @@ private:
             }
             size_t hlen = eol - beg; // response_.consume(eol - beg);
 
-            LOGD("X-Length: %u+%u, %u", hlen, clen, response_.size());
+            //LOGD("X-Length: %u+%u, %u", hlen, clen, response_.size());
             if (response_.size() < clen) {
                 if (clen != size_t(-1)) {
                     size_t n_bytes = hlen+clen - (response_.size());
@@ -473,8 +478,7 @@ int main(int argc, char*const argv[]) {
     io_s.run();
 
     io_s.reset();
-    int runc_=300;
-    while (runc_-- > 1) {
+    for (int rc=300; rc > 1; --rc) {
         io_s.poll_one();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
