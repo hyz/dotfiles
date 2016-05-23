@@ -78,6 +78,52 @@ void base64dec(I1 beg, I1 end, I2 out_it)
     //return boost::algorithm::trim_right_copy_if( std::string(Iter(beg), Iter(end)), [](char c) { return c == '\0'; });
 }
 
+template <typename I>
+boost::iterator_range<I> iter_trim(I beg, I end) {
+    while (end != beg && isspace(*(end-1)))
+        --end;
+    while (beg != end && isspace(*beg))
+        ++beg;
+    return boost::make_iterator_range(beg,end);
+};
+
+struct Make_head //: std::ostream
+{
+    struct OLineh_ {
+        std::ostream& s_;
+        template <typename V> std::ostream& operator<<(V const& v) const { return s_ << v; }
+        ~OLineh_() { s_ << "\r\n"; }
+    };
+    struct OLine0_ {
+        std::ostream& s_;
+        template <typename V> std::ostream& operator<<(V const& v) const { return s_ << v; }
+        ~OLine0_() { s_ << " RTSP/1.0\r\n"; }
+    };
+
+    template <typename C> OLine0_ command(C const& cmd) { return OLine0_ { os_ << cmd <<" " }; }
+    template <typename N> OLineh_ header(N const& name) { return OLineh_ { os_ << name <<": " }; }
+    void end_head() {
+        os_ << "\r\n";
+        os_.flush();
+        printbuf(*static_cast<boost::asio::streambuf*>(os_.rdbuf()));
+    }
+    Make_head(boost::asio::streambuf&buf) : os_(&buf) {}
+
+private:
+    static void printbuf(boost::asio::streambuf& buf) {
+        auto  data = buf.data();
+        auto* beg = boost::asio::buffer_cast<const char*>(data);
+        size_t len = boost::asio::buffer_size(data);
+        LOGD("%.*s", len, beg);
+    }
+    std::ostream os_;
+    template <typename A0> void _params(A0 const& a0) { os_ <<" "<< a0; }
+    template <typename A0, typename... A> void _params(A0 const& a0, A const& ... a) {
+        os_ <<" "<< a0;
+        _params(a...);
+    }
+};
+
 struct rtsp_client
 {
     ip::tcp::socket tcpsock_;
@@ -156,12 +202,13 @@ private:
 
     boost::system::error_code do_options(boost::system::error_code ec, boost::asio::yield_context yield)
     {
-        if (!ec) {{
-            std::ostream outs(&request_);
-            outs << "OPTIONS " << path_ << " RTSP/1.0\r\n"
-                << "CSeq: " << int(cseq_++) << "\r\n"
-                << "\r\n";
-            }
+        if (!ec) {
+            Make_head qh(request_);
+            qh.command("OPTIONS") << path_;
+            qh.header("CSeq") << int(cseq_++);
+            qh.end_head();
+
+            LOGD("<=OPTIONS");
             boost::asio::async_write(tcpsock_, request_, yield[ec] );
         }
         return read_response(ec, yield);
@@ -169,53 +216,55 @@ private:
 
     boost::system::error_code do_describe(boost::system::error_code ec, boost::asio::yield_context yield)
     {
-        if (!ec) {{
-            std::ostream outs(&request_);
-            outs << "DESCRIBE " << path_ << " RTSP/1.0\r\n"
-                << "CSeq: " << int(cseq_++) << "\r\n"
-                << "Accept: application/sdp\r\n"
-                << "\r\n";
-            }
+        if (!ec) {
+            Make_head qh(request_);
+            qh.command("DESCRIBE") << path_;
+            qh.header("CSeq") << int(cseq_++);
+            qh.header("Accept") << "application/sdp";
+            qh.end_head();
+
+            LOGD("<=DESCRIBE %s", path_.c_str());
             boost::asio::async_write(tcpsock_, request_, yield[ec] );
         }
         return read_response(ec, yield);
     }
 
     int local_port(int x=0) { return 1234+x; }
+    void start_playing() {}
+
     boost::system::error_code do_setup(boost::system::error_code ec, boost::asio::yield_context yield) //Setup
     {
         if (!ec) {
             std::string streamid, sps, pps;
-            if ( !(ec =parse_rsp_describe(streamid, sps, pps)) ) {{
-                std::ostream outs(&request_);
-                outs << "SETUP " << path_ <<"/"<< streamid << " RTSP/1.0\r\n"
-                    << "CSeq: " << int(cseq_++) << "\r\n"
-                    << "Transport: RTP/AVP;unicast;client_port="<< local_port() <<"-"<< local_port(+1) << "\r\n"
-                    << "Range: 0.00-\r\n"
-                    << "\r\n";
-                }
+            if ( !(ec =parse_rsp_describe(streamid, sps, pps)) ) {
+                Make_head qh(request_);
+                qh.command("SETUP") << path_ << "/" << streamid;
+                qh.header("CSeq") << int(cseq_++);
+                qh.header("Transport") << "RTP/AVP;unicast;client_port="<< local_port() <<"-"<< local_port(+1);
+                qh.end_head();
+
                 this; //sps, pps;
-                //LOGD("setup: %s/%s\n\t%s", path_.c_str(), streamid.c_str(), transport.c_str());
+                LOGD("<=SETUP %s %s", path_.c_str(), streamid.c_str());
                 boost::asio::async_write(tcpsock_, request_, yield[ec] );
             }
         }
         return read_response(ec, yield);
     }
 
-    void start_playing() {}
     boost::system::error_code do_play(boost::system::error_code ec, boost::asio::yield_context yield)
     {
         if (!ec) {
-            std::string session;
-            if ( !(ec =parse_rsp_setup(session)) ) {{
+            if ( !(ec =parse_rsp_setup()) ) {
+                Make_head qh(request_);
+                qh.command("PLAY") << path_;
+                qh.header("CSeq") << int(cseq_++);
+                qh.header("Transport") << "RTP/AVP;unicast;client_port="<< local_port() <<"-"<< local_port(+1);
+                if (!session_.empty()) qh.header("Session") << session_;
+                qh.end_head();
+
                 this->start_playing();
 
-                std::ostream outs(&request_);
-                outs << "PLAY " << path_ << " RTSP/1.0\r\n"
-                    << "CSeq: " << int(cseq_++) << "\r\n"
-                    << "Session: " << session_ << "\r\n"
-                    << "\r\n";
-                }
+                LOGD("<=PLAY %s, session %s", path_.c_str(), session_.c_str());
                 boost::asio::async_write(tcpsock_, request_, yield[ec] );
             }
         }
@@ -224,13 +273,14 @@ private:
 
     boost::system::error_code do_teardown(boost::system::error_code ec, boost::asio::yield_context yield)
     {
-        if (!ec) {{
-            std::ostream outs(&request_);
-            outs << "TEARDOWN " << path_ << " RTSP/1.0\r\n"
-                << "CSeq: " << int(cseq_++) << "\r\n"
-                << "Session: " << session_ << "\r\n"
-                << "\r\n";
-            }
+        if (!ec) {
+            Make_head qh(request_);
+            qh.command("TEARDOWN") << path_;
+            qh.header("CSeq") << int(cseq_++);
+            if (!session_.empty()) qh.header("Session") << session_;
+            qh.end_head();
+
+            LOGD("<=TEARDOWN session %s", session_.c_str());
             boost::asio::async_write(tcpsock_, request_, yield[ec] ); // boost::asio::write(tcpsock_, request_);
         }
         return ec;
@@ -247,7 +297,7 @@ private:
         bool m_v = 0;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%d: %s", __LINE__, line.c_str());
+            LOGD("%s", line.c_str());
             if (boost::starts_with(line, "m=")) {
                 m_v = boost::starts_with(line, "m=video");
             } else if (m_v) {
@@ -269,14 +319,13 @@ private:
         }
         return boost::system::error_code();
     }
-    boost::system::error_code parse_rsp_setup(std::string& session)
+    boost::system::error_code parse_rsp_setup()
     {
-        LOGD("parse:Setup");
         std::istream ins(&response_);
         std::string line;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%d: %s", __LINE__, line.c_str());
+            LOGD("%s", line.c_str());
             if (boost::starts_with(line, "Session:")) {
                 re::smatch m;
                 re::regex re("Session:[[:space:]]*([^[:space:]]+)");
@@ -285,6 +334,7 @@ private:
                 }
             }
         }
+        LOGD("parse:SETUP, session %s", session_.c_str());
         return boost::system::error_code();
     }
 
@@ -304,33 +354,40 @@ private:
             decltype(end) eol, p = beg;
             while ( (eol = std::find(p,end, '\n')) != end) {
                 auto* e = eol++;
-                while (e != p && isspace(*e))
+                while (e != p && isspace(*(e-1)))
                     --e;
-                auto linr = boost::make_iterator_range(p,e+1);
+                LOGD("%.*s", int(e-p), p);
+                auto linr = boost::make_iterator_range(p,e);
                 if (boost::istarts_with(linr, "Content-Length")) {
-                    re::regex re_header_("^([^:]+):\\s+(.+)$");
+                    re::regex rexp("^([^:]+):\\s+(.+)$");
                     re::cmatch m;
-                    if (re::regex_match(p,e, m, re_header_)) {
+                    if (re::regex_match(p,e, m, rexp)) {
                         clen = atoi(m[2].first);
                         //std::clog << "Content-Length " << clen << "\n";
                     }
+                } else if (boost::starts_with(linr, "Session")) {
+                    re::regex rexp("Session:[[:space:]]*([^[:space:]]+)");
+                    re::cmatch m;
+                    if (re::regex_search(p,e, m, rexp)) {
+                        session_.assign(m[1].first, m[1].second);
+                    }
                 }
-                LOGD("%.*s\n", int(e-p), p);
                 if (p == e)
                     break;
                 p = eol;
             }
-            // response_.consume(eol - beg);
+            size_t hlen = eol - beg; // response_.consume(eol - beg);
 
+            LOGD("X-Length: %u+%u, %u", hlen, clen, response_.size());
             if (response_.size() < clen) {
                 if (clen != size_t(-1)) {
-                    size_t n_bytes = clen - response_.size();
+                    size_t n_bytes = hlen+clen - (response_.size());
                     boost::asio::async_read(tcpsock_, response_.prepare(n_bytes), yield[ec]);
                     if (!ec)
                         response_.commit(n_bytes);
                 }
                 if (ec) {
-                    LOGD("rd-cont: %d:%s", ec.value(), ec.message().c_str());
+                    LOGE("read: %d:%s", ec.value(), ec.message().c_str());
                     return ec;
                 }
             }
@@ -370,14 +427,6 @@ struct user_input : boost::noncopyable
         io_s.stop();
     }
 
-    static boost::iterator_range<char const*> cptr_trim(char const* p, char const* e) {
-        while (e != p && isspace(*(e-1)))
-            --e;
-        while (p != e && isspace(*p))
-            ++p;
-        return boost::make_iterator_range(p,e);
-    };
-
     boost::system::error_code do_read_line(boost::system::error_code ec, boost::asio::yield_context yield) {
         boost::asio::async_read_until(input_, input_buffer_, '\n', yield[ec]);
         if (!ec) {
@@ -385,10 +434,9 @@ struct user_input : boost::noncopyable
             auto* beg = boost::asio::buffer_cast<const char*>(bufs);
             auto* end = beg + boost::asio::buffer_size(bufs);
             auto* eol = std::find(beg,end, '\n') + 1;
-            auto word = cptr_trim(beg, eol);
-            if (boost::equals(word, "quit")) {
-                c_->teardown();
-                // break;
+            auto word = iter_trim(beg, eol);
+            if (boost::equals(word, "quit") || boost::equals(word, "teardown")) {
+                this->teardown();//c_->teardown();
             } else if (boost::equals(word, "play")) {
                 c_->play();
             } else if (boost::equals(word, "setup")) {
@@ -397,7 +445,6 @@ struct user_input : boost::noncopyable
             input_buffer_.consume(eol - beg);
         }
         return ec;
-        //boost::trim_right(line);
     }
 
     static user_input* singlton;
@@ -405,13 +452,13 @@ struct user_input : boost::noncopyable
 user_input* user_input::singlton = 0;
 
 #include <signal.h>
-void sigh(int) {
+void sigINT(int) {
     if (user_input::singlton)
         user_input::singlton->teardown();
 }
 
 int main(int argc, char*const argv[]) {
-    signal(SIGINT, sigh);
+    signal(SIGINT, sigINT);
 
     ip::tcp::endpoint ep( ip::address::from_string(argv[1]), atoi(argv[2]));
     std::string path = argv[3];
@@ -422,9 +469,10 @@ int main(int argc, char*const argv[]) {
 
     ui.setup(argc,argv);
     io_s.run();
+
     io_s.reset();
     int runc_=300;
-    while (--runc_ > 1) {
+    while (runc_-- > 1) {
         io_s.poll_one();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
