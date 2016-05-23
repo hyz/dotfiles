@@ -371,9 +371,9 @@ Main::initializer::initializer(Main* m, int argc, char* const argv[])
         //m->date = std::min(m->date, _date(argv[i]));
     }
 
-    for (auto it=this->begin(), end=this->end(); it != end; ++it) {
-        ;
-    }
+    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
+    m->swap(*this);
+    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
 }
 
 void Main::initializer::loadx(char const* path)
@@ -487,8 +487,11 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.capital1 > 0) {
-                SInfo const& r = (*this)[make_code(szsh,code)];
-                const_cast<SInfo&>(r) = si;
+                push_back(Elem{});
+                //auto & idc = get<1>();
+                //SInfo const& r = idc[make_code(szsh,code)];
+                SInfo& r = const_cast<Elem&>(back());
+                r = si;
                 // this->emplace(make_code(szsh,code), si);
             } else
                 ERR_MSG("%06d capital1 %ld", code, si.capital1);
