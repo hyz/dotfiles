@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -382,7 +383,7 @@ void Main::initialize::fun(code_t code, std::vector<Pa>& vpa)
         return;
     auto& pv1 = pv[1];
 
-    auto it = pv1.begin() + pv1.size() - std::min(6lu,pv1.size());
+    auto it = pv1.begin() + pv1.size() - std::min(6u,unsigned(pv1.size()));
 
     auto lt1 = [](auto&p1, auto&p2) {
         return (p1.second->price - p1.first->price)

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <algorithm>
 #include <map>
@@ -33,7 +34,7 @@ int main(int argc, char* const argv[])
             return 0;
         }
     } catch (std::exception const& e) {
-        fprintf(stderr,e.what());
+        fprintf(stderr,"%s",e.what());
     }
     return 1;
 }

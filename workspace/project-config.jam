@@ -10,7 +10,7 @@ use-project boost : $(BOOST_ROOT) ; # /boost//headers
 #using msvc ; #: : : <architecture>x86 <runtime-link>static <link>static ;
 #
 
-#using clang : : clang++-3.6 : <cxxflags>-std=c++1y ;
+using clang : : clang++-3.6 : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
 
 using gcc : : : <cxxflags>-std=c++1y ;
 

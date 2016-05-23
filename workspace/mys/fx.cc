@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -133,14 +134,14 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av : boost::addable<Av,boost::subtractable<Av,boost::dividable2<Av,int>>> {
-    long volume = 0;
-    long amount = 0;
+    int64_t volume = 0;
+    int64_t amount = 0;
 
     Av& operator+=(Av const& lhs) { amount += lhs.amount; volume += lhs.volume; return *this; }
     Av& operator-=(Av const& lhs) { amount -= lhs.amount; volume -= lhs.volume; return *this; }
     Av& operator/=(int x) { volume /= x; amount /= x; return *this; }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
+BOOST_FUSION_ADAPT_STRUCT(Av, (int64_t,volume)(int64_t,amount))
 
 //typedef fusion::vector<Av,Av> Avsb;
 //auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
@@ -242,11 +243,11 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
 }
 
 struct SInfo {
-    long capital1; // capital stock in circulation
-    long capital0; // general capital
+    int64_t capital1; // capital stock in circulation
+    int64_t capital0; // general capital
     int eps; // earnings per share(EPS)
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,capital1)(long,capital0)(int,eps))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (int64_t,capital1)(int64_t,capital0)(int,eps))
 
 struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
@@ -282,7 +283,7 @@ struct Main::initializer : std::unordered_map<int,SInfo>, boost::noncopyable
 
 int main(int argc, char* const argv[])
 {
-    BOOST_STATIC_ASSERT(sizeof(long)==8);
+    BOOST_STATIC_ASSERT(sizeof(int64_t)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -482,18 +483,18 @@ int Main::run(int argc, char* const argv[])
         // auto const end1 = ivec.end();
         //iterator near1 = *std::max_element(beg1,end1, [end](auto&l,auto&r){return (end-l) < (end-r);});
         //std::sort(beg1, end1);
-        //long volM = std::accumulate(beg1,end1, long{},[](long a,auto&x){return a+x->volume;});
-        long volM = std::accumulate(beg1,end1, Av{}).volume;
-        long volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        //long volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
+        //int64_t volM = std::accumulate(beg1,end1, int64_t{},[](int64_t a,auto&x){return a+x->volume;});
+        int64_t volM = std::accumulate(beg1,end1, Av{}).volume;
+        int64_t volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //int64_t volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
 
-        //long vola = std::accumulate(begin,end, Av{}).volume/el.size();
-        //long volx = std::accumulate(begin,end, long{}, [vola](long a,auto&x){return a+labs(x.volume-vola);})/15;
+        //int64_t vola = std::accumulate(begin,end, Av{}).volume/el.size();
+        //int64_t volx = std::accumulate(begin,end, int64_t{}, [vola](int64_t a,auto&x){return a+labs(x.volume-vola);})/15;
         //auto vlohi = Ma(3, rbegin,rend, null_iter, [](auto&l,auto&r){return l.volume<r.volume;});
 
         printf("%06d", numb(el.code));
         {
-            long lsz = el.capital1*el.oc[1]/100;
+            int64_t lsz = el.capital1*el.oc[1]/100;
             printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
 //601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
