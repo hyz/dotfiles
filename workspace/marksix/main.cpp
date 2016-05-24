@@ -595,7 +595,7 @@ struct VMain : boost::asio::io_service , Liuhc
                             for (auto& y1 : vhis1_)
                                 fprintf(fp, "\t%d", his_travel(y1, s));
                             fprintf(fp, "\r\n");
-                            if (++first_n >= 1000)
+                            if (++first_n >= 3000)
                                 break;
                         }
                         fprintf(fp, "\r\n");
