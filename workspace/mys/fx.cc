@@ -53,7 +53,16 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) 
     //fflush(stderr);
 }
 template <typename Iter>
-static boost::iterator_range<Iter> c_trim_right(Iter h, Iter end, const char* cs)
+static boost::iterator_range<Iter> iter_trim(Iter h, Iter end)
+{
+    while (end > h && isspace(*(end-1)))
+        --end;
+    while (h < end && isspace(*h))
+        ++h;
+    return boost::make_iterator_range(h,end);
+}
+template <typename Iter>
+static boost::iterator_range<Iter> iter_trim_right(Iter h, Iter end, const char* cs)
 {
     while (end > h && strchr(cs, *(end-1)))
         --end;
@@ -61,8 +70,8 @@ static boost::iterator_range<Iter> c_trim_right(Iter h, Iter end, const char* cs
     //    ++h;
     return boost::make_iterator_range(h,end);
 }
-static boost::iterator_range<char*> c_trim_right(char* s, const char* cs) {
-    return c_trim_right(s, s + strlen(s), cs);
+static boost::iterator_range<char*> iter_trim_right(char* s, const char* cs) {
+    return iter_trim_right(s, s + strlen(s), cs);
 }
 
 template <typename... V> struct Path_join ;
@@ -77,7 +86,7 @@ template <> struct Path_join<char*> { static void concat(char*beg,char*end, char
         *p++ = '/';
     while (p != end && (*p++ = *src++))
         ;
-    *c_trim_right(beg, "/\\").end() = '\0';
+    *iter_trim_right(beg, "/\\").end() = '\0';
 }}; 
 template <> struct Path_join<char const*> { static void concat(char*beg,char*end, char const* src) {
     Path_join<char*>::concat(beg,end, src);
@@ -253,14 +262,21 @@ struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
 };
 
-struct Elem : SInfo, Unit, std::vector<Unit> {
+struct Opstatus {
+    int mlr = 0;
+    int incoming = 0;
+    std::string detail;
+};
+struct Elem : SInfo, Unit, std::vector<Unit>, Opstatus {
     int code = 0;
     //void extend(Elem const& o) {}
 };
 
-struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
+typedef boost::multi_index::multi_index_container<Elem, indexed_by<
               random_access<> //sequenced<>
-            , hashed_unique<member<Elem,int,&Elem::code>> >> // , boost::noncopyable
+            , hashed_unique<member<Elem,int,&Elem::code>> >> multi_index_t;
+
+struct Main : multi_index_t
 {
     Main(int argc, char* const argv[]);
     int run(int argc, char* const argv[]);
@@ -270,15 +286,24 @@ struct Main : boost::multi_index::multi_index_container< Elem, indexed_by <
     struct initializer;
 };
 
-struct Main::initializer : std::unordered_map<int,SInfo>, boost::noncopyable
+struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost::noncopyable
 {
-    Main* a_ = 0;
     initializer(Main* p, int argc, char* const argv[]);
 
+    iterator find(int szsh, int code) {
+        auto & idc = get<1>();
+        auto it = multi_index_t::find(make_code(szsh,code));
+        if (it != idc.end()) {
+            return end(); //ERR_EXIT("add: %d", numb(code));
+        }
+        return project<0>(it);
+    }
+
     void loadsi(char const* dir, char const* fn);
-    Elem* add(int code, Elem&& d);
-    void prep(char const* path);
-    template <typename F> void fun(F read);
+    void loadops(char const* dir, char const* fn);
+    //Elem* add(int code, Elem&& d);
+    void loadx(char const* path);
+    //template <typename F> void fun(F read);
 };
 
 int main(int argc, char* const argv[])
@@ -293,107 +318,83 @@ int main(int argc, char* const argv[])
     return 1;
 }
 
-void Main::initializer::loadsi(char const* dir, char const* fn)
-{
-    joinp<> path(dir,fn);
-    if (FILE* fp = fopen(path.c_str(), "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        using qi::long_; //using qi::_val; using qi::_1;
-        using qi::int_;
-        qi::rule<char*, SInfo(), qi::space_type> R_
-            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
+//Elem* Main::initializer::add(int code, Elem&& el)
+//{
+//    //auto & idc = a_->get<1>();
+//    //auto it = idc.find(code);
+//    //if (it != idc.end()) {
+//    //    ERR_EXIT("add: %d", numb(code));
+//    //}
+//    auto si = this->find(code);
+//    if (si == this->end()) {
+//        ERR_MSG("%06d: sinfo not found", numb(code));
+//        return 0;
+//    }
+//    static_cast<SInfo&>(el) = si->second;
+//    el.code = code;
+//    auto p = a_->push_back( std::move(el) );
+//    if (!p.second)
+//        ERR_EXIT("%06d: push_back", numb(code));
+//    return &const_cast<Elem&>(*p.first);
+//}
 
-        char linebuf[1024];
-        while (fgets(linebuf, sizeof(linebuf), fp)) {
-            int szsh=0, code;
-            SInfo si = {};
-            char* pos = linebuf;
-            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
-                        , int_ >> int_ >> R_
-                        , qi::space, code, szsh, si)) {
-                ERR_EXIT("qi::parse: %s %s", fn, pos);
-            }
-            if (si.capital1 > 0) {
-                //if (si.eps < 0) si.eps = 0;
-                this->emplace(make_code(szsh,code), si);
-            } else
-                ERR_MSG("%06d capital1 %ld", code, si.capital1);
-        }
-    } else
-        ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
-}
-
-Elem* Main::initializer::add(int code, Elem&& el)
-{
-    //auto & idc = a_->get<1>();
-    //auto it = idc.find(code);
-    //if (it != idc.end()) {
-    //    ERR_EXIT("add: %d", numb(code));
-    //}
-    auto si = this->find(code);
-    if (si == this->end()) {
-        ERR_MSG("%06d: sinfo not found", numb(code));
-        return 0;
-    }
-    static_cast<SInfo&>(el) = si->second;
-    el.code = code;
-    auto p = a_->push_back( std::move(el) );
-    if (!p.second)
-        ERR_EXIT("%06d: push_back", numb(code));
-    return &const_cast<Elem&>(*p.first);
-}
-
-Main::initializer::initializer(Main* p, int argc, char* const argv[])
-    : a_(p)
+Main::initializer::initializer(Main* m, int argc, char* const argv[])
+    //: a_(m)
 {
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
     }
     
-    loadsi(getenv("HOME"), "_/_sinfo");
-
     int opt;
     while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
         switch (opt) {
-            case 'e': a_->n_ign_ = atoi(optarg); break;
-            case 'n': a_->n_day_ = atoi(optarg); break;
+            case 'e': m->n_ign_ = atoi(optarg); break;
+            case 'n': m->n_day_ = atoi(optarg); break;
         }
     }
+
+    loadsi(getenv("HOME"), "_/_sinfo");
+    loadops(getenv("HOME"), "_/_opstatus");
 
     if (filesystem::is_directory(argv[optind])) {
         for (auto& di : filesystem::directory_iterator(argv[optind])) {
             if (!filesystem::is_regular_file(di.path()))
                 continue;
             auto & p = di.path();
-            prep( p.generic_string().c_str() );
-            //a_->date = std::min(a_->date, _date(p.generic_string()));
+            loadx( p.generic_string().c_str() );
+            //m->date = std::min(m->date, _date(p.generic_string()));
         }
     } else for (int i=optind; i<argc; ++i) {
         if (!filesystem::is_regular_file(argv[i]))
             continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        prep( argv[i] );
-        //a_->date = std::min(a_->date, _date(argv[i]));
+        loadx( argv[i] );
+        //m->date = std::min(m->date, _date(argv[i]));
     }
+
+    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
+    m->swap(*this);
+    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
 }
 
-void Main::initializer::prep(char const* path)
+void Main::initializer::loadx(char const* path)
 {
     if (FILE* fp = fopen(path, "r")) {
-        auto read = [fp](std::vector<Unit>& vec, Unit& sa) {
-            // vec.reserve(60*4+2); //using qi::long_; //using qi::_val; using qi::_1;
-            qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
-            //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+        ///*auto read = [fp](std::vector<Unit>& vec, Unit& sa) */{
+        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
+        //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
-            char linebuf[1024*16]; //[(60*4+15)*16+256];
-            if (!fgets(linebuf, sizeof(linebuf), fp)) {
-                if (!feof(fp))
-                    ERR_EXIT("feof");
-                return 0u;
-            }
+        char linebuf[1024*16]; //[(60*4+15)*16+256];
+        while (fgets(linebuf, sizeof(linebuf), fp)) {
             int szsh=0, code = 0;
             char*const end = &linebuf[sizeof(linebuf)];
             char* pos = linebuf;
             if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
+                auto iter = this->find(szsh,code);
+                if (iter == this->end())
+                    continue;
+                std::vector<Unit>& vec = const_cast<Elem&>(*iter);
+                Unit& sa = const_cast<Elem&>(*iter);
                 Unit un = {};
                 Av & av = un;
 
@@ -418,30 +419,108 @@ void Main::initializer::prep(char const* path)
                 }
             } else
                 ERR_EXIT("qi::parse: %s", pos);
-            return make_code(szsh,code);
-        };
-        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        fun(read);
+        }
+            //return make_code(szsh,code);
+        //};
+        // fun(read);
     } else {
         ERR_EXIT("fopen: %s", path);
     }
 }
-
-template <typename F> void Main::initializer::fun(F read)
+void Main::initializer::loadops(char const* dir, char const* fn)
 {
-    Elem el = {}; //Unit sa = {};
-    while (code_t code = read(el, el)) {
-        if (el.size() < 3) {
-            ERR_MSG("%06d :size<3", numb(code));
-            continue;
+//000668 0	1	996	10700	100:100:房地产开发
+    if (FILE* fp = fopen(joinp<>(dir,fn).c_str(), "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+        using qi::long_; //using qi::_val; using qi::_1;
+        using qi::int_;
+        qi::rule<char*, SInfo(), qi::space_type> R_
+            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
+
+        char linebuf[1024];
+        while (fgets(linebuf, sizeof(linebuf), fp)) {
+            int szsh=0, code, cat;
+            char* pos = linebuf;
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , int_ >> int_ >> int_
+                        , qi::space, code, szsh, cat)) {
+                ERR_EXIT("qi::parse: %s %s", fn, pos);
+            }
+            if (cat != 3) {
+                continue;
+            }
+    
+            auto iter = this->find(szsh,code);
+            if (iter == this->end())
+                continue;
+
+            Opstatus& ops = const_cast<Elem&>( *iter );
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , int_ >> int_
+                        , qi::space, ops.mlr, ops.incoming)) {
+                ERR_EXIT("qi::parse: %s %s", fn, pos);
+            }
+            auto r = iter_trim(pos, pos+strlen(pos));
+            ops.detail.assign(r.begin(),r.end());
         }
-        //if (600898 == numb(code)) { ERR_MSG("600898 %d %d %d", n_ign_, int(el.size()), int(el.back().volume) ); }
-        // el.resize(el.size() - n_ign_);
-        if (!this->add(code, std::move(el))) {
-            ERR_MSG("%06d :add-fail", numb(code));
-        }
-    }
+    } else
+        ERR_EXIT("fopen: %s %s", dir, fn);
 }
+void Main::initializer::loadsi(char const* dir, char const* fn)
+{
+    joinp<> path(dir,fn);
+    if (FILE* fp = fopen(path.c_str(), "r")) {
+        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+        using qi::long_; //using qi::_val; using qi::_1;
+        using qi::int_;
+        qi::rule<char*, SInfo(), qi::space_type> R_
+            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
+
+        char linebuf[1024];
+        while (fgets(linebuf, sizeof(linebuf), fp)) {
+            int szsh=0, code;
+            SInfo si = {};
+            char* pos = linebuf;
+            if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
+                        , int_ >> int_ >> R_
+                        , qi::space, code, szsh, si)) {
+                ERR_EXIT("qi::parse: %s %s", fn, pos);
+            }
+            if (si.capital1 > 0) {
+                push_back(Elem{});
+                //auto & idc = get<1>();
+                //SInfo const& r = idc[make_code(szsh,code)];
+                SInfo& r = const_cast<Elem&>(back());
+                r = si;
+                // this->emplace(make_code(szsh,code), si);
+            } else
+                ERR_MSG("%06d capital1 %ld", code, si.capital1);
+        }
+    } else
+        ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
+}
+
+
+//template <typename F> void Main::initializer::fun(F read)
+//{
+//    std::vector<Unit> vec; Unit sa; // Elem el = {}; //Unit sa = {};
+//    while (code_t code = read(vec, sa)) {
+//        auto it = find(code);
+//        if (it == end())
+//            continue;
+//        static_cast<std::vector<Unit>&>(*it) = std::move(vec);
+//        static_cast<Unit&>(*it) = sa;
+//        //Unit& sa_r = *it; // Elem el = {}; //Unit sa = {};
+//        //vec_r = std::move(vec);
+//        //sa_r = sa;
+//        
+//        //if (600898 == numb(code)) { ERR_MSG("600898 %d %d %d", n_ign_, int(el.size()), int(el.back().volume) ); }
+//        // el.resize(el.size() - n_ign_);
+//        //if (!this->add(code, std::move(el))) {
+//        //    ERR_MSG("%06d :add-fail", numb(code));
+//        //}
+//    }
+//}
 
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
