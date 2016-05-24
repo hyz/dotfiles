@@ -63,3 +63,13 @@ $(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$(androidPlatform
 #include $(PREBUILT_STATIC_LIBRARY)
 #
 
+target-os=linux 
+binary-format=elf
+architecture=arm
+address-model=32
+abi=
+#armeabi-v7a" is not a known value of feature <abi>
+#error: legal values: "aapcs" "eabi" "ms" "n32" "n64" "o32" "o64" "sysv" "x32"
+
+### http://www.boost.org/doc/libs/1_61_0/libs/context/doc/html/context/architectures.html
+### https://developer.android.com/ndk/guides/abis.html

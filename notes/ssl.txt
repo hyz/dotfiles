@@ -1,0 +1,1 @@
+https://sandilands.info/sgordon/https-and-certificates-with-apache-openssl-tcpdump

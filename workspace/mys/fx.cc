@@ -338,50 +338,12 @@ int main(int argc, char* const argv[])
 //    return &const_cast<Elem&>(*p.first);
 //}
 
-Main::initializer::initializer(Main* m, int argc, char* const argv[])
-    //: a_(m)
-{
-    if (argc < 2) {
-        ERR_EXIT("%s argc: %d", argv[0], argc);
-    }
-    
-    int opt;
-    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
-        switch (opt) {
-            case 'e': m->n_ign_ = atoi(optarg); break;
-            case 'n': m->n_day_ = atoi(optarg); break;
-        }
-    }
-
-    loadsi(getenv("HOME"), "_/_sinfo");
-    loadops(getenv("HOME"), "_/_opstatus");
-
-    if (filesystem::is_directory(argv[optind])) {
-        for (auto& di : filesystem::directory_iterator(argv[optind])) {
-            if (!filesystem::is_regular_file(di.path()))
-                continue;
-            auto & p = di.path();
-            loadx( p.generic_string().c_str() );
-            //m->date = std::min(m->date, _date(p.generic_string()));
-        }
-    } else for (int i=optind; i<argc; ++i) {
-        if (!filesystem::is_regular_file(argv[i]))
-            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        loadx( argv[i] );
-        //m->date = std::min(m->date, _date(argv[i]));
-    }
-
-    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
-    m->swap(*this);
-    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
-}
-
 void Main::initializer::loadx(char const* path)
 {
     if (FILE* fp = fopen(path, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         ///*auto read = [fp](std::vector<Unit>& vec, Unit& sa) */{
-        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
+        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_long >> qi::long_long;
         //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
         char linebuf[1024*16]; //[(60*4+15)*16+256];
@@ -416,13 +378,9 @@ void Main::initializer::loadx(char const* path)
                     } else {
                         ERR_MSG("%06d vol %ld", code, av.volume);
                     }
-                }
-            } else
-                ERR_EXIT("qi::parse: %s", pos);
+                } //ERR_EXIT("qi::parse: %s", pos);
+            }
         }
-            //return make_code(szsh,code);
-        //};
-        // fun(read);
     } else {
         ERR_EXIT("fopen: %s", path);
     }
@@ -471,10 +429,10 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
     joinp<> path(dir,fn);
     if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        using qi::long_; //using qi::_val; using qi::_1;
+        using qi::long_long; //using qi::_val; using qi::_1;
         using qi::int_;
         qi::rule<char*, SInfo(), qi::space_type> R_
-            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
+            = long_long >> long_long >> qi::omit[long_long]>>qi::omit[long_long] >> int_;
 
         char linebuf[1024];
         while (fgets(linebuf, sizeof(linebuf), fp)) {
@@ -488,11 +446,8 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
             }
             if (si.capital1 > 0) {
                 push_back(Elem{});
-                //auto & idc = get<1>();
-                //SInfo const& r = idc[make_code(szsh,code)];
                 SInfo& r = const_cast<Elem&>(back());
                 r = si;
-                // this->emplace(make_code(szsh,code), si);
             } else
                 ERR_MSG("%06d capital1 %ld", code, si.capital1);
         }
@@ -521,6 +476,43 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
 //        //}
 //    }
 //}
+
+Main::initializer::initializer(Main* m, int argc, char* const argv[]) //: a_(m)
+{
+    if (argc < 2) {
+        ERR_EXIT("%s argc: %d", argv[0], argc);
+    }
+    
+    int opt;
+    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
+        switch (opt) {
+            case 'e': m->n_ign_ = atoi(optarg); break;
+            case 'n': m->n_day_ = atoi(optarg); break;
+        }
+    }
+
+    loadsi(getenv("HOME"), "_/_sinfo");
+    loadops(getenv("HOME"), "_/_opstatus");
+
+    if (filesystem::is_directory(argv[optind])) {
+        for (auto& di : filesystem::directory_iterator(argv[optind])) {
+            if (!filesystem::is_regular_file(di.path()))
+                continue;
+            auto & p = di.path();
+            loadx( p.generic_string().c_str() );
+            //m->date = std::min(m->date, _date(p.generic_string()));
+        }
+    } else for (int i=optind; i<argc; ++i) {
+        if (!filesystem::is_regular_file(argv[i]))
+            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+        loadx( argv[i] );
+        //m->date = std::min(m->date, _date(argv[i]));
+    }
+
+    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
+    m->swap(*this);
+    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
+}
 
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
@@ -574,10 +566,10 @@ int Main::run(int argc, char* const argv[])
         printf("%06d", numb(el.code));
         {
             int64_t lsz = el.capital1*el.oc[1]/100;
-            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            printf("\t%6.2f %5.2f %.3lld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
 //601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
-            printf("\t%ld %ld %.3ld %.3ld", (end-near0), (end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
+            printf("\t%d %d %.3lld %.3lld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
             //        , 100*lasp->volume/last->volume
             //        , 100*vlohi[0].volume/last->volume, 100*vola/last->volume, 100*vlohi[1].volume/last->volume);

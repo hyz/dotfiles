@@ -388,9 +388,9 @@ private:
             if (response_.size() < clen) {
                 if (clen != size_t(-1)) {
                     size_t n_bytes = hlen+clen - (response_.size());
-                    boost::asio::async_read(tcpsock_, response_.prepare(n_bytes), yield[ec]);
-                    if (!ec)
-                        response_.commit(n_bytes);
+                    boost::asio::async_read(tcpsock_, response_, boost::asio::transfer_exactly(n_bytes), yield[ec]);
+                    //boost::asio::async_read(tcpsock_, response_.prepare(n_bytes), yield[ec]);
+                    //if (!ec) response_.commit(n_bytes);
                 }
                 if (ec) {
                     LOGE("read: %d:%s", ec.value(), ec.message().c_str());

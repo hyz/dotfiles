@@ -1,0 +1,3 @@
+https://trac.ffmpeg.org/wiki/StreamingGuide
+https://sandilands.info/sgordon/live-webca-streaming-using-vlc-command-line
+

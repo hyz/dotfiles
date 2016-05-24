@@ -48,7 +48,6 @@ using gcc :  : arm-linux-androideabi-g++
     <compileflags>-finline-limit=64
     <compileflags>-Wa,--noexecstack
     <compileflags>-DANDROID
-    <compileflags>-D__ANDROID__
     <compileflags>-DNDEBUG
     #<compileflags>-g
         #<compileflags>-I$(NDK)/platforms/android-12/arch-arm/usr/include

@@ -5,7 +5,7 @@ project headless-test
     : default-build release
     ;
 
-exe hgs : hgs-test.cpp hgs-rtph264.cpp /boost//system /boost//regex # /boost//thread
+exe hgs : hgs-test.cpp hgs-rtph264.cpp /boost//system /boost//regex /boost//coroutine
     : #<define>NOT_PRINT_PROTO=1 #<link>static
     ;
 

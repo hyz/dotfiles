@@ -87,3 +87,11 @@ https://wiki.archlinux.org/index.php/FFmpeg
 
 https://github.com/danielgtaylor/qtfaststart
 
+### https://sandilands.info/sgordon/multimedia-on-linux-command-line
+
+apt-get install mp4v2-utils
+apt-get install libav-tools
+apt-get install flac
+apt-get install faac
+apt-get install sox
+
