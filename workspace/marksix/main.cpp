@@ -302,32 +302,6 @@ private:
         size_t siz = boost::asio::buffer_size(response_.data());
         boost::asio::async_read(tcpsock_, response_.prepare(len-siz), h);
     }
-
-    //template <typename Action>
-    //struct Action_helper
-    //{
-    //    void operator()(boost::system::error_code ec, size_t) const {
-    //        auto* derived = derived_;
-    //        if (ec) {
-    //            derived->on_error(ec, Action{});
-    //        } else {
-    //            // derived->response_.consume(derived->response_.size());
-    //            boost::asio::async_read(derived->tcpsock_, derived->response_.prepare(16384*4)
-    //                    , [derived](boost::system::error_code ec, size_t bytes){
-    //                        DBG_MSG("read: %d(%s) %d", ec.value(), ec.message().c_str(), bytes);
-    //                        if (ec) {
-    //                            derived->on_error(ec, Action{});
-    //                        } else {
-    //                            // "... 200 OK"; // TODO
-    //                            derived->response_.commit(bytes);
-    //                            Action fn;
-    //                            fn(derived);
-    //                        }
-    //                });
-    //        }
-    //    }
-    //    Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
-    //};
 };
 
 template <typename I>
@@ -566,9 +540,11 @@ struct VMain : boost::asio::io_service , Liuhc
     }
     void teardown() { Liuhc::teardown(); DBG_MSG("VMain:teardown"); }
 
-    static std::map<int,std::vector<std::string>> _comb(int marks, std::vector<std::string> const& his)
+    typedef std::map<int,std::vector<std::string>, std::greater<int>> comb_res_type;
+
+    static comb_res_type _comb(int marks, std::vector<std::string> const& his)
     {
-        std::map<int,std::vector<std::string>> mres;
+        comb_res_type mres;
         auto combr = Combination(marks);
 
         std::string res;
@@ -602,7 +578,7 @@ struct VMain : boost::asio::io_service , Liuhc
 
         static char resfn[32] = {};
         /*for (unsigned i = vhis1_.size(); i>0; --i) */{
-            std::map<int,std::vector<std::string>> mres = _comb(marks, vhis0_);//(marks, vhis1_[i-1]);
+            comb_res_type mres = _comb(marks, vhis0_);//(marks, vhis1_[i-1]);
 
             snprintf(resfn,sizeof(resfn), "result-%02d.txt", marks);//(, 2011+i);
             {
