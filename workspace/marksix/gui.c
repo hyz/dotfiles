@@ -120,6 +120,10 @@ int gui_main(char const* (*gen_)(int), void (*poll_)(), void(*stop_)()) //(int a
             if (nk_button_label(ctx, "二码", NK_BUTTON_DEFAULT)) {
                 notepad_open(gen_(2));
             }
+            if (nk_button_label(ctx, "one", NK_BUTTON_DEFAULT)) {
+                notepad_open(gen_(1));
+            }
+
 #if 0
             if (nk_button_label(ctx, "四码", NK_BUTTON_DEFAULT)) {
                 notepad_open(gen_(4));

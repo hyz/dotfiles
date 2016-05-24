@@ -658,7 +658,7 @@ private:
         int nm = 0;
         //std::string tmp;
         for (auto& v : his) {
-            nm += std::includes(s.begin(),s.end(),v.begin(),v.end());
+            nm += std::includes(v.begin(), v.end(),s.begin(),s.end());
             //std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(tmp));
             //nm += !tmp.empty();
             //tmp.clear();
