@@ -408,7 +408,8 @@ private: // rtsp communication
                                 , c[0], c[1], c[2], c[3], c[4], c[5], c[6])) {
                         ERR_EXIT("parse: %s: %s", fn.c_str(), pos);
                     }
-                    his1.push_back( make_string(c.begin(),c.end()) );
+                    std::sort(c.begin(), c.end()-1); // SORT
+                    his1.push_back( make_string(c.begin(),c.end()-1) );
                 }
                 his0.insert(his0.end(), his1.begin(), his1.end());
                 vhis.push_back(std::move(his1));
@@ -655,11 +656,12 @@ private:
 
     static int his_travel(std::vector<std::string> const& his, std::string const& s) {
         int nm = 0;
-        std::string tmp;
+        //std::string tmp;
         for (auto& v : his) {
-            std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(tmp));
-            nm += !tmp.empty();
-            tmp.clear();
+            nm += std::includes(s.begin(),s.end(),v.begin(),v.end());
+            //std::set_intersection(s.begin(),s.end(),v.begin(),v.end(), std::back_inserter(tmp));
+            //nm += !tmp.empty();
+            //tmp.clear();
         }
         return nm;
     }
