@@ -143,14 +143,14 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av : boost::addable<Av,boost::subtractable<Av,boost::dividable2<Av,int>>> {
-    int64_t volume = 0;
-    int64_t amount = 0;
+    long volume = 0;
+    long amount = 0;
 
     Av& operator+=(Av const& lhs) { amount += lhs.amount; volume += lhs.volume; return *this; }
     Av& operator-=(Av const& lhs) { amount -= lhs.amount; volume -= lhs.volume; return *this; }
     Av& operator/=(int x) { volume /= x; amount /= x; return *this; }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (int64_t,volume)(int64_t,amount))
+BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 
 //typedef fusion::vector<Av,Av> Avsb;
 //auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
@@ -252,11 +252,11 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
 }
 
 struct SInfo {
-    int64_t capital1; // capital stock in circulation
-    int64_t capital0; // general capital
+    long capital1; // capital stock in circulation
+    long capital0; // general capital
     int eps; // earnings per share(EPS)
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (int64_t,capital1)(int64_t,capital0)(int,eps))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,capital1)(long,capital0)(int,eps))
 
 struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
@@ -268,13 +268,13 @@ struct Opstatus {
     std::string detail;
 };
 struct Elem : SInfo, Unit, std::vector<Unit>, Opstatus {
-    int code = 0;
+    unsigned code = 0;
     //void extend(Elem const& o) {}
 };
 
 typedef boost::multi_index::multi_index_container<Elem, indexed_by<
               random_access<> //sequenced<>
-            , hashed_unique<member<Elem,int,&Elem::code>> >> multi_index_t;
+            , hashed_unique<member<Elem,unsigned,&Elem::code>> >> multi_index_t;
 
 struct Main : multi_index_t
 {
@@ -308,7 +308,7 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
 int main(int argc, char* const argv[])
 {
-    BOOST_STATIC_ASSERT(sizeof(int64_t)==8);
+    BOOST_STATIC_ASSERT(sizeof(long)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -338,12 +338,50 @@ int main(int argc, char* const argv[])
 //    return &const_cast<Elem&>(*p.first);
 //}
 
+Main::initializer::initializer(Main* m, int argc, char* const argv[])
+    //: a_(m)
+{
+    if (argc < 2) {
+        ERR_EXIT("%s argc: %d", argv[0], argc);
+    }
+    
+    int opt;
+    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
+        switch (opt) {
+            case 'e': m->n_ign_ = atoi(optarg); break;
+            case 'n': m->n_day_ = atoi(optarg); break;
+        }
+    }
+
+    loadsi(getenv("HOME"), "_/_sinfo");
+    loadops(getenv("HOME"), "_/_opstatus");
+
+    if (filesystem::is_directory(argv[optind])) {
+        for (auto& di : filesystem::directory_iterator(argv[optind])) {
+            if (!filesystem::is_regular_file(di.path()))
+                continue;
+            auto & p = di.path();
+            loadx( p.generic_string().c_str() );
+            //m->date = std::min(m->date, _date(p.generic_string()));
+        }
+    } else for (int i=optind; i<argc; ++i) {
+        if (!filesystem::is_regular_file(argv[i]))
+            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
+        loadx( argv[i] );
+        //m->date = std::min(m->date, _date(argv[i]));
+    }
+
+    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
+    m->swap(*this);
+    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
+}
+
 void Main::initializer::loadx(char const* path)
 {
     if (FILE* fp = fopen(path, "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         ///*auto read = [fp](std::vector<Unit>& vec, Unit& sa) */{
-        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_long >> qi::long_long;
+        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
         //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
 
         char linebuf[1024*16]; //[(60*4+15)*16+256];
@@ -351,12 +389,13 @@ void Main::initializer::loadx(char const* path)
             int szsh=0, code = 0;
             char*const end = &linebuf[sizeof(linebuf)];
             char* pos = linebuf;
-            if (qi::phrase_parse(pos,end, qi::int_ >> qi::int_, qi::space, code, szsh)) {
+            if (qi::phrase_parse(pos,end, qi::int_>>qi::int_, qi::space, code, szsh)) {
                 auto iter = this->find(szsh,code);
                 if (iter == this->end())
                     continue;
-                std::vector<Unit>& vec = const_cast<Elem&>(*iter);
-                Unit& sa = const_cast<Elem&>(*iter);
+                Elem& el = const_cast<Elem&>(*iter);
+                std::vector<Unit>& vec = el;;
+                Unit& sa = el;
                 Unit un = {};
                 Av & av = un;
 
@@ -378,8 +417,9 @@ void Main::initializer::loadx(char const* path)
                     } else {
                         ERR_MSG("%06d vol %ld", code, av.volume);
                     }
-                } //ERR_EXIT("qi::parse: %s", pos);
-            }
+                }
+            } else
+                ERR_EXIT("qi::parse: %s", pos);
         }
     } else {
         ERR_EXIT("fopen: %s", path);
@@ -429,27 +469,28 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
     joinp<> path(dir,fn);
     if (FILE* fp = fopen(path.c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        using qi::long_long; //using qi::_val; using qi::_1;
+        using qi::long_; //using qi::_val; using qi::_1;
         using qi::int_;
         qi::rule<char*, SInfo(), qi::space_type> R_
-            = long_long >> long_long >> qi::omit[long_long]>>qi::omit[long_long] >> int_;
+            = long_ >> long_ >> qi::omit[long_]>>qi::omit[long_] >> int_;
 
         char linebuf[1024];
         while (fgets(linebuf, sizeof(linebuf), fp)) {
-            int szsh=0, code;
+            int szsh=0, numb;
             SInfo si = {};
             char* pos = linebuf;
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_ >> R_
-                        , qi::space, code, szsh, si)) {
+                        , qi::space, numb, szsh, si)) {
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.capital1 > 0) {
-                push_back(Elem{});
-                SInfo& r = const_cast<Elem&>(back());
-                r = si;
+                auto p = insert(end(),Elem{});
+                Elem& el = const_cast<Elem&>( *p.first );
+                el.code = make_code(szsh, numb);
+                static_cast<SInfo&>(el) = si;
             } else
-                ERR_MSG("%06d capital1 %ld", code, si.capital1);
+                ERR_MSG("%06d capital1 %ld", numb, si.capital1);
         }
     } else
         ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
@@ -476,43 +517,6 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
 //        //}
 //    }
 //}
-
-Main::initializer::initializer(Main* m, int argc, char* const argv[]) //: a_(m)
-{
-    if (argc < 2) {
-        ERR_EXIT("%s argc: %d", argv[0], argc);
-    }
-    
-    int opt;
-    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
-        switch (opt) {
-            case 'e': m->n_ign_ = atoi(optarg); break;
-            case 'n': m->n_day_ = atoi(optarg); break;
-        }
-    }
-
-    loadsi(getenv("HOME"), "_/_sinfo");
-    loadops(getenv("HOME"), "_/_opstatus");
-
-    if (filesystem::is_directory(argv[optind])) {
-        for (auto& di : filesystem::directory_iterator(argv[optind])) {
-            if (!filesystem::is_regular_file(di.path()))
-                continue;
-            auto & p = di.path();
-            loadx( p.generic_string().c_str() );
-            //m->date = std::min(m->date, _date(p.generic_string()));
-        }
-    } else for (int i=optind; i<argc; ++i) {
-        if (!filesystem::is_regular_file(argv[i]))
-            continue; // ERR_EXIT("%s: is_directory|is_regular_file", argv[i]);
-        loadx( argv[i] );
-        //m->date = std::min(m->date, _date(argv[i]));
-    }
-
-    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
-    m->swap(*this);
-    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
-}
 
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
@@ -554,22 +558,22 @@ int Main::run(int argc, char* const argv[])
         // auto const end1 = ivec.end();
         //iterator near1 = *std::max_element(beg1,end1, [end](auto&l,auto&r){return (end-l) < (end-r);});
         //std::sort(beg1, end1);
-        //int64_t volM = std::accumulate(beg1,end1, int64_t{},[](int64_t a,auto&x){return a+x->volume;});
-        int64_t volM = std::accumulate(beg1,end1, Av{}).volume;
-        int64_t volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        //int64_t volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
+        //long volM = std::accumulate(beg1,end1, long{},[](long a,auto&x){return a+x->volume;});
+        long volM = std::accumulate(beg1,end1, Av{}).volume;
+        long volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //long volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
 
-        //int64_t vola = std::accumulate(begin,end, Av{}).volume/el.size();
-        //int64_t volx = std::accumulate(begin,end, int64_t{}, [vola](int64_t a,auto&x){return a+labs(x.volume-vola);})/15;
+        //long vola = std::accumulate(begin,end, Av{}).volume/el.size();
+        //long volx = std::accumulate(begin,end, long{}, [vola](long a,auto&x){return a+labs(x.volume-vola);})/15;
         //auto vlohi = Ma(3, rbegin,rend, null_iter, [](auto&l,auto&r){return l.volume<r.volume;});
 
         printf("%06d", numb(el.code));
         {
-            int64_t lsz = el.capital1*el.oc[1]/100;
-            printf("\t%6.2f %5.2f %.3lld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            long lsz = el.capital1*el.oc[1]/100;
+            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
 //601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
-            printf("\t%d %d %.3lld %.3lld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
+            printf("\t%ld %ld %.3ld %.3ld", (end-near0), (end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
             //        , 100*lasp->volume/last->volume
             //        , 100*vlohi[0].volume/last->volume, 100*vola/last->volume, 100*vlohi[1].volume/last->volume);
