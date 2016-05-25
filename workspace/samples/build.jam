@@ -22,5 +22,15 @@ exe async_condition_variable
     : <link>static  #<library>/boost//regex
     ;
 
+exe http_server
+    : http_server.cpp 
+        ../boost.http/src/file_server.cpp
+        ../boost.http/src/http_category.cpp
+        ../boost.http/src/http_parser.c
+        ../boost.http/src/socket.cpp
+        /boost//system /boost//coroutine
+    : <include>../boost.http/include <include>../boost.http/src
+    ;
+
 #install bin : a ;
 

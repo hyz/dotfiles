@@ -73,3 +73,5 @@ abi=
 
 ### http://www.boost.org/doc/libs/1_61_0/libs/context/doc/html/context/architectures.html
 ### https://developer.android.com/ndk/guides/abis.html
+
+b2 variant=release threading=multi abi=aapcs architecture=arm target-os=linux binary-format=elf address-model=32

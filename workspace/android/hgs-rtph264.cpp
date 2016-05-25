@@ -1151,14 +1151,62 @@ private:
                             if (ec) {
                                 derived->on_error(ec, Action{});
                             } else {
-                                // "RTSP/1.0 200 OK"; // TODO
-                                Action fn;
-                                fn(derived);
+                                if (unsigned clen = Action_helper<Action>::_parse_head(derived->response_, derived->session_)) {
+                                    LOGD("cLength: %d", clen);
+                                    boost::asio::async_read(derived->tcpsock_, derived->response_, boost::asio::transfer_exactly(clen)
+                                        , [derived](boost::system::error_code ec, size_t) {
+                                            if (ec) {
+                                                derived->on_error(ec, Action{});
+                                            } else {
+                                                Action()(derived);
+                                            }
+                                        });
+                                } else {
+                                    Action()(derived);
+                                }
                             }
-                    });
+                        });
             }
         }
         Derived* derived_; // Action_helper(Derived* d) : Action{d} {}
+
+        static unsigned _parse_head(boost::asio::streambuf& rspbuf, std::string& session)
+        {
+            size_t clen = size_t(-1);
+            auto  bufs = rspbuf.data();
+            auto* beg = boost::asio::buffer_cast<const char*>(bufs);
+            auto* end = beg + boost::asio::buffer_size(bufs);
+            decltype(end) eol, p = beg;
+            while ( (eol = std::find(p,end, '\n')) != end) {
+                auto* e = eol++;
+                while (e != p && isspace(*(e-1)))
+                    --e;
+                // LOGD("%.*s", int(e-p), p);
+                auto linr = boost::make_iterator_range(p,e);
+                if (boost::istarts_with(linr, "Content-Length")) {
+                    re::regex rexp("^([^:]+):\\s+(.+)$");
+                    re::cmatch m;
+                    if (re::regex_match(p,e, m, rexp)) {
+                        clen = atoi(m[2].first);
+                        //std::clog << "Content-Length " << clen << "\n";
+                    }
+                } else if (boost::starts_with(linr, "Session")) {
+                    re::regex rexp("Session:[[:space:]]*([^[:space:]]+)");
+                    re::cmatch m;
+                    if (re::regex_search(p,e, m, rexp)) {
+                        session.assign(m[1].first, m[1].second);
+                    }
+                }
+                if (p == e)
+                    break;
+                p = eol;
+            }
+            size_t hlen = eol - beg; // rspbuf.consume(eol - beg);
+            if (clen != size_t(-1) && rspbuf.size() < clen+hlen) {
+                return int(clen + hlen - rspbuf.size());
+            }
+            return 0;
+        }
     };
 };
 
