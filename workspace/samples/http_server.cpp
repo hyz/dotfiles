@@ -6,6 +6,8 @@
 #include <boost/asio/spawn.hpp>
 #include <boost/http/buffered_socket.hpp>
 #include <boost/http/algorithm.hpp>
+#define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
+#include <boost/scope_exit.hpp>
 
 using namespace std;
 using namespace boost;
@@ -24,12 +26,16 @@ struct server : asio::io_service, tcp::acceptor
 
 private:
     int id_ = 0;
+    int n_work_ = 0;
     asio::io_service& acceptor() { return *this; }
     asio::io_service& io_service() { return *this; }
 
     void work(asio::yield_context yield)
     {
         int serve_id = id_++;
+        ++n_work_;
+        BOOST_SCOPE_EXIT(this) { --n_work_; };
+
         try {
             serve(yield, serve_id);
         } catch (system::system_error &e) {
