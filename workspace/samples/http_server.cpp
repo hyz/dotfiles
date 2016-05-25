@@ -16,7 +16,7 @@ using boost::asio::ip::tcp;
 
 struct server : asio::io_service, tcp::acceptor
 {
-    server(int port=8080) : tcp::acceptor(*this, tcp::endpoint(tcp::v4(), port))
+    server(int port=8080) : tcp::acceptor(io_service(), tcp::endpoint(tcp::v4(), port))
     {}
 
     void run() {
@@ -27,6 +27,7 @@ struct server : asio::io_service, tcp::acceptor
 private:
     int id_ = 0;
     int n_work_ = 0;
+    static constexpr int n_work_limit_ = 10;
     asio::io_service& acceptor() { return *this; }
     asio::io_service& io_service() { return *this; }
 
@@ -34,7 +35,10 @@ private:
     {
         int serve_id = id_++;
         ++n_work_;
-        BOOST_SCOPE_EXIT(this) { --n_work_; };
+        BOOST_SCOPE_EXIT(this) {
+            --n_work_;
+            spawn(io_service(), [this](asio::yield_context yield){ work(yield); });
+        };
 
         try {
             serve(yield, serve_id);
@@ -50,18 +54,13 @@ private:
         }
     }
 
-    void accept(asio::yield_context yield, tcp::socket& s) {
-        //if (n_concurent_ < 10) {
-            this->async_accept(s, yield);
-        //}
-    };
-
     void serve(asio::yield_context yield, int serve_id)
     {
         http::buffered_socket socket(io_service());
 
-        accept(yield, socket.next_layer());
-        spawn(io_service(), [this](asio::yield_context yield){ work(yield); });
+        this->async_accept(socket.next_layer(), yield);
+        if (n_work_ < n_work_limit_)
+            spawn(io_service(), [this](asio::yield_context yield){ work(yield); });
 
         while (socket.is_open()) {
             std::string method;
@@ -137,4 +136,8 @@ extern "C" int __cxa_thread_atexit(void (*func)(), void *obj, void *dso_symbol) 
     int __cxa_thread_atexit_impl(void (*)(), void *, void *);
     return __cxa_thread_atexit_impl(func, obj, dso_symbol);
 }
+
+
+// http://rgrz.tumblr.com/post/13808947359/review-of-html-template-engines-in-c-language
+// http://stackoverflow.com/questions/355650/c-html-template-framework-templatizing-library-html-generator-library
 
