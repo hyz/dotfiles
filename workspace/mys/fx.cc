@@ -252,9 +252,9 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
 }
 
 struct SInfo {
-    long capital1; // capital stock in circulation
-    long capital0; // general capital
-    int eps; // earnings per share(EPS)
+    long capital1 = 0; // capital stock in circulation
+    long capital0 = 0; // general capital
+    int eps = 0; // earnings per share(EPS)
 };
 BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,capital1)(long,capital0)(int,eps))
 
@@ -269,6 +269,7 @@ struct Opstatus {
 };
 struct Elem : SInfo, Unit, std::vector<Unit>, Opstatus {
     unsigned code = 0;
+    Elem(unsigned x) { code=x; }
     //void extend(Elem const& o) {}
 };
 
@@ -301,14 +302,12 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
     void loadsi(char const* dir, char const* fn);
     void loadops(char const* dir, char const* fn);
-    //Elem* add(int code, Elem&& d);
     void loadx(char const* path);
-    //template <typename F> void fun(F read);
 };
 
 int main(int argc, char* const argv[])
 {
-    BOOST_STATIC_ASSERT(sizeof(long)==8);
+    //BOOST_STATIC_ASSERT(sizeof(long)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -339,7 +338,6 @@ int main(int argc, char* const argv[])
 //}
 
 Main::initializer::initializer(Main* m, int argc, char* const argv[])
-    //: a_(m)
 {
     if (argc < 2) {
         ERR_EXIT("%s argc: %d", argv[0], argc);
@@ -485,9 +483,8 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.capital1 > 0) {
-                auto p = insert(end(),Elem{});
+                auto p = insert(end(), Elem{ make_code(szsh, numb) });
                 Elem& el = const_cast<Elem&>( *p.first );
-                el.code = make_code(szsh, numb);
                 static_cast<SInfo&>(el) = si;
             } else
                 ERR_MSG("%06d capital1 %ld", numb, si.capital1);
@@ -573,7 +570,7 @@ int Main::run(int argc, char* const argv[])
             printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
 //601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
-            printf("\t%ld %ld %.3ld %.3ld", (end-near0), (end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
+            printf("\t%d %d %.3ld %.3ld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
             //        , 100*lasp->volume/last->volume
             //        , 100*vlohi[0].volume/last->volume, 100*vola/last->volume, 100*vlohi[1].volume/last->volume);
