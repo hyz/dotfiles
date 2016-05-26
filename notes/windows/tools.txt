@@ -9,4 +9,10 @@ shutdown -s -t 36000
 
 # Tcpview.exe
 
+### Win-R
+msinfo32
+dxdiag
+
+### CMD.exe
+systeminfo
 

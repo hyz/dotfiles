@@ -5,3 +5,18 @@ grub-install --boot-directory=/mnt/boot --target=i386-pc --recheck --debug /dev/
 grub-install --target=i386-pc --recheck --debug /dev/sdx
 grub-mkconfig -o /boot/grub/grub.cfg
 
+grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=grub --boot-directory=esp --debug
+
+### https://wiki.gentoo.org/wiki/GRUB2
+
+    menuentry "Custom Super Bootloader Example" {
+         insmod part_msdos
+         insmod chain
+         chainloader (hd1,1)+1
+    }
+
+###
+modprobe efivars
+efibootmgr -v
+
+

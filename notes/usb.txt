@@ -1,0 +1,10 @@
+### https://wiki.archlinux.org/index.php/Webcam_setup
+$ lsusb
+Bus 001 Device 002: ID 5986:0241 Acer, Inc BisonCam, NB Pro
+...
+$ lsusb -s 001:002 -v | egrep "Width|Height"
+wWidth    640
+wHeight   480
+wWidth    1280
+wHeight   1024
+
