@@ -14,3 +14,8 @@ $ tcpxtract --file traffic.pcap -o output/
 
 ###
 
+### http://www.androidtcpdump.com/android-tcpdump/downloads
+adb push tcpdump /data/
+adb shell
+> tcpdump -w pcap -a
+

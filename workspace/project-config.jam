@@ -20,7 +20,6 @@ using gcc : : : <cxxflags>-std=c++1y ;
 #  threading=single|multi            Whether to build single or multithreaded binaries
 #  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
 
-
 ### # path-constant NDK : /opt/android-ndk ;
 ### 
 ### path-constant TOOLCHAIN : /opt/android/standalone-toolchain/gcc-4.9-android-18 ;

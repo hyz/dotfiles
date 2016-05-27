@@ -1,0 +1,14 @@
+project headless-test
+    : requirements
+        <include>$(BOOST_ROOT)
+        <threading>multi
+    : default-build release
+    ;
+
+exe bw : test-bandwidth.cpp /boost//system
+    : <link>static
+    ;
+exe mtu : test-mtu.cpp /boost//system ;
+
+# install bin : a ;
+

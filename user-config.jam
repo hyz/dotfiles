@@ -6,11 +6,6 @@ project user-config ;
     # boost.use-project 1.39 ; 
     # exe hello : hello.cpp : <library>/boost//thread ; 
 
-### msvc
-#using msvc ;
-#
-#use-project boost : /cygdrive/d/home/wood/workspace/boost_1_59_0 ; 
-
 ### gcc
 #using gcc : : : <cxxflags>-std=c++1y ;
 #    <compileflags>"-std=c++11"
@@ -20,6 +15,11 @@ project user-config ;
 
 #using clang : : : <compileflags>"-stdlib=libc++" <compileflags>"-std=c++11" ;
 #using darwin : : : <compileflags>"-stdlib=libc++" <compileflags>"-std=c++11" ;
+
+### msvc
+#using msvc ;
+#
+#use-project boost : /cygdrive/d/home/wood/workspace/boost_1_59_0 ; 
 
 ###
 ### http://libcinder.org/docs/v0.8.5/_cinder_boost.html

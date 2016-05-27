@@ -15,3 +15,7 @@ adb shell dumpsys package com.foo.bar |egrep -A99999 "grantedPermissions:"
 
 adb logcat -s '<TAG>'
 
+###
+adb -s HU9SP7ZLSO5DNNEA push bin/bw /data
+adb -s HU9SP7ZLSO5DNNEA shell
+

@@ -83,3 +83,5 @@ using gcc :  : arm-linux-androideabi-g++
 #   -target i686-none-linux-android
 #
 
+using clang : : clang++-3.6 : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
+
