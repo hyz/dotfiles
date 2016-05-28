@@ -125,7 +125,8 @@ private:
     }
     void do_send()
     {
-        unsigned length = 1024*(std::rand()%24 + 6);
+        int rv = rand()%100;
+        unsigned length = 1024*( (rv>90?15:5) + rv%5);
         data_[0] = htonl(length);
         data_[1] = htonl(sent_.seq);
         sent_.seq++;
