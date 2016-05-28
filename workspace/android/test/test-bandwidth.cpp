@@ -75,12 +75,12 @@ private:
             bool lost = (seq != prev.seq+1)
                 || (bytes_recvd - prev.bytes_recvd != bytes_exped - prev.bytes_exped);
             unsigned ct = Main::sMills();
-            if (lost || ((ct - pt_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq<5) {
+            if (lost || ((ct - pt_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
                 int nsec = (ct)/1000;
                 if (nsec == 0)
                     nsec = 1;
-                printf("%3u.%03u %4u %-4u %-4u %4.1f %u%c", ct/1000,ct%1000
-                        , prev.seq, seq, pkgcount, bytes_recvd/1024.0/nsec, bytes_recvd, lost?'\t':'\n');
+                printf("%3u.%03u %4u %-4u %-4u %6.1f %7.1f %u%c", ct/1000,ct%1000
+                        , prev.seq, seq, pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?'\t':'\n');
                 if (lost)
                     printf("* %u\n", bytes_recvd-prev.bytes_recvd);
                 pt_=ct;
