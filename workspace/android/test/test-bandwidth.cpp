@@ -59,6 +59,8 @@ private:
         unsigned bytes_exped = 0;
 
         void incoming(unsigned len, unsigned seq, unsigned nbytes) {
+			if (pkgcount == 0)
+				gettimeofday(&Main::singleton->tv0_, NULL);
             recv_st prev = *this;
 
             this->pkgcount++;
