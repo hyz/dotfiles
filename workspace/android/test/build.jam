@@ -5,10 +5,12 @@ project headless-test
     : default-build release
     ;
 
+exe mtu : test-mtu.cpp /boost//system ;
+
 exe bw : test-bandwidth.cpp /boost//system
     : <link>static
     ;
-exe mtu : test-mtu.cpp /boost//system ;
+exe cbw : test-bandwidth.c ;
 
 # install bin : a ;
 

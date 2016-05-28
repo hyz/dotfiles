@@ -27,8 +27,8 @@ path-constant SYSROOT : $(TOOLCHAIN)/sysroot ;
 using gcc :  : arm-linux-androideabi-g++
     :
     <archiver>arm-linux-androideabi-ar
+    <architecture>arm
     <compileflags>-fexceptions
-    <compileflags>-frtti
     <compileflags>-fpic
     <compileflags>-ffunction-sections
     <compileflags>-funwind-tables
@@ -55,10 +55,10 @@ using gcc :  : arm-linux-androideabi-g++
         #<compileflags>-I$(NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include
     # @Moss - Above are the 'oficial' android flags
     <compileflags>--sysroot=$(SYSROOT)
-    <architecture>arm
-    <compileflags>-fvisibility=hidden
-    <compileflags>-fvisibility-inlines-hidden
     <compileflags>-fdata-sections
+    <cxxflags>-frtti
+    <cxxflags>-fvisibility=hidden
+    <cxxflags>-fvisibility-inlines-hidden
     <cxxflags>-D__arm__
     <cxxflags>-D_REENTRANT
     <cxxflags>-D_GLIBCXX__PTHREADS

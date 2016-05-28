@@ -16,8 +16,10 @@ using boost::asio::ip::tcp;
 
 struct server : asio::io_service, tcp::acceptor
 {
-    server(int port=8080) : tcp::acceptor(io_service(), tcp::endpoint(tcp::v4(), port))
-    {}
+    server(int port=8080) : tcp::acceptor(io_service(), tcp::endpoint(tcp::v4(), port)) {
+        boost::asio::socket_base::reuse_address option(true);
+        tcp::acceptor::set_option(option);
+    }
 
     void run() {
         spawn(io_service(), [this](asio::yield_context yield){ work(yield); });

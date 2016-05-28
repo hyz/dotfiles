@@ -1,0 +1,2 @@
+/mnt/hgfs/home/wood/gm_lib-IPCAM/toolchain_gnueabi-4.4.0_ARMv5TE.tgz
+/usr/src/arm-linux-3.3/toolchain_gnueabi-4.4.0_ARMv5TE/usr/bin
