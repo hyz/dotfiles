@@ -102,11 +102,11 @@ struct codes_set : std::unordered_set<int>
 
 struct _999999 :  std::vector<HISDAT>
 {
-    _999999(BYTE nTQ, int len=5) {
+    _999999(BYTE nTQ, int len=15) {
         std::vector<HISDAT>& v = *this;
         v.resize(len<1 ? 1:len);
 		int n = GDef::tdx_read("999999", 1, PER_DAY, &v[0], (int)v.size(), NTime{}, NTime{}, nTQ, 0);
-        if (n != len)
+        if (n != (int)v.size())
             ERR_EXIT("999999: %d: %d", (int)v.size(), n);
     }
 	ymd_type ymd(int x = -1) const { return ymd_type(Time(x)); }
@@ -126,12 +126,10 @@ BOOL myflt0(char const* Code, short nSetCode
 struct Out1 : _999999
 {
     codes_set excls_;
-    FILE* fp_ = 0;
-    BYTE nTQ_;
+    FILE* fp_ = 0; // BYTE nTQ_;
     std::vector<HISDAT> sh_; //std::pair<NTime,NTime> time_range_ = {};
 
     Out1(int args[4], BYTE nTQ) : _999999(nTQ, args[1]>0 ? args[1]:30), excls_(FN_EXCLS) {
-        nTQ_ = nTQ;
         auto t = ymd(); //ymd_type(sh_.back().Time);
         makepath<128> fn(DIR_OUT, format("%d.%02d%02d-%d") % args[3] % t.m % t.d % int(_999999::size()));
         fp_ = fopen(fn.c_str(), "w");
@@ -143,22 +141,21 @@ struct Out1 : _999999
         }
     }
 
-    void print(char const* Code, short nSetCode)
+    void print(char const* Code, short nSetCode, BYTE nTQ)
     {
-        if (!fp_ || excls_.exist(atoi(Code)))
+        if (!fp_ /*|| excls_.exist(atoi(Code))*/)
             return;
-        int len = (int)_999999::size(); //sh_.size();
-        sh_.resize(len);
-        len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ_, 0);
+        sh_.resize(_999999::size());
+        int len = GDef::read(&sh_[0], (int)sh_.size(), PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ, 0);
         sh_.resize(len<0 ? 0 : len);
 
-        auto it = sh_.begin(), endit = sh_.end();
-        while (it != endit && ymd_type(it->Time) < ymd_type(front().Time))
+        auto it = sh_.begin(), End = sh_.end();
+        while (it != End && ymd_type(it->Time) < ymd(0))
             ++it;
 
         fprintf(fp_, "%s %d", Code, nSetCode);
         for (auto i = begin() , e = end(); i != e; ++i) {
-            if (it == endit || i->Time.day != it->Time.day) {
+            if (it == End || i->Time.day != it->Time.day) {
                 fprintf(fp_, "\t0 0" " 0 0 0 0");
             } else {
                 fprintf(fp_, "\t%.0f %.0f" " %.0f %.0f %.0f %.0f"
@@ -175,13 +172,7 @@ BOOL myflt1(char const* Code, short nSetCode
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
     static Out1 out(args, nTQ);
-    out.print(Code, nSetCode);
-    //static codes_set excls_(FN_EXCLS);
-
-    //int icode = atoi(Code);
-    //if (excls_.exist(icode)) {
-    //    return 0;
-    //}
+    out.print(Code, nSetCode, nTQ);
 
 	//STOCKINFO si = {};
 	//REPORTDAT2 rp = {};
