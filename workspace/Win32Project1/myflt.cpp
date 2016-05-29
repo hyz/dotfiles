@@ -7,7 +7,7 @@
 #include <unordered_set>
 //#include <algorithm>
 //#include <numeric>
-#include <boost/config/warning_disable.hpp>
+#include <boost/operators.hpp>
 #include <boost/format.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <set>
@@ -25,7 +25,7 @@
 
 using boost::format;
 
-struct ymd_type
+struct ymd_type : boost::equality_comparable<ymd_type, boost::less_than_comparable<ymd_type>>
 {
     int y,m,d;
     ymd_type(NTime const& t) {
@@ -33,6 +33,8 @@ struct ymd_type
         m = t.month;
         d = t.day;
     }
+    bool operator==(ymd_type const&r) const { return y==r.y && m==r.m && d==r.d; }
+    bool operator< (ymd_type const&r) const { return y <r.y || m <r.m || d <r.d; }
 };
 
 static char* c_trim_right(char* h, const char* cs)
@@ -150,16 +152,19 @@ struct Out1 : _999999
         len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ_, 0);
         sh_.resize(len<0 ? 0 : len);
 
+        auto it = sh_.begin(), endit = sh_.end();
+        while (it != endit && ymd_type(it->Time) < ymd_type(front().Time))
+            ++it;
+
         fprintf(fp_, "%s %d", Code, nSetCode);
-        auto it = sh_.begin(); //auto end = sh_.end();
         for (auto i = begin() , e = end(); i != e; ++i) {
-            if (i->Time.day == it->Time.day) {
+            if (it == endit || i->Time.day != it->Time.day) {
+                fprintf(fp_, "\t0 0" " 0 0 0 0");
+            } else {
                 fprintf(fp_, "\t%.0f %.0f" " %.0f %.0f %.0f %.0f"
                         , it->fVolume, it->a.Amount ///10000
                         , 100*it->Open, 100*it->Close, 100*it->Low, 100*it->High);
                 ++it;
-            } else {
-                fprintf(fp_, "\t0 0" " 0 0 0 0");
             }
         }
         fprintf(fp_, "\n");
