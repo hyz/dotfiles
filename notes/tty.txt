@@ -1,0 +1,8 @@
+### http://askubuntu.com/questions/40959/how-do-i-connect-to-tty-com-dev-ttyusb0
+kermit
+screen /dev/ttyUSB0 115200
+
+### http://unix.stackexchange.com/questions/144029/command-to-determine-ports-of-a-device-like-dev-ttyusb0
+
+ls -l /dev/serial/by-path
+
