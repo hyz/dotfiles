@@ -1,0 +1,29 @@
+### https://help.ubuntu.com/lts/serverguide/network-file-system.html
+### https://help.ubuntu.com/community/SettingUpNFSHowTo
+
+less /etc/idmapd.conf
+less /etc/default/nfs-common
+less /etc/default/nfs-kernel-server
+
+apt-get install nfs-kernel-server
+mkdir -p /export/wood
+chown -R nobody:nogroup /export
+
+mount --bind $HOME /export/wood
+
+### /etc/exports
+/export       *(rw,fsid=0,insecure,no_subtree_check,async)
+/export/wood  *(rw,nohide,insecure,no_subtree_check,async)
+
+
+exportfs -a
+service nfs-kernel-server restart
+
+mount -t nfs -o proto=tcp,port=2049 127.0.0.1:/wood /mnt
+
+### http://unix.stackexchange.com/questions/106122/mount-nfs-access-denied-by-server-while-mounting-on-ubuntu-machines
+exportfs -a
+showmount -e <NFS server name>
+
+
+

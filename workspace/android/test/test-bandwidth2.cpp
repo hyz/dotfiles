@@ -35,6 +35,7 @@ struct Main : boost::noncopyable
         mils_idle_ = idle;
         socket_ = udp_connect(dst_ip, dst_port);
         run_ = &Main::do_send;
+        printf("sending ...\n");
     }
     Main(int bind_port)
     {
@@ -45,6 +46,7 @@ struct Main : boost::noncopyable
         bzero((void*)&recv_,sizeof(recv_));
         socket_ = udp_bind("0", bind_port);
         run_ = &Main::do_receive;
+        printf("receiving ...\n");
     }
     ~Main() { close(socket_); }
 

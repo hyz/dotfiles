@@ -32,6 +32,7 @@ struct Main : boost::noncopyable
         gettimeofday(&tv0_, NULL);
         mils_idle_ = idle;
         do_send();
+        printf("sending ...\n");
     }
     Main(boost::asio::io_service& io_service, short port)
         : socket_(io_service, udp::endpoint(udp::v4(), port))
@@ -40,6 +41,7 @@ struct Main : boost::noncopyable
         std::srand(time(0));
         gettimeofday(&tv0_, NULL);
         do_receive();
+        printf("receiving ...\n");
     }
 
 private:
