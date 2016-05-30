@@ -10,7 +10,7 @@ exe mtu : test-mtu.cpp /boost//system ;
 exe bw : test-bandwidth.cpp /boost//system
     : <link>static
     ;
-exe cbw : test-bandwidth.c ;
+exe bw2 : test-bandwidth2.cpp ;
 
 # install bin : a ;
 

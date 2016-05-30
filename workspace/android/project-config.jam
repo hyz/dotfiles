@@ -24,9 +24,8 @@ path-constant TOOLCHAIN : /opt/android/standalone-toolchain/gcc-4.9-android-18 ;
 #path-constant BIN : $(TOOLCHAIN)/bin ;
 path-constant SYSROOT : $(TOOLCHAIN)/sysroot ;
 
-using gcc :  : arm-linux-androideabi-g++
-    :
-    <archiver>arm-linux-androideabi-ar
+using gcc : : arm-linux-androideabi-g++
+    : <archiver>arm-linux-androideabi-ar
     <architecture>arm
     <compileflags>-fexceptions
     <compileflags>-fpic
