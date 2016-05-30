@@ -7,7 +7,7 @@
 #include <unordered_set>
 //#include <algorithm>
 //#include <numeric>
-#include <boost/config/warning_disable.hpp>
+#include <boost/operators.hpp>
 #include <boost/format.hpp>
 //#include <boost/algorithm/string.hpp>
 //#include <set>
@@ -25,7 +25,7 @@
 
 using boost::format;
 
-struct ymd_type
+struct ymd_type : boost::equality_comparable<ymd_type, boost::less_than_comparable<ymd_type>>
 {
     int y,m,d;
     ymd_type(NTime const& t) {
@@ -33,6 +33,8 @@ struct ymd_type
         m = t.month;
         d = t.day;
     }
+    bool operator==(ymd_type const&r) const { return y==r.y && m==r.m && d==r.d; }
+    bool operator< (ymd_type const&r) const { return y <r.y || m <r.m || d <r.d; }
 };
 
 static char* c_trim_right(char* h, const char* cs)
@@ -100,11 +102,11 @@ struct codes_set : std::unordered_set<int>
 
 struct _999999 :  std::vector<HISDAT>
 {
-    _999999(BYTE nTQ, int len=5) {
+    _999999(BYTE nTQ, int len=15) {
         std::vector<HISDAT>& v = *this;
         v.resize(len<1 ? 1:len);
 		int n = GDef::tdx_read("999999", 1, PER_DAY, &v[0], (int)v.size(), NTime{}, NTime{}, nTQ, 0);
-        if (n != len)
+        if (n != (int)v.size())
             ERR_EXIT("999999: %d: %d", (int)v.size(), n);
     }
 	ymd_type ymd(int x = -1) const { return ymd_type(Time(x)); }
@@ -124,15 +126,12 @@ BOOL myflt0(char const* Code, short nSetCode
 struct Out1 : _999999
 {
     codes_set excls_;
-    FILE* fp_ = 0;
-    BYTE nTQ_;
+    FILE* fp_ = 0; // BYTE nTQ_;
     std::vector<HISDAT> sh_; //std::pair<NTime,NTime> time_range_ = {};
 
     Out1(int args[4], BYTE nTQ) : _999999(nTQ, args[1]>0 ? args[1]:30), excls_(FN_EXCLS) {
-        nTQ_ = nTQ;
-        sh_.resize(_999999::size());
         auto t = ymd(); //ymd_type(sh_.back().Time);
-        makepath<128> fn(DIR_OUT, format("%d.%02d%02d-%d") % args[3] % t.m % t.d % (int)sh_.size());
+        makepath<128> fn(DIR_OUT, format("%d.%02d%02d-%d") % args[3] % t.m % t.d % int(_999999::size()));
         fp_ = fopen(fn.c_str(), "w");
     }
     ~Out1() {
@@ -142,23 +141,30 @@ struct Out1 : _999999
         }
     }
 
-    void print(char const* Code, short nSetCode)
+    void print(char const* Code, short nSetCode, BYTE nTQ)
     {
-        if (!fp_ || excls_.exist(atoi(Code)))
+        if (!fp_ /*|| excls_.exist(atoi(Code))*/)
             return;
-        int len = (int)sh_.size();
-        if ( (len = GDef::read(&sh_[0], len, PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ_, 0)) > 3) {
-            if (sh_[len-1].fVolume < 1)
-                return;
-            fprintf(fp_, "%s %d", Code, nSetCode);
-            for (int i=0; i < len; ++i) {
-                auto& a = sh_[i];
-                fprintf(fp_, "\t" "%.0f %.0f" " %.0f %.0f %.0f %.0f"
-                        , a.fVolume, a.a.Amount
-                        , 100*a.Open, 100*a.Close, 100*a.Low, 100*a.High);
+        sh_.resize(_999999::size());
+        int len = GDef::read(&sh_[0], (int)sh_.size(), PER_DAY, Code, nSetCode, Time(0), NTime{}, nTQ, 0);
+        sh_.resize(len<0 ? 0 : len);
+
+        auto it = sh_.begin(), End = sh_.end();
+        while (it != End && ymd_type(it->Time) < ymd(0))
+            ++it;
+
+        fprintf(fp_, "%s %d", Code, nSetCode);
+        for (auto i = begin() , e = end(); i != e; ++i) {
+            if (it == End || i->Time.day != it->Time.day) {
+                fprintf(fp_, "\t0 0" " 0 0 0 0");
+            } else {
+                fprintf(fp_, "\t%.0f %.0f" " %.0f %.0f %.0f %.0f"
+                        , it->fVolume, it->a.Amount ///10000
+                        , 100*it->Open, 100*it->Close, 100*it->Low, 100*it->High);
+                ++it;
             }
-            fprintf(fp_, "\n");
         }
+        fprintf(fp_, "\n");
     }
 };
 BOOL myflt1(char const* Code, short nSetCode
@@ -166,13 +172,7 @@ BOOL myflt1(char const* Code, short nSetCode
 	, short DataType, NTime t0, NTime t1, BYTE nTQ, unsigned long)  //选取区段
 {
     static Out1 out(args, nTQ);
-    out.print(Code, nSetCode);
-    //static codes_set excls_(FN_EXCLS);
-
-    //int icode = atoi(Code);
-    //if (excls_.exist(icode)) {
-    //    return 0;
-    //}
+    out.print(Code, nSetCode, nTQ);
 
 	//STOCKINFO si = {};
 	//REPORTDAT2 rp = {};

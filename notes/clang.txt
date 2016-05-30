@@ -7,3 +7,7 @@ b2 -j5 toolset=clang link=static cxxflags="-stdlib=libc++" linkflags="-stdlib=li
 ./bootstrap.sh cxxflags="-std=c++11 -stdlib=libc++" --with-toolset=clang
 ./b2 cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" toolset=clang -a -q
 
+###
+apt-get install libc++
+clang++ -std=c++11 -stdlib=libc++ -lc++abi
+

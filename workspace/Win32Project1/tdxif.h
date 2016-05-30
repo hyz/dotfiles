@@ -27,8 +27,9 @@ template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) 
     fputc('\n', logfile_);
     fflush(logfile_);
 }
-#define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
-#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
+#define ERR_EXIT(...) err_exit_(__LINE__, "X%d: " __VA_ARGS__)
+#define ERR_MSG(...) err_msg_(__LINE__, "E%d: " __VA_ARGS__)
+#define DBG_MSG(...) err_exit_(__LINE__, "D%d: " __VA_ARGS__)
 
 typedef struct PluginInfo_Param_Type //参数信息的结构定义
 {

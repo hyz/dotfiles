@@ -46,12 +46,14 @@ template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a)
     fprintf(stderr, fmt, lin_, a...);
     exit(127);
 }
-#define ERR_MSG(...) err_msg_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_msg_(int lin_, char const* fmt, Args... a) {
     fprintf(stderr, fmt, lin_, a...);
     fputc('\n', stderr);
     //fflush(stderr);
 }
+#define ERR_MSG(...) err_msg_(__LINE__, "E%d: " __VA_ARGS__)
+#define DBG_MSG(...) err_msg_(__LINE__, "D%d: " __VA_ARGS__)
+
 template <typename Iter>
 static boost::iterator_range<Iter> iter_trim(Iter h, Iter end)
 {
@@ -251,6 +253,11 @@ auto Ma(unsigned n, It it, It end, Iter iter, Cmp&& cmp) // -> array<decltype(*i
     return ret;
 }
 
+struct Opstatus {
+    int mll = 0;
+    int incoming = 0;
+    std::string detail;
+};
 struct SInfo {
     long capital1 = 0; // capital stock in circulation
     long capital0 = 0; // general capital
@@ -262,20 +269,14 @@ struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
 };
 
-struct Opstatus {
-    int mlr = 0;
-    int incoming = 0;
-    std::string detail;
-};
-struct Elem : SInfo, Unit, std::vector<Unit>, Opstatus {
+struct Elem : std::vector<Unit>, Unit, SInfo, Opstatus {
     unsigned code = 0;
-    Elem(unsigned x) { code=x; }
-    //void extend(Elem const& o) {}
+    Elem(int szsh, int numb) { code=make_code(szsh,numb); }
 };
 
 typedef boost::multi_index::multi_index_container<Elem, indexed_by<
-              random_access<> //sequenced<>
-            , hashed_unique<member<Elem,unsigned,&Elem::code>> >> multi_index_t;
+            random_access<>, hashed_unique<member<Elem,unsigned,&Elem::code>>
+        >> multi_index_t;
 
 struct Main : multi_index_t
 {
@@ -293,8 +294,8 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
     iterator find(int szsh, int code) {
         auto & idc = get<1>();
-        auto it = multi_index_t::find(make_code(szsh,code));
-        if (it != idc.end()) {
+        auto it = idc.find(make_code(szsh,code));
+        if (it == idc.end()) {
             return end(); //ERR_EXIT("add: %d", numb(code));
         }
         return project<0>(it);
@@ -307,7 +308,7 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
 int main(int argc, char* const argv[])
 {
-    //BOOST_STATIC_ASSERT(sizeof(long)==8);
+    BOOST_STATIC_ASSERT(sizeof(long)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -369,63 +370,62 @@ Main::initializer::initializer(Main* m, int argc, char* const argv[])
         //m->date = std::min(m->date, _date(argv[i]));
     }
 
-    //erase(std::remove_if(begin(),end(),[](auto&x){return ;}), end());
     m->swap(*this);
-    //for (auto it=this->begin(), end=this->end(); it != end; ++it) { ; }
+    //DBG_MSG("rec %d %d", int(size()), int(m->size()));
 }
 
 void Main::initializer::loadx(char const* path)
 {
-    if (FILE* fp = fopen(path, "r")) {
-        std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
-        ///*auto read = [fp](std::vector<Unit>& vec, Unit& sa) */{
-        qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
-        //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
-
-        char linebuf[1024*16]; //[(60*4+15)*16+256];
-        while (fgets(linebuf, sizeof(linebuf), fp)) {
-            int szsh=0, code = 0;
-            char*const end = &linebuf[sizeof(linebuf)];
-            char* pos = linebuf;
-            if (qi::phrase_parse(pos,end, qi::int_>>qi::int_, qi::space, code, szsh)) {
-                auto iter = this->find(szsh,code);
-                if (iter == this->end())
-                    continue;
-                Elem& el = const_cast<Elem&>(*iter);
-                std::vector<Unit>& vec = el;;
-                Unit& sa = el;
-                Unit un = {};
-                Av & av = un;
-
-                using qi::int_;
-                while (qi::phrase_parse(pos,end, R_Av>>int_>>int_>>int_>>int_, qi::space
-                            , av, un.oc[0], un.oc[1], un.lohi[0], un.lohi[1])) {
-                    if (av.volume) {
-                        if (vec.empty()) {
-                            sa = un;
-                        } else { 
-                            if (sa.lohi[0] > un.lohi[0])
-                                sa.lohi[0] = un.lohi[0];
-                            if (sa.lohi[1] < un.lohi[1])
-                                sa.lohi[1] = un.lohi[1];
-                            sa.oc[1] = un.oc[1];
-                            static_cast<Av&>(sa) += av;
-                        }
-                        vec.push_back(un);
-                    } else {
-                        ERR_MSG("%06d vol %ld", code, av.volume);
-                    }
-                }
-            } else
-                ERR_EXIT("qi::parse: %s", pos);
-        }
-    } else {
+    FILE* fp = fopen(path, "r");
+    if (!fp)
         ERR_EXIT("fopen: %s", path);
+    std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
+    //qi::rule<char*, Av(), qi::space_type> R_Av = qi::long_ >> qi::long_;
+    //qi::rule<char*, Avsb(), qi::space_type> R_ =  R_Av >> R_Av;
+
+    char linebuf[1024*16]; //[(60*4+15)*16+256];
+    while (fgets(linebuf, sizeof(linebuf), fp)) {
+        int szsh=0, code = 0;
+        char*const end = &linebuf[sizeof(linebuf)];
+        char* pos = linebuf;
+        if (qi::phrase_parse(pos,end, qi::int_>>qi::int_, qi::space, code, szsh)) {
+            auto iter = this->find(szsh,code);
+            if (iter == this->end()) {
+                DBG_MSG("%u: not-found", code);
+                continue;
+            }
+            Elem& el = const_cast<Elem&>(*iter);
+            std::vector<Unit>& uvec = el;;
+            Unit& usum = el;
+            Unit uv = {};
+
+            using qi::int_;
+            using qi::long_;
+            while (qi::phrase_parse(pos,end, long_>>long_>>int_>>int_>>int_>>int_, qi::space
+                        , uv.volume, uv.amount, uv.oc[0], uv.oc[1], uv.lohi[0], uv.lohi[1])) {
+                if (uv.volume) {
+                    if (usum.lohi[0] > uv.lohi[0])
+                        usum.lohi[0] = uv.lohi[0];
+                    if (usum.lohi[1] < uv.lohi[1])
+                        usum.lohi[1] = uv.lohi[1];
+                    usum.oc[1] = uv.oc[1];
+                    static_cast<Av&>(usum) += static_cast<Av&>(uv);
+
+                    uvec.push_back(uv);
+                //} else { ERR_MSG("%06d vol %ld", code, un.volume);
+                }
+            }
+            // if (uvec.empty()) { ERR_EXIT("%u: empty", code); }
+        } else {
+            ERR_EXIT("qi::parse: %s", pos);
+        }
+    }
+    if (!feof(fp)) {
+        ERR_EXIT("feof: %s", path);
     }
 }
 void Main::initializer::loadops(char const* dir, char const* fn)
 {
-//000668 0	1	996	10700	100:100:房地产开发
     if (FILE* fp = fopen(joinp<>(dir,fn).c_str(), "r")) {
         std::unique_ptr<FILE,decltype(&fclose)> xclose(fp, fclose);
         using qi::long_; //using qi::_val; using qi::_1;
@@ -453,7 +453,7 @@ void Main::initializer::loadops(char const* dir, char const* fn)
             Opstatus& ops = const_cast<Elem&>( *iter );
             if (!qi::phrase_parse(pos, &linebuf[sizeof(linebuf)]
                         , int_ >> int_
-                        , qi::space, ops.mlr, ops.incoming)) {
+                        , qi::space, ops.mll, ops.incoming)) {
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             auto r = iter_trim(pos, pos+strlen(pos));
@@ -483,7 +483,7 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.capital1 > 0) {
-                auto p = insert(end(), Elem{ make_code(szsh, numb) });
+                auto p = insert(end(), Elem(szsh,numb));
                 Elem& el = const_cast<Elem&>( *p.first );
                 static_cast<SInfo&>(el) = si;
             } else
@@ -492,28 +492,6 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
     } else
         ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
 }
-
-
-//template <typename F> void Main::initializer::fun(F read)
-//{
-//    std::vector<Unit> vec; Unit sa; // Elem el = {}; //Unit sa = {};
-//    while (code_t code = read(vec, sa)) {
-//        auto it = find(code);
-//        if (it == end())
-//            continue;
-//        static_cast<std::vector<Unit>&>(*it) = std::move(vec);
-//        static_cast<Unit&>(*it) = sa;
-//        //Unit& sa_r = *it; // Elem el = {}; //Unit sa = {};
-//        //vec_r = std::move(vec);
-//        //sa_r = sa;
-//        
-//        //if (600898 == numb(code)) { ERR_MSG("600898 %d %d %d", n_ign_, int(el.size()), int(el.back().volume) ); }
-//        // el.resize(el.size() - n_ign_);
-//        //if (!this->add(code, std::move(el))) {
-//        //    ERR_MSG("%06d :add-fail", numb(code));
-//        //}
-//    }
-//}
 
 Main::Main(int argc, char* const argv[])
     : date(gregorian::day_clock::local_day())
@@ -528,9 +506,12 @@ int Main::run(int argc, char* const argv[])
     constexpr int Wn=10000;
     constexpr int Yi=Wn * Wn;
 
+    this->remove_if([this](auto&e){return e.volume<=0 || e.back().volume<=0 || e.size()<unsigned(n_day_+n_ign_);});
     for (Elem const & el : *this) {
-        if (el.size() < unsigned(n_day_) + n_ign_)
-            continue;
+        //if (el.size() < unsigned(n_day_+n_ign_)) {
+        //    DBG_MSG("%u: %u < %u + %u", numb(el.code), el.size(), unsigned(n_day_), n_ign_);
+        //    continue;
+        //}
         typedef Elem::const_iterator iterator;
         iterator const end = el.end() - n_ign_;
         iterator const begin0 = el.begin();
@@ -567,9 +548,8 @@ int Main::run(int argc, char* const argv[])
         printf("%06d", numb(el.code));
         {
             long lsz = el.capital1*el.oc[1]/100;
-            printf("\t%6.2f %5.2f %.3ld %3d", lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            printf(" %03d %5.2f"" %6.2f %5.2f %.3ld %3d", el.mll, el.incoming/double(Wn), lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
         } {
-//601238	983.66  1.14 001	*15*  000 000	-036 -1000 148	30
             printf("\t%d %d %.3ld %.3ld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
             //        , 100*lasp->volume/last->volume
@@ -582,7 +562,8 @@ int Main::run(int argc, char* const argv[])
                 std::swap(lh.first,lh.second);
             printf("\t% .3d % .3d", Chr(lasp->oc[1],last->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
         }
-        printf("\t%d\n", (int)el.size());
+        printf("\t%d\t%s\n", (int)el.size(), el.detail.c_str());
+
     }
     return 0;
 }

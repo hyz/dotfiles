@@ -104,6 +104,7 @@ fi
 
 #alias dict='sdcv -0'
 dict() {
+    echo $* >> $HOME/.dict_history
     if which sdcv >/dev/null 2>&1; then
         sdcv -0 "$1"
     elif which ydcv >/dev/null 2>&1; then

@@ -6,9 +6,9 @@ hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 
-[ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda
-[ "`stat -c '%G' $SLIC`" = "kvm" ] || sudo chgrp kvm $SLIC
-[ -r $SLIC ] || sudo chmod g+r $SLIC
+[ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda || exit 1
+[ "`stat -c '%G' $SLIC`" = "kvm" ] || sudo chgrp kvm $SLIC || exit 1
+[ -r $SLIC ] || sudo chmod g+r $SLIC || exit 1
 export QEMU_AUDIO_DRV=alsa
 
 ### lsusb
@@ -57,8 +57,8 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 ## sysctl
 
 ## iptables -nL -t nat
-## iptables --flush -t nat
-## iptables --flush
+iptables --flush -t nat
+iptables --flush
 ### Create forwarding rules, where
 ### tap0 - virtual interface
 ### eth0 - net connected interface
