@@ -1,3 +1,8 @@
+###
+http://stackoverflow.com/questions/5024114/suggested-compression-ratio-with-h-264
+    [image width] x [image height] x [framerate] x [motion rank] x 0.07 = [desired bitrate]
+
+###
 https://en.wikipedia.org/wiki/Network_Abstraction_Layer
 https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC
 

@@ -1,7 +1,20 @@
 
 ### https://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html
 ifconfig eth0:1 192.168.9.172/24
+
+ip addr flush dev eth0
+ip addr del 192.168.9.172/24 dev eth0
+ip addr add 192.168.9.172/24 dev eth0
 ip addr add 192.168.9.172/24 dev eth0 label eth0:1
+
+ip route flush dev eth0
 ip route del default dev eth0
-ip route add default via 192.168.9.1
+ip route del 192.168.9.1/24
+ip route add default via 192.168.9.1 dev eth0
+ip route add 192.168.2.0/24 via 192.168.2.1 dev eth0
+
+ip link set eth0 down
+ip link set eth0 up
+
+### http://unix.stackexchange.com/questions/140697/trying-to-connect-to-gateway-in-static-ip-network
 

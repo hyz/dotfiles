@@ -14,9 +14,7 @@
 #include <exception>
 #include <boost/noncopyable.hpp>
 
-#define BUFSIZE 1024
-
-void exit127_(int,int) { exit(127); }
+inline void exit127_(int,int) { exit(127); }
 #define ERR_EXIT(...) exit127_( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " error:%d: %s\n",__LINE__, strerror(errno)) )
 #define ERR_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " error:%d: %s\n",__LINE__, strerror(errno)) )
 #define DBG_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " debug:%d\n",__LINE__) )
@@ -33,7 +31,8 @@ struct Main : boost::noncopyable
         bzero((void*)&sent_,sizeof(sent_));
         bzero((void*)&recv_,sizeof(recv_));
         mils_idle_ = idle;
-        socket_ = udp_connect(dst_ip, dst_port);
+        sockaddr_init(&saddr_, dst_ip, dst_port); // socket_ = udp_connect(dst_ip, dst_port);
+        socket_ = socket(AF_INET, SOCK_DGRAM, 0);
         run_ = &Main::do_send;
         printf("sending ...\n");
     }
@@ -54,51 +53,6 @@ struct Main : boost::noncopyable
         srand(time(0));
         while ( runc_-- > 0 ) {
             (this->*run_)();
-        }
-    }
-
-private:
-    unsigned runc_; // = 0x7fffffff;
-    void (Main::*run_)();
-    static Main* singleton;
-
-    int socket_;
-    enum { max_length = 1024*128 };
-    int32_t data_[max_length/4];
-
-    void do_receive()
-    {
-        int len = recv(socket_, (void*)data_, sizeof(data_), 0);
-        if (len < 8) {
-            ERR_EXIT("recv %d", len);
-        }
-        recv_.incoming(ntohl(data_[0]), ntohl(data_[1]), len);
-    }
-
-    unsigned mils_idle_;
-    void do_send()
-    {
-        // fd_set rfds;
-        //FD_ZERO(&rfds);
-        //FD_SET(socket_, &rfds);
-        int randval = rand()%100;
-        unsigned length = 1024*( (randval>90?15:5) + randval%5);
-        data_[0] = htonl(length);
-        data_[1] = htonl(sent_.seq);
-        sent_.seq++;
-
-        int retval = send(socket_, (void*)data_, length, 0);
-        if (retval < 0) 
-            ERR_EXIT("send");
-        sent_.bytes_sent += retval;
-        sent_.print();
-
-        if (mils_idle_ > 0) {
-            //std::this_thread::sleep_for(std::chrono::milliseconds(mils_idle_));
-            struct timeval tv;
-            tv.tv_sec = 0;
-            tv.tv_usec = mils_idle_*1000;
-            retval = select(0, NULL, NULL, NULL, &tv);
         }
     }
 
@@ -134,19 +88,19 @@ private:
             bool lost = (seq != prev.seq+1)
                 || (bytes_recvd - prev.bytes_recvd != bytes_exped - prev.bytes_exped);
             unsigned ct = Main::sMills();
-            if (lost || ((ct - prt_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
+            if (lost || ((ct - tpr_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
                 int nsec = (ct)/1000;
                 if (nsec == 0)
                     nsec = 1;
                 printf("%3u.%03u %4u %-4u %-4u %6.1f %7.1f %u%c", ct/1000,ct%1000
-                        , prev.seq, seq, pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?'\t':'\n');
+                        , prev.seq, seq, seq+1-pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?' ':'\n');
                 if (lost)
                     printf("* %u\n", bytes_recvd-prev.bytes_recvd);
-                prt_=ct;
+                tpr_=ct;
             }
         }
         
-        mutable unsigned prt_;
+        mutable unsigned tpr_;
     } recv_;
 
     struct sent_st {
@@ -161,27 +115,77 @@ private:
             int nsec = ct/1000;
             if (nsec == 0)
                 nsec = 1;
-            if (((ct - prt_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq < 5) {
-                printf("%3u.%03u %4u %4.1f %u\n", ct/1000,ct%1000, seq, bytes_sent/1024.0/nsec, bytes_sent);
-                prt_ = ct;
+            if (((ct - tpr_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq < 5) {
+                printf("%3u.%03u %4u %4.1f %4.1f %u\n", ct/1000,ct%1000, seq, (seq+1.0)/nsec, bytes_sent/1024.0/nsec, bytes_sent);
+                tpr_ = ct;
             }
         }
 
-        mutable unsigned prt_;
+        mutable unsigned tpr_;
     } sent_;
 
 private:
+    unsigned runc_; // = 0x7fffffff;
+    void (Main::*run_)();
+    static Main* singleton;
+    unsigned mils_idle_;
+
+    int socket_;
+    enum { max_length = 1024*128 };
+    int32_t data_[max_length/4];
+
+    void do_receive()
+    {
+        int len = recv(socket_, (void*)data_, sizeof(data_), 0);
+        if (len < 8) {
+            ERR_EXIT("recv %d", len);
+        }
+        recv_.incoming(ntohl(data_[0]), ntohl(data_[1]), len);
+    }
+
+    void do_send()
+    {
+        // fd_set rfds;
+        //FD_ZERO(&rfds);
+        //FD_SET(socket_, &rfds);
+        int randval = rand()%100;
+        unsigned length = 1024*( (randval>90?15:5) + randval%5);
+        data_[0] = htonl(length);
+        data_[1] = htonl(sent_.seq);
+        sent_.seq++;
+
+        int retval = sendto(socket_, (void*)data_, length, 0, (SA*)&saddr_, (socklen_t)sizeof(saddr_));
+        if (retval < 0) 
+            ERR_EXIT("send");
+        sent_.bytes_sent += retval;
+        sent_.print();
+
+        if (mils_idle_ > 0) {
+            //std::this_thread::sleep_for(std::chrono::milliseconds(mils_idle_));
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = mils_idle_*1000;
+            retval = select(0, NULL, NULL, NULL, &tv);
+        }
+    }
+
+private:
+    struct sockaddr_in saddr_;
+
+    static void sockaddr_init(struct sockaddr_in* sa, char const* ip, short port)
+    {
+        bzero((char *) sa, sizeof(struct sockaddr_in));
+        sa->sin_family = AF_INET;
+        inet_pton(AF_INET, ip, &sa->sin_addr);
+        sa->sin_port = htons( port );
+    }
     static int udp_connect(char const* ip, short port)
     {
+        struct sockaddr_in saddr;
+        socklen_t slen = sizeof(struct sockaddr_in);
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-        struct sockaddr_in saddr;
-        bzero((char *) &saddr, sizeof(saddr));
-        saddr.sin_family = AF_INET;
-        inet_pton(AF_INET, ip, &saddr.sin_addr);
-        saddr.sin_port = htons( port );
-
-        socklen_t slen = sizeof(saddr);
+        sockaddr_init(&saddr,ip, port);
         if (connect(sockfd, (SA*)&saddr, slen) < 0) {
             ERR_EXIT("connect %s:%d", ip, port);
         }
@@ -189,15 +193,11 @@ private:
     }
     static int udp_bind(char const* ip, short port)
     {
+        struct sockaddr_in saddr;
+        socklen_t slen = sizeof(struct sockaddr_in);
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-        struct sockaddr_in saddr;
-        bzero((char *) &saddr, sizeof(saddr));
-        saddr.sin_family = AF_INET;
-        inet_pton(AF_INET, ip, &saddr.sin_addr);
-        saddr.sin_port = htons( port );
-
-        socklen_t slen = sizeof(saddr);
+        sockaddr_init(&saddr,ip, port);
         if (bind(sockfd, (SA*)&saddr, slen) < 0) {
             ERR_EXIT("bind %s:%d", ip, port);
         }
@@ -227,83 +227,3 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-
-//static int32_t buf_[1024*64/4];
-//
-//struct sent_status {
-//    unsigned seq_numb, bytes_sent;
-//};
-//
-//static time_t start_tp_ = 0;
-//void print(struct sent_status* ss)
-//{
-//    static time_t print_tp = 0;
-//    time_t ct = time(0);
-//    if ( (ct - print_tp > 5 && (ss->seq_numb&0x1f)==0) || (ss->seq_numb & 0x1ff) == 0 || ss->seq_numb<5) {
-//        int nsec = (ct - start_tp_);
-//        if (nsec == 0)
-//            nsec = 1;
-//        printf("%u %.1f %u\n", ss->seq_numb, ss->bytes_sent/1024.0/nsec, ss->bytes_sent);
-//        print_tp=ct;
-//    }
-//}
-//
-//int main(int argc, char *const argv[])
-//{
-//    int sockfd, port;
-//    struct sockaddr_in saddr;
-//    // struct hostent *server;
-//    char *ip;
-//    int mils = 0;
-//    struct sent_status ss;
-//
-//    if (argc < 3) {
-//       fprintf(stderr,"usage: %s <ip> <port> [milisecond]\n", argv[0]);
-//       exit(0);
-//    }
-//    ip = argv[1];
-//    port = atoi(argv[2]);
-//    if (argc > 3)
-//        mils = atoi(argv[3]);
-//    srand(time(0));
-//
-//    ss.seq_numb = 0;
-//    ss.bytes_sent = 0;
-//
-//    bzero((char *) &saddr, sizeof(saddr));
-//    saddr.sin_family = AF_INET;
-//    inet_pton(AF_INET, ip, &saddr.sin_addr);
-//    saddr.sin_port = htons(port);
-//
-//    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-//    if (sockfd < 0) 
-//        ERR_EXIT("ERROR:socket");
-//    start_tp_ = time(0);
-//    for ( ;; ) {
-//        struct timeval tv;
-//        // fd_set rfds;
-//        socklen_t slen = sizeof(saddr);
-//        unsigned len = 1024*(rand()%24 + 6);
-//        int retval;
-//
-//        buf_[0] = len;
-//        buf_[1] = ss.seq_numb;
-//        retval = sendto(sockfd, (void*)buf_, len, 0, (SA*)&saddr, slen);
-//        if (retval < 0) 
-//            ERR_EXIT("ERROR:sendto");
-//        print(&ss);
-//        ss.seq_numb++;
-//        ss.bytes_sent += len;
-//
-//        //FD_ZERO(&rfds);
-//        //FD_SET(sockfd, &rfds);
-//        tv.tv_sec = 0;
-//        tv.tv_usec = mils*1000;
-//        retval = select(0, NULL, NULL, NULL, &tv);
-//    }
-//    
-//    //n = recvfrom(sockfd, buf, strlen(buf), 0, (SA*)&saddr, &slen);
-//    //if (n < 0) 
-//    //  ERR_EXIT("ERROR in recvfrom");
-//    return 0;
-//}

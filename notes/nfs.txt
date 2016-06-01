@@ -26,4 +26,6 @@ exportfs -a
 showmount -e <NFS server name>
 
 
+###
+mount -t nfs -o nolock 192.168.2.172:/export /mnt/nfs
 

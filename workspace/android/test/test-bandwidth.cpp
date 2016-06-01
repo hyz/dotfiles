@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <chrono>
 #include <thread>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio.hpp>
 
 #if defined(BOOST_MSVC)
@@ -21,29 +22,46 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 namespace ip = boost::asio::ip;
 using ip::udp;
 
-struct Main : boost::noncopyable
+inline void exit127_(int,int) { exit(127); }
+#define ERR_EXIT(...) exit127_( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " error:%d: %s\n",__LINE__, strerror(errno)) )
+#define ERR_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " error:%d: %s\n",__LINE__, strerror(errno)) )
+#define DBG_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " debug:%d\n",__LINE__) )
+
+struct Main : boost::asio::io_service
 {
-    Main(boost::asio::io_service& io_service, udp::endpoint ep, int idle)
-        : socket_(io_service, udp::endpoint(udp::v4(),0))
+    Main(udp::endpoint ep, int numbps, int bytesps)
+        : deadline_(io_service())//(, boost::posix_time::pos_infin)
+        , socket_(io_service(), udp::endpoint(udp::v4(),0))
         , endpoint_(ep)
     {
         singleton = this;
-        std::srand(time(0));
         gettimeofday(&tv0_, NULL);
-        mils_idle_ = idle;
-        do_send();
+
+        numbps_ = numbpx_ = numbps;
+        numbex_ = 0;
+        bytes1_ = std::max(bytesps/numbps, 1500);
+
+        deadline_.expires_from_now(boost::posix_time::milliseconds(0));
+        deadline_.async_wait( [this](boost::system::error_code){do_send();} );
         printf("sending ...\n");
     }
-    Main(boost::asio::io_service& io_service, short port)
-        : socket_(io_service, udp::endpoint(udp::v4(), port))
+    Main(short port)
+        : deadline_(io_service())
+        , socket_(io_service(), udp::endpoint(udp::v4(), port))
     {
         singleton = this;
-        std::srand(time(0));
         gettimeofday(&tv0_, NULL);
-        do_receive();
+        post( [this](){do_receive();} );
+        // deadline_.expires_from_now(boost::posix_time::pos_infin);
         printf("receiving ...\n");
     }
 
+    void run() {
+        srand(time(0));
+        boost::asio::io_service::run();
+    }
+
+    boost::asio::io_service& io_service() { return *this; }
 private:
     struct timeval tv0_;
     static unsigned sMills() {
@@ -52,7 +70,6 @@ private:
         return (1000*1000*(tv.tv_sec - singleton->tv0_.tv_sec) + tv.tv_usec - singleton->tv0_.tv_usec)/1000;
     }
 
-    unsigned mils_idle_ = 0;
     struct recv_st
     {
         unsigned seq = 0;
@@ -77,19 +94,19 @@ private:
             bool lost = (seq != prev.seq+1)
                 || (bytes_recvd - prev.bytes_recvd != bytes_exped - prev.bytes_exped);
             unsigned ct = Main::sMills();
-            if (lost || ((ct - pt_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
+            if (lost || ((ct - tpr_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
                 int nsec = (ct)/1000;
                 if (nsec == 0)
                     nsec = 1;
                 printf("%3u.%03u %4u %-4u %-4u %6.1f %7.1f %u%c", ct/1000,ct%1000
-                        , prev.seq, seq, pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?'\t':'\n');
+                        , prev.seq, seq, seq+1-pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?' ':'\n');
                 if (lost)
                     printf("* %u\n", bytes_recvd-prev.bytes_recvd);
-                pt_=ct;
+                tpr_=ct;
             }
         }
         
-        mutable unsigned pt_ = 0;
+        mutable unsigned tpr_ = 0;
     } recv_;
     struct sent_st {
         unsigned seq = 0;
@@ -103,14 +120,18 @@ private:
             int nsec = ct/1000;
             if (nsec == 0)
                 nsec = 1;
-            if (((ct - pt_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq < 5) {
-                printf("%3u.%03u %4u %4.1f %u\n", ct/1000,ct%1000, seq, bytes_sent/1024.0/nsec, bytes_sent);
-                pt_ = ct;
+            if (((ct - tpr_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq < 5) {
+                printf("%3u.%03u %4u %4.1f %4.1f %u\n", ct/1000,ct%1000, seq, (seq+1.0)/nsec, bytes_sent/1024.0/nsec, bytes_sent);
+                tpr_ = ct;
             }
         }
 
-        mutable unsigned pt_;
+        mutable unsigned tpr_;
     } sent_;
+
+private:
+    unsigned char numbps_, numbpx_, numbex_;
+    unsigned short bytes1_;
 
     void do_receive()
     {
@@ -121,33 +142,57 @@ private:
                     recv_.incoming(ntohl(data_[0]), ntohl(data_[1]), bytes_recvd);
                     do_receive();
                 } else {
-                    fprintf(stderr, "error %d:%s\n", ec.value(), ec.message().c_str());
+                    ERR_EXIT("%d:%s", ec.value(), ec.message().c_str());
                 }
             });
     }
+
     void do_send()
     {
-        int rv = rand()%100;
-        unsigned length = 1024*( (rv>90?15:5) + rv%5);
+        if (deadline_.expires_at() > boost::asio::deadline_timer::traits_type::now()) {
+            return;
+        }
+        if (numbex_ < 1 && numbpx_ >= numbps_) {
+            numbpx_ = 1;
+            numbex_ = 2+rand()%3;
+        }
+
+        unsigned length = unsigned(bytes1_) + rand()%3000 - 1500;
+        if (numbex_ > 0) {
+            length = length * (1 + rand()%200/100.0) + 1024*2;
+            //int raval = rand()%100; unsigned length = 1024*( (raval>90?15:5) + raval%5);
+            --numbex_;
+        } else if (numbpx_ < numbps_) {
+            ++numbpx_;
+        }
+        if (length > 1024*16) {
+            DBG_MSG("%u > 16K", length/1024);
+            length = std::min(32*1024, int(length));
+        }
+
         data_[0] = htonl(length);
         data_[1] = htonl(sent_.seq);
         sent_.seq++;
-        socket_.async_send_to( boost::asio::buffer((void*)data_, length)
-            , endpoint_
+
+        socket_.async_send_to( boost::asio::buffer((void*)data_, length), endpoint_
             , [this](boost::system::error_code ec, std::size_t bytes_sent) {
                   if (!ec) {
                       sent_.bytes_sent += bytes_sent;
                       sent_.print();
-                      if (mils_idle_ > 0)
-                          std::this_thread::sleep_for(std::chrono::milliseconds(mils_idle_));
-                      do_send();
+
+                      deadline_.expires_from_now(boost::posix_time::milliseconds(1000/numbps_));
+                      deadline_.async_wait( [this](boost::system::error_code){do_send();} ); //(boost::bind(&Main::do_send, this));
+                      //if (mils_idle_ > 0)
+                      //    std::this_thread::sleep_for(std::chrono::milliseconds(mils_idle_));
+                      //do_send();
                   } else {
-                      fprintf(stderr, "error %d:%s\n", ec.value(), ec.message().c_str());
+                      ERR_EXIT("%d:%s", ec.value(), ec.message().c_str());
                   }
             });
     }
 
 private:
+    boost::asio::deadline_timer deadline_;
     udp::socket socket_;
     udp::endpoint endpoint_;
 
@@ -159,23 +204,19 @@ Main* Main::singleton;
 
 int main(int argc, char* argv[])
 {
-    try
-    {
-        boost::asio::io_service io_s;
-        if (argc >= 3) {
-            int idle = (argc>3 ? std::atoi(argv[3]) : 0);
-            Main push(io_s, udp::endpoint(ip::address::from_string(argv[1]), std::atoi(argv[2])), idle);
-            io_s.run();
+    try {
+        if (argc == 5) {
+            Main sender(udp::endpoint(ip::address::from_string(argv[1]), std::atoi(argv[2]))
+                    , atoi(argv[3]), atoi(argv[4]));
+            sender.run();
         } else if (argc == 2) {
-            Main recv(io_s, std::atoi(argv[1]));
-            io_s.run();
+            Main receiver(std::atoi(argv[1]));
+            receiver.run();
         } else {
             fprintf(stderr,"Usage: a.out [host] <port>\n");
             return 1;
         }
-    }
-    catch (std::exception& e)
-    {
+    } catch (std::exception const& e) {
         fprintf(stderr,"Exception: %s\n", e.what());
     }
 
