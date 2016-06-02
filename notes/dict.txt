@@ -1,0 +1,6 @@
+
+### http://download.huzheng.org/zh_CN/
+apt-get install sdcv
+man sdcv
+
+

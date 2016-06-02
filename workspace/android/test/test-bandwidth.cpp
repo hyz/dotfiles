@@ -29,7 +29,7 @@ inline void exit127_(int,int) { exit(127); }
 
 struct Main : boost::asio::io_service
 {
-    Main(udp::endpoint ep, int numbps, int bytesps)
+    Main(udp::endpoint ep, int Nps, int Kps)
         : deadline_(io_service())//(, boost::posix_time::pos_infin)
         , socket_(io_service(), udp::endpoint(udp::v4(),0))
         , endpoint_(ep)
@@ -37,17 +37,17 @@ struct Main : boost::asio::io_service
         singleton = this;
         gettimeofday(&tv0_, NULL);
 
-        numbps_ = numbpx_ = numbps;
-        numbex_ = 0;
-        bytes1_ = std::max(bytesps/numbps, 1500);
+        numbps_ = numbpx_ = Nps;
+        numbrush_ = numbrx_ = 0;
+        bytes1_ = std::max(Kps*1024/Nps, 1500);
 
         deadline_.expires_from_now(boost::posix_time::milliseconds(0));
         deadline_.async_wait( [this](boost::system::error_code){do_send();} );
         printf("sending ...\n");
     }
-    Main(short port)
+    Main(short bind_port)
         : deadline_(io_service())
-        , socket_(io_service(), udp::endpoint(udp::v4(), port))
+        , socket_(io_service(), udp::endpoint(udp::v4(), bind_port))
     {
         singleton = this;
         gettimeofday(&tv0_, NULL);
@@ -55,6 +55,7 @@ struct Main : boost::asio::io_service
         // deadline_.expires_from_now(boost::posix_time::pos_infin);
         printf("receiving ...\n");
     }
+    ~Main() {}
 
     void run() {
         srand(time(0));
@@ -73,16 +74,16 @@ private:
     struct recv_st
     {
         unsigned seq = 0;
-        unsigned pkgcount = 0;
+        unsigned n_dgram = 0;
         unsigned bytes_recvd = 0;
         unsigned bytes_exped = 0;
 
         void incoming(unsigned len, unsigned seq, unsigned nbytes) {
-			if (pkgcount == 0)
+			if (n_dgram == 0)
 				gettimeofday(&Main::singleton->tv0_, NULL);
             recv_st prev = *this;
 
-            this->pkgcount++;
+            this->n_dgram++;
             this->bytes_exped += len;
             this->seq = seq;
             this->bytes_recvd += nbytes;
@@ -91,37 +92,48 @@ private:
         }
 
         void print(recv_st const& prev) const {
-            bool lost = (seq != prev.seq+1)
-                || (bytes_recvd - prev.bytes_recvd != bytes_exped - prev.bytes_exped);
+            char const* seqv = 0;
+            if (seq != prev.seq+1) {
+                char const* legv[3] = { "misorder", "repeated", "lost" };
+                seqv = legv[(seq<prev.seq ? -1 : (seq==prev.seq ? 0 : 1)) +1];
+            }
+
             unsigned ct = Main::sMills();
-            if (lost || ((ct - tpr_) > 5 && (seq&0x3f)==0) || (seq&0x7ff) == 0 || seq<5) {
+            if (seqv || ((ct - tpr_) > 5 && (seq&0x7f)==0) || (seq&0x7ff) == 0 || seq<3) {
                 int nsec = (ct)/1000;
                 if (nsec == 0)
                     nsec = 1;
                 printf("%3u.%03u %4u %-4u %-4u %6.1f %7.1f %u%c", ct/1000,ct%1000
-                        , prev.seq, seq, seq+1-pkgcount, float(pkgcount)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, lost?' ':'\n');
-                if (lost)
-                    printf("* %u\n", bytes_recvd-prev.bytes_recvd);
+                        , prev.seq, seq, seq+1-n_dgram, float(n_dgram)/nsec, bytes_recvd/1024.0/nsec, bytes_recvd, seqv?' ':'\n');
+                if (seqv)
+                    printf("* %s\n", seqv);//("* %u a %u\n", bytes_recvd-prev.bytes_recvd, bytes_recvd);
                 tpr_=ct;
             }
         }
         
         mutable unsigned tpr_ = 0;
     } recv_;
+
     struct sent_st {
         unsigned seq = 0;
         unsigned bytes_sent = 0;
 
+        void outgoing(unsigned, unsigned bytes) {
+            sent_st const& prev = *this;
+            seq++;
+            bytes_sent += bytes;
+            this->print(prev);
+        }
         //unsigned numb_psec_ = 30;
         //unsigned bytes_psec_ = 1024*300;
 
-        void print() const {
+        void print(sent_st const&) const {
             unsigned ct = Main::sMills();
             int nsec = ct/1000;
             if (nsec == 0)
                 nsec = 1;
-            if (((ct - tpr_) > 5 && (seq&0x1f)==0) || (seq&0x1ff) == 0 || seq < 5) {
-                printf("%3u.%03u %4u %4.1f %4.1f %u\n", ct/1000,ct%1000, seq, (seq+1.0)/nsec, bytes_sent/1024.0/nsec, bytes_sent);
+            if (((ct - tpr_) > 5 && (seq&0x7f)==0) || (seq&0x7ff) == 0 || seq < 3) {
+                printf("%3u.%03u %4u %4.1f %4.1f %u\n", ct/1000,ct%1000, seq, float(seq+1)/nsec, bytes_sent/1024.0/nsec, bytes_sent);
                 tpr_ = ct;
             }
         }
@@ -130,15 +142,14 @@ private:
     } sent_;
 
 private:
-    unsigned char numbps_, numbpx_, numbex_;
+    unsigned char numbps_, numbpx_, numbrush_, numbrx_;
     unsigned short bytes1_;
 
     void do_receive()
     {
-        socket_.async_receive_from( boost::asio::buffer((void*)data_, max_length)
-            , endpoint_
+        socket_.async_receive_from( boost::asio::buffer((void*)data_, max_length), endpoint_
             , [this](boost::system::error_code ec, std::size_t bytes_recvd) {
-                if (!ec && bytes_recvd > 0) {
+                if (!ec && bytes_recvd >= 16) {
                     recv_.incoming(ntohl(data_[0]), ntohl(data_[1]), bytes_recvd);
                     do_receive();
                 } else {
@@ -152,39 +163,36 @@ private:
         if (deadline_.expires_at() > boost::asio::deadline_timer::traits_type::now()) {
             return;
         }
-        if (numbex_ < 1 && numbpx_ >= numbps_) {
-            numbpx_ = 1;
-            numbex_ = 2+rand()%3;
+        if (numbrx_ >= numbrush_ && numbpx_ >= numbps_) {
+            numbrx_ = numbpx_ = 0;
+            numbrush_ = 3+rand()%3;
         }
 
-        unsigned length = unsigned(bytes1_) + rand()%3000 - 1500;
-        if (numbex_ > 0) {
-            length = length * (1 + rand()%200/100.0) + 1024*2;
-            //int raval = rand()%100; unsigned length = 1024*( (raval>90?15:5) + raval%5);
-            --numbex_;
+        int wmills = 1000/(numbps_+1);//int raval = rand()%100;
+        unsigned length = unsigned(bytes1_) + rand()%3000 - 1500; //= 1024*( (raval>90?15:5) + raval%5);
+        if (numbrx_ < numbrush_) {
+            numbrx_++;
+            wmills = 0;
+            //length = length * (1 + rand()%200/100.0);
         } else if (numbpx_ < numbps_) {
-            ++numbpx_;
+            numbpx_++;
         }
-        if (length > 1024*16) {
-            DBG_MSG("%u > 16K", length/1024);
-            length = std::min(32*1024, int(length));
+        if (length > 1024*56) {
+            DBG_MSG("%u > 56K", length/1024);
+            length = std::min(56*1024, int(length));
         }
 
         data_[0] = htonl(length);
         data_[1] = htonl(sent_.seq);
-        sent_.seq++;
+        //data_[2] = htonl(1);
 
         socket_.async_send_to( boost::asio::buffer((void*)data_, length), endpoint_
-            , [this](boost::system::error_code ec, std::size_t bytes_sent) {
+            , [this,wmills](boost::system::error_code ec, std::size_t bytes_sent) {
                   if (!ec) {
-                      sent_.bytes_sent += bytes_sent;
-                      sent_.print();
+                      sent_.outgoing(sent_.seq, bytes_sent); // sent_.print();
 
-                      deadline_.expires_from_now(boost::posix_time::milliseconds(1000/numbps_));
+                      deadline_.expires_from_now(boost::posix_time::milliseconds(wmills));
                       deadline_.async_wait( [this](boost::system::error_code){do_send();} ); //(boost::bind(&Main::do_send, this));
-                      //if (mils_idle_ > 0)
-                      //    std::this_thread::sleep_for(std::chrono::milliseconds(mils_idle_));
-                      //do_send();
                   } else {
                       ERR_EXIT("%d:%s", ec.value(), ec.message().c_str());
                   }
@@ -213,7 +221,9 @@ int main(int argc, char* argv[])
             Main receiver(std::atoi(argv[1]));
             receiver.run();
         } else {
-            fprintf(stderr,"Usage: a.out [host] <port>\n");
+            fprintf(stderr,"Usage: \n"
+                    "  send:\ta.out <host> <port> <Npkg/s> <KB/s>\n"
+                    "  recv:\ta.out <port>\n");
             return 1;
         }
     } catch (std::exception const& e) {

@@ -18,3 +18,7 @@ ip link set eth0 up
 
 ### http://unix.stackexchange.com/questions/140697/trying-to-connect-to-gateway-in-static-ip-network
 
+### https://support.qiniu.com/hc/kb/article/112993/
+    手机端网络测试工具 (android、ios)
+    手机端带宽测试
+

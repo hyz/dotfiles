@@ -1,0 +1,8 @@
+
+sudo add-apt-repository 'deb http://ppa.launchpad.net/jon-severinsson/ffmpeg/ubuntu '"$(cat /etc/*-release | grep "DISTRIB_CODENAME=" | cut -d "=" -f2)"' main' && sudo apt-get update
+
+
+sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-3.6 100
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-3.6 100
+### http://stackoverflow.com/questions/30549502/installed-clang3-6-on-ubuntu-cant-select-as-alternative
+

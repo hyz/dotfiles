@@ -1,0 +1,13 @@
+
+
+### http://stackoverflow.com/questions/10494848/arm-whats-the-difference-between-apcs-and-aapcs-abi
+    From ARM docs,
+        PCS Procedure Call Standard.
+        AAPCS Procedure Call Standard for the ARM Architecture (this standard). (current standard )
+        APCS ARM Procedure Call Standard (obsolete).
+    Also, from the same doc,
+        The AAPCS embodies the fifth major revision of the APCS and third major revision of the TPCS. It forms part of the complete ABI specification for the ARM Architecture.
+    So you can forget about the obsoleted APCS and start following AAPCS
+
+### http://www.boost.org/doc/libs/1_61_0/libs/context/doc/html/context/architectures.html
+

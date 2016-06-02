@@ -17,3 +17,11 @@
 
 :.!xargs rm -f
 
+
+### ubuntu
+apt-get install vim-scripts
+
+### http://askubuntu.com/questions/216818/how-do-i-use-plugins-in-the-vim-scripts-package
+vam ## vim-addon-manager
+vam install taglist
+

@@ -1,3 +1,16 @@
 https://trac.ffmpeg.org/wiki/StreamingGuide
 https://sandilands.info/sgordon/live-webca-streaming-using-vlc-command-line
 
+### http://stackoverflow.com/questions/5024114/suggested-compression-ratio-with-h-264
+>>> 640*480*24*2*0.07 /8.0/1024
+126.00000000000001
+>>> 1280*720*16*2*0.07 /8.0/1024
+252.00000000000003
+>>> 1280*720*24*2*0.07 /8.0/1024
+378.00000000000006
+>>> 1920*1080*16*2*0.07 /8.0/1024
+567.0
+>>> 1920*1080*24*2*0.07 /8.0/1024
+850.5000000000001
+>>>
+
