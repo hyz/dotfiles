@@ -7,10 +7,10 @@ project headless-test
 
 exe mtu : test-mtu.cpp /boost//system ;
 
-exe bw : test-bandwidth.cpp /boost//system
+exe bw : udp-streaming.cpp /boost//system
     : <link>static
     ;
-exe bw2 : test-bandwidth2.cpp
+exe bw2 : udp-streaming2.cpp
     : <link>static
     ;
 
