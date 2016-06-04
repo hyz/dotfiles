@@ -119,3 +119,16 @@ iptables -N LOGGING
 iptables -A INPUT -j LOGGING
 iptables -A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IPTables Packet Dropped: " --log-level 7
 iptables -A LOGGING -j DROP
+
+
+### 提高安全性
+//第一行
+iptables -N AUTOBAN
+//第二行
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -j AUTOBAN
+//第三行
+iptables -A AUTOBAN -m recent --set --name SSH
+//第四行
+iptables -A AUTOBAN -m recent --update --seconds 120 --hitcount 5 --name SSH -j DROP
+//如果你的VPS的SSH端口不是22， 需要把22改成你的SSH端口号。这里设置了autoban功能，120秒，也就是两分钟内连续输错5次密码就会自动断开SSH连接，可以减少你用lastb命令看到的尝试非法登录的记录个数。而且即使你错了5次，重新连也是可以输入密码登录的
+

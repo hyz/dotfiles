@@ -500,7 +500,7 @@ struct data_sink
     {
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (!bufs_.empty() && bufs_.size() % 10) {
+        if (!bufs_.empty() && bufs_.size() % 10 == 0) {
             LOGD("bufs.size %d", (int)bufs_.size());
         }
         bufs_.push_back(std::move(bp));
@@ -1543,11 +1543,11 @@ static App hgs_;
 /// rtsp://192.168.2.3/live/ch00_2
 void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*480 1280X720 1920X1080
 {
+    LOGD("init %s:%d %s", ip, port, path);
+
     srand( time(0) );
 
     auto endp = ip::tcp::endpoint(ip::address::from_string(ip), (port));
-
-    LOGD("init %s:%d %s", ip, port, path);
 
     hgs_.rtp = new rtp_receiver(hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
     hgs_.rtcp = new rtcp_client(hgs_.io_service, hgs_.rtp);
@@ -1561,18 +1561,18 @@ void hgs_exit(int preexit)
 {
     hgs_.running = 0;
     hgs_.io_service.post([preexit](){
-            if (preexit) {
-                LOGD("teardown");
-                hgs_.rtp->teardown();
-                hgs_.rtcp->teardown();
-                hgs_.rtsp->teardown();
-                // hgs_.io_service.poll_one();
-            } else {
-                LOGD("exit:stop");
-                hgs_.io_service.stop();
-                LOGD("exit:join thread");
-            }
-        });
+        if (preexit) {
+            LOGD("teardown");
+            hgs_.rtp->teardown();
+            hgs_.rtcp->teardown();
+            hgs_.rtsp->teardown();
+            // hgs_.io_service.poll_one();
+        } else {
+            LOGD("exit:stop");
+            hgs_.io_service.stop();
+            LOGD("exit:join thread");
+        }
+    });
     if (preexit == 0)
         hgs_.thread.join();
 }
@@ -1592,7 +1592,7 @@ void hgs_run()
     hgs_.running = 1;
     hgs_.rtsp->setup(0,0);
 
-    hgs_.thread = std::thread([]() { hgs_.io_service.run(); });
+    hgs_.thread = std::thread([](){ hgs_.io_service.run(); });
 }
 
 void hgs_pump()

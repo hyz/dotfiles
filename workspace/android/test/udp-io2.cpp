@@ -16,14 +16,20 @@
 #include <boost/noncopyable.hpp>
 
 inline void exit127_(int,int) { exit(127); }
-#define ERR_EXIT(...) exit127_( fprintf(stderr, __VA_ARGS__), fprintf(stderr, ": %s error:%d\n", strerror(errno),__LINE__) )
-#define ERR_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, ": %s error:%d\n", strerror(errno),__LINE__) )
+#define ERR_EXIT(...) exit127_( fprintf(stderr, __VA_ARGS__), fprintf(stderr, ": %d:%s error:%d\n", errno,strerror(errno),__LINE__) )
+#define ERR_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, ": %d:%s error:%d\n", errno,strerror(errno),__LINE__) )
 #define DBG_MSG(...) (void)( fprintf(stderr, __VA_ARGS__), fprintf(stderr, " debug:%d\n",__LINE__) )
 
 static unsigned sMills(struct timeval const& tv0) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (1000*1000*(tv.tv_sec - tv0.tv_sec) + tv.tv_usec - tv0.tv_usec)/1000;
+}
+static unsigned sMills() {
+    static struct timeval tv0 = {};
+    if (tv0.tv_sec == 0 && tv0.tv_usec == 0)
+        gettimeofday(&tv0, NULL);
+    return sMills(tv0);
 }
 
 typedef struct sockaddr SA;
@@ -142,8 +148,10 @@ private:
         unsigned n_dgram;
         unsigned bytes_recvd;
         unsigned bytes_exped;
+        unsigned millsec;
+        unsigned millsec_local;
 
-        void incoming(unsigned len, unsigned seq, unsigned nbytes) {
+        void incoming(unsigned bytes_recvd, unsigned len, unsigned seq, unsigned mills) {
 			if (n_dgram == 0)
 				gettimeofday(&tv0_, NULL);
             recv_st prev = *this;
@@ -151,7 +159,9 @@ private:
             this->n_dgram++;
             this->bytes_exped += len;
             this->seq = seq;
-            this->bytes_recvd += nbytes;
+            this->bytes_recvd += bytes_recvd;
+            this->millsec = mills;
+            this->millsec_local = sMills();
 
             this->print(prev);
         }
@@ -222,11 +232,10 @@ private:
     void do_receive()
     {
         int len = proto_.recv(socket_, data_, sizeof(data_));
-        //int len = ::read(socket_, (void*)data_, sizeof(data_));
         if (len < 20) {
             ERR_EXIT("recv %d", len);
         }
-        recv_.incoming(ntohl(data_[0]), ntohl(data_[1]), len);
+        recv_.incoming(len, ntohl(data_[0]), ntohl(data_[1]), ntohl(data_[2]));
     }
 
     void do_send()
@@ -234,7 +243,7 @@ private:
         if (nif_ <= 0 && npf_ <= 0) {
             nif_ = 3+rand()%3;
             npf_ = 1000/wmills_ * (100 + rand() % 200) / 100;
-            DBG_MSG("IP/frame %d %d", nif_, npf_);
+            //DBG_MSG("IP/frame %d %d", nif_, npf_);
         }
 
         int wmills = this->wmills_;
@@ -251,15 +260,16 @@ private:
         if (length > 1024*56) {
             DBG_MSG("%u > 56K", length/1024);
             length = std::min(56*1024, int(length));
+        } else if (length < 20) {
+            ERR_MSG("%u", length);
         }
 
         data_[0] = htonl(length);
         data_[1] = htonl(sent_.seq);
-        //data_[2] = htonl(1);
+        data_[2] = htonl(sMills());
 
-        int retval = proto_.send(socket_, data_, length);
         //fd_set fds; //FD_ZERO(&fds); //FD_SET(socket_, &fds);
-        //int retval = ::write(socket_, (void*)data_, length);
+        int retval = proto_.send(socket_, data_, length);
         if (retval < 0) 
             ERR_EXIT("sendto");
         sent_.outgoing(sent_.seq, length);
@@ -279,19 +289,36 @@ private:
 };
 
 struct ProtocolTCP {
+    unsigned n_read_;
     int recv(int sfd, int32_t* buf, unsigned len) {
-        int nread = ::read(sfd, &buf[0], 20);
+        int nread = ::recv(sfd, &buf[0], 20, MSG_WAITALL);
+        ++n_read_;
+        //printf("[%d]%p %d %d: %d\n", __LINE__, &buf[0], ntohl(buf[0]), ntohl(buf[1]), nread);
         if (nread != 20)
-            ERR_EXIT("read %d", nread);
+            ERR_EXIT("recv %d", nread);
         int lenv = ntohl(buf[0]);
         if (lenv > int(len) || lenv <= 20)
-            ERR_EXIT("[0]=%d %u", lenv, len);
-        nread = ::read(sfd, &buf[5], lenv-20);
-        return ( (nread < 1) ? nread : 20+nread);
+            ERR_EXIT("%d %u", lenv, len);
+        char* p = (char*)buf;
+        int n;
+        while ( (n = ::recv(sfd, p+nread, lenv-nread, MSG_WAITALL)) > 0 ) {
+            ++n_read_;
+            if ((nread += n) == lenv) {
+                return nread;
+            }
+        }
+        return n;
+        //printf("[%d]%p %d: %d\n", __LINE__, &buf[5], lenv-20, nread);
     }
     int send(int sfd, int32_t* buf, unsigned len) {
-        return ::write(sfd, &buf[0], len);
+        int n, nsend = 0;
+        while ( (n = ::send(sfd, &buf[nsend], len-nsend, 0)) > 0)
+            if ( (nsend += n) == len)
+                return nsend;
+        //printf("[%d]%p %d=%d %d: %d\n", __LINE__, &buf[0], len, ntohl(buf[0]), ntohl(buf[1]), nsend);
+        return n;
     }
+    ProtocolTCP() { n_read_ = 0; }
 };
 struct ProtocolUDP {
     int recv(int sfd, int32_t* buf, unsigned len) {

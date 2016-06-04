@@ -25,7 +25,7 @@ path-constant BIN : gcc-4.9-android-18/bin ;
 path-constant SYSROOT : gcc-4.9-android-18/sysroot ;
 
 using gcc : : $(BIN)/arm-linux-androideabi-g++
-  : <archiver>$(BIN)arm-linux-androideabi-ar
+  : <archiver>$(BIN)/arm-linux-androideabi-ar
     <architecture>arm
     <compileflags>-fexceptions
     <compileflags>-fpic

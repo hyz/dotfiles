@@ -5,12 +5,15 @@ project headless-test
     : default-build release
     ;
 
-exe mtu : test-mtu.cpp /boost//system ;
+exe mtu : mtu.cpp /boost//system ;
 
-exe bw : udp-streaming.cpp /boost//system
+exe bw : udp-io.cpp /boost//system
     : <link>static
     ;
-exe bw2 : udp-streaming2.cpp
+exe bw2 : udp-io2.cpp
+    : <link>static
+    ;
+exe tcp-delay2 : tcp-delay2.cpp
     : <link>static
     ;
 

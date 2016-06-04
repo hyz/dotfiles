@@ -30,3 +30,6 @@ lib hgs : hgs-rtph264.cpp hgs-jni.c
 #
 #install bin/a : multi hcli chats chatc ;
 
+local DESTDIR = /mnt/hgfs/home/and/SimpleH264Decoder/Application/src/main/jniLibs/armeabi-v7a ;
+install $(DESTDIR) : hgs ;
+
