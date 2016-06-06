@@ -301,12 +301,13 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
-struct mbuffer /*: boost::intrusive::slist_base_hook<>*/ {
+struct mbuffer /*: boost::intrusive::slist_base_hook<>*/
+{
     rtp_header rtp_h;
     struct Nal {
         uint32_t _4bytes;
         nal_unit_header nal_h; // size 0 pos
-        uint8_t data[1];
+        uint8_t date_p_[1];
     } *base_ptr = 0;
     unsigned size, capacity;
 
@@ -328,7 +329,6 @@ struct mbuffer /*: boost::intrusive::slist_base_hook<>*/ {
         if (data && data<end)
             put(data, end);
     }
-
     mbuffer(mbuffer&& rhs) {
         memcpy(this, &rhs, sizeof(*this));
         rhs.size = rhs.capacity = 0;
@@ -345,20 +345,21 @@ struct mbuffer /*: boost::intrusive::slist_base_hook<>*/ {
         return *this;
     }
 
-    uint8_t* addr(int offs) const { return base_ptr->data +(-1 + offs); }
-    bool ok() const { return !!base_ptr; }
-
     void put(uint8_t const* p, uint8_t const* end) {
         BOOST_ASSERT( base_ptr );
         unsigned siz = end - p;
-        if (capacity - size < siz) {
+        if (capacity - this->size < siz) {
             capacity += (siz+2047)/1024*1024;
             base_ptr = (Nal*)realloc(base_ptr, capacity);
         }
-        memcpy(addr(size), p, siz);
-        size += siz;
+        memcpy(addr(this->size), p, siz);
+        this->size += siz;
     }
+    uint8_t* addr(int offs) const { return base_ptr->date_p_ +(-1 + offs); }
+    uint8_t* nal_header() const { return addr(0); }
+    uint8_t* frame_data() const { return addr(1); }
 
+    bool _using() const { return bool(base_ptr); }
 private:
     mbuffer(mbuffer const&);// = delete;
     mbuffer& operator=(mbuffer const&);// = delete;
@@ -376,7 +377,7 @@ struct data_sink
 
     virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
 
-    virtual ~data_sink() {}
+    virtual ~data_sink() { _TRACE_SIZE_PRINT(); }
 
     void free_buf(mbuffer& b) {
         //hgs_buffer_release(b.bufindex, 0, 0xf7);
@@ -499,11 +500,16 @@ struct data_sink
     void commit(mbuffer&& bp)
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        // bufs_.clear(); // TODO: cache-only-last
+        //if (bp.base_ptr->nal_h.nri < 3) { // TEST
+        //    bp = mbuffer();
+        //    return;
+        //}
+        bufs_.push_back(std::move(bp));
 
-        if (!bufs_.empty() && bufs_.size() % 10 == 0) {
+        if (!bufs_.empty() && bufs_.size() % 10 == 0) { // DEBUG
             LOGD("bufs.size %d", (int)bufs_.size());
         }
-        bufs_.push_back(std::move(bp));
         //auto it = iterator_before(blis_, *bp);
         //auto p = it++;
         //blis_ready_.splice_after(blis_ready_.last(), blis_, p);
@@ -539,6 +545,27 @@ struct data_sink
 
     //int size() const { return bufs_.size(); }
 
+    struct TraceSize {
+        unsigned len_max=0;
+        unsigned len_total=0;
+        unsigned count=0;
+    };
+    std::array<TraceSize,8> nris_;
+    void _TRACE_SIZE_PRINT() {
+        for (unsigned i=0; i<nris_.size(); ++i) {
+            auto& a = nris_[i];
+            if (a.count > 0) {
+                fprintf(stderr,"TSIZ %d: m/a/n: %u %u %u\n", i, a.len_max, a.len_total/a.count, a.count);
+            }
+        }
+    }
+    void _TRACE_SIZE(int nri, unsigned size) {
+        auto& a = nris_[nri];
+        a.len_max = std::max(size, a.len_max);
+        a.len_total += size;;
+        a.count++;
+    }
+
     void input_queue_swap()
     {
         int idx = -1;
@@ -549,15 +576,16 @@ struct data_sink
             if (bufs_.empty())
                 return;
 
-            idx = hgs_buffer_obtain(50);
+            idx = hgs_buffer_obtain(10);
             if (idx < 0) {
                 LOGW("buffer obtain: %d", idx);
                 return;
             }
 
-            buf = std::move(bufs_.front()); // blis_ready_.pop_front();
+            buf = std::move(bufs_.front());
             bufs_.pop_front();
         }
+        _TRACE_SIZE(buf.base_ptr->nal_h.nri, buf.size); // TODO, remove test-only
 
         int flags = 0;
         switch (buf.base_ptr->nal_h.type) {
@@ -615,6 +643,7 @@ struct h264nal : private boost::noncopyable
         uint8_t sbytes[4] = {0,0,0,1};
 
         mbuffer b = sink_->locate_buf( rtp_header{} );
+        //! b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
         b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
@@ -653,7 +682,7 @@ struct h264nal : private boost::noncopyable
                         h3->nri = h1->nri;
                         h3->f = h1->f;
                         h3->print(data,end);
-                        if (bufp_.ok()) {
+                        if (bufp_._using()) {
                             LOGE("FU-A e loss");
                         }
                         bufp_ = sink_->locate_buf(*rtp_h);
