@@ -116,3 +116,27 @@ to construct the NAL unit you should take "Type" from "FU Header" and "F" and "N
     H264采用的核心算法是帧内压缩和帧间压缩，帧内压缩是生成I帧的算法，帧间压缩是生成B帧和P帧的算法。
     一个序列的第一个图像叫做 IDR 图像（立即刷新图像），IDR 图像都是 I 帧图像。H.264 引入 IDR 图像是为了解码的重同步，当解码器解码到 IDR 图像时，立即将参考帧队列清空，将已解码的数据全部输出或抛弃，重新查找参数集，开始一个新的序列
 
+(1280x720) NAL Unit Type & frame size:
+    type 1: m/a/n: 15026 3184 280
+    type 5: m/a/n: 16869 14990 5
+    type 7: m/a/n: 10 10 5
+    type 8: m/a/n: 4 4 5
+    ===
+    type 1: m/a/n: 22048 8496 966
+    type 5: m/a/n: 44350 28863 17
+    type 7: m/a/n: 10 10 17
+    type 8: m/a/n: 4 4 17
+    ===
+
+### .GOP=1
+1920x1080 NAL Unit Type & frame size:
+    NAL-Unit-Type 5: m/a/n: 26879 20095 231
+    NAL-Unit-Type 7: m/a/n: 11 11 231
+    NAL-Unit-Type 8: m/a/n: 4 4 231
+    ===
+1280x720 NAL Unit Type & frame size:
+    NAL-Unit-Type 5: m/a/n: 26989 10606 461
+    NAL-Unit-Type 7: m/a/n: 10 10 461
+    NAL-Unit-Type 8: m/a/n: 4 4 461
+    ===
+

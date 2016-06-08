@@ -365,10 +365,73 @@ private:
     mbuffer& operator=(mbuffer const&);// = delete;
 };
 
+struct sMills {
+    static unsigned from(struct timeval const& tv0) {
+        sMills& s = instance();
+        gettimeofday(&s.cur_, NULL);
+        return (1000*1000*(s.cur_.tv_sec - tv0.tv_sec) + s.cur_.tv_usec - tv0.tv_usec)/1000;
+    }
+    static unsigned from0() {
+        return from(instance().tv0_);
+    }
+    static struct timeval const& latest() { return instance().cur_; }
+
+    static sMills& instance() {
+        static sMills so;
+        return so;
+    }
+private:
+    sMills() {
+        gettimeofday(&cur_, NULL);
+        tv0_ = cur_;
+    }
+    struct timeval cur_;
+    struct timeval tv0_;
+};
+
 struct data_sink
 {
-    // uint8_t *begin_, *end_;
+#if 0 //defined(__ANDROID__)
+//#   define _TRACE_SIZE_PRINT() ((void)0)
+//#   define _TRACE_SIZE(type, size) ((void)0)
+#else
+    struct TraceSize {
+        unsigned len_max=0;
+        unsigned len_total=0;
+        unsigned count=0;
+    };
+    std::array<TraceSize,64> tsa_;
+    struct timeval tv0_;
+    unsigned fr_count_ = 0;
+
+    void _TRACE_SIZE_PRINT() {
+        for (unsigned i=0; i<tsa_.size(); ++i) {
+            auto& a = tsa_[i];
+            if (a.count > 0) {
+                fprintf(stderr,"NAL-Unit-Type %d: m/a/n: %u %u %u\n", i, a.len_max, a.len_total/a.count, a.count);
+            }
+        }
+    }
+    void _TRACE_SIZE(int type, unsigned size) {
+        auto& a = tsa_[type];
+        a.len_max = std::max(size, a.len_max);
+        a.len_total += size;
+        a.count++;
+
+        if (type==1 || type==5) {
+            ++fr_count_;
+            if (fr_count_ == 1) {
+                gettimeofday(&tv0_, NULL);
+            } else if ((fr_count_ & 0x3f) == 0) {
+                LOGD("Net Frame-rate: %.2f", 0x3f*1000.0/sMills::from(tv0_));
+                tv0_ = sMills::latest();
+            }
+        }
+    }
+#endif
+
     std::deque<mbuffer> bufs_;
+    std::mutex mutex_;
 
     //signed char nri_ = -1;
     //mbuffer bufarray_[6];
@@ -493,107 +556,70 @@ struct data_sink
     {
         bp.put(data, end);
         this->statis(&bp.rtp_h, data, end);
-
-        //hgs_buffer_inflate(bp->bufindex, (char*)data, end-data);
-        //return bp;
     }
+
+    unsigned fwd_count_ = 0; // signed char non_IDR_ = 4;
+    unsigned fwd_size_ = 0;
+    unsigned n_drop_ = 0;
+
     void commit(mbuffer&& bp)
     {
+        auto& h = bp.base_ptr->nal_h;
+        _TRACE_SIZE(h.type, bp.size);
+
+        if (fwd_count_ > 4 && h.type >= 7 || h.nri < 3) {
+            bp = mbuffer();
+            return;
+        }
+
         std::lock_guard<std::mutex> lock(mutex_);
-        // bufs_.clear(); // TODO: cache-only-last
-        //if (bp.base_ptr->nal_h.nri < 3) { // TEST
-        //    bp = mbuffer();
-        //    return;
-        //}
+
+        if (fwd_count_ > 4 && !bufs_.empty()) {
+            unsigned pn = n_drop_;
+            n_drop_ += bufs_.size();
+            if ((pn>>5) != (n_drop_>>5))
+                LOGD("drop %u", n_drop_);
+            bufs_.clear();
+            //if (bufs_.size() > 4) bufs_.pop_front();
+        }
         bufs_.push_back(std::move(bp));
 
-        if (!bufs_.empty() && bufs_.size() % 10 == 0) { // DEBUG
+#if 1 //!defined(__ANDROID__)
+        if ( (bufs_.size() % 10) == 0) { // DEBUG
             LOGD("bufs.size %d", (int)bufs_.size());
         }
-        //auto it = iterator_before(blis_, *bp);
-        //auto p = it++;
-        //blis_ready_.splice_after(blis_ready_.last(), blis_, p);
+#endif
     }
 
     void commit(rtp_header const& rh, uint8_t* data, uint8_t* end)
     {
         commit(mbuffer(rh, data, end));
-        //auto* bp = locate_buf(rh,nh);
-        //if (bp) {
-        //    put(bp, data, end);
-        //    commit(bp, flags);
-        //}
-
-        //int flags = 0;
-        //switch (nh->type) {
-        //    case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
-        //}
-        //int idx = hgs_queue_input(data, end, flags, rh->timestamp);
     }
 
-    //void commit0(uint8_t* data, uint8_t* end, unsigned timestamp, int flags)
-    //{
-    //    int idx = hgs_queue_input(data, end, flags, 0);
-    //    //int idx;
-    //    //if ((idx = hgs_buffer_obtain(1000)) < 0) {
-    //    //    LOGE("buffer obtain: %d", idx);
-    //    //    return;
-    //    //}
-    //    //hgs_buffer_inflate(idx, (char*)data, end-data);
-    //    //hgs_buffer_release(idx, timestamp, flags);
-    //}
-
-    //int size() const { return bufs_.size(); }
-
-    struct TraceSize {
-        unsigned len_max=0;
-        unsigned len_total=0;
-        unsigned count=0;
-    };
-    std::array<TraceSize,8> nris_;
-    void _TRACE_SIZE_PRINT() {
-        for (unsigned i=0; i<nris_.size(); ++i) {
-            auto& a = nris_[i];
-            if (a.count > 0) {
-                fprintf(stderr,"TSIZ %d: m/a/n: %u %u %u\n", i, a.len_max, a.len_total/a.count, a.count);
-            }
-        }
-    }
-    void _TRACE_SIZE(int nri, unsigned size) {
-        auto& a = nris_[nri];
-        a.len_max = std::max(size, a.len_max);
-        a.len_total += size;;
-        a.count++;
-    }
-
-    void input_queue_swap()
+    void codec_inflate()
     {
-        int idx = -1;
-        mbuffer buf;
-
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (bufs_.empty())
-                return;
-
-            idx = hgs_buffer_obtain(10);
+        std::lock_guard<std::mutex> lock(mutex_);
+        while (!bufs_.empty()) {
+            int idx = hgs_buffer_obtain(10);
             if (idx < 0) {
-                LOGW("buffer obtain: %d", idx);
-                return;
+                //LOGW("buffer obtain: %d", idx);
+                break;
             }
 
-            buf = std::move(bufs_.front());
+            mbuffer buf = std::move(bufs_.front());
             bufs_.pop_front();
-        }
-        _TRACE_SIZE(buf.base_ptr->nal_h.nri, buf.size); // TODO, remove test-only
 
-        int flags = 0;
-        switch (buf.base_ptr->nal_h.type) {
-            case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
-        }
+            int flags = 0;
+            switch (buf.base_ptr->nal_h.type) {
+                case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
+            }
 
-        hgs_buffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
-        hgs_buffer_release(idx, 1, flags);
+            hgs_buffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
+            hgs_buffer_release(idx, 1, flags);
+            ++fwd_count_;
+            fwd_size_ += buf.size;
+        }
+        // bufs_.clear();
 
         //=int idx;
         //=while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
@@ -625,10 +651,6 @@ struct data_sink
     //    }
     //    return p;
     //}
-
-    // unsigned ts_ = 0, ncommit_ = 0, totsiz_ = 0; // test-only
-
-    std::mutex mutex_;
 };
 
 struct h264nal : private boost::noncopyable
@@ -1522,7 +1544,7 @@ static struct test_h264file {
 void hgs_poll_once(int)
 {
     test_.hfile_->pump();
-    test_.hfile_->input_queue_swap();
+    test_.hfile_->codec_inflate();
 }
 
 void hgs_exit(int preexit)
@@ -1612,7 +1634,7 @@ void hgs_poll_once(int)
     //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
 
     hgs_.io_service.poll_one();
-    // if (codec) hgs_.rtcp->sink_.input_queue_swap();
+    // if (codec) hgs_.rtcp->sink_.codec_inflate();
 }
 
 void hgs_run()
@@ -1628,7 +1650,7 @@ void hgs_pump()
 {
     if (hgs_.running) {
         hgs_.io_service.post([](){ hgs_.rtcp->rreport(); });
-        hgs_.rtcp->sink_.input_queue_swap();
+        hgs_.rtcp->sink_.codec_inflate();
     }
 }
 

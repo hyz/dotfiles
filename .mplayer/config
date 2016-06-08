@@ -1,4 +1,4 @@
-# Write your default config options here!
+# mplayer Write your default config options here!
 
 # Write your default config options here!
 #alias mplayer='mplayer -stop-xscreensaver -zoom -vo gl2'
