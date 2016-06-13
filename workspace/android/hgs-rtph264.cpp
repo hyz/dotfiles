@@ -392,17 +392,24 @@ private:
 struct data_sink
 {
 #if 0 //defined(__ANDROID__)
-//#   define _TRACE_SIZE_PRINT() ((void)0)
-//#   define _TRACE_SIZE(type, size) ((void)0)
+#   define _TRACE_SIZE_PRINT() ((void)0)
+#   define _TRACE_SIZE(type, size) ((void)0)
+#   define _TRACE_DROP0(n) ((void)0)
+#   define _TRACE_DROP1(n) ((void)0)
+#   define _TRACE_DROP_non_IDR(nri, type, n_fwd) ((void)0)
+#   define _TRACE_FWD_INCR(nri,type,siz) ((void)0)
 #else
     struct TraceSize {
         unsigned len_max=0;
         unsigned len_total=0;
         unsigned count=0;
     };
-    std::array<TraceSize,64> tsa_;
+    std::array<TraceSize,32> tsa_;
     struct timeval tv0_;
-    unsigned fr_count_ = 0;
+    unsigned n_fr_ = 0;
+    unsigned n_drop1_ = 0;
+    unsigned n_fwd_ = 0; // signed char non_IDR_ = 4;
+    //unsigned size_fwd_ = 0;
 
     void _TRACE_SIZE_PRINT() {
         for (unsigned i=0; i<tsa_.size(); ++i) {
@@ -419,22 +426,33 @@ struct data_sink
         a.count++;
 
         if (type==1 || type==5) {
-            ++fr_count_;
-            if (fr_count_ == 1) {
+            ++n_fr_;
+            if (n_fr_ == 1) {
                 gettimeofday(&tv0_, NULL);
-            } else if ((fr_count_ & 0x3f) == 0) {
-                LOGD("Net Frame-rate: %.2f", 0x3f*1000.0/sMills::from(tv0_));
+            } else if ((n_fr_ & 0x7f) == 0) {
+                LOGD("Net F-rate: %.2f, %u %u %u", 0x7f*1000.0/sMills::from(tv0_), n_fr_, n_fwd_, n_drop1_);
                 tv0_ = sMills::latest();
             }
         }
+    }
+    void _TRACE_DROP0(unsigned n) {
+    }
+    void _TRACE_DROP1(unsigned n) {
+        n_drop1_ += n;
+    }
+    void _TRACE_DROP_non_IDR(int nri, int type, unsigned nfwd) {
+        ;
+    }
+    void _TRACE_FWD_INCR(int nri, int type,unsigned siz) {
+        if (type > 5)
+            LOGD("FWD %d", type);
+        ++n_fwd_;
     }
 #endif
 
     std::deque<mbuffer> bufs_;
     std::mutex mutex_;
 
-    //signed char nri_ = -1;
-    //mbuffer bufarray_[6];
     //typedef boost::intrusive::slist<mbuffer,boost::intrusive::cache_last<true>> slist_type;
     //slist_type blis_, blis_ready_;
 
@@ -558,41 +576,36 @@ struct data_sink
         this->statis(&bp.rtp_h, data, end);
     }
 
-    unsigned fwd_count_ = 0; // signed char non_IDR_ = 4;
-    unsigned fwd_size_ = 0;
-    unsigned n_drop_ = 0;
+    enum { Types_SDP78 = ((1<<7)|(1<<8)) };
+    unsigned short fwd_types_ = 0;
 
     void commit(mbuffer&& bp)
     {
         auto& h = bp.base_ptr->nal_h;
         _TRACE_SIZE(h.type, bp.size);
 
-        if (fwd_count_ > 4 && h.type >= 7 || h.nri < 3) {
+        if (h.nri < 3) {
+            _TRACE_DROP0(1);
             bp = mbuffer();
             return;
+        }
+        if ((fwd_types_ & Types_SDP78) == Types_SDP78) {
+            if (h.type >= 7) {
+                bp = mbuffer();
+                return;
+            }
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (fwd_count_ > 4 && !bufs_.empty()) {
-            unsigned pn = n_drop_;
-            n_drop_ += bufs_.size();
-            if ((pn>>5) != (n_drop_>>5))
-                LOGD("drop %u", n_drop_);
-            bufs_.clear();
-            //if (bufs_.size() > 4) bufs_.pop_front();
+        if (!bufs_.empty() && (fwd_types_ & Types_SDP78) == Types_SDP78) {
+            _TRACE_DROP1(bufs_.size());
+            bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
         }
         bufs_.push_back(std::move(bp));
-
-#if 1 //!defined(__ANDROID__)
-        if ( (bufs_.size() % 10) == 0) { // DEBUG
-            LOGD("bufs.size %d", (int)bufs_.size());
-        }
-#endif
     }
 
-    void commit(rtp_header const& rh, uint8_t* data, uint8_t* end)
-    {
+    void commit(rtp_header const& rh, uint8_t* data, uint8_t* end) {
         commit(mbuffer(rh, data, end));
     }
 
@@ -608,37 +621,20 @@ struct data_sink
 
             mbuffer buf = std::move(bufs_.front());
             bufs_.pop_front();
+            auto& h = buf.base_ptr->nal_h;
 
             int flags = 0;
-            switch (buf.base_ptr->nal_h.type) {
+            switch (h.type) {
                 case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
             }
-
             hgs_buffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
             hgs_buffer_release(idx, 1, flags);
-            ++fwd_count_;
-            fwd_size_ += buf.size;
+
+            if ((fwd_types_ & Types_SDP78) != Types_SDP78) {
+                fwd_types_ |= (1<<h.type);
+            }
+            _TRACE_FWD_INCR(h.nri, h.type, buf.size);
         }
-        // bufs_.clear();
-
-        //=int idx;
-        //=while (!blis_ready_.empty() && (idx = hgs_buffer_obtain(0)) >= 0) {
-        //=    mbuffer& b = blis_ready_.front(); // blis_ready_.pop_front();
-
-        //=    hgs_buffer_release(b.bufindex, b.rtp_h.timestamp, b.flags);
-
-        //=    b.bufindex = idx;
-        //=    b.used = 0;
-        //=    blis_.splice_after(blis_.last(), blis_ready_, blis_ready_.before_begin());
-        //=}
-
-        //++ncommit_;
-        //unsigned ts = stimestamp();
-        //if (ts - ts_ >= 1000) {
-        //    LOGD("F-RATE %u/%u, totsiz %u", ncommit_, (ts-ts_), totsiz_); //("BUFFER_FLAG_CODEC_CONFIG");
-        //    ts_ = ts;
-        //    ncommit_ = 0;
-        //}
     }
 
     //static slist_type::iterator iterator_before(slist_type& blis, mbuffer& b)
@@ -1535,10 +1531,7 @@ struct h264file_printer : boost::noncopyable, data_sink
 
 static struct test_h264file {
     int h264file_fd = -1;
-    // std::pair<uint8_t*,uint8_t*> range_ = {};
     h264file_printer* hfile_; //h264file_mmap* fmap_;
-    // int ncommit_ = 0;
-    // int bufindex; int frindex;
 } test_;
 
 void hgs_poll_once(int)

@@ -125,6 +125,7 @@ Java_com_hg_streaming_RtpH264_initJNI( JNIEnv* env, jobject thiz )
     ip="192.168.2.172"; port = 554; path="rtsp://192.168.2.172/b.mov";
     ip="192.168.0.1"; port = 554; path="rtsp://192.168.0.1/live/ch00_1";
     ip="192.168.9.177"; port = 554; path="rtsp://192.168.9.177/live/ch00_1";
+    ip="192.168.9.177"; port = 554; path="rtsp://192.168.9.177/live/ch00_2";
     hgs_init(ip, port, path, 480, 320);
 
 #if defined(__arm__)
