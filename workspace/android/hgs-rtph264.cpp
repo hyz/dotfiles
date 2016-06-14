@@ -4,8 +4,12 @@
 #include <cstdlib>
 #include <deque>
 //#include <iostream>
-#include <boost/static_assert.hpp>
+#include <thread>
+#include <mutex>
+#include <chrono> //#include <boost/chrono.hpp>
+#define BOOST_ERROR_CODE_HEADER_ONLY
 #define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
+#include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
@@ -26,9 +30,6 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/intrusive/slist.hpp>
-#include <thread>
-#include <mutex>
-#include <chrono> //#include <boost/chrono.hpp>
 
 #if defined(__ANDROID__)
 #  include <regex> //<boost/regex.hpp>
@@ -65,20 +66,33 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 #  define LOGE(...) err_msg_(__LINE__, "E:%d: " __VA_ARGS__)
 #endif
 
+struct DecodeHelper {
+    void* data;
+    unsigned size;
+    bool is_ready() const { return oidx_ >= 0; }
+
+    DecodeHelper();
+    ~DecodeHelper();
+private:
+    int oidx_;
+    DecodeHelper(DecodeHelper const&);
+    DecodeHelper& operator=(DecodeHelper const&);
+};
+
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 extern "C" {
-    //int  hgs_queue_input(uint8_t*data, uint8_t*end, int flags, unsigned);
+    int  javacodec_ibuffer_obtain(int timeout);
+    void javacodec_ibuffer_inflate(int idx, char* p, size_t len);
+    void javacodec_ibuffer_release(int idx, unsigned timestamp, int flags);
 
-    int  hgs_buffer_obtain(int timeout);
-    void hgs_buffer_inflate(int idx, char* p, size_t len);
-    void hgs_buffer_release(int idx, unsigned timestamp, int flags);
-
-    void hgs_poll_once(int);
-    void hgs_run();
-    void hgs_pump();
+    int  javacodec_obuffer_obtain(void** pa, unsigned* len);
+    void javacodec_obuffer_release(int idx);
 
     void hgs_exit(int);
+    void hgs_run();
     void hgs_init(char const* ip, int port, char const* path, int w, int h);
+
+    void jni_pump();
 }
 
 template <typename I1, typename I2>
@@ -112,6 +126,7 @@ template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
     return Ntoh_<Int,sizeof(Int)>::cast(val);
 }
 
+#if !defined(NOT_PRINT_PROTO)
 static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
 {
     int len=std::min(16,int(end-data));
@@ -119,6 +134,7 @@ static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
         j += snprintf(&xs[j],siz-j, ((i>1&&i%2==0)?" %02x":"%02x"), (int)data[i]);
     return xs;
 }
+#endif
 
 struct rtp_header
 {
@@ -461,7 +477,7 @@ struct data_sink
     virtual ~data_sink() { _TRACE_SIZE_PRINT(); }
 
     void free_buf(mbuffer& b) {
-        //hgs_buffer_release(b.bufindex, 0, 0xf7);
+        //javacodec_ibuffer_release(b.bufindex, 0, 0xf7);
         //b.used = 0;
     }
 
@@ -520,7 +536,7 @@ struct data_sink
             }
             if (NRI(&min_it->nal_h) >= nri)
                 return 0;
-            hgs_buffer_release(min_it->bufindex, 0, 0xf7);
+            javacodec_ibuffer_release(min_it->bufindex, 0, 0xf7);
             blis_.splice_after(blis_.before_begin(), lis, prev_min_it);
             return 1;
         };
@@ -538,7 +554,7 @@ struct data_sink
         //if (blis_.empty() && blis_ready_.empty()) { // init
         //    for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
         //        int idx;
-        //        while ( (idx = hgs_buffer_obtain(1000)) < 0) {
+        //        while ( (idx = javacodec_ibuffer_obtain(1000)) < 0) {
         //            LOGE("buffer obtain x: %d", idx);
         //        }
         //        bufarray_[x].bufindex = idx;
@@ -577,19 +593,23 @@ struct data_sink
     }
 
     enum { Types_SDP78 = ((1<<7)|(1<<8)) };
+    enum { Types_SDP67 = ((1<<6)|(1<<7)) };
     unsigned short fwd_types_ = 0;
+
+    bool sdp_ready() const { return ((fwd_types_ & Types_SDP78) == Types_SDP78) || ((fwd_types_ & Types_SDP67) == Types_SDP67); }
 
     void commit(mbuffer&& bp)
     {
         auto& h = bp.base_ptr->nal_h;
         _TRACE_SIZE(h.type, bp.size);
 
-        if (h.nri < 3) {
+//#define DONOT_DROP 0
+        if (h.nri < 3)/*(0)*/ {
             _TRACE_DROP0(1);
             bp = mbuffer();
             return;
         }
-        if ((fwd_types_ & Types_SDP78) == Types_SDP78) {
+        if (sdp_ready()) {
             if (h.type >= 7) {
                 bp = mbuffer();
                 return;
@@ -598,7 +618,7 @@ struct data_sink
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (!bufs_.empty() && (fwd_types_ & Types_SDP78) == Types_SDP78) {
+        if (!bufs_.empty() && sdp_ready())/*(0)*/ {
             _TRACE_DROP1(bufs_.size());
             bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
         }
@@ -609,11 +629,11 @@ struct data_sink
         commit(mbuffer(rh, data, end));
     }
 
-    void codec_inflate()
+    void jcodec_inflate()
     {
         std::lock_guard<std::mutex> lock(mutex_);
         while (!bufs_.empty()) {
-            int idx = hgs_buffer_obtain(10);
+            int idx = javacodec_ibuffer_obtain(10);
             if (idx < 0) {
                 //LOGW("buffer obtain: %d", idx);
                 break;
@@ -627,11 +647,12 @@ struct data_sink
             switch (h.type) {
                 case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
             }
-            hgs_buffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
-            hgs_buffer_release(idx, 1, flags);
+            javacodec_ibuffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
+            javacodec_ibuffer_release(idx, 1, flags);
 
-            if ((fwd_types_ & Types_SDP78) != Types_SDP78) {
+            if (!sdp_ready()) {
                 fwd_types_ |= (1<<h.type);
+                LOGD("sdp %02x", fwd_types_);
             }
             _TRACE_FWD_INCR(h.nri, h.type, buf.size);
         }
@@ -658,6 +679,7 @@ struct h264nal : private boost::noncopyable
         BOOST_STATIC_ASSERT(sizeof(int)==4);
         if (sps.empty())
             return;
+        LOGD("sprop_parameter_sets %u %u", sps.size(), pps.size());
         uint8_t sbytes[4] = {0,0,0,1};
 
         mbuffer b = sink_->locate_buf( rtp_header{} );
@@ -735,6 +757,7 @@ struct h264nal : private boost::noncopyable
     void set_data_sink(data_sink* sink) {
         sink_ = sink;
     }
+
 
     data_sink* sink_ = 0;
     mbuffer bufp_;
@@ -1534,10 +1557,10 @@ static struct test_h264file {
     h264file_printer* hfile_; //h264file_mmap* fmap_;
 } test_;
 
-void hgs_poll_once(int)
+void jni_pump()
 {
     test_.hfile_->pump();
-    test_.hfile_->codec_inflate();
+    test_.hfile_->jcodec_inflate();
 }
 
 void hgs_exit(int preexit)
@@ -1548,8 +1571,8 @@ void hgs_exit(int preexit)
         test_.h264file_fd = -1;
     }
 }
-
-void hgs_init(char const* ip, int port, char const* path, int w, int h)
+void hgs_run() {}
+void hgs_init(char const* ip, int port, char const* path, int, int)
 {
 #   ifdef __ANDROID__
     path = "/sdcard/a.h264";
@@ -1564,28 +1587,26 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h)
 
 #else
 
-// #include <boost/thread/mutex.hpp>
-
 struct App {
-    bool running = 0;
     std::thread thread;
     boost::asio::io_service io_service;
 
     rtp_receiver* rtp = 0;
     rtcp_client* rtcp = 0;
     rtsp_client* rtsp = 0;
+    bool exit_ = 0;
+    bool sdp_ready() const { return rtcp->sink_.sdp_ready(); }
 
     ~App() {
-        delete rtsp;       rtsp = 0;
-        delete rtcp;       rtcp = 0;
-        delete rtp;        rtp = 0;
+        delete rtsp; rtsp = 0;
+        delete rtcp; rtcp = 0;
+        delete rtp ; rtp  = 0;
+        exit_ = 0;
     }
 };
 static App hgs_;
 
-/// rtsp://127.0.0.1:7654/rtp1
-/// rtsp://192.168.2.3/live/ch00_2
-void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*480 1280X720 1920X1080
+void hgs_init(char const* ip, int port, char const* path, int, int) // 640*480 1280X720 1920X1080
 {
     LOGD("init %s:%d %s", ip, port, path);
 
@@ -1593,9 +1614,9 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*4
 
     auto endp = ip::tcp::endpoint(ip::address::from_string(ip), (port));
 
-    hgs_.rtp = new rtp_receiver(hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
+    hgs_.rtp  = new rtp_receiver(hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
     hgs_.rtcp = new rtcp_client(hgs_.io_service, hgs_.rtp);
-    hgs_.rtsp = new rtsp_client(hgs_.io_service, hgs_.rtp, endp, path);
+    hgs_.rtsp = new rtsp_client(hgs_.io_service, hgs_.rtp, endp, std::string(path));
 
     // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
     LOGD("init ok");
@@ -1603,7 +1624,8 @@ void hgs_init(char const* ip, int port, char const* path, int w, int h) // 640*4
 
 void hgs_exit(int preexit)
 {
-    hgs_.running = 0;
+    LOGD("hgs:exit %d", preexit);
+    hgs_.exit_ = 1;
     hgs_.io_service.post([preexit](){
         if (preexit) {
             LOGD("teardown");
@@ -1617,33 +1639,49 @@ void hgs_exit(int preexit)
             LOGD("exit:join thread");
         }
     });
-    if (preexit == 0)
+    if (preexit == 0) {
+        LOGD("thread:join ...");
         hgs_.thread.join();
+    }
 }
 
-void hgs_poll_once(int)
-{
-    //LOGD("poll_one");
-    //auto* c = reinterpret_cast<rtp_receiver*>(&objmem_);
-
-    hgs_.io_service.poll_one();
-    // if (codec) hgs_.rtcp->sink_.codec_inflate();
-}
+//void hgs_poll_once(int) { hgs_.io_service.poll_one(); }
 
 void hgs_run()
 {
     LOGD("run: %d", !!hgs_.rtsp);
-    hgs_.running = 1;
     hgs_.rtsp->setup(0,0);
 
     hgs_.thread = std::thread([](){ hgs_.io_service.run(); });
 }
 
-void hgs_pump()
+void jni_pump()
 {
-    if (hgs_.running) {
+    DecodeHelper dec;
+    if (dec.is_ready()) {
+    }
+}
+
+DecodeHelper::~DecodeHelper() {
+    if (oidx_ >= 0) {
+        BOOST_ASSERT(data && size > 0);
+        javacodec_obuffer_release(oidx_);
+        LOGD("Decoded %d: %u:%p", oidx_, size, data);
+    }
+}
+
+DecodeHelper::DecodeHelper() {
+    oidx_ = -1;
+    if (hgs_.rtp && !hgs_.exit_) {
         hgs_.io_service.post([](){ hgs_.rtcp->rreport(); });
-        hgs_.rtcp->sink_.codec_inflate();
+
+        hgs_.rtcp->sink_.jcodec_inflate();
+        if (hgs_.sdp_ready()) {
+            data = 0;
+            size = 0;
+            oidx_ = javacodec_obuffer_obtain(&data, &size);
+        }
+    // } else if (hgs_.rtcp) { LOGD("sdp %02x", hgs_.rtcp->sink_.fwd_types_);
     }
 }
 

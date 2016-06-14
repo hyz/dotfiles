@@ -15,7 +15,7 @@ lib hello-jni : hello-jni.c ; #: <link>static ;
 lib log ; # android log
 
 lib hgs : hgs-rtph264.cpp hgs-jni.c 
-        /opt/boost_1_60_0/libs/system/src/error_code.cpp
+        # /opt/boost_1_60_0/libs/system/src/error_code.cpp
         # context coroutine thread
         log
     ;
