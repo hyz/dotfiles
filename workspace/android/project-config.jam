@@ -61,7 +61,7 @@ using gcc : : $(BIN)/arm-linux-androideabi-g++
     <cxxflags>-D__arm__
     <cxxflags>-D_REENTRANT
     <cxxflags>-D_GLIBCXX__PTHREADS
-    <cxxflags>-std=c++1y
+    <cxxflags>-std=c++11
     ;
 
 # ./bjam --build-type=complete --layout=tagged

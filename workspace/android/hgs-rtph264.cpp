@@ -32,9 +32,11 @@
 #include <boost/intrusive/slist.hpp>
 
 #if defined(__ANDROID__)
+#  include <jni.h> //<boost/regex.hpp>
 #  include <regex> //<boost/regex.hpp>
 namespace re = std;
 #else
+#  define JNIEXPORT
 #  include <boost/regex.hpp>
 namespace re = boost;
 #endif
@@ -66,21 +68,8 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 #  define LOGE(...) err_msg_(__LINE__, "E:%d: " __VA_ARGS__)
 #endif
 
-struct DecodeHelper {
-    void* data;
-    unsigned size;
-    bool is_ready() const { return oidx_ >= 0; }
-
-    DecodeHelper();
-    ~DecodeHelper();
-private:
-    int oidx_;
-    DecodeHelper(DecodeHelper const&);
-    DecodeHelper& operator=(DecodeHelper const&);
-};
-
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
-extern "C" {
+
     int  javacodec_ibuffer_obtain(int timeout);
     void javacodec_ibuffer_inflate(int idx, char* p, size_t len);
     void javacodec_ibuffer_release(int idx, unsigned timestamp, int flags);
@@ -88,12 +77,12 @@ extern "C" {
     int  javacodec_obuffer_obtain(void** pa, unsigned* len);
     void javacodec_obuffer_release(int idx);
 
+    JNIEXPORT int  codecio_query(void** data, unsigned* size);
+
     void hgs_exit(int);
     void hgs_run();
     void hgs_init(char const* ip, int port, char const* path, int w, int h);
 
-    void jni_pump();
-}
 
 template <typename I1, typename I2>
 void base64dec(I1 beg, I1 end, I2 out_it)
@@ -604,7 +593,7 @@ struct data_sink
         _TRACE_SIZE(h.type, bp.size);
 
 //#define DONOT_DROP 0
-        if (h.nri < 3)/*(0)*/ {
+        if /*(h.nri < 3)*/(0) {
             _TRACE_DROP0(1);
             bp = mbuffer();
             return;
@@ -618,7 +607,7 @@ struct data_sink
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (!bufs_.empty() && sdp_ready())/*(0)*/ {
+        if /*(!bufs_.empty() && sdp_ready())*/(0) {
             _TRACE_DROP1(bufs_.size());
             bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
         }
@@ -1131,15 +1120,16 @@ struct rtsp_connection
     void connect()
     {
         auto handler = [this](boost::system::error_code ec) {
-            LOGD("connect: %d:%s", ec.value(), ec.message().c_str());
+            LOGD("connectd: %d:%s", ec.value(), ec.message().c_str());
             if (ec) {
                 derived()->on_error(ec, Connect{});
             } else {
                 derived()->on_success(Connect{});
             }
         };
-        LOGD("connect %s:%d", endpoint_.address().to_string().c_str(), endpoint_.port());
+        LOGD("connect %s:%d ..", endpoint_.address().to_string().c_str(), endpoint_.port());
         tcpsock_.async_connect( endpoint_, handler );
+        LOGD("connect ...");
     }
 
     void options()
@@ -1557,11 +1547,11 @@ static struct test_h264file {
     h264file_printer* hfile_; //h264file_mmap* fmap_;
 } test_;
 
-void jni_pump()
-{
-    test_.hfile_->pump();
-    test_.hfile_->jcodec_inflate();
-}
+//void jni_pump()
+//{
+//    test_.hfile_->pump();
+//    test_.hfile_->jcodec_inflate();
+//}
 
 void hgs_exit(int preexit)
 {
@@ -1652,38 +1642,77 @@ void hgs_run()
     LOGD("run: %d", !!hgs_.rtsp);
     hgs_.rtsp->setup(0,0);
 
+    LOGD("run:thread");
     hgs_.thread = std::thread([](){ hgs_.io_service.run(); });
+    LOGD("run:thread OK");
 }
 
-void jni_pump()
-{
-    DecodeHelper dec;
-    if (dec.is_ready()) {
-    }
-}
-
-DecodeHelper::~DecodeHelper() {
-    if (oidx_ >= 0) {
-        BOOST_ASSERT(data && size > 0);
-        javacodec_obuffer_release(oidx_);
-        LOGD("Decoded %d: %u:%p", oidx_, size, data);
-    }
-}
-
-DecodeHelper::DecodeHelper() {
-    oidx_ = -1;
+int codecio_query(void** data, unsigned* size) {
+    int ix = -1;
     if (hgs_.rtp && !hgs_.exit_) {
-        hgs_.io_service.post([](){ hgs_.rtcp->rreport(); });
+        hgs_.io_service.post([](){ hgs_.rtcp->rreport(); }); // TODO: remove
 
         hgs_.rtcp->sink_.jcodec_inflate();
         if (hgs_.sdp_ready()) {
-            data = 0;
-            size = 0;
-            oidx_ = javacodec_obuffer_obtain(&data, &size);
+            //*data = 0; *size = 0;
+            ix = javacodec_obuffer_obtain(data, size);
         }
-    // } else if (hgs_.rtcp) { LOGD("sdp %02x", hgs_.rtcp->sink_.fwd_types_);
     }
+    return ix;
 }
+
+//struct QueryDecoded
+//{
+//    void* data;
+//    unsigned size;
+//    bool is_ready() const { return oidx_ >= 0; }
+//
+//    QueryDecoded();
+//    ~QueryDecoded() { _release(); }
+//
+//    QueryDecoded(QueryDecoded && rhs) {
+//        data = rhs.data;
+//        size = rhs.size;
+//        oidx_ = rhs.oidx_;
+//        rhs.oidx_ = -1;
+//    }
+//    QueryDecoded& operator=(QueryDecoded && rhs) {
+//        if (this != &rhs) {
+//            _release();
+//            data = rhs.data;
+//            size = rhs.size;
+//            oidx_ = rhs.oidx_;
+//            rhs.oidx_ = -1;
+//        }
+//        return *this;
+//    }
+//private:
+//    void _release();
+//    int oidx_;
+//    QueryDecoded(QueryDecoded const&);
+//    QueryDecoded& operator=(QueryDecoded const&);
+//};
+//void QueryDecoded::_release() {
+//    if (oidx_ >= 0) {
+//        BOOST_ASSERT(data && size > 0);
+//        javacodec_obuffer_release(oidx_);
+//        LOGD("Decoded %d: %u:%p", oidx_, size, data);
+//    }
+//}
+//
+//QueryDecoded::QueryDecoded() {
+//    oidx_ = -1;
+//    if (hgs_.rtp && !hgs_.exit_) {
+//        jcodec_inflate();
+//        if (hgs_.sdp_ready()) {
+//            data = 0;
+//            size = 0;
+//            oidx_ = javacodec_obuffer_obtain(&data, &size);
+//        }
+//    // } else if (hgs_.rtcp) { LOGD("sdp %02x", hgs_.rtcp->sink_.fwd_types_);
+//    }
+//}
+//
 
 #endif
 

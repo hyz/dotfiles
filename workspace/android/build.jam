@@ -14,13 +14,13 @@ exe chatc : chat_client.cpp /boost//system /boost//thread : <link>static  ;
 lib hello-jni : hello-jni.c ; #: <link>static ;
 lib log ; # android log
 
-lib hgs : hgs-rtph264.cpp hgs-jni.c 
+lib hgs : hgs-rtph264.cpp hgs-jni.cpp 
         # /opt/boost_1_60_0/libs/system/src/error_code.cpp
         # context coroutine thread
         log
     ;
 
-#lib rtsp_cli : rtsp_cli.cpp # hgs-jni.c 
+#lib rtsp_cli : rtsp_cli.cpp # hgs-jni.cpp 
 #        /opt/boost_1_60_0/libs/system/src/error_code.cpp
 #        context coroutine thread
 #        log
@@ -30,6 +30,8 @@ lib hgs : hgs-rtph264.cpp hgs-jni.c
 #
 #install bin/a : multi hcli chats chatc ;
 
-local DESTDIR = /mnt/hgfs/home/and/SimpleH264Decoder/Application/src/main/jniLibs/armeabi-v7a ;
+path-constant DESTDIR : /mnt/hgfs/home/and/SimpleH264Decoder/Application/src/main/jniLibs/armeabi-v7a ;
+install $(DESTDIR) : hgs ;
+path-constant DESTDIR : /mnt/hgfs/home/eclipse/BarCode_release_apk/jni/armeabi-v7a ;
 install $(DESTDIR) : hgs ;
 
