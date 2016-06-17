@@ -1,7 +1,7 @@
 // #include <sys/types.h> #include <signal.h>
 #include <sys/mman.h>
 #include <string.h>
-#include <cstdlib>
+#include <stdlib.h>
 #include <deque>
 //#include <iostream>
 #include <thread>
@@ -30,6 +30,7 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/intrusive/slist.hpp>
+#include "hgs.hpp"
 
 #if defined(__ANDROID__)
 #  include <jni.h> //<boost/regex.hpp>
@@ -68,22 +69,6 @@ template <typename... As> void err_msg_(int lin_, char const* fmt, As... a) {
 #  define LOGE(...) err_msg_(__LINE__, "E:%d: " __VA_ARGS__)
 #endif
 
-enum { BUFFER_FLAG_CODEC_CONFIG=2 };
-
-    int  javacodec_ibuffer_obtain(int timeout);
-    void javacodec_ibuffer_inflate(int idx, char* p, size_t len);
-    void javacodec_ibuffer_release(int idx, unsigned timestamp, int flags);
-
-    int  javacodec_obuffer_obtain(void** pa, unsigned* len);
-    void javacodec_obuffer_release(int idx);
-
-    JNIEXPORT int  codecio_query(void** data, unsigned* size);
-
-    void hgs_exit(int);
-    void hgs_run();
-    void hgs_init(char const* ip, int port, char const* path, int w, int h);
-
-
 template <typename I1, typename I2>
 void base64dec(I1 beg, I1 end, I2 out_it)
 {
@@ -114,83 +99,6 @@ template <typename Int> Int Ntoh(uint8_t* data,uint8_t* end)
     memcpy(&val, data, sizeof(Int));
     return Ntoh_<Int,sizeof(Int)>::cast(val);
 }
-
-#if !defined(NOT_PRINT_PROTO)
-static char* xsfmt(char xs[],unsigned siz, uint8_t*data,uint8_t*end)
-{
-    int len=std::min(16,int(end-data));
-    for (int j=0, i=0; j < (int)siz && i < len; ++i)
-        j += snprintf(&xs[j],siz-j, ((i>1&&i%2==0)?" %02x":"%02x"), (int)data[i]);
-    return xs;
-}
-#endif
-
-struct rtp_header
-{
-    BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
-
-    uint8_t cc:4;         // CSRC count
-    uint8_t x:1;          // header extension flag
-    uint8_t p:1;          // padding flag
-    uint8_t version:2;    // protocol version
-
-    uint8_t pt:7;         // payload type
-    uint8_t m:1;          // marker bit
-    uint16_t seq;         // sequence number, network order
-
-    uint32_t timestamp;     // timestamp, network order
-    uint32_t ssrc;          // synchronization source, network order
-    uint32_t csrc[1];        // optional CSRC list
-
-    static rtp_header* cast(uint8_t* data, uint8_t* end) {
-        if (data + sizeof(rtp_header)-4 > end)
-            return nullptr;
-        rtp_header* h = reinterpret_cast<rtp_header*>(data);
-        if (data + h->length() > end)
-            return nullptr;
-        h->seq = ntohs(h->seq);
-        h->timestamp = ntohl(h->timestamp) / 10; //XXX:  millseconds
-        h->ssrc = ntohl(h->ssrc);
-        for (unsigned i=0; i < h->cc; ++i)
-            h->csrc[i] = ntohl(h->csrc[i]);
-        return h;
-    }
-    unsigned length() const { return sizeof(rtp_header)-4 + 4*this->cc; }
-
-    void print(uint8_t* data, uint8_t* end) {
-#if !defined(NOT_PRINT_PROTO)
-        char xs[128] = {};
-        printf("%4u:%u: version %d p %d x %d cc %d pt %d seq %d: %s\n"
-                , int(end-data), this->length()
-                , this->version, this->p, this->x, this->cc, this->pt, this->seq
-                , xsfmt(xs,sizeof(xs), data,end));
-#endif
-    }
-};
-
-struct nal_unit_header
-{
-    uint8_t type:5;
-    uint8_t nri:2;
-    uint8_t f:1;
-
-    static nal_unit_header* cast(uint8_t* data, uint8_t* end) {
-        if (data+1 > end)
-            return nullptr;
-        return reinterpret_cast<nal_unit_header*>(data);
-    }
-    unsigned length() const { return 1; }
-
-    void print(uint8_t* data, uint8_t* end) {
-#if !defined(NOT_PRINT_PROTO)
-        char xs[128] = {};
-        printf("%4u:%u: f %d nri %d type %d: %s\n"
-                , int(end-data), this->length()
-                , this->f, this->nri, this->type
-                , xsfmt(xs,sizeof(xs), data,end));
-#endif
-    }
-};
 
 struct fu_header
 {
@@ -306,359 +214,6 @@ static int64_t stimestamp(int init=0)
     return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
 }
 
-struct mbuffer /*: boost::intrusive::slist_base_hook<>*/
-{
-    rtp_header rtp_h;
-    struct Nal {
-        uint32_t _4bytes;
-        nal_unit_header nal_h; // size 0 pos
-        uint8_t date_p_[1];
-    } *base_ptr = 0;
-    unsigned size, capacity;
-
-    ~mbuffer() {
-        if (base_ptr)
-            free(base_ptr);
-    }
-    mbuffer() {
-        size = capacity = 0;
-        base_ptr = 0; // rtp_h = rtp_header{};
-    }
-    mbuffer(rtp_header const& rh, uint8_t* data=0, uint8_t* end=0) {
-        capacity = 2048;
-        size = 0; //+sizeof(nal_unit_header); //sizeof(Nal)-1;
-        base_ptr = (Nal*)malloc(capacity);
-        rtp_h = rh;
-        base_ptr->_4bytes = htonl(0x00000001); // base_ptr->nal_h = nh;
-
-        if (data && data<end)
-            put(data, end);
-    }
-    mbuffer(mbuffer&& rhs) {
-        memcpy(this, &rhs, sizeof(*this));
-        rhs.size = rhs.capacity = 0;
-        rhs.base_ptr = 0;
-    }
-    mbuffer& operator=(mbuffer&& rhs) {
-        if (this != &rhs) {
-            if (base_ptr)
-                free(base_ptr);
-            memcpy(this, &rhs, sizeof(*this));
-            rhs.size = rhs.capacity = 0;
-            rhs.base_ptr = 0;
-        }
-        return *this;
-    }
-
-    void put(uint8_t const* p, uint8_t const* end) {
-        BOOST_ASSERT( base_ptr );
-        unsigned siz = end - p;
-        if (capacity - this->size < siz) {
-            capacity += (siz+2047)/1024*1024;
-            base_ptr = (Nal*)realloc(base_ptr, capacity);
-        }
-        memcpy(addr(this->size), p, siz);
-        this->size += siz;
-    }
-    uint8_t* addr(int offs) const { return base_ptr->date_p_ +(-1 + offs); }
-    uint8_t* nal_header() const { return addr(0); }
-    uint8_t* frame_data() const { return addr(1); }
-
-    bool _using() const { return bool(base_ptr); }
-private:
-    mbuffer(mbuffer const&);// = delete;
-    mbuffer& operator=(mbuffer const&);// = delete;
-};
-
-struct sMills {
-    static unsigned from(struct timeval const& tv0) {
-        sMills& s = instance();
-        gettimeofday(&s.cur_, NULL);
-        return (1000*1000*(s.cur_.tv_sec - tv0.tv_sec) + s.cur_.tv_usec - tv0.tv_usec)/1000;
-    }
-    static unsigned from0() {
-        return from(instance().tv0_);
-    }
-    static struct timeval const& latest() { return instance().cur_; }
-
-    static sMills& instance() {
-        static sMills so;
-        return so;
-    }
-private:
-    sMills() {
-        gettimeofday(&cur_, NULL);
-        tv0_ = cur_;
-    }
-    struct timeval cur_;
-    struct timeval tv0_;
-};
-
-struct data_sink
-{
-#if 0 //defined(__ANDROID__)
-#   define _TRACE_SIZE_PRINT() ((void)0)
-#   define _TRACE_SIZE(type, size) ((void)0)
-#   define _TRACE_DROP0(n) ((void)0)
-#   define _TRACE_DROP1(n) ((void)0)
-#   define _TRACE_DROP_non_IDR(nri, type, n_fwd) ((void)0)
-#   define _TRACE_FWD_INCR(nri,type,siz) ((void)0)
-#else
-    struct TraceSize {
-        unsigned len_max=0;
-        unsigned len_total=0;
-        unsigned count=0;
-    };
-    std::array<TraceSize,32> tsa_;
-    struct timeval tv0_;
-    unsigned n_fr_ = 0;
-    unsigned n_drop1_ = 0;
-    unsigned n_fwd_ = 0; // signed char non_IDR_ = 4;
-    //unsigned size_fwd_ = 0;
-
-    void _TRACE_SIZE_PRINT() {
-        for (unsigned i=0; i<tsa_.size(); ++i) {
-            auto& a = tsa_[i];
-            if (a.count > 0) {
-                fprintf(stderr,"NAL-Unit-Type %d: m/a/n: %u %u %u\n", i, a.len_max, a.len_total/a.count, a.count);
-            }
-        }
-    }
-    void _TRACE_SIZE(int type, unsigned size) {
-        auto& a = tsa_[type];
-        a.len_max = std::max(size, a.len_max);
-        a.len_total += size;
-        a.count++;
-
-        if (type==1 || type==5) {
-            ++n_fr_;
-            if (n_fr_ == 1) {
-                gettimeofday(&tv0_, NULL);
-            } else if ((n_fr_ & 0x7f) == 0) {
-                LOGD("Net F-rate: %.2f, %u %u %u", 0x7f*1000.0/sMills::from(tv0_), n_fr_, n_fwd_, n_drop1_);
-                tv0_ = sMills::latest();
-            }
-        }
-    }
-    void _TRACE_DROP0(unsigned n) {
-    }
-    void _TRACE_DROP1(unsigned n) {
-        n_drop1_ += n;
-    }
-    void _TRACE_DROP_non_IDR(int nri, int type, unsigned nfwd) {
-        ;
-    }
-    void _TRACE_FWD_INCR(int nri, int type,unsigned siz) {
-        if (type > 5)
-            LOGD("FWD %d", type);
-        ++n_fwd_;
-    }
-#endif
-
-    std::deque<mbuffer> bufs_;
-    std::mutex mutex_;
-
-    //typedef boost::intrusive::slist<mbuffer,boost::intrusive::cache_last<true>> slist_type;
-    //slist_type blis_, blis_ready_;
-
-    virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) = 0;
-
-    virtual ~data_sink() { _TRACE_SIZE_PRINT(); }
-
-    void free_buf(mbuffer& b) {
-        //javacodec_ibuffer_release(b.bufindex, 0, 0xf7);
-        //b.used = 0;
-    }
-
-    mbuffer locate_buf(rtp_header const& rh)
-    {
-        return mbuffer(rh);
-#if 0
-        auto head_not_used = [this](slist_type& lis) {
-            if (!lis.empty()) {
-                auto it = lis.before_begin();
-                auto prev_it = it++;
-                for (; it != lis.end(); prev_it=it++) {
-                    if (!it->used) {
-                        lis.splice_after(lis.before_begin(), lis, prev_it);
-                        return lis.begin();
-                    }
-                }
-            }
-            LOGE("locate_buf:head_not_used: None");
-            return lis.end();
-        };
-        //auto discard_byseq = [this](slist_type& lis, rtp_header* rh/*slist_type::iterator& prev_it*/) {
-        //    if (lis.empty())
-        //        return lis.end();
-        //    auto it = lis.before_begin();
-        //    auto prev_it = it++;
-        //    while (it != lis.end()) {
-        //        if (((rh->seq < it->rtp_h.seq ? 0x10000u:0u) + rh->seq - it->rtp_h.seq) >= 6) {
-        //            LOGD("seq %d discard: %d", rh->seq, it->rtp_h.seq);
-        //            free_buf(*it++);
-        //            //lis.splice_after(lis.before_begin(), lis, prev_it);
-        //        } else 
-        //            prev_it=it++;
-        //    }
-        //    if (it == lis.end()) {
-        //        LOGE("locate_buf:discard_byseq: None");
-        //        return it;
-        //    }
-        //    lis.splice_after(lis.before_begin(), lis, prev_it);
-        //    return lis.begin();
-        //};
-#define NRI(h) (int((h)->nri)&0x3)
-        auto discard_bynri = [this](slist_type& lis, int nri) {
-            if (lis.empty())
-                return 0;
-            auto min_it = lis.before_begin();
-            auto prev_min_it = min_it++;
-            auto it = lis.begin();
-            auto prev_it = it++;
-            while (it != lis.end()) {
-                if (NRI(&it->nal_h) <= NRI(&min_it->nal_h)) {
-                    min_it = it;
-                    prev_min_it = prev_it;
-                }
-                prev_it = it++;
-            }
-            if (NRI(&min_it->nal_h) >= nri)
-                return 0;
-            javacodec_ibuffer_release(min_it->bufindex, 0, 0xf7);
-            blis_.splice_after(blis_.before_begin(), lis, prev_min_it);
-            return 1;
-        };
-        auto found = [this,rh,nh](slist_type::iterator it) { //BOOST_SCOPE_EXIT(this,&it,rh,nh);
-            if (nri_>=0) { //(nri_ >= 0 && nri >= 0x3)
-                LOGD("reset nri_");
-                this->nri_ = -1;
-            }
-            it->rtp_h = *rh;
-            it->nal_h = *nh;
-            it->used = 1;
-            return it.operator->();
-        };
-
-        //if (blis_.empty() && blis_ready_.empty()) { // init
-        //    for (int x=0, xe = sizeof(bufarray_)/sizeof(bufarray_[0]); x < xe; ++x) {
-        //        int idx;
-        //        while ( (idx = javacodec_ibuffer_obtain(1000)) < 0) {
-        //            LOGE("buffer obtain x: %d", idx);
-        //        }
-        //        bufarray_[x].bufindex = idx;
-        //        blis_.push_front(bufarray_[x]);
-        //    }
-        //}
-        BOOST_ASSERT(nri_ < 0x3);
-
-        int nri = NRI(nh);
-        if (nri <= nri_) {
-            LOGD("nri %d discard: %d", nri_, nri);
-            return 0;
-        }
-
-        slist_type::iterator it = head_not_used(blis_);
-        if (it != blis_.end()) {
-            return found(it);
-        }
-
-        if (!discard_bynri(blis_, nri) && !discard_bynri(blis_ready_, nri)) {
-            BOOST_ASSERT(nri < 0x3);
-            LOGW("discard_bynri fail: nri %d", nri);
-            nri_ = nri;
-            return 0;
-        }
-
-        BOOST_ASSERT(!blis_.empty() && !blis_.front().used);
-        return found(blis_.begin());
-#endif
-    }
-
-    void put(mbuffer& bp, uint8_t const* data, uint8_t const* end)
-    {
-        bp.put(data, end);
-        this->statis(&bp.rtp_h, data, end);
-    }
-
-    enum { Types_SDP78 = ((1<<7)|(1<<8)) };
-    enum { Types_SDP67 = ((1<<6)|(1<<7)) };
-    unsigned short fwd_types_ = 0;
-
-    bool sdp_ready() const { return ((fwd_types_ & Types_SDP78) == Types_SDP78) || ((fwd_types_ & Types_SDP67) == Types_SDP67); }
-
-    void commit(mbuffer&& bp)
-    {
-        auto& h = bp.base_ptr->nal_h;
-        _TRACE_SIZE(h.type, bp.size);
-
-//#define DONOT_DROP 0
-        if /*(h.nri < 3)*/(0) {
-            _TRACE_DROP0(1);
-            bp = mbuffer();
-            return;
-        }
-        if (sdp_ready()) {
-            if (h.type >= 7) {
-                bp = mbuffer();
-                return;
-            }
-        }
-
-        std::lock_guard<std::mutex> lock(mutex_);
-
-        if /*(!bufs_.empty() && sdp_ready())*/(0) {
-            _TRACE_DROP1(bufs_.size());
-            bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
-        }
-        bufs_.push_back(std::move(bp));
-    }
-
-    void commit(rtp_header const& rh, uint8_t* data, uint8_t* end) {
-        commit(mbuffer(rh, data, end));
-    }
-
-    void jcodec_inflate()
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        while (!bufs_.empty()) {
-            int idx = javacodec_ibuffer_obtain(10);
-            if (idx < 0) {
-                //LOGW("buffer obtain: %d", idx);
-                break;
-            }
-
-            mbuffer buf = std::move(bufs_.front());
-            bufs_.pop_front();
-            auto& h = buf.base_ptr->nal_h;
-
-            int flags = 0;
-            switch (h.type) {
-                case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
-            }
-            javacodec_ibuffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
-            javacodec_ibuffer_release(idx, 1, flags);
-
-            if (!sdp_ready()) {
-                fwd_types_ |= (1<<h.type);
-                LOGD("sdp %02x", fwd_types_);
-            }
-            _TRACE_FWD_INCR(h.nri, h.type, buf.size);
-        }
-    }
-
-    //static slist_type::iterator iterator_before(slist_type& blis, mbuffer& b)
-    //{
-    //    auto it = blis.before_begin();
-    //    auto p = it++;
-    //    for (; it != blis.end(); p=it++) {
-    //        if (it.operator->() == &b)
-    //            break;
-    //    }
-    //    return p;
-    //}
-};
-
 struct h264nal : private boost::noncopyable
 {
     // std::string sps_, pps_;
@@ -671,12 +226,12 @@ struct h264nal : private boost::noncopyable
         LOGD("sprop_parameter_sets %u %u", sps.size(), pps.size());
         uint8_t sbytes[4] = {0,0,0,1};
 
-        mbuffer b = sink_->locate_buf( rtp_header{} );
+        mbuffer b( rtp_header{} );
         //! b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
         b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
-        sink_->commit(std::move(b));
+        sink_commit_(std::move(b));
     }
 
     void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end) //const
@@ -696,7 +251,7 @@ struct h264nal : private boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_->commit(*rtp_h, data, data+len); //sink_->commit(timestamp, 0);
+                        sink_commit_(mbuffer(*rtp_h, data, data+len)); //sink_commit_(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -714,7 +269,7 @@ struct h264nal : private boost::noncopyable
                         if (bufp_._using()) {
                             LOGE("FU-A e loss");
                         }
-                        bufp_ = sink_->locate_buf(*rtp_h);
+                        bufp_ = mbuffer(*rtp_h);
                     } else {
                         BOOST_ASSERT(bufp_.size > 0);
                         if (bufp_.size <= 0) {
@@ -723,15 +278,16 @@ struct h264nal : private boost::noncopyable
                         }
                         ++data;
                     }
-                    sink_->put(bufp_, data, end);
+        rtp_statis_(bufp_.rtp_h, data, end);
+                    bufp_.put(data, end);
                     if (fuh.e) {
-                        sink_->commit(std::move(bufp_));
+                        sink_commit_(std::move(bufp_));
                     }
                 }
                 break;
             default:
                 if (h1->type < 24) {
-                    sink_->commit(*rtp_h, data, end);
+                    sink_commit_(mbuffer(*rtp_h, data, end));
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }
@@ -739,16 +295,14 @@ struct h264nal : private boost::noncopyable
         }
     }
 
-    void lose(unsigned seq) {
-        bufp_ = mbuffer();
-    }
+    //void lose(unsigned seq) { bufp_ = mbuffer(); }
 
-    void set_data_sink(data_sink* sink) {
-        sink_ = sink;
-    }
+    template <typename F> void func_sink(F fn) { sink_commit_ = fn; }
+    template <typename F> void func_rtp_statis(F fn) { rtp_statis_ = fn; }
 
+    std::function<void(mbuffer)> sink_commit_; // data_sink* sink_ = 0;
+    std::function<void(rtp_header const&, uint8_t const*,uint8_t const*)> rtp_statis_;
 
-    data_sink* sink_ = 0;
     mbuffer bufp_;
 };
 
@@ -885,7 +439,7 @@ struct rtcp_client : boost::noncopyable
     enum{ MIN_SEQUENTIAL = 2 };
     typedef uint16_t u_int16;
 
-    struct rtcp_data_sink : data_sink {
+    struct rtp_statis_info /*: data_sink*/ {
         uint32_t base_seq;       /* base seq number */
         uint16_t max_seq;        /* highest seq. number seen */
         uint16_t cycles;         /* shifted count of seq. number cycles */
@@ -900,7 +454,7 @@ struct rtcp_client : boost::noncopyable
         uint32_t jitter;         /* estimated jitter */
         /* ... */
 
-        virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) {
+        void statis(rtp_header const* rh, uint8_t const* data, uint8_t const* end) {
             auto* s = this;
             if (s->cycles == 0) {
                 s->cycles = 1;
@@ -925,7 +479,7 @@ struct rtcp_client : boost::noncopyable
             }
         }
     };
-    rtcp_data_sink sink_;
+    rtp_statis_info rtpsi_;
 
     rtcp_client(boost::asio::io_service& io_s, rtp_receiver* rtp/*, ip::udp::endpoint const& remote_ep*/)
         : udpsock_(io_s, ip::udp::endpoint(ip::udp::v4(), rtp->local_port(+1)))
@@ -951,7 +505,9 @@ struct rtcp_client : boost::noncopyable
         sdes.c.len = 6;
         snprintf(sdes.c.data,6, "%c%04d.", char(rand()%26+'A'), rtp->local_port()); //strcpy(sdes.c.data, "helo");
 
-        rtp->set_data_sink(&sink_);
+        rtp->func_rtp_statis([this](rtp_header const& h, uint8_t const* data,uint8_t const* end) {
+                    rtpsi_.statis(&h, data, end);
+                });
 
         //udpsock_.connect(remote_ep);
         handle_receive_from(boost::system::error_code(), 0);
@@ -964,6 +520,7 @@ struct rtcp_client : boost::noncopyable
 
     void handle_receive_from(const boost::system::error_code& ec, size_t bytes_recvd)
     {
+rreport();
         if (ec) {
             LOGE("rtcp recvd: %d:%s", ec.value(), ec.message().c_str());
             return;
@@ -977,7 +534,7 @@ struct rtcp_client : boost::noncopyable
                 rr_.rb.ssrc = htonl( si->ssrc );
                 rr_.rb.lsr = htonl( ((si->ntpmsw&0xFFFF)<<16) | ((si->ntplsw>>16) & 0xFFFF) ); //uint32_t lsr; // last SR
                 si->rtpts;
-                ts_sr_ = stimestamp( sink_.received==0 );
+                ts_sr_ = stimestamp( rtpsi_.received==0 );
             } else {
                 LOGD("pt %d", (int)h->pt);
             }
@@ -1032,8 +589,8 @@ struct rtcp_client : boost::noncopyable
     //- if (d < 0) d = -d;
     //-| s->jitter += d - ((s->jitter + 8) >> 4); ... rr->jitter = s->jitter >> 4;
     //
-        if (ts_rr_ +100 < ts_sr_ && sink_.received > 0) {
-            auto* s = &sink_;
+        if (ts_rr_ +100 < ts_sr_ && rtpsi_.received > 0) {
+            auto* s = &rtpsi_;
 
             uint8_t fraction;
             int32_t lost;
@@ -1511,8 +1068,6 @@ struct h264file_printer : boost::noncopyable, data_sink
     h264nal nalu_;
     rtp_header rtp_h = {}; // unsigned ts_ = 0;
 
-    virtual void statis(rtp_header* rh, uint8_t const* data, uint8_t const* end) {}
-
     h264file_printer(int fd) : h264f_(fd) {
         nalu_.sink_ = this;
         range_ = h264f_.begin();
@@ -1561,7 +1116,9 @@ void hgs_exit(int preexit)
         test_.h264file_fd = -1;
     }
 }
-void hgs_run() {}
+void hgs_run(std::function<void(mbuffer)> sink)
+{}
+
 void hgs_init(char const* ip, int port, char const* path, int, int)
 {
 #   ifdef __ANDROID__
@@ -1578,20 +1135,19 @@ void hgs_init(char const* ip, int port, char const* path, int, int)
 #else
 
 struct App {
+    BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
     std::thread thread;
     boost::asio::io_service io_service;
 
     rtp_receiver* rtp = 0;
     rtcp_client* rtcp = 0;
     rtsp_client* rtsp = 0;
-    bool exit_ = 0;
-    bool sdp_ready() const { return rtcp->sink_.sdp_ready(); }
+    // bool sdp_ready() const { return rtcp->sink_.sdp_ready(); }
 
     ~App() {
         delete rtsp; rtsp = 0;
         delete rtcp; rtcp = 0;
         delete rtp ; rtp  = 0;
-        exit_ = 0;
     }
 };
 static App hgs_;
@@ -1615,14 +1171,12 @@ void hgs_init(char const* ip, int port, char const* path, int, int) // 640*480 1
 void hgs_exit(int preexit)
 {
     LOGD("hgs:exit %d", preexit);
-    hgs_.exit_ = 1;
     hgs_.io_service.post([preexit](){
         if (preexit) {
             LOGD("teardown");
             hgs_.rtp->teardown();
             hgs_.rtcp->teardown();
             hgs_.rtsp->teardown();
-            // hgs_.io_service.poll_one();
         } else {
             LOGD("exit:stop");
             hgs_.io_service.stop();
@@ -1635,84 +1189,17 @@ void hgs_exit(int preexit)
     }
 }
 
-//void hgs_poll_once(int) { hgs_.io_service.poll_one(); }
-
-void hgs_run()
+void hgs_run(std::function<void(mbuffer)> sink)
 {
-    LOGD("run: %d", !!hgs_.rtsp);
+    BOOST_ASSERT(hgs_.rtsp && hgs_.rtp && hgs_.rtcp);
+
+    hgs_.rtp->func_sink(sink);
     hgs_.rtsp->setup(0,0);
 
     LOGD("run:thread");
     hgs_.thread = std::thread([](){ hgs_.io_service.run(); });
     LOGD("run:thread OK");
 }
-
-int codecio_query(void** data, unsigned* size) {
-    int ix = -1;
-    if (hgs_.rtp && !hgs_.exit_) {
-        hgs_.io_service.post([](){ hgs_.rtcp->rreport(); }); // TODO: remove
-
-        hgs_.rtcp->sink_.jcodec_inflate();
-        if (hgs_.sdp_ready()) {
-            //*data = 0; *size = 0;
-            ix = javacodec_obuffer_obtain(data, size);
-        }
-    }
-    return ix;
-}
-
-//struct QueryDecoded
-//{
-//    void* data;
-//    unsigned size;
-//    bool is_ready() const { return oidx_ >= 0; }
-//
-//    QueryDecoded();
-//    ~QueryDecoded() { _release(); }
-//
-//    QueryDecoded(QueryDecoded && rhs) {
-//        data = rhs.data;
-//        size = rhs.size;
-//        oidx_ = rhs.oidx_;
-//        rhs.oidx_ = -1;
-//    }
-//    QueryDecoded& operator=(QueryDecoded && rhs) {
-//        if (this != &rhs) {
-//            _release();
-//            data = rhs.data;
-//            size = rhs.size;
-//            oidx_ = rhs.oidx_;
-//            rhs.oidx_ = -1;
-//        }
-//        return *this;
-//    }
-//private:
-//    void _release();
-//    int oidx_;
-//    QueryDecoded(QueryDecoded const&);
-//    QueryDecoded& operator=(QueryDecoded const&);
-//};
-//void QueryDecoded::_release() {
-//    if (oidx_ >= 0) {
-//        BOOST_ASSERT(data && size > 0);
-//        javacodec_obuffer_release(oidx_);
-//        LOGD("Decoded %d: %u:%p", oidx_, size, data);
-//    }
-//}
-//
-//QueryDecoded::QueryDecoded() {
-//    oidx_ = -1;
-//    if (hgs_.rtp && !hgs_.exit_) {
-//        jcodec_inflate();
-//        if (hgs_.sdp_ready()) {
-//            data = 0;
-//            size = 0;
-//            oidx_ = javacodec_obuffer_obtain(&data, &size);
-//        }
-//    // } else if (hgs_.rtcp) { LOGD("sdp %02x", hgs_.rtcp->sink_.fwd_types_);
-//    }
-//}
-//
 
 #endif
 
