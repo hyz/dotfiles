@@ -8,9 +8,13 @@
 #define WINDOW_HEIGHT 320
 
 #define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_IMPLEMENTATION
+#define NK_GDI_IMPLEMENTATION
+#include "nuklear.h"
 #include "nuklear_gdi.h"
-#include "nuklear_gdi.c"
+//#include "nuklear_gdi.c"
 
 #include <windows.h>
 #include <ShellApi.h>
