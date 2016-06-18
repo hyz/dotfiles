@@ -16,26 +16,27 @@ def sdic():
             names[v[0]] = v[-1]
     return names
 
-def appname(names):
-    def outfile():
-        return (len(sys.argv)>1) and open(sys.argv[1],'w') or sys.stdout
+def appname(names, ix):
     def getlines(f):
         lines = []
         for x in f:
             x = x.rstrip()
-            k = x.split(None,1)[0]
-            lines.append(x +'\t'+ names.get(k,'Unknown'))
+            fs = x.split('\t')
+            k = fs[0].split()[0]
+            fs.insert(ix, names.get(k,'Unknown') )
+            lines.append('\t'.join(fs)) #(x +'\t'+ names.get(fields[0],'Unknown'))
         return lines
 
+    outf = sys.stdout
     lines = []
     if len(sys.argv) > 1:
         with open(sys.argv[1]) as f:
             lines = getlines(f)
+        outf = open(sys.argv[1],'w')
     else:
         lines = getlines(sys.stdin)
-
-    print(*lines, sep='\n',end='\n',file=outfile())
+    print(*lines, sep='\n',end='\n',file=outf)
 
 if __name__ == '__main__':
-    appname(sdic())
+    appname(sdic(), -1)
 

@@ -479,7 +479,7 @@ private: // rtsp communication
                 //<td>2002002</td>
                 } else if (boost::regex_search(line, m, re_yno)) {
                     // auto* s = m[1].first.operator->(); // (m[1].first,m[1].second);
-                    std::sort(codes.begin(), codes.end());
+                    // std::sort(codes.begin(), codes.end());
                     // for (char c : codes) std::cout <<" "<< int(c); std::cout <<"\n"; // 
                     his.push_back( codes );
                     codes.clear();

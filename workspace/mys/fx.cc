@@ -184,9 +184,9 @@ BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
 //struct RecBS : Av { char bsflag; }; BOOST_FUSION_ADAPT_STRUCT(RecBS, (float,amount)(char,bsflag)(float,volume))
 
 typedef unsigned code_t;
-inline code_t make_code(int szsh, int numb) { return ((szsh<<24)|numb); }
-inline int numb(code_t v_) { return v_&0x0ffffff; }
-inline int szsh(code_t v_) { return (v_>>24)&0xff; }
+inline code_t Make_code(int szsh, int numb) { return ((szsh<<24)|numb); }
+inline int Numb(code_t v_) { return v_&0x0ffffff; }
+inline int Szsh(code_t v_) { return (v_>>24)&0xff; }
 static code_t _code(std::string const& s)
 {
     static const qi::int_parser<int,10,6,6> _6digit = {};
@@ -201,7 +201,7 @@ static code_t _code(std::string const& s)
                  >> SZSH >> _6digit // >>'.'>>qi::no_case[lit("csv")|"txt"]
             , x, y))
         ERR_EXIT("%s: not-a-code", s.c_str());
-    return make_code(x,y);
+    return Make_code(x,y);
 }
 
 gregorian::date _date(std::string const& s) // ./20151221
@@ -271,7 +271,7 @@ struct Unit : Av {
 
 struct Elem : std::vector<Unit>, Unit, SInfo, Opstatus {
     unsigned code = 0;
-    Elem(int szsh, int numb) { code=make_code(szsh,numb); }
+    Elem(int szsh, int numb) { code=Make_code(szsh,numb); }
 };
 
 typedef boost::multi_index::multi_index_container<Elem, indexed_by<
@@ -294,9 +294,9 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
     iterator find(int szsh, int code) {
         auto & idc = get<1>();
-        auto it = idc.find(make_code(szsh,code));
+        auto it = idc.find(Make_code(szsh,code));
         if (it == idc.end()) {
-            return end(); //ERR_EXIT("add: %d", numb(code));
+            return end(); //ERR_EXIT("add: %d", Numb(code));
         }
         return project<0>(it);
     }
@@ -323,32 +323,32 @@ int main(int argc, char* const argv[])
 //    //auto & idc = a_->get<1>();
 //    //auto it = idc.find(code);
 //    //if (it != idc.end()) {
-//    //    ERR_EXIT("add: %d", numb(code));
+//    //    ERR_EXIT("add: %d", Numb(code));
 //    //}
 //    auto si = this->find(code);
 //    if (si == this->end()) {
-//        ERR_MSG("%06d: sinfo not found", numb(code));
+//        ERR_MSG("%06d: sinfo not found", Numb(code));
 //        return 0;
 //    }
 //    static_cast<SInfo&>(el) = si->second;
 //    el.code = code;
 //    auto p = a_->push_back( std::move(el) );
 //    if (!p.second)
-//        ERR_EXIT("%06d: push_back", numb(code));
+//        ERR_EXIT("%06d: push_back", Numb(code));
 //    return &const_cast<Elem&>(*p.first);
 //}
 
 Main::initializer::initializer(Main* m, int argc, char* const argv[])
 {
     if (argc < 2) {
-        ERR_EXIT("%s argc: %d", argv[0], argc);
+        ERR_EXIT("%s argc: [-dN] [-iN] <X.MMDD-N>", argv[0], argc);
     }
     
     int opt;
-    while ( (opt = getopt(argc, argv, "e:n:")) != -1) {
+    while ( (opt = getopt(argc, argv, "i:d:")) != -1) {
         switch (opt) {
-            case 'e': m->n_ign_ = atoi(optarg); break;
-            case 'n': m->n_day_ = atoi(optarg); break;
+            case 'i': m->n_ign_ = atoi(optarg); break;
+            case 'd': m->n_day_ = atoi(optarg); break;
         }
     }
 
@@ -488,6 +488,7 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                 static_cast<SInfo&>(el) = si;
             } else
                 ERR_MSG("%06d capital1 %ld", numb, si.capital1);
+            //if (numb==00570) DBG_MSG("%d %ld", numb, si.capital1);
         }
     } else
         ERR_EXIT("fopen: %s %s: %s", dir, fn, path.c_str());
@@ -509,7 +510,7 @@ int Main::run(int argc, char* const argv[])
     this->remove_if([this](auto&e){return e.volume<=0 || e.back().volume<=0 || e.size()<unsigned(n_day_+n_ign_);});
     for (Elem const & el : *this) {
         //if (el.size() < unsigned(n_day_+n_ign_)) {
-        //    DBG_MSG("%u: %u < %u + %u", numb(el.code), el.size(), unsigned(n_day_), n_ign_);
+        //    DBG_MSG("%u: %u < %u + %u", Numb(el.code), el.size(), unsigned(n_day_), n_ign_);
         //    continue;
         //}
         typedef Elem::const_iterator iterator;
@@ -545,10 +546,11 @@ int Main::run(int argc, char* const argv[])
         //long volx = std::accumulate(begin,end, long{}, [vola](long a,auto&x){return a+labs(x.volume-vola);})/15;
         //auto vlohi = Ma(3, rbegin,rend, null_iter, [](auto&l,auto&r){return l.volume<r.volume;});
 
-        printf("%06d", numb(el.code));
+        printf("%06d", Numb(el.code));
         {
             long lsz = el.capital1*el.oc[1]/100;
-            printf(" %03d %5.2f"" %6.2f %5.2f %.3ld %3d", el.mll, el.incoming/double(Wn), lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            printf(" %03d %6.2f"" %6.2f %5.2f %.3ld %3d", el.mll, el.incoming/double(Wn), lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            //if (Numb(el.code)==00570) DBG_MSG("%d %ld %d %ld %6.2f", Numb(el.code), el.capital1, el.oc[1], lsz, lsz/double(Yi));
         } {
             printf("\t%d %d %.3ld %.3ld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
