@@ -107,6 +107,26 @@ def GET(session, code, market, outfilename):
             f.write(rsp.text)
         #parse_html(code,market, rsp.text)
 
+def make_request(code,market):
+    _URL     = os.environ['EM_URL']
+    _REFERER = os.environ['EM_REFERER']
+    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
+    url = _URL % fmtd
+    referer = _REFERER % fmtd
+
+    headers = {
+        "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
+        "Referer": referer,
+        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language":"en-US,en;q=0.5",
+        "Accept-Encoding":"gzip, deflate",
+        "Connection":"keep-alive",
+        "Content-Type":"application/x-www-form-urlencoded",
+    }
+
+    return url, headers #(params={}, headers=headers, cookies=cookies)
+    #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
+
 def download(filename):
     lis = []
     for line in open(filename):
@@ -114,20 +134,39 @@ def download(filename):
         code,market = int(v[0]), int(v[1])
         if not os.path.exists('%06d.%d.html' % (code,market)):
             lis.append( (code,market) )
-    if len(lis) > 0:
-        print()
-        print(time.ctime(), 'count', len(lis))
+    if not lis:
+        print('Completed.')
+        return
+    random.shuffle(lis)
 
-        random.shuffle(lis)
-        session = requests.Session()
-        for code,market in lis:
-            GET(session, code,market, '%06d.%d.html' % (code,market))
+    session = requests.Session()
+    for i, (code,market) in enumerate(lis):
+        time0 = time.time()
 
-            time.sleep( random.randint(1,5) )
-            if _STOP:
-                break
-            if random.randint(1,100) >70:
-                session = requests.Session()
+        url,headers = make_request(code,market)
+        print('%06d'%code,market, '%d/%d'%(i,len(lis)), url, time.ctime())
+
+        rsp = session.get(url, headers=headers, timeout=5)
+
+        print('%06d'%code,market, int(time.time()-time0))
+        print(' ', rsp.status_code, rsp.url)
+        if rsp.status_code == 200:
+            print(' ', 'encoding', rsp.encoding)
+            for x,y in rsp.cookies.items():
+                print(' ', 'cookie', x,y)
+            print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
+
+            with open('%06d.%d.html' % (code,market), 'w') as f:
+                f.write(rsp.text)
+            #parse_html(code,market, rsp.text)
+
+        time.sleep( random.randint(1,5) )
+        if _STOP:
+            break
+        if random.randint(1,100) >80:
+            pass
+            #session.close()
+            #session = requests.Session()
 
 def parse(fp):
     bn,ext = os.path.splitext( fp )
@@ -153,9 +192,9 @@ def each_file(path):
     #    break
 
 def main():
-    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
-        parse(fp)
-    #download(sys.argv[1])
+    #for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
+    #    parse(fp)
+    download(sys.argv[1])
 
 if __name__ == '__main__':
     _STOP = 0
