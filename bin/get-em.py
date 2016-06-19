@@ -31,21 +31,17 @@ def parse_html(code,market, html):
         def handle_data(self, data):
             data = data.strip()
             if self.stacks and data:
-                x,y,_ = self.stacks[-1]
-                self.stacks[-1] = (x,y,data)
+                tag,attrs,_ = self.stacks[-1]
+                self.stacks[-1] = (tag,attrs,data)
         def handle_endtag(self, tag):
-            _,attrs,data = self.stacks[-1]
-            if tag == 'input':
-                if getval(attrs, 'name') == 'hdRpt':
-                    self.hdRpt = getval(attrs,'value')
-            elif tag == 'td' and data and self._scoped(-4):
-                self.temps.append( data )
-            elif tag == 'tr' and self.temps:
-                srgc = self._scoped(-3)
-                if srgc and len(self.temps) == 4:
-                    self.results.setdefault(srgc,[]).append( self.prep(self.temps) )
-                self.temps = []
-            self.stacks.pop()
+            _,attrs,data = self.stacks.pop()
+            if tag in ('th','td') and self._scoped( -2 ):
+                if tag == 'th':
+                    self.kname = data
+                elif getattr(self,'kname',None):
+                    self.results.append((self.kname, data))
+                    self.kname = None
+
         def prep(self, lis):
             a,b,c,d = [ x.rstrip('-%') for x in lis ]
             m = 1
@@ -60,25 +56,17 @@ def parse_html(code,market, html):
         def _scoped(self, x):
             if len(self.stacks) > abs(x):
                 tag,attrs,_ = self.stacks[x]
-                srgc = getval(attrs,'id')
-                idcs = ('srgca','srgcb','srgcc')
-                if tag == 'table' and srgc in idcs:
-                    return idcs.index(srgc)+1
+                if tag == 'table' and getval(attrs,'class') == 'zyzb':
+                    return 1
             return None
     par = MyHTMLParser()
-    par.stacks, par.temps, par.results, par.hdRpt = [], [], {}, None
+    par.stacks, par.results = [], []
     par.feed(html)
 
-    #print(par.hdRpt)
-    for k,ds in par.results.items(): # '亿' '万'
-        ea, ic, toks = 0.0, 0, []
-        for a,b,c,s in sorted(ds, key=lambda v:v[0], reverse=True):
-            ea += b * c
-            ic += c
-            if a > 10:
-                toks.append('%.0f:%.0f:%s'%(a,b,s))
-            #print('%06d %d %s' % (code,market,_NAMES.get(code)), c,d, b, a, k, sep='\t')
-        print('%06d %d' % (code,market), k, int(10*ea/ic), ic, ';'.join(toks), sep='\t')
+    print('%06d %d' % (code,market), end='')
+    for i in ( 13,4,6,8,9,10 ):
+        print('\t%s %s' % par.results[i], end='')
+    print()
 
     par.close()
     #first = re.compile('</span><span class="time-tip first-tip"><span class="tip-content">(.*?)</span>')
@@ -160,11 +148,11 @@ def each_file(path):
             break
     else:
         yield path
-
-def main():
     #for top, dirs, files in os.walk( len(sys.argv)>1 and sys.argv[1] or '.' ):
     #    parse(top,files)
     #    break
+
+def main():
     for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
         parse(fp)
     #download(sys.argv[1])
@@ -188,3 +176,62 @@ if __name__ == '__main__':
 # post(..., data=json.dump({'email':'email','password':'pass'}) , )
 #
 ###
+
+def _1_parse_html(code,market, html):
+    class MyHTMLParser(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            self.stacks.append( (tag,attrs,'') )
+        def handle_data(self, data):
+            data = data.strip()
+            if self.stacks and data:
+                tag,attrs,_ = self.stacks[-1]
+                self.stacks[-1] = (tag,attrs,data)
+        def handle_endtag(self, tag):
+            _,attrs,data = self.stacks.pop()
+            if tag == 'input':
+                if getval(attrs, 'name') == 'hdRpt':
+                    self.hdRpt = getval(attrs,'value')
+            elif tag == 'td' and data and self._scoped(-3):
+                self.temps.append( data )
+            elif tag == 'tr' and self.temps:
+                srgc = self._scoped(-2)
+                if srgc and len(self.temps) == 4:
+                    self.results.setdefault(srgc,[]).append( self.prep(self.temps) )
+                self.temps = []
+
+        def prep(self, lis):
+            a,b,c,d = [ x.rstrip('-%') for x in lis ]
+            m = 1
+            if b.endswith('亿'):
+                m = 10000
+            elif b.endswith('万亿'):
+                m = 10000 * 10000
+            b = int( m*float(b.rstrip('-亿万') or '0') )
+            c, d = float(c or '0'), float(d or '0')
+            return (c, d, b, a)
+            # print('%06d %d' % (code,market), c,d, b, a, k, sep='\t')
+        def _scoped(self, x):
+            if len(self.stacks) > abs(x):
+                tag,attrs,_ = self.stacks[x]
+                srgc = getval(attrs,'id')
+                idcs = ('srgca','srgcb','srgcc')
+                if tag == 'table' and srgc in idcs:
+                    return idcs.index(srgc)+1
+            return None
+    par = MyHTMLParser()
+    par.stacks, par.temps, par.results, par.hdRpt = [], [], {}, None
+    par.feed(html)
+
+    #print(par.hdRpt)
+    for k,ds in par.results.items(): # '亿' '万'
+        ea, ic, toks = 0.0, 0, []
+        for a,b,c,s in sorted(ds, key=lambda v:v[0], reverse=True):
+            ea += b * c
+            ic += c
+            if a > 10:
+                toks.append('%.0f:%.0f:%s'%(a,b,s))
+            #print('%06d %d %s' % (code,market,_NAMES.get(code)), c,d, b, a, k, sep='\t')
+        print('%06d %d' % (code,market), k, int(10*ea/ic), ic, ';'.join(toks), sep='\t')
+
+    par.close()
+
