@@ -39,33 +39,35 @@ def parse_html(code,market, html):
                 if tag == 'th':
                     self.kname = data
                 elif getattr(self,'kname',None):
-                    self.results.append((self.kname, data))
+                    self.results.append((self.kname[0], self.prep(data)))
                     self.kname = None
 
-        def prep(self, lis):
-            a,b,c,d = [ x.rstrip('-%') for x in lis ]
+        def prep(self, val):
             m = 1
-            if b.endswith('亿'):
+            if val.endswith('元'):
+                m = 1.0/10000/10000
+            elif val.endswith('万'):
+                m = 1.0/10000
+            elif val.endswith('亿'):
+                m = 1
+            elif val.endswith('万亿'):
                 m = 10000
-            elif b.endswith('万亿'):
-                m = 10000 * 10000
-            b = int( m*float(b.rstrip('-亿万') or '0') )
-            c, d = float(c or '0'), float(d or '0')
-            return (c, d, b, a)
-            # print('%06d %d' % (code,market), c,d, b, a, k, sep='\t')
+            return m*float(val.rstrip('%-亿万元') or '0')
+
         def _scoped(self, x):
             if len(self.stacks) > abs(x):
                 tag,attrs,_ = self.stacks[x]
                 if tag == 'table' and getval(attrs,'class') == 'zyzb':
                     return 1
             return None
+
     par = MyHTMLParser()
     par.stacks, par.results = [], []
     par.feed(html)
 
-    print('%06d %d' % (code,market), end='')
+    print('%06d %d' % (code,market), '%.1'%(par.results[13][1]/par.results[4][1]), end='')
     for i in ( 13,4,6,8,9,10 ):
-        print('\t%s %s' % par.results[i], end='')
+        print('\t%s %.2f' % par.results[i], end='')
     print()
 
     par.close()
@@ -142,13 +144,12 @@ def download(filename):
     session = requests.Session()
     for i, (code,market) in enumerate(lis):
         time0 = time.time()
-
         url,headers = make_request(code,market)
-        print('%06d'%code,market, '%d/%d'%(i,len(lis)), url, time.ctime())
+        print('%06d'%code,market, '%d/%d'%(i+1,len(lis)), url, time.strftime("%T"), '', end='')
 
-        rsp = session.get(url, headers=headers, timeout=5)
+        rsp = session.get(url, headers=headers, verify=False, timeout=6)
+        print(int(time.time()-time0)) # print('%06d'%code,market, int(time.time()-time0))
 
-        print('%06d'%code,market, int(time.time()-time0))
         print(' ', rsp.status_code, rsp.url)
         if rsp.status_code == 200:
             print(' ', 'encoding', rsp.encoding)
@@ -192,9 +193,9 @@ def each_file(path):
     #    break
 
 def main():
-    #for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
-    #    parse(fp)
-    download(sys.argv[1])
+    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
+        parse(fp)
+    #download(sys.argv[1])
 
 if __name__ == '__main__':
     _STOP = 0
