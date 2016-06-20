@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <deque>
 //#include <iostream>
-#include <thread>
+//#include <thread>
 #include <mutex>
 #include <chrono> //#include <boost/chrono.hpp>
 #define BOOST_ERROR_CODE_HEADER_ONLY
@@ -1134,72 +1134,97 @@ void hgs_init(char const* ip, int port, char const* path, int, int)
 
 #else
 
-struct App {
+//struct App {
+//    BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
+//    //std::thread thread;
+//    boost::asio::io_service io_service;
+//    rtp_receiver* rtp = 0;
+//    rtcp_client* rtcp = 0;
+//    rtsp_client* rtsp = 0;
+//    void clear() {
+//        delete rtsp; rtsp = 0;
+//        delete rtcp; rtcp = 0;
+//        delete rtp ; rtp  = 0;
+//        LOGD("clear");
+//    }
+//    ~App() { clear(); }
+//};
+//static App hgs_;
+
+struct RtpH264 : boost::asio::io_service {
+    boost::asio::io_service& io_service() { return *this; }
+
+    rtp_receiver rtp;
+    rtcp_client rtcp;
+    rtsp_client rtsp;
+
+    pthread_t th_; //std::thread thread;
     BOOST_STATIC_ASSERT(__BYTE_ORDER == __LITTLE_ENDIAN);
-    std::thread thread;
-    boost::asio::io_service io_service;
 
-    rtp_receiver* rtp = 0;
-    rtcp_client* rtcp = 0;
-    rtsp_client* rtsp = 0;
-    // bool sdp_ready() const { return rtcp->sink_.sdp_ready(); }
+    RtpH264(char const* ip, int port, char const* path)
+        : rtp (io_service(), 0)
+        , rtcp(io_service(), &rtp)
+        , rtsp(io_service(), &rtp, ip::tcp::endpoint(ip::address::from_string(ip), (port)), path)
+    {}
 
-    ~App() {
-        delete rtsp; rtsp = 0;
-        delete rtcp; rtcp = 0;
-        delete rtp ; rtp  = 0;
+    void teardown() {
+        rtp.teardown();
+        rtcp.teardown();
+        rtsp.teardown();
+    }
+
+    static void* thread_main(void* a) {
+        RtpH264* self = (RtpH264*)a;
+        self->run();
+        return 0;
     }
 };
-static App hgs_;
+static std::unique_ptr<RtpH264> rtph264_;
 
 void hgs_init(char const* ip, int port, char const* path, int, int) // 640*480 1280X720 1920X1080
 {
+    BOOST_ASSERT(!rtph264_);
     LOGD("init %s:%d %s", ip, port, path);
 
     srand( time(0) );
+    rtph264_.reset(new RtpH264(ip,port,path));
 
-    auto endp = ip::tcp::endpoint(ip::address::from_string(ip), (port));
-
-    hgs_.rtp  = new rtp_receiver(hgs_.io_service, 0/*fopen("/tmp/1.rtp.h264","w")*/); // auto* c = new (&objmem_) rtp_receiver(hgs_.io_service, endp, path, 0);
-    hgs_.rtcp = new rtcp_client(hgs_.io_service, hgs_.rtp);
-    hgs_.rtsp = new rtsp_client(hgs_.io_service, hgs_.rtp, endp, std::string(path));
-
-    // auto* hc = reinterpret_cast<rtp_receiver*>(&objmem_);
-    LOGD("init ok");
+    LOGD("init OK");
 }
 
 void hgs_exit(int preexit)
 {
-    LOGD("hgs:exit %d", preexit);
-    hgs_.io_service.post([preexit](){
+    BOOST_ASSERT(rtph264_);
+    LOGD("exit %d", preexit);
+    rtph264_->post([preexit](){
         if (preexit) {
             LOGD("teardown");
-            hgs_.rtp->teardown();
-            hgs_.rtcp->teardown();
-            hgs_.rtsp->teardown();
+            rtph264_->teardown();
         } else {
-            LOGD("exit:stop");
-            hgs_.io_service.stop();
+            LOGD("exit:stop ...");
+            rtph264_->stop(); // rtph264_->reset();
+            LOGD("exit:stopped");
         }
     });
     if (preexit == 0) {
         LOGD("thread:join ...");
-        hgs_.thread.join();
+        void* ret;
+        pthread_join(rtph264_->th_, &ret); // rtph264_->thread.join();
         LOGD("thread:join OK");
-        hgs_.io_service.reset();
+        rtph264_.reset();
     }
-    LOGD("hgs:exit %d OK", preexit);
+    LOGD("exit %d OK", preexit);
 }
 
 void hgs_run(std::function<void(mbuffer)> sink)
 {
-    BOOST_ASSERT(hgs_.rtsp && hgs_.rtp && hgs_.rtcp);
+    BOOST_ASSERT(rtph264_);//(hgs_.rtsp && hgs_.rtp && hgs_.rtcp);
 
-    hgs_.rtp->func_sink(sink);
-    hgs_.rtsp->setup(0,0);
+    rtph264_->rtp.func_sink(sink);
+    rtph264_->rtsp.setup(0,0);
 
     LOGD("run:thread");
-    hgs_.thread = std::thread([](){ hgs_.io_service.run(); });
+    pthread_create(&rtph264_->th_, NULL, &RtpH264::thread_main, rtph264_.get());
     LOGD("run:thread OK");
 }
 

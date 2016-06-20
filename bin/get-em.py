@@ -65,11 +65,8 @@ def parse_html(code,market, html):
     par.stacks, par.results = [], []
     par.feed(html)
 
-    print('%06d %d' % (code,market), '%.1f' % par.results[13][1], end='')
-    for i in 4,6:
-        print('\t%s %.1f' % par.results[i], end='')
-    print(' %.1f' % (par.results[6][1]/par.results[4][1]), end='')
-    for i in 8,9,10:
+    print('%06d %d' % (code,market), '%5.1f %2d' % (par.results[13][1], int(100*par.results[4][1]/par.results[13][1])), end='')
+    for i in 4,6,8,9,10:
         print('\t%s %.1f' % par.results[i], end='')
     print()
 

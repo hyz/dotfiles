@@ -8,16 +8,22 @@
 #include <arpa/inet.h>
 
 #if defined(__ANDROID__)
-#  include <jni.h> //<boost/regex.hpp>
+#  include <jni.h>
 #  define NOT_PRINT_PROTO 1
+
+void hgs_jni_init_class(JNIEnv* env, char const* clsName);
+JNIEnv* hgs_jni_attach_current_thread(JavaVM* jvm);
+void hgs_jni_detach_current_thread(JavaVM* jvm);
+
 #endif
 
-int hgs_register_natives(JNIEnv* env);
-int hgs_save_JNIEnv(JNIEnv* env);
+void* hgs_init_decoder(int w, int h, void* surface);
+int hgs_start(char const* ip, int port, char const* path);
+void hgs_stop();
 
 struct VideoFrameDecoded
 {
-    static VideoFrameDecoded query(JNIEnv* env=0) { return VideoFrameDecoded(1, env); }
+    static VideoFrameDecoded query() { return VideoFrameDecoded(1); }
 
     void* data;
     unsigned size;
@@ -44,8 +50,8 @@ struct VideoFrameDecoded
     }
 
 private:
-    VideoFrameDecoded(int, JNIEnv* env) {
-        oidx_ = query_s(env, &data, &size);
+    VideoFrameDecoded(int) {
+        oidx_ = query_s(&data, &size);
     }
     int oidx_;
     void _release() {
@@ -53,7 +59,7 @@ private:
             release_s(oidx_);
         }
     }
-    static int query_s(JNIEnv* env, void**data, unsigned* size);
+    static int query_s(void**data, unsigned* size);
     static void release_s(int idx);
     VideoFrameDecoded(VideoFrameDecoded const&); // = delete;
     VideoFrameDecoded& operator=(VideoFrameDecoded const&); // = delete;

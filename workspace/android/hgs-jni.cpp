@@ -24,9 +24,12 @@ void javacodec_ibuffer_release(int idx, unsigned timestamp, int flags);
 int  javacodec_obuffer_obtain(void** pa, unsigned* len);
 void javacodec_obuffer_release(int idx);
 
-static int stage_ = 0;
-static JNIEnv * env_= NULL;
-static jobject oDecoderWrap = NULL;
+static signed char stage_ = 0;
+static JNIEnv *  env_= NULL;
+static jobject   oDecoderWrap = NULL;
+static jclass    CLS_DecoderWrap = 0;
+static jmethodID MID_DecoderWrap_close = 0;
+static jmethodID MID_DecoderWrap_ctor = 0;
 static jmethodID MID_IBufferobtain  = 0;
 static jmethodID MID_IBufferinflate = 0;
 static jmethodID MID_IBufferrelease = 0;
@@ -93,13 +96,13 @@ void javacodec_obuffer_release(int idx) {
     //}
 }
 
-inline int assign2(int&stage_, int y, char const* fx) {
+inline int stage(signed char y, char const* fx) {
     std::swap(stage_, y);
     LOGD("HGS:%s %d->%d", fx, y, stage_);
     return y;
 }
 
-void abi_print_()
+static char const* abi_str()
 {
 #if defined(__arm__)
   #if defined(__ARM_ARCH_7A__)
@@ -132,7 +135,7 @@ void abi_print_()
 #else
 #  define ABI "unknown"
 #endif
-    LOGD("ABI %s", ABI);
+    return ABI;
 }
 
 struct sMills
@@ -305,11 +308,8 @@ struct data_sink
     //}
 };
 
-JNIEXPORT int VideoFrameDecoded::query_s(JNIEnv* env, void**data, unsigned* size) {
-    BOOST_ASSERT(env_ == env);
-    if (env && env != env_) {
-        LOGE("JNIEnv: not-equal");
-    } else if (sink_) {
+JNIEXPORT int VideoFrameDecoded::query_s(void**data, unsigned* size) {
+    if (sink_) {
         sink_->jcodec_inflate();
         if (sink_->sdp_ready()) {
             return javacodec_obuffer_obtain(data, size);
@@ -321,6 +321,7 @@ JNIEXPORT void VideoFrameDecoded::release_s(int idx) {
     javacodec_obuffer_release(idx);
 }
 
+#if 0
 extern "C" JNIEXPORT void JNICALL
 Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz)
 {
@@ -335,18 +336,19 @@ Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz)
 extern "C" JNIEXPORT void JNICALL
 Java_com_huazhen_barcode_engine_DecoderWrap_stopHGS(JNIEnv* env, jobject thiz)
 {
-    assign2(stage_, -1, __func__);
+    stage(-1, __func__);
     hgs_exit(1);
     hgs_exit(0);
     sink_.reset();
-    env->DeleteGlobalRef(oDecoderWrap);
+    env_->DeleteLocalRef(oDecoderWrap); // env->DeleteGlobalRef(oDecoderWrap);
     oDecoderWrap = 0;
 }
+
 //extern "C" JNIEXPORT void JNICALL Java_com_huazhen_barcode_engine_DecoderWrap_runHGS(JNIEnv* env, jobject thiz) {}
 extern "C" JNIEXPORT void JNICALL
 Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, jstring js_ip, jint port, jstring js_path)
 {
-    assign2(stage_, 2, __func__);
+    stage(2, __func__);
     oDecoderWrap = env->NewGlobalRef(thiz);
 
     jclass cls =env->GetObjectClass(thiz); // = env->FindClass("com/hg/streaming/DecoderWrap");
@@ -374,15 +376,107 @@ Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, 
     env->ReleaseStringUTFChars(js_ip, ip);
     env->ReleaseStringUTFChars(js_path, path);
 
-    /*=*/{
+    {}/*=*/{
         data_sink* sink = new data_sink();
         sink_.reset(sink);
-        //hgs_run([sink](mbuffer buf) { });
-        hgs_run([sink](mbuffer buf) { sink->commit(std::move(buf)); });
-        abi_print_();
+        hgs_run([sink](mbuffer b){ sink->commit(std::move(b)); });
+    }
+    LOGD("%s", abi_str());
+}
+
+#endif
+
+JNIEXPORT void hgs_jni_init_class(JNIEnv* env, char const* clsName)
+{
+    jclass cls = env->FindClass(clsName);//"com/huazhen/barcode/engine/DecoderWrap";//CHECK(cls);
+    //jclass cls =env->GetObjectClass(oDecoderWrap);
+    CLS_DecoderWrap = (jclass)env->NewGlobalRef(cls);
+
+    MID_IBufferobtain  = env->GetMethodID(cls, "cIBufferObtain" , "(I)I");
+    MID_IBufferinflate = env->GetMethodID(cls, "cIBufferInflate", "(ILjava/nio/ByteBuffer;)V");
+    MID_IBufferrelease = env->GetMethodID(cls, "cIBufferRelease", "(III)V");
+
+    MID_OBufferobtain  = env->GetMethodID(cls, "cOBufferObtain" , "(I)I");
+    MID_OBufferrelease = env->GetMethodID(cls, "cOBufferRelease", "(II)V");
+    FID_outputBuffer   = env->GetFieldID (cls, "outputBuffer"   , "Ljava/nio/ByteBuffer;");
+
+    MID_DecoderWrap_close = env->GetMethodID(cls, "close" , "()V");
+    // java/lang/String android/view/Surface
+    MID_DecoderWrap_ctor = env->GetMethodID(cls, "<init>","(IILandroid/view/Surface;)V");
+
+    LOGD("%d:%s %p %s: %p", __LINE__,__func__, env, clsName, cls);
+}
+
+JNIEXPORT JNIEnv* hgs_jni_attach_current_thread(JavaVM* jvm)
+{
+    env_ = 0;
+    jvm->AttachCurrentThread(&env_, 0);
+    LOGD("%d:%s %p %p", __LINE__,__func__, jvm, env_);
+    if (!env_) {
+        LOGE("AttachCurrentThread");
+    }
+    return env_;
+}
+JNIEXPORT void hgs_jni_detach_current_thread(JavaVM* jvm)
+{
+    if (jvm->DetachCurrentThread() != JNI_OK) {
+        LOGE("DetachCurrentThread");
+    }
+    LOGD("%d:%s %p %p", __LINE__,__func__, jvm, env_);
+}
+
+JNIEXPORT void* hgs_init_decoder(int w, int h, void* surface)
+{
+    jclass cls = CLS_DecoderWrap;
+    oDecoderWrap = env_->NewObject(cls, MID_DecoderWrap_ctor, w,h, (jobject)surface);
+    LOGD("%d:%s %p", __LINE__,__func__, oDecoderWrap);
+    return (void*)oDecoderWrap;
+}
+
+JNIEXPORT int hgs_start(char const* ip, int port, char const* path)
+{
+    BOOST_ASSERT(oDecoderWrap);
+    stage(1, __func__);
+
+    char uri[256];
+    if (port == 554) {
+        snprintf(uri,sizeof(uri), "rtsp://%s%s", ip, path);
+    } else {
+        snprintf(uri,sizeof(uri), "rtsp://%s:%d%s", ip, (int)port, path);
+    }
+    int retval = 0;
+    hgs_init(ip, port, uri, 0, 0);
+
+    //const char *ip = env->GetStringUTFChars(js_ip, 0);
+    //env->ReleaseStringUTFChars(js_ip, ip);
+
+    {}/*=*/{
+        data_sink* sink = new data_sink();
+        sink_.reset(sink);
+        hgs_run([sink](mbuffer b){ sink->commit(std::move(b)); });
+    }
+    LOGD("%d:%s %d %s", __LINE__,__func__, stage_, abi_str());
+    return retval;
+}
+
+JNIEXPORT void hgs_stop()
+{
+    LOGD("%d:%s %d", __LINE__,__func__, stage_);
+    if (stage_ > 0) {
+        stage(0, __func__);
+        hgs_exit(1);
+        hgs_exit(0);
+
+        if (oDecoderWrap) {
+            env_->CallVoidMethod(oDecoderWrap, MID_DecoderWrap_close);
+            env_->DeleteLocalRef(oDecoderWrap); // ->DeleteGlobalRef(oDecoderWrap);
+            oDecoderWrap = 0;
+        }
+        sink_.reset();
     }
 }
 
+#if 0
 JNIEXPORT int hgs_register_natives(JNIEnv* env)
 {
     static const char* ClassName = "com/huazhen/barcode/engine/DecoderWrap";
@@ -405,21 +499,5 @@ JNIEXPORT int hgs_register_natives(JNIEnv* env)
     LOGD("%s: %d", __func__, retval);
     return retval;
 }
-JNIEXPORT int hgs_save_JNIEnv(JNIEnv* env)
-{
-    if (env_ && env_ != env) {
-        LOGE("%s %p", __func__, env_);
-        return -1;
-    }
-    env_ = env;
-    return 0;
-}
-//JNIEXPORT void hgs_teardown_JNIEnv(JNIEnv* env)
-//{
-//    BOOST_ASSERT(env_ == env);
-//    assign2(stage_, -1, __func__);
-//    if (env_ != env) {
-//        LOGE("JNIEnv: not-equal");
-//    }
-//}
+#endif
 
