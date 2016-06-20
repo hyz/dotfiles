@@ -1180,13 +1180,15 @@ void hgs_exit(int preexit)
         } else {
             LOGD("exit:stop");
             hgs_.io_service.stop();
-            LOGD("exit:join thread");
         }
     });
     if (preexit == 0) {
         LOGD("thread:join ...");
         hgs_.thread.join();
+        LOGD("thread:join OK");
+        hgs_.io_service.reset();
     }
+    LOGD("hgs:exit %d OK", preexit);
 }
 
 void hgs_run(std::function<void(mbuffer)> sink)

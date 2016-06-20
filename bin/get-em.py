@@ -43,16 +43,16 @@ def parse_html(code,market, html):
                     self.kname = None
 
         def prep(self, val):
-            m = 1
-            if val.endswith('元'):
-                m = 1.0/10000/10000
-            elif val.endswith('万'):
-                m = 1.0/10000
-            elif val.endswith('亿'):
-                m = 1
-            elif val.endswith('万亿'):
-                m = 10000
-            return m*float(val.rstrip('%-亿万元') or '0')
+            if val.endswith('%'):
+                m, val = 1, val.rstrip('%-')
+            else:
+                m, val = 1.0/10000/10000, val.rstrip('元')
+                for x,u in (10000,'万亿'), (1,'亿'), (1.0/10000,'万'):
+                    if val.endswith(u):
+                        m, val = x, val.rstrip(u)
+                        break
+                val = val.rstrip('-')
+            return m*float(val or '0')
 
         def _scoped(self, x):
             if len(self.stacks) > abs(x):
@@ -65,9 +65,12 @@ def parse_html(code,market, html):
     par.stacks, par.results = [], []
     par.feed(html)
 
-    print('%06d %d' % (code,market), '%.1'%(par.results[13][1]/par.results[4][1]), end='')
-    for i in ( 13,4,6,8,9,10 ):
-        print('\t%s %.2f' % par.results[i], end='')
+    print('%06d %d' % (code,market), '%.1f' % par.results[13][1], end='')
+    for i in 4,6:
+        print('\t%s %.1f' % par.results[i], end='')
+    print(' %.1f' % (par.results[6][1]/par.results[4][1]), end='')
+    for i in 8,9,10:
+        print('\t%s %.1f' % par.results[i], end='')
     print()
 
     par.close()
@@ -109,7 +112,7 @@ def GET(session, code, market, outfilename):
             f.write(rsp.text)
         #parse_html(code,market, rsp.text)
 
-def make_request(code,market):
+def make_query(code,market):
     _URL     = os.environ['EM_URL']
     _REFERER = os.environ['EM_REFERER']
     fmtd = { 'code':code, 'market':1+(market==0) } # locals()
@@ -144,7 +147,7 @@ def download(filename):
     session = requests.Session()
     for i, (code,market) in enumerate(lis):
         time0 = time.time()
-        url,headers = make_request(code,market)
+        url,headers = make_query(code,market)
         print('%06d'%code,market, '%d/%d'%(i+1,len(lis)), url, time.strftime("%T"), '', end='')
 
         rsp = session.get(url, headers=headers, verify=False, timeout=6)
@@ -204,7 +207,7 @@ if __name__ == '__main__':
         _STOP = 1
     signal.signal(signal.SIGINT, sig_handler)
     try:
-        _NAMES = read_names()
+        #_NAMES = read_names()
         main()
     except Exception as e:
         print(e, file=sys.stderr)

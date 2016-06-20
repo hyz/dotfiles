@@ -15,25 +15,24 @@
 int hgs_register_natives(JNIEnv* env);
 int hgs_save_JNIEnv(JNIEnv* env);
 
-struct QueryDecoded
+struct VideoFrameDecoded
 {
+    static VideoFrameDecoded query(JNIEnv* env=0) { return VideoFrameDecoded(1, env); }
+
     void* data;
     unsigned size;
-
     bool empty() const { return oidx_ < 0; }
 
-    QueryDecoded(JNIEnv* env=0) {
-        oidx_ = query_s(env, &data, &size);
-    }
-    ~QueryDecoded() { _release(); }
+    VideoFrameDecoded() { oidx_ = -1; }
+    ~VideoFrameDecoded() { _release(); }
 
-    QueryDecoded(QueryDecoded && rhs) {
+    VideoFrameDecoded(VideoFrameDecoded && rhs) {
         data = rhs.data;
         size = rhs.size;
         oidx_ = rhs.oidx_;
         rhs.oidx_ = -1;
     }
-    QueryDecoded& operator=(QueryDecoded && rhs) {
+    VideoFrameDecoded& operator=(VideoFrameDecoded && rhs) {
         if (this != &rhs) {
             this->_release();
             data = rhs.data;
@@ -43,7 +42,11 @@ struct QueryDecoded
         }
         return *this;
     }
+
 private:
+    VideoFrameDecoded(int, JNIEnv* env) {
+        oidx_ = query_s(env, &data, &size);
+    }
     int oidx_;
     void _release() {
         if (oidx_ >= 0) {
@@ -52,8 +55,8 @@ private:
     }
     static int query_s(JNIEnv* env, void**data, unsigned* size);
     static void release_s(int idx);
-    QueryDecoded(QueryDecoded const&);
-    QueryDecoded& operator=(QueryDecoded const&);
+    VideoFrameDecoded(VideoFrameDecoded const&); // = delete;
+    VideoFrameDecoded& operator=(VideoFrameDecoded const&); // = delete;
 };
 
 

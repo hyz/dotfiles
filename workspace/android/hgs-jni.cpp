@@ -305,7 +305,7 @@ struct data_sink
     //}
 };
 
-JNIEXPORT int QueryDecoded::query_s(JNIEnv* env, void**data, unsigned* size) {
+JNIEXPORT int VideoFrameDecoded::query_s(JNIEnv* env, void**data, unsigned* size) {
     BOOST_ASSERT(env_ == env);
     if (env && env != env_) {
         LOGE("JNIEnv: not-equal");
@@ -317,7 +317,7 @@ JNIEXPORT int QueryDecoded::query_s(JNIEnv* env, void**data, unsigned* size) {
     }
     return -1;
 }
-JNIEXPORT void QueryDecoded::release_s(int idx) {
+JNIEXPORT void VideoFrameDecoded::release_s(int idx) {
     javacodec_obuffer_release(idx);
 }
 
@@ -327,7 +327,7 @@ Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz)
     if (!env_) {
         hgs_save_JNIEnv(env);
     }
-    QueryDecoded qdec(env);
+    VideoFrameDecoded qdec = VideoFrameDecoded::query(env);
     if (!qdec.empty()) {
     }
 }
@@ -338,7 +338,9 @@ Java_com_huazhen_barcode_engine_DecoderWrap_stopHGS(JNIEnv* env, jobject thiz)
     assign2(stage_, -1, __func__);
     hgs_exit(1);
     hgs_exit(0);
+    sink_.reset();
     env->DeleteGlobalRef(oDecoderWrap);
+    oDecoderWrap = 0;
 }
 //extern "C" JNIEXPORT void JNICALL Java_com_huazhen_barcode_engine_DecoderWrap_runHGS(JNIEnv* env, jobject thiz) {}
 extern "C" JNIEXPORT void JNICALL
@@ -348,7 +350,7 @@ Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, 
     oDecoderWrap = env->NewGlobalRef(thiz);
 
     jclass cls =env->GetObjectClass(thiz); // = env->FindClass("com/hg/streaming/DecoderWrap");
-    //MID_queue_input  = env->GetMethodID(cls, "queueInput", "(Ljava/nio/ByteBuffer;II)I");
+
     MID_IBufferobtain  = env->GetMethodID(cls, "cIBufferObtain" , "(I)I");
     MID_IBufferinflate = env->GetMethodID(cls, "cIBufferInflate", "(ILjava/nio/ByteBuffer;)V");
     MID_IBufferrelease = env->GetMethodID(cls, "cIBufferRelease", "(III)V");
