@@ -7,6 +7,7 @@
 #include <deque>
 #include <algorithm>
 #include <mutex>
+#include <boost/chrono/process_cpu_clocks.hpp>
 #include <jni.h>
 #include <android/log.h>
 #define  LOG_TAG    "HGSJNI"
@@ -14,6 +15,12 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #include <boost/assert.hpp>
 #include "hgs.hpp"
+
+typedef boost::chrono::process_real_cpu_clock Clock;
+inline unsigned milliseconds(Clock::duration const& d) {
+    namespace chrono = boost::chrono;
+    return chrono::duration_cast<chrono::milliseconds>(d).count();
+}
 
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 
@@ -139,31 +146,6 @@ static char const* abi_str()
     return ABI;
 }
 
-struct sMills
-{
-    static unsigned from(struct timeval const& tv0) {
-        sMills& s = instance();
-        gettimeofday(&s.cur_, NULL);
-        return (1000*1000*(s.cur_.tv_sec - tv0.tv_sec) + s.cur_.tv_usec - tv0.tv_usec)/1000;
-    }
-    static unsigned from0() {
-        return from(instance().tv0_);
-    }
-    static struct timeval const& latest() { return instance().cur_; }
-
-    static sMills& instance() {
-        static sMills so;
-        return so;
-    }
-private:
-    sMills() {
-        gettimeofday(&cur_, NULL);
-        tv0_ = cur_;
-    }
-    struct timeval cur_;
-    struct timeval tv0_;
-};
-
 struct data_sink
 {
 #if 0 //defined(__ANDROID__)
@@ -180,7 +162,7 @@ struct data_sink
         unsigned count=0;
     };
     std::array<TraceSize,32> tsa_;
-    struct timeval tv0_;
+    Clock::time_point tp_{}; //struct timeval tp_;
     unsigned n_fr_ = 0;
     unsigned n_drop1_ = 0;
     unsigned n_fwd_ = 0; // signed char non_IDR_ = 4;
@@ -203,10 +185,10 @@ struct data_sink
         if (type==1 || type==5) {
             ++n_fr_;
             if (n_fr_ == 1) {
-                gettimeofday(&tv0_, NULL);
+                tp_ = Clock::now(); // gettimeofday(&tp_, NULL);
             } else if ((n_fr_ & 0x7f) == 0) {
-                LOGD("Net F-rate: %.2f, %u %u %u", 0x7f*1000.0/sMills::from(tv0_), n_fr_, n_fwd_, n_drop1_);
-                tv0_ = sMills::latest();
+                LOGD("Net F-rate: %.2f, %u %u %u", 0x7f*1000.0/milliseconds(Clock::now()-tp_), n_fr_, n_fwd_, n_drop1_);
+                tp_ = Clock::now();
             }
         }
     }
@@ -324,14 +306,15 @@ JNIEXPORT void VideoFrameDecoded::release_s(int idx) {
 
 #if 0
 extern "C" JNIEXPORT void JNICALL
-Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz)
+Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz, jint w, jint h, jobject surface)
 {
     if (!env_) {
-        hgs_save_JNIEnv(env);
+        env_ = env;
+        hgs_init_decoder(w,h, surface);
     }
-    VideoFrameDecoded qdec = VideoFrameDecoded::query(env);
-    if (!qdec.empty()) {
-    }
+    VideoFrameDecoded d = VideoFrameDecoded::query(env);
+    if (!d.empty())
+    {}
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -387,15 +370,14 @@ Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, 
 
 #endif
 
-JNIEXPORT int hgs_JNI_OnLoad(JavaVM* jvm, void*)
+JNIEXPORT int hgs_JNI_OnLoad(JavaVM* vm, void*)
 {
-    jvm_ = jvm;
+    jvm_ = vm;
     JNIEnv* env;
-    if (jvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
+    if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
         return -1;
     char const* clsName = "com/huazhen/barcode/engine/DecoderWrap";
-    jclass cls = env->FindClass(clsName);//CHECK(cls);
-    //jclass cls =env->GetObjectClass(oDecoderWrap);
+    jclass cls = env->FindClass(clsName);//CHECK(cls); //=env->GetObjectClass(oDecoderWrap);
     CLS_DecoderWrap = (jclass)env->NewGlobalRef(cls);
 
     MID_IBufferobtain  = env->GetMethodID(cls, "cIBufferObtain" , "(I)I");
@@ -432,10 +414,9 @@ JNIEXPORT void hgs_DetachCurrentThread()
     LOGD("%d:%s %p %p", __LINE__,__func__, jvm_, env_);
 }
 
-JNIEXPORT void* hgs_init_decoder(int w, int h, void* surface)
+JNIEXPORT void* hgs_init_decoder(int w, int h, jobject surface)
 {
-    jclass cls = CLS_DecoderWrap;
-    oDecoderWrap = env_->NewObject(cls, MID_DecoderWrap_ctor, w,h, (jobject)surface);
+    oDecoderWrap = env_->NewObject(CLS_DecoderWrap, MID_DecoderWrap_ctor, w,h, surface);
     LOGD("%d:%s %p", __LINE__,__func__, oDecoderWrap);
     return (void*)oDecoderWrap;
 }
@@ -484,27 +465,50 @@ JNIEXPORT void hgs_stop()
 }
 
 #if 0
-JNIEXPORT int hgs_register_natives(JNIEnv* env)
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_huazhen_barcode_engine_DecoderWrap_initDecoder(JNIEnv* env, jobject thiz, jint w, jint h, jobject surface)
 {
-    static const char* ClassName = "com/huazhen/barcode/engine/DecoderWrap";
+    env_ = env;
+    hgs_init_decoder(w,h, surface);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_huazhen_barcode_engine_DecoderWrap_startRTSP(JNIEnv* env, jobject thiz, jobject ip, jint port, jobject path)
+{
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI(JNIEnv* env, jobject thiz)
+{
+    VideoFrameDecoded d = VideoFrameDecoded::query(env);
+    if (!d.empty())
+    {}
+}
+
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+    static const char* clsName = "com/huazhen/barcode/engine/DecoderWrap";
     static JNINativeMethod methods[] = {
-        { "startHGS", "(Ljava/lang/String;ILjava/lang/String;)V", (void*)Java_com_huazhen_barcode_engine_DecoderWrap_startHGS }
-      , { "stopHGS", "()V", (void*)Java_com_huazhen_barcode_engine_DecoderWrap_stopHGS }
-    //, { "runHGS" , "()V", (void*)Java_com_huazhen_barcode_engine_DecoderWrap_runHGS }
+        { "pumpJNI", "(IILandroid.view.Surface;)V", (void*)Java_com_huazhen_barcode_engine_DecoderWrap_pumpJNI }
     };
     enum { N_methods = sizeof(methods)/sizeof(methods[0]) };
 
-    jclass clz = env->FindClass(ClassName);
+    jclass clz = env->FindClass(clsName);
     if (!clz) {
-        LOGE("FindClass %s: fail", ClassName);
+        LOGE("FindClass %s: fail", clsName);
         return -1;
     }
     int retval = env->RegisterNatives(clz, methods, N_methods);
     if (retval < 0) {
-        LOGE("RegisterNatives %s: fail", ClassName);
+        LOGE("RegisterNatives %s: fail", clsName);
+    } else {
+        hgs_JNI_OnLoad(vm, 0);
     }
     LOGD("%s: %d", __func__, retval);
     return retval;
 }
+//JNIEXPORT jint JNI_UnLoad(JavaVM* vm, void* reserved) {}
+
 #endif
 

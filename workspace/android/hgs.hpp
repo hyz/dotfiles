@@ -15,9 +15,10 @@ int     hgs_JNI_OnLoad(JavaVM* jvm, void*);
 JNIEnv* hgs_AttachCurrentThread();
 void    hgs_DetachCurrentThread();
 
+//void* hgs_init_decoder(int w, int h, void* surface);
+void* hgs_init_decoder(int w, int h, jobject surface);
 #endif
 
-void* hgs_init_decoder(int w, int h, void* surface);
 int hgs_start(char const* ip, int port, char const* path);
 void hgs_stop();
 

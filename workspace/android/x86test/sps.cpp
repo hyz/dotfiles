@@ -64,9 +64,9 @@ struct BitstreamReader
     unsigned short len_;
 };
 
-struct frame_size { unsigned short width, height; };
+struct FramePixelsSize { unsigned short width, height; };
 
-frame_size Parse(BitstreamReader const& bs) //(const unsigned char * pStart, unsigned short nLen)
+FramePixelsSize Parse(BitstreamReader const& bs) //(const unsigned char * pStart, unsigned short nLen)
 {
     int frame_crop_left_offset=0;
     int frame_crop_right_offset=0;
@@ -163,7 +163,7 @@ frame_size Parse(BitstreamReader const& bs) //(const unsigned char * pStart, uns
     w = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_bottom_offset*2 - frame_crop_top_offset*2;
     h = ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_right_offset * 2) - (frame_crop_left_offset * 2);
 
-    return frame_size{w,h};
+    return FramePixelsSize{w,h};
 }
 
 #include <sys/types.h>
