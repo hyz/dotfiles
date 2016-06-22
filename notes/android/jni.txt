@@ -1,0 +1,4 @@
+
+https://developer.android.com/training/articles/perf-jni.html
+http://stackoverflow.com/questions/10283165/creating-newglobalref-from-a-new-thread
+

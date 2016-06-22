@@ -1,0 +1,17 @@
+
+### http://serverfault.com/questions/173999/dump-a-linux-processs-memory-to-file
+
+$ cat /proc/[pid]/maps
+00400000-00421000 r-xp 00000000 08:01 592398                             /usr/libexec/dovecot/pop3-login
+00621000-00622000 rw-p 00021000 08:01 592398                             /usr/libexec/dovecot/pop3-login
+00622000-0066a000 rw-p 00622000 00:00 0                                  [heap]
+3e73200000-3e7321c000 r-xp 00000000 08:01 229378                         /lib64/ld-2.5.so
+3e7341b000-3e7341c000 r--p 0001b000 08:01 229378                         /lib64/ld-2.5.so
+
+$ gdb --pid [pid]
+(gdb) dump memory /tmp/output 0x00621000 0x00622000
+
+$ strings /tmp/output
+
+$ grep rw-p /proc/$1/maps | sed -n 's/^\([0-9a-f]*\)-\([0-9a-f]*\) .*$/\1 \2/p' | while read start stop; do gdb --batch --pid $1 -ex "dump memory $1-$start-$stop.dump 0x$start 0x$stop"; done
+

@@ -11,9 +11,9 @@
 #  include <jni.h>
 #  define NOT_PRINT_PROTO 1
 
-void hgs_jni_init_class(JNIEnv* env, char const* clsName);
-JNIEnv* hgs_jni_attach_current_thread(JavaVM* jvm);
-void hgs_jni_detach_current_thread(JavaVM* jvm);
+int     hgs_JNI_OnLoad(JavaVM* jvm, void*);
+JNIEnv* hgs_AttachCurrentThread();
+void    hgs_DetachCurrentThread();
 
 #endif
 

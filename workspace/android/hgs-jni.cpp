@@ -25,6 +25,7 @@ int  javacodec_obuffer_obtain(void** pa, unsigned* len);
 void javacodec_obuffer_release(int idx);
 
 static signed char stage_ = 0;
+static JavaVM *  jvm_ = NULL;
 static JNIEnv *  env_= NULL;
 static jobject   oDecoderWrap = NULL;
 static jclass    CLS_DecoderWrap = 0;
@@ -88,7 +89,7 @@ int javacodec_obuffer_obtain(void** pv, unsigned* len)
 }
 
 void javacodec_obuffer_release(int idx) {
-    env_->CallVoidMethod(oDecoderWrap, MID_OBufferrelease, idx, 1);
+    env_->CallVoidMethod(oDecoderWrap, MID_OBufferrelease, idx, 0);
     //jthrowable ex = env_->ExceptionOccurred();
     //if (ex != NULL) {
     //    env_->ExceptionDescribe();
@@ -244,7 +245,7 @@ struct data_sink
         _TRACE_SIZE(h.type, bp.size);
 
 //#define DONOT_DROP 0
-        if /*(h.nri < 3)*/(0) {
+        if (h.nri < 3)/*(0)*/ {
             _TRACE_DROP0(1);
             bp = mbuffer();
             return;
@@ -258,7 +259,7 @@ struct data_sink
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if /*(!bufs_.empty() && sdp_ready())*/(0) {
+        if (!bufs_.empty() && sdp_ready())/*(0)*/ {
             _TRACE_DROP1(bufs_.size());
             bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
         }
@@ -386,9 +387,14 @@ Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, 
 
 #endif
 
-JNIEXPORT void hgs_jni_init_class(JNIEnv* env, char const* clsName)
+JNIEXPORT int hgs_JNI_OnLoad(JavaVM* jvm, void*)
 {
-    jclass cls = env->FindClass(clsName);//"com/huazhen/barcode/engine/DecoderWrap";//CHECK(cls);
+    jvm_ = jvm;
+    JNIEnv* env;
+    if (jvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
+        return -1;
+    char const* clsName = "com/huazhen/barcode/engine/DecoderWrap";
+    jclass cls = env->FindClass(clsName);//CHECK(cls);
     //jclass cls =env->GetObjectClass(oDecoderWrap);
     CLS_DecoderWrap = (jclass)env->NewGlobalRef(cls);
 
@@ -405,24 +411,25 @@ JNIEXPORT void hgs_jni_init_class(JNIEnv* env, char const* clsName)
     MID_DecoderWrap_ctor = env->GetMethodID(cls, "<init>","(IILandroid/view/Surface;)V");
 
     LOGD("%d:%s %p %s: %p", __LINE__,__func__, env, clsName, cls);
+    return 0;
 }
 
-JNIEXPORT JNIEnv* hgs_jni_attach_current_thread(JavaVM* jvm)
+JNIEXPORT JNIEnv* hgs_AttachCurrentThread()
 {
     env_ = 0;
-    jvm->AttachCurrentThread(&env_, 0);
-    LOGD("%d:%s %p %p", __LINE__,__func__, jvm, env_);
+    jvm_->AttachCurrentThread(&env_, 0);
+    LOGD("%d:%s %p %p", __LINE__,__func__, jvm_, env_);
     if (!env_) {
         LOGE("AttachCurrentThread");
     }
     return env_;
 }
-JNIEXPORT void hgs_jni_detach_current_thread(JavaVM* jvm)
+JNIEXPORT void hgs_DetachCurrentThread()
 {
-    if (jvm->DetachCurrentThread() != JNI_OK) {
+    if (jvm_->DetachCurrentThread() != JNI_OK) {
         LOGE("DetachCurrentThread");
     }
-    LOGD("%d:%s %p %p", __LINE__,__func__, jvm, env_);
+    LOGD("%d:%s %p %p", __LINE__,__func__, jvm_, env_);
 }
 
 JNIEXPORT void* hgs_init_decoder(int w, int h, void* surface)
