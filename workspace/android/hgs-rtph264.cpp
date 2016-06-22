@@ -9,6 +9,7 @@
 #include <chrono> //#include <boost/chrono.hpp>
 #define BOOST_ERROR_CODE_HEADER_ONLY
 #define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
+#include <boost/range/iterator_range.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/algorithm/string.hpp>

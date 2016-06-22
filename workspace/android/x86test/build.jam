@@ -1,6 +1,7 @@
 project headless-test
     : requirements
         <include>$(BOOST_ROOT)
+        <include>..
         <threading>multi
     : default-build release
     ;
@@ -16,6 +17,9 @@ exe hgs : hgs-test.cpp libhgs # /boost//regex /boost//coroutine /boost//system
     ;
 
 exe rtsp_cli : rtsp_cli.cpp /boost//system /boost//regex /boost//coroutine
+    : #<define>NOT_PRINT_PROTO=1 #<link>static
+    ;
+exe sps : sps.cpp
     : #<define>NOT_PRINT_PROTO=1 #<link>static
     ;
 
