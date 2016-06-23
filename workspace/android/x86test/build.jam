@@ -6,21 +6,21 @@ project headless-test
     : default-build release
     ;
 
-lib libhgs
-    : hgs-rtph264.cpp /boost//regex
-        # /opt/boost_1_60_0/libs/system/src/error_code.cpp
-        # /boost//coroutine /boost//system
-    : <link>static
-    ;
-exe hgs : hgs-test.cpp libhgs # /boost//regex /boost//coroutine /boost//system
-    #: <link>static #<define>NOT_PRINT_PROTO=1
+alias boostlibs : /boost//system /boost//chrono /boost//regex /boost//coroutine : <link>static ;
+
+exe hgs
+    : hgs-test.cpp hgs-rtph264.cpp
+        boostlibs
+    : #<define>NOT_PRINT_PROTO=1
     ;
 
-exe rtsp_cli : rtsp_cli.cpp /boost//system /boost//regex /boost//coroutine
-    : #<define>NOT_PRINT_PROTO=1 #<link>static
+exe rtsp_cli
+    : rtsp_cli.cpp boostlibs
+    : #<define>NOT_PRINT_PROTO=1
     ;
+
 exe sps : sps.cpp
-    : #<define>NOT_PRINT_PROTO=1 #<link>static
+    : <link>static
     ;
 
 #install bin : a ;

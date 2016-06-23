@@ -1,3 +1,4 @@
+#define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
 // #include <sys/types.h> #include <signal.h>
 #include <sys/mman.h>
 #include <string.h>
@@ -6,9 +7,7 @@
 //#include <iostream>
 //#include <thread>
 #include <mutex>
-#include <chrono> //#include <boost/chrono.hpp>
-#define BOOST_ERROR_CODE_HEADER_ONLY
-#define BOOST_SCOPE_EXIT_CONFIG_USE_LAMBDAS
+#include <boost/chrono/process_cpu_clocks.hpp> //<chrono>
 #include <boost/range/iterator_range.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/scope_exit.hpp>
@@ -42,7 +41,7 @@ namespace re = std;
 #  include <boost/regex.hpp>
 namespace re = boost;
 #endif
-namespace chrono = std::chrono;
+namespace chrono = boost::chrono;
 namespace ip = boost::asio::ip;
 
 #if defined(__ANDROID__)
@@ -207,12 +206,12 @@ struct rtcp_sdes_item // source description RTCP packet
     uint8_t data[1];
 };
 
-static int64_t stimestamp(int init=0)
-{
-    static chrono::system_clock::time_point base = chrono::system_clock::now();
-    if (init)
-        base = chrono::system_clock::now()-chrono::milliseconds(30);
-    return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - base).count();
+typedef boost::chrono::process_real_cpu_clock Clock;
+inline unsigned milliseconds(Clock::duration const& d) {
+    return chrono::duration_cast<chrono::milliseconds>(d).count();
+}
+inline unsigned stimestamp(int init=0) {
+    return milliseconds(Clock::now() - Clock::time_point{});
 }
 
 struct h264nal : private boost::noncopyable

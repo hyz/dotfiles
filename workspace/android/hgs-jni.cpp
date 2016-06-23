@@ -16,9 +16,9 @@
 #include <boost/assert.hpp>
 #include "hgs.hpp"
 
+namespace chrono = boost::chrono;
 typedef boost::chrono::process_real_cpu_clock Clock;
 inline unsigned milliseconds(Clock::duration const& d) {
-    namespace chrono = boost::chrono;
     return chrono::duration_cast<chrono::milliseconds>(d).count();
 }
 
@@ -213,7 +213,11 @@ struct data_sink
     //typedef boost::intrusive::slist<mbuffer,boost::intrusive::cache_last<true>> slist_type;
     //slist_type blis_, blis_ready_;
 
-    ~data_sink() { _TRACE_SIZE_PRINT(); }
+    data_sink() {
+        fp_ = fopen("/sdcard/o.sdps", "w");
+    }
+    ~data_sink() { _TRACE_SIZE_PRINT(); fclose(fp_); }
+    FILE* fp_;
 
     enum { Types_SDP78 = ((1<<7)|(1<<8)) };
     enum { Types_SDP67 = ((1<<6)|(1<<7)) };
@@ -229,12 +233,11 @@ struct data_sink
 //#define DONOT_DROP 0
         if (h.nri < 3)/*(0)*/ {
             _TRACE_DROP0(1);
-            bp = mbuffer();
             return;
         }
         if (sdp_ready()) {
-            if (h.type >= 7) {
-                bp = mbuffer();
+            if (h.type > 5) {
+                fwrite((char*)bp.addr(-4), 4+bp.size, 1, fp_);
                 return;
             }
         }

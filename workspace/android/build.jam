@@ -14,14 +14,20 @@ exe chatc : chat_client.cpp /boost//system /boost//thread : <link>static  ;
 lib hello-jni : hello-jni.c ; #: <link>static ;
 lib log ; # android log
 
-lib hgs : hgs-rtph264.cpp hgs-jni.cpp 
-        # /opt/boost_1_60_0/libs/system/src/error_code.cpp
-        # context coroutine thread
+alias boostlibs : /boost//system /boost//chrono : <link>static ;
+
+lib hgs
+    : hgs-rtph264.cpp hgs-jni.cpp 
+        boostlibs #/boost//system/<link>static /boost//chrono/<link>static 
         log
     ;
 
+#
+#define BOOST_CHRONO_HEADER_ONLY
+#define BOOST_ERROR_CODE_HEADER_ONLY
+# context coroutine thread
 #lib rtsp_cli : rtsp_cli.cpp # hgs-jni.cpp 
-#        /opt/boost_1_60_0/libs/system/src/error_code.cpp
+#        /boost//system/<link>static /boost//chrono/<link>static 
 #        context coroutine thread
 #        log
 #    ;
