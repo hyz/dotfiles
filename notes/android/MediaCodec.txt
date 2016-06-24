@@ -5,3 +5,7 @@
 
 http://blog.csdn.net/halleyzhang3/article/details/11473961
 
+
+### http://www.programcreek.com/java-api-examples/index.php?class=android.media.MediaCodec&method=dequeueOutputBuffer
+    api examples
+

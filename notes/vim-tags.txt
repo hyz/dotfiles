@@ -1,0 +1,6 @@
+
+https://github.com/Andersbakken/rtags
+https://github.com/lyuts/vim-rtags
+
+    apt-get install libclang-3.6-dev
+
