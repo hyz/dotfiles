@@ -75,10 +75,10 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
     PATH=$PATH:$HOME/bin/cygwin
     /bin/ls -d1 /cygdrive/[cdef]/Program*/GNU/GnuPG |while read x ; do
         PATH=$PATH:"$x"
-        which gpg2
+        #which gpg2
         break
     done
-    for x in /cygdrive/{c,d,e,f,g,h,i}/.gnupg $HOME/.gnupg ; do
+    for x in /cygdrive/{c,d,e,f,g,h,i}/.gnupg ; do
         [ -d "$x" ] || continue
         export GNUPGHOME=`cygpath -w "$x"`
         break
@@ -94,8 +94,8 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
-elif [ ! -d "$HOME/.gnupg" ] ; then
-    /bin/ls -1d /media/wood/*/.gnupg | while read x ; do
+else #if [ ! -d "$HOME/.gnupg" ] ; then
+    find /media/wood/*/ /mnt $HOME/mnt -maxdepth 1 -type d -name .gnupg |while read x ; do
         export GNUPGHOME="$x"
         break
     done
