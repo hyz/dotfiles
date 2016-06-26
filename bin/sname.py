@@ -23,7 +23,7 @@ def appname(names, ix):
             x = x.rstrip()
             fs = x.split('\t')
             k = fs[0].split()[0]
-            fs.insert(ix, names.get(k,'Unknown') )
+            fs.insert(abs(ix)<len(fs)and ix or len(fs), names.get(k,'Unknown') )
             lines.append('\t'.join(fs)) #(x +'\t'+ names.get(fields[0],'Unknown'))
         return lines
 
@@ -38,5 +38,5 @@ def appname(names, ix):
     print(*lines, sep='\n',end='\n',file=outf)
 
 if __name__ == '__main__':
-    appname(sdic(), -1)
+    appname(sdic(), 0xfff)#(sdic(), -1)
 

@@ -12,6 +12,7 @@
 #include <boost/iterator/reverse_iterator.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/function_output_iterator.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/operators.hpp>
@@ -40,6 +41,8 @@
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 //#include <boost/multi_index/ordered_index.hpp>
+
+typedef long Long;
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
@@ -145,14 +148,14 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av : boost::addable<Av,boost::subtractable<Av,boost::dividable2<Av,int>>> {
-    long volume = 0;
-    long amount = 0;
+    Long volume = 0;
+    Long amount = 0;
 
     Av& operator+=(Av const& lhs) { amount += lhs.amount; volume += lhs.volume; return *this; }
     Av& operator-=(Av const& lhs) { amount -= lhs.amount; volume -= lhs.volume; return *this; }
     Av& operator/=(int x) { volume /= x; amount /= x; return *this; }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (long,volume)(long,amount))
+BOOST_FUSION_ADAPT_STRUCT(Av, (Long,volume)(Long,amount))
 
 //typedef fusion::vector<Av,Av> Avsb;
 //auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
@@ -259,11 +262,11 @@ struct Opstatus {
     std::string detail;
 };
 struct SInfo {
-    long capital1 = 0; // capital stock in circulation
-    long capital0 = 0; // general capital
+    Long capital1 = 0; // capital stock in circulation
+    Long capital0 = 0; // general capital
     int eps = 0; // earnings per share(EPS)
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (long,capital1)(long,capital0)(int,eps))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (Long,capital1)(Long,capital0)(int,eps))
 
 struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
@@ -271,7 +274,7 @@ struct Unit : Av {
 
 struct Elem : std::vector<Unit>, Unit, SInfo, Opstatus {
     unsigned code = 0;
-    Elem(int szsh, int numb) { code=Make_code(szsh,numb); }
+    static Elem make(int szsh, int numb) { Elem e; e.code=Make_code(szsh,numb); return e; }
 };
 
 typedef boost::multi_index::multi_index_container<Elem, indexed_by<
@@ -308,7 +311,7 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
 int main(int argc, char* const argv[])
 {
-    BOOST_STATIC_ASSERT(sizeof(long)==8);
+    BOOST_STATIC_ASSERT(sizeof(Long)==8);
     try {
         Main a(argc, argv);
         return a.run(argc, argv);
@@ -394,27 +397,31 @@ void Main::initializer::loadx(char const* path)
                 DBG_MSG("%u: not-found", code);
                 continue;
             }
-            Elem& el = const_cast<Elem&>(*iter);
-            std::vector<Unit>& uvec = el;;
-            Unit& usum = el;
-            Unit uv = {};
+            std::vector<Unit> uvec;// = elem;;
+            Unit usum;// = elem;
+            Unit u = {};
 
             using qi::int_;
             using qi::long_;
             while (qi::phrase_parse(pos,end, long_>>long_>>int_>>int_>>int_>>int_, qi::space
-                        , uv.volume, uv.amount, uv.oc[0], uv.oc[1], uv.lohi[0], uv.lohi[1])) {
-                if (uv.volume) {
-                    if (usum.lohi[0] > uv.lohi[0])
-                        usum.lohi[0] = uv.lohi[0];
-                    if (usum.lohi[1] < uv.lohi[1])
-                        usum.lohi[1] = uv.lohi[1];
-                    usum.oc[1] = uv.oc[1];
-                    static_cast<Av&>(usum) += static_cast<Av&>(uv);
-
-                    uvec.push_back(uv);
-                //} else { ERR_MSG("%06d vol %ld", code, un.volume);
+                        , u.volume, u.amount, u.oc[0], u.oc[1], u.lohi[0], u.lohi[1])) {
+                if (u.volume) {
+                    if (usum.lohi[0] > u.lohi[0])
+                        usum.lohi[0] = u.lohi[0];
+                    if (usum.lohi[1] < u.lohi[1])
+                        usum.lohi[1] = u.lohi[1];
+                    usum.oc[1] = u.oc[1];
+                    static_cast<Av&>(usum) += static_cast<Av&>(u);
+                    uvec.push_back(u);
                 }
             }
+            if (u.volume <= 0) {
+                fprintf(stderr, "%06d stopped\n",Numb(iter->code));
+                continue;
+            }
+            auto & el = const_cast<Elem&>(*iter);
+            static_cast<std::vector<Unit>&>(el) = std::move(uvec);
+            static_cast<Unit&>(el) = usum;
             // if (uvec.empty()) { ERR_EXIT("%u: empty", code); }
         } else {
             ERR_EXIT("qi::parse: %s", pos);
@@ -483,7 +490,7 @@ void Main::initializer::loadsi(char const* dir, char const* fn)
                 ERR_EXIT("qi::parse: %s %s", fn, pos);
             }
             if (si.capital1 > 0) {
-                auto p = insert(end(), Elem(szsh,numb));
+                auto p = insert(end(), Elem::make(szsh,numb));
                 Elem& el = const_cast<Elem&>( *p.first );
                 static_cast<SInfo&>(el) = si;
             } else
@@ -507,64 +514,89 @@ int Main::run(int argc, char* const argv[])
     constexpr int Wn=10000;
     constexpr int Yi=Wn * Wn;
 
-    this->remove_if([this](auto&e){return e.volume<=0 || e.back().volume<=0 || e.size()<unsigned(n_day_+n_ign_);});
+    this->remove_if([this](auto&e){return e.size()<unsigned(n_day_+n_ign_);});
+
     for (Elem const & el : *this) {
         //if (el.size() < unsigned(n_day_+n_ign_)) {
         //    DBG_MSG("%u: %u < %u + %u", Numb(el.code), el.size(), unsigned(n_day_), n_ign_);
         //    continue;
         //}
         typedef Elem::const_iterator iterator;
-        iterator const end = el.end() - n_ign_;
-        iterator const begin0 = el.begin();
-        iterator const begin = end - n_day_;
-        iterator const last = end-1;
+        //iterator const begin0 = el.begin();
+        iterator const end0 = el.end() - n_ign_;
+        iterator const beg0 = end0 - n_day_;
+        iterator const last = end0-1;
         iterator const lasp = last-1;;
-        // boost::reverse_iterator<iterator> rend(begin), rbegin(end);
+        // boost::reverse_iterator<iterator> rend(beg0), rbegin(end0);
 
-        std::vector<iterator> ivec(end - begin);
+        std::vector<iterator> ivec(end0 - beg0);
         //boost::generator_iterator_generator<my_generator>::type it = boost::make_generator_iterator(gen);
-        //boost::make_generator_iterator([b=begin]()mutable{return b++;});
+        //boost::make_generator_iterator([b=beg0]()mutable{return b++;});
         //make_function_input_iterator(f,0), make_function_input_iterator(f,10),
-        std::generate(ivec.begin(),ivec.end(), [b=begin]()mutable{return b++;});
-        std::nth_element(ivec.begin(), ivec.begin()+3, ivec.end(), [](auto&l,auto&r){return l->volume < r->volume;});
-        std::nth_element(ivec.begin()+3, ivec.begin()+3+5, ivec.end(), [](auto&l,auto&r){return l->volume > r->volume;});
-        ivec.resize(3+5);
-        iterator near0 = *std::min_element(ivec.begin(),ivec.begin()+3, [end](auto&l,auto&r){return (end-l) < (end-r);});
-        ivec.erase(std::remove_if(ivec.begin()+3, ivec.end(), [near0](auto&x){return x>near0;}), ivec.end());
-        //auto const beg0 = ivec.begin();
-        auto const beg1 = boost::make_indirect_iterator(ivec.begin()+3); //ivec.begin()+3;
-        auto const end1 = boost::make_indirect_iterator(ivec.end()); //ivec.begin()+3;
-        // auto const end1 = ivec.end();
-        //iterator near1 = *std::max_element(beg1,end1, [end](auto&l,auto&r){return (end-l) < (end-r);});
-        //std::sort(beg1, end1);
-        //long volM = std::accumulate(beg1,end1, long{},[](long a,auto&x){return a+x->volume;});
-        long volM = std::accumulate(beg1,end1, Av{}).volume;
-        long volMr = std::max_element(near0,end, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        //long volm = near0->volume; //std::accumulate(beg0,beg1, Av{}).volume;
+        //std::generate(ivec.begin(),ivec.end(), [b=beg0]()mutable{return b++;});
 
-        //long vola = std::accumulate(begin,end, Av{}).volume/el.size();
-        //long volx = std::accumulate(begin,end, long{}, [vola](long a,auto&x){return a+labs(x.volume-vola);})/15;
+        std::copy(boost::make_counting_iterator(beg0), boost::make_counting_iterator(end0), ivec.begin());
+        auto const eb1 = std::partition(ivec.begin(),ivec.end(), [](auto&i){return i->oc[0]<i->oc[1];});
+        auto const beg1 = ivec.begin();
+        auto const end1 = ivec.end();
+
+        std::sort(beg1,eb1, [](auto&l,auto&r){return l->volume>r->volume;});
+        std::sort(eb1,end1, [](auto&l,auto&r){return l->volume>r->volume;});
+
+        //std::nth_element(ivec.begin(), ivec.begin()+3, ivec.end(), [](auto&l,auto&r){return l->volume<r->volume;});
+        //std::nth_element(ivec.begin()+3, ivec.begin()+3+5, ivec.end(), [](auto&l,auto&r){return l->volume>r->volume;});
+        //ivec.resize(3+5);
+        //iterator near0 = *std::min_element(ivec.begin(),ivec.begin()+3, [end](auto&l,auto&r){return (end-l) < (end-r);});
+        //ivec.erase(std::remove_if(ivec.begin()+3, ivec.end(), [near0](auto&x){return x>near0;}), ivec.end());
+        //auto const beg0 = ivec.begin();
+
+        auto const beg2 = boost::make_indirect_iterator(beg1); //ivec.begin()+3;
+        auto const eb2 = boost::make_indirect_iterator(eb1); //ivec.begin()+3;
+        auto const end2 = boost::make_indirect_iterator(end1); //ivec.begin()+3;
+
+        // auto const end2 = ivec.end();
+        //iterator near1 = *std::max_element(beg2,end2, [end](auto&l,auto&r){return (end-l) < (end-r);});
+        //std::sort(beg2, end2);
+        //Long volRa = std::accumulate(beg2,end2, Long{},[](Long a,auto&x){return a+x->volume;});
+        Long volR1 = std::max_element(beg2,eb2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        Long volG1 = std::max_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        Long volR0 = std::min_element(beg2,eb2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        Long volG0 = std::min_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        Long volRa = std::accumulate(beg2,eb2, Av{}).volume;
+        Long volGa = std::accumulate(eb2,end2, Av{}).volume;
+        int nR = eb1 - beg1;
+        int nG = end1 - eb1;
+        //Long vol0 = std::min(volR0, volG0);
+        //Long volMr = std::max_element(near0,end0, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //Long volm = near0->volume; //std::accumulate(beg0,beg2, Av{}).volume;
+
+        //Long vola = std::accumulate(beg0,end0, Av{}).volume/el.size();
+        //Long volx = std::accumulate(beg0,end0, Long{}, [vola](Long a,auto&x){return a+labs(x.volume-vola);})/15;
         //auto vlohi = Ma(3, rbegin,rend, null_iter, [](auto&l,auto&r){return l.volume<r.volume;});
 
-        printf("%06d", Numb(el.code));
+        printf("%06d %7.2f", Numb(el.code), el.capital0*el.oc[1]/100.0/Yi);
         {
-            long lsz = el.capital1*el.oc[1]/100;
-            printf(" %03d %6.2f"" %6.2f %5.2f %.3ld %3d", el.mll, el.incoming/double(Wn), lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
-            //if (Numb(el.code)==00570) DBG_MSG("%d %ld %d %ld %6.2f", Numb(el.code), el.capital1, el.oc[1], lsz, lsz/double(Yi));
+            //printf(" %03d %6.2f"" %6.2f %5.2f %.3ld %3d", el.mll, el.incoming/double(Wn), lsz/double(Yi), last->amount/double(Yi), 1000*last->amount/lsz, el.eps?last->oc[1]/el.eps:-1);
+            //if (Numb(el.code)==570) DBG_MSG("%d %ld %d %ld %6.2f", Numb(el.code), el.capital1, el.oc[1], lsz, lsz/double(Yi));
         } {
-            printf("\t%d %d %.3ld %.3ld", int(end-near0), int(end1-beg1), 100*volM/near0->volume, 100*volM/volMr);
+            //printf("\t%.2lu %.2d %.2d %.3ld %.3ld", el.size(), (nG+nR), (volRa+volGa), last->volume, lasp->volume); fflush(stdout);
+            printf("\t%.2d %.2d", 100*nR/(nG+nR), 100*volRa/(volRa+volGa));
+            printf("\t% .2ld % .3ld", volR1*10/last->volume, volRa*10/last->volume);
+            printf( " % .2ld % .3ld", volR1*10/lasp->volume, volRa*10/lasp->volume);
+            //printf("\t%d %d %.3ld %.3ld", int(end0-near0), int(end2-beg2), 100*volRa/near0->volume, 100*volRa/volR1);
             //printf("\t%.3ld %.3ld %.3ld %.3ld"
             //        , 100*lasp->volume/last->volume
             //        , 100*vlohi[0].volume/last->volume, 100*vola/last->volume, 100*vlohi[1].volume/last->volume);
             //printf(" %.3ld", 1000*volx/vola);
         } {
-            auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
-            auto lh = std::minmax_element(begin,end, [](auto&l,auto&r){return l.oc[1]<r.oc[1];});
-            if (lh.first > lh.second)
-                std::swap(lh.first,lh.second);
-            printf("\t% .3d % .3d", Chr(lasp->oc[1],last->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
+            //auto Chr = [](int b, int lastv) { return 1000*(lastv-b)/b; };
+            //auto lh = std::minmax_element(beg0,end0, [](auto&l,auto&r){return l.oc[1]<r.oc[1];});
+            //if (lh.first > lh.second)
+            //    std::swap(lh.first,lh.second);
+            //printf("\t% .3d % .3d", Chr(lasp->oc[1],last->oc[1]), Chr(lh.first->oc[1],lh.second->oc[1]));
         }
-        printf("\t%d\t%s\n", (int)el.size(), el.detail.c_str());
+        //printf("\t%d\t%s\n", (int)el.size(), el.detail.c_str());
+        printf("\t%-2d %2d\n", int(end0-beg0), (int)el.size());
 
     }
     return 0;
