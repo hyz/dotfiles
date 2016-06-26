@@ -1,0 +1,32 @@
+
+project mys
+    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+            <threading>multi
+    : default-build release
+    ;
+path-constant CTPAPI : ../vn.ctp/ctpapi/x64_linux ;
+
+lib thostmduserapi : : <file>$(CTPAPI)/libthostmduserapi.so ; #lib thostmduserapi : : <search>$(CTPAPI) ;
+lib thosttraderapi : : <file>$(CTPAPI)/libthosttraderapi.so ; #lib thosttraderapi : : <search>$(CTPAPI) ;
+
+alias ctp_lib : thosttraderapi thostmduserapi ;
+
+exe mdserver : [ glob mdserver.cpp ] /boost//system
+    : <include>../websocketpp
+      <include>../rapidjson/include # <include>../nlohmann-json/src
+      <include>$(CTPAPI)
+      #<link>static
+    ;
+exe md : [ glob md.cpp ] ctp_lib /boost//system
+    : <include>$(CTPAPI)
+      #<link>static ;
+    ;
+exe mon : [ glob mon.cpp ] /boost//system
+    : <include>$(CTPAPI)
+      #<link>static
+    ;
+
+# exe a : md.cpp ctp_lib : <include>. ;
+install $(HOME)/lib : thostmduserapi thosttraderapi ;
+install $(HOME)/bin : md mdserver ;
+
