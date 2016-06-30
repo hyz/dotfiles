@@ -9,11 +9,7 @@ filetype indent on
 
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 if &diff
-    colorscheme molokai
-    hi diffAdded   ctermbg=NONE ctermfg=46  cterm=NONE guibg=NONE guifg=#00FF00 gui=NONE
-    hi diffRemoved ctermbg=NONE ctermfg=196 cterm=NONE guibg=NONE guifg=#FF0000 gui=NONE
-    hi link diffLine String
-    hi link diffSubname Normal
+    colorscheme jellybeans
 endif
 
 
