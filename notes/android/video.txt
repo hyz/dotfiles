@@ -1,0 +1,23 @@
+http://stackoverflow.com/questions/19923412/creating-omxcodec-encoder-in-hw-mode?rq=1
+http://stackoverflow.com/questions/5883086/stagefright-architecture
+
+http://blog.csdn.net/tung214/article/details/37762487
+ Android用surface直接显示yuv数据
+
+http://developer.t-firefly.com/thread-4799-1-1.html
+ 关于PAD版本硬解隔行视频的总结和疑问 
+ 关于ANDROID下的A/V框架为STAGEFIRGHT,通调用OMX IL层来进行视频硬解，在具体的解码实现上分文了同步和异步两种方式，分别为OMXCodec（MediaPlayer）和ACodec(MediaCodec)
+
+
+https://charleszblog.wordpress.com/2014/01/31/understanding-android-stagefright-internals-iv-acodec-and-omxcodec-two-client-access-proxy-models/
+  Understanding Android Stagefright Internals (IV) – Two client Access Paradigms: ACodec and OMXCodec
+
+
+http://developer.t-firefly.com/thread-4211-1-1.html
+  ANDROID4.4下在FRAMEWORKS层下的视频硬解码实现（OMXCODEC+ACODEC） 
+
+
+https://vec.io/posts/use-android-hardware-decoder-with-omxcodec-in-ndk
+  Use Android Hardware Decoder with OMXCodec in NDK
+
+

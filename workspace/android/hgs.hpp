@@ -203,6 +203,7 @@ struct mbuffer /*: boost::intrusive::slist_base_hook<>*/
     uint8_t* nal_header() const { return addr(0); }
     uint8_t* frame_data() const { return addr(1); }
 
+    bool empty() const { return !base_ptr; }
     bool _using() const { return bool(base_ptr); }
 private:
     mbuffer(mbuffer const&);// = delete;

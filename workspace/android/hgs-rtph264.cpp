@@ -210,9 +210,7 @@ typedef boost::chrono::process_real_cpu_clock Clock;
 inline unsigned milliseconds(Clock::duration const& d) {
     return chrono::duration_cast<chrono::milliseconds>(d).count();
 }
-inline unsigned stimestamp(int init=0) {
-    return milliseconds(Clock::now() - Clock::time_point{});
-}
+inline unsigned stimestamp() { return milliseconds(Clock::now() - Clock::time_point{}); }
 
 struct h264nal : private boost::noncopyable
 {
@@ -234,7 +232,7 @@ struct h264nal : private boost::noncopyable
         sink_commit_(std::move(b));
     }
 
-    void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end) //const
+    void nalu_incoming(rtp_header* rtp_h, uint8_t* data, uint8_t* end, bool continus) //const
     {
         nal_unit_header* h1 = nal_unit_header::cast(data, end);
         if (!h1)
@@ -267,16 +265,18 @@ struct h264nal : private boost::noncopyable
                         h3->f = h1->f;
                         h3->print(data,end);
                         if (bufp_._using()) {
-                            LOGE("FU-A e loss");
+                            LOGE("FU-A e loss: %d", int(end-data));
                         }
                         bufp_ = mbuffer(*rtp_h);
+                    } else if (!continus) {
+                        bufp_ = mbuffer();
+                        LOGE("FU-A not continus: %d", int(end-data));
+                        return;
+                    } else if (bufp_.empty()) {
+                        LOGE("FU-A buf:empty: %d", int(end-data));
+                        return;
                     } else {
-                        BOOST_ASSERT(bufp_.size > 0);
-                        if (bufp_.size <= 0) {
-                            LOGE("FU-A b.size error");
-                            return;
-                        }
-                        ++data;
+                        ++data; // skip nal_unit_header
                     }
         rtp_statis_(bufp_.rtp_h, data, end);
                     bufp_.put(data, end);
@@ -336,35 +336,41 @@ private: // rtp communication
         if (ec) {
             LOGE("rtp recvd: %d:%s", ec.value(), ec.message().c_str());
         } else {
+            // BOOST_SCOPE_EXIT(this) { } BOOST_SCOPE_EXIT_END
             if (bytes_recvd > 0) {
-                static size_t max_recvd = 0, mrecvd; // test-only
+#if 1
+                static size_t max_recvd = 0, mrecvd; //TODO: test-only
                 if ( (mrecvd = std::max(max_recvd, bytes_recvd)) > max_recvd) {
                     max_recvd = mrecvd;
                     LOGD("max recvd bytes: %u", mrecvd);
                 }
-
-                rtp_header* h = rtp_header::cast(bufptr(), bufptr()+bytes_recvd);
-                if (!h) {
-                    LOGE("rtp_header"); return;
-                } else {
-                    h->print(bufptr(), bufptr()+bytes_recvd); //bufptr += h->length();
-                    if (h->seq == (expseq_&0xffff)) {
-                        ++expseq_;
-                    } else {
-                        LOGE("exp-seq %d:%d", expseq_, h->seq);
-                        if (h->seq < (expseq_&0xffff)) {
-                            return;
-                        }
-                        expseq_ = h->seq+1;
-                    }
-                    rtp_header rtp_h = *h;
-                    this->nalu_incoming(&rtp_h, bufptr()+h->length(), bufptr()+bytes_recvd);
-                }
+#endif
+                handle_datagram(bufptr(), bufptr()+bytes_recvd);
             }
             using namespace boost::asio;
             udpsock_.async_receive_from( boost::asio::buffer(bufptr(), BufSiz)
                     , peer_endpoint_
                     , boost::bind(&This::handle_receive_from, this, placeholders::error, placeholders::bytes_transferred));
+        }
+    }
+    void handle_datagram(uint8_t* beg, uint8_t* end)
+    {
+        if (rtp_header* h = rtp_header::cast(beg, end)) {
+            h->print(beg, end); //bufptr += h->length();
+            bool continus = 1;
+            unsigned exp = expseq_;
+            expseq_ = h->seq+1;
+            if (h->seq != (exp&0xffff)) {
+                LOGE("exp-seq %d:%d", exp, h->seq);
+                if (h->seq < exp && (exp - h->seq) > 0x1fff) {
+                } else
+                    continus = 0;
+            }
+            rtp_header rtp_h = *h;
+            this->nalu_incoming(&rtp_h, beg+h->length(), end, continus);
+            //expseq_ = h->seq+1;
+        } else {
+            LOGE("rtp_header:cast");
         }
     }
 
@@ -439,7 +445,7 @@ struct rtcp_client : boost::noncopyable
     enum{ MIN_SEQUENTIAL = 2 };
     typedef uint16_t u_int16;
 
-    struct rtp_statis_info /*: data_sink*/ {
+    struct rtp_statis_info {
         uint32_t base_seq;       /* base seq number */
         uint16_t max_seq;        /* highest seq. number seen */
         uint16_t cycles;         /* shifted count of seq. number cycles */
@@ -462,6 +468,9 @@ struct rtcp_client : boost::noncopyable
                 s->received = 1;
             } else {
                 if (rh->seq < s->max_seq) {
+                    if ((s->max_seq - rh->seq) < 0x0fff) {
+                        return;
+                    }
                     s->cycles++;
                 }
                 s->max_seq = rh->seq;
@@ -534,7 +543,7 @@ rreport();
                 rr_.rb.ssrc = htonl( si->ssrc );
                 rr_.rb.lsr = htonl( ((si->ntpmsw&0xFFFF)<<16) | ((si->ntplsw>>16) & 0xFFFF) ); //uint32_t lsr; // last SR
                 si->rtpts;
-                ts_sr_ = stimestamp( rtpsi_.received==0 );
+                ts_sr_ = stimestamp();
             } else {
                 LOGD("pt %d", (int)h->pt);
             }
@@ -589,7 +598,12 @@ rreport();
     //- if (d < 0) d = -d;
     //-| s->jitter += d - ((s->jitter + 8) >> 4); ... rr->jitter = s->jitter >> 4;
     //
-        if (ts_rr_ +100 < ts_sr_ && rtpsi_.received > 0) {
+        if (ts_rr_ +100 < ts_sr_) {
+            // LOGD("%u", rtpsi_.received);
+            if (rtpsi_.received <= 0) {
+                LOGE("%u", rtpsi_.received);
+                return;
+            }
             auto* s = &rtpsi_;
 
             uint8_t fraction;
@@ -865,7 +879,7 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
         bool m_v = 0;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("| %s", line.c_str());
+            // LOGD("| %s", line.c_str());
             if (boost::starts_with(line, "m=")) {
                 m_v = boost::starts_with(line, "m=video");
             } else if (m_v) {
@@ -902,7 +916,7 @@ struct rtsp_client : rtsp_connection<rtsp_client>, boost::noncopyable
         std::string line;
         while (std::getline(ins, line)) {
             boost::trim_right(line);
-            LOGD("%d: %s", __LINE__, line.c_str());
+            //LOGD("%d: %s", __LINE__, line.c_str());
             if (boost::starts_with(line, "Session:")) {
                 re::smatch m;
                 re::regex re("Session:[[:space:]]*([^[:space:]]+)");
@@ -1173,9 +1187,22 @@ struct RtpH264 : boost::asio::io_service {
         rtsp.teardown();
     }
 
+    void stop_thread() {
+        LOGD("thread:join ...");
+        void* ret;
+        pthread_join(th_, &ret); // rtph264_->thread.join();
+        LOGD("thread:join OK");
+    }
+    void start_thread() {
+        LOGD("thread:create");
+        pthread_create(&th_, NULL, &RtpH264::thread_main, this);
+        LOGD("thread:create OK");
+    }
+
     static void* thread_main(void* a) {
         RtpH264* self = (RtpH264*)a;
         self->run();
+        LOGE("thread:end");
         return 0;
     }
 };
@@ -1207,10 +1234,7 @@ void hgs_exit(int preexit)
         }
     });
     if (preexit == 0) {
-        LOGD("thread:join ...");
-        void* ret;
-        pthread_join(rtph264_->th_, &ret); // rtph264_->thread.join();
-        LOGD("thread:join OK");
+        rtph264_->stop_thread();
         rtph264_.reset();
     }
     LOGD("exit %d OK", preexit);
@@ -1221,11 +1245,9 @@ void hgs_run(std::function<void(mbuffer)> sink)
     BOOST_ASSERT(rtph264_);//(hgs_.rtsp && hgs_.rtp && hgs_.rtcp);
 
     rtph264_->rtp.func_sink(sink);
-    rtph264_->rtsp.setup(0,0);
 
-    LOGD("run:thread");
-    pthread_create(&rtph264_->th_, NULL, &RtpH264::thread_main, rtph264_.get());
-    LOGD("run:thread OK");
+    rtph264_->rtsp.setup(0,0);
+    rtph264_->start_thread();
 }
 
 #endif

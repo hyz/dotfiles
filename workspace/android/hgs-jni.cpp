@@ -16,11 +16,117 @@
 #include <boost/assert.hpp>
 #include "hgs.hpp"
 
+static char const* abi_str()
+{
+#if defined(__arm__)
+  #if defined(__ARM_ARCH_7A__)
+    #if defined(__ARM_NEON__)
+      #if defined(__ARM_PCS_VFP)
+#  define ABI "armeabi-v7a/NEON (hard-float)"
+      #else
+#  define ABI "armeabi-v7a/NEON"
+      #endif
+    #else
+      #if defined(__ARM_PCS_VFP)
+#  define ABI "armeabi-v7a (hard-float)"
+      #else
+#  define ABI "armeabi-v7a"
+      #endif
+    #endif
+  #else
+#  define ABI "armeabi"
+  #endif
+#elif defined(__i386__)
+#  define ABI "x86"
+#elif defined(__x86_64__)
+#  define ABI "x86_64"
+#elif defined(__mips64)  /* mips64el-* toolchain defines __mips__ too */
+#  define ABI "mips64"
+#elif defined(__mips__)
+#  define ABI "mips"
+#elif defined(__aarch64__)
+#  define ABI "arm64-v8a"
+#else
+#  define ABI "unknown"
+#endif
+    return ABI;
+}
+
 namespace chrono = boost::chrono;
-typedef boost::chrono::process_real_cpu_clock Clock;
+typedef chrono::process_real_cpu_clock Clock;
 inline unsigned milliseconds(Clock::duration const& d) {
     return chrono::duration_cast<chrono::milliseconds>(d).count();
 }
+inline unsigned seconds(Clock::duration const& d) {
+    return chrono::duration_cast<chrono::seconds>(d).count();
+}
+
+#if 0 //defined(__ANDROID__)
+#   define _TRACE_SIZE_PRINT() ((void)0)
+#   define _TRACE_NET_INCOMING(type, size) ((void)0)
+#   define _TRACE_DROP0(n) ((void)0)
+//#   define _TRACE_DROP1(n) ((void)0)
+#   define _TRACE_DROP_non_IDR(nri, type, n_fwd) ((void)0)
+#   define _TRACE_FWD_INCR(nri,type,siz) ((void)0)
+#   define _TRACE_DEC_INCR(siz) ((void)0)
+#   define _TRACE_RESET() ((void)0)
+#   define _TRACE_PRINT_RATE() ((void)0)
+#else
+static struct Trace_Info {
+    struct TraceSize {
+        unsigned len_max=0;
+        unsigned len_total=0;
+        unsigned count=0;
+    };
+    std::array<TraceSize,32> sa = {};
+    struct { unsigned nfr, dec, out; } ns = {}; // non_IDR_;
+    Clock::time_point tp{};
+} tc[2] = {};
+
+static void _TRACE_RESET() { tc[1] = tc[0] = Trace_Info{}; }
+
+static void _TRACE_SIZE_PRINT() {
+    for (unsigned i=0; i<tc[0].sa.size(); ++i) {
+        auto& a = tc[0].sa[i];
+        if (a.count > 0) {
+            LOGD("NAL-Unit-Type %d: m/a/n: %u %u %u", i, a.len_max, a.len_total/a.count, a.count);
+        }
+    }
+}
+static void _TRACE_NET_INCOMING(int type, unsigned size) {
+    auto& a = tc[0].sa[type];
+    a.len_max = std::max(size, a.len_max);
+    a.len_total += size;
+    a.count++;
+
+    if (type==1 || type==5) {
+        tc[0].ns.nfr++;
+    }
+}
+static void _TRACE_DROP0(unsigned n) {}
+//static void _TRACE_DROP1(unsigned n) { tc[0].n_drop1_ += n; }
+// static void _TRACE_DROP_non_IDR(int nri, int type, unsigned nfwd) { }
+static void _TRACE_FWD_INCR(int nri, int type,unsigned siz) {
+    if (type == 5)
+        tc[0].ns.dec++;
+    else
+        LOGD("FWD %d", type);
+}
+static void _TRACE_DEC_INCR(unsigned siz) {
+    tc[0].ns.out++;
+}
+static void _TRACE_PRINT_RATE() {
+    tc[0].tp = Clock::now();
+    unsigned ms = milliseconds(tc[0].tp - tc[1].tp);
+    if (ms > 3000) {
+        LOGD("F-rate: %.2f/%.2f, %u%+d%+d"
+                , (tc[0].ns.nfr - tc[1].ns.nfr)*1000.0/ms
+                , (tc[0].ns.out - tc[1].ns.out)*1000.0/ms
+                , tc[0].ns.nfr, -int(tc[0].ns.nfr-tc[0].ns.dec), -int(tc[0].ns.dec-tc[0].ns.out));
+        tc[1] = tc[0];
+    }
+}
+#endif
 
 enum { BUFFER_FLAG_CODEC_CONFIG=2 };
 
@@ -45,8 +151,8 @@ static jmethodID MID_OBufferobtain  = 0;
 static jmethodID MID_OBufferrelease = 0;
 static jfieldID  FID_outputBuffer   = 0;
 
-struct data_sink;
-static std::unique_ptr<data_sink> sink_;
+struct nalu_data_sink;
+static std::unique_ptr<nalu_data_sink> sink_;
 
 inline int javacodec_ibuffer_obtain(int timeout)
 {
@@ -87,6 +193,7 @@ int javacodec_obuffer_obtain(void** pv, unsigned* len)
         *pv = env_->GetDirectBufferAddress(bytebuf);
         *len = env_->GetDirectBufferCapacity(bytebuf);
         env_->DeleteLocalRef(bytebuf);
+        _TRACE_DEC_INCR(*len);
     }
     return idx;
     //void*       (*GetDirectBufferAddress)(JNIEnv*, jobject);
@@ -110,113 +217,18 @@ inline int stage(signed char y, char const* fx) {
     return y;
 }
 
-static char const* abi_str()
+struct nalu_data_sink
 {
-#if defined(__arm__)
-  #if defined(__ARM_ARCH_7A__)
-    #if defined(__ARM_NEON__)
-      #if defined(__ARM_PCS_VFP)
-#  define ABI "armeabi-v7a/NEON (hard-float)"
-      #else
-#  define ABI "armeabi-v7a/NEON"
-      #endif
-    #else
-      #if defined(__ARM_PCS_VFP)
-#  define ABI "armeabi-v7a (hard-float)"
-      #else
-#  define ABI "armeabi-v7a"
-      #endif
-    #endif
-  #else
-#  define ABI "armeabi"
-  #endif
-#elif defined(__i386__)
-#  define ABI "x86"
-#elif defined(__x86_64__)
-#  define ABI "x86_64"
-#elif defined(__mips64)  /* mips64el-* toolchain defines __mips__ too */
-#  define ABI "mips64"
-#elif defined(__mips__)
-#  define ABI "mips"
-#elif defined(__aarch64__)
-#  define ABI "arm64-v8a"
-#else
-#  define ABI "unknown"
-#endif
-    return ABI;
-}
-
-struct data_sink
-{
-#if 0 //defined(__ANDROID__)
-#   define _TRACE_SIZE_PRINT() ((void)0)
-#   define _TRACE_SIZE(type, size) ((void)0)
-#   define _TRACE_DROP0(n) ((void)0)
-#   define _TRACE_DROP1(n) ((void)0)
-#   define _TRACE_DROP_non_IDR(nri, type, n_fwd) ((void)0)
-#   define _TRACE_FWD_INCR(nri,type,siz) ((void)0)
-#else
-    struct TraceSize {
-        unsigned len_max=0;
-        unsigned len_total=0;
-        unsigned count=0;
-    };
-    std::array<TraceSize,32> tsa_;
-    Clock::time_point tp_{}; //struct timeval tp_;
-    unsigned n_fr_ = 0;
-    unsigned n_drop1_ = 0;
-    unsigned n_fwd_ = 0; // signed char non_IDR_ = 4;
-    //unsigned size_fwd_ = 0;
-
-    void _TRACE_SIZE_PRINT() {
-        for (unsigned i=0; i<tsa_.size(); ++i) {
-            auto& a = tsa_[i];
-            if (a.count > 0) {
-                LOGD("NAL-Unit-Type %d: m/a/n: %u %u %u", i, a.len_max, a.len_total/a.count, a.count);
-            }
-        }
-    }
-    void _TRACE_SIZE(int type, unsigned size) {
-        auto& a = tsa_[type];
-        a.len_max = std::max(size, a.len_max);
-        a.len_total += size;
-        a.count++;
-
-        if (type==1 || type==5) {
-            ++n_fr_;
-            if (n_fr_ == 1) {
-                tp_ = Clock::now(); // gettimeofday(&tp_, NULL);
-            } else if ((n_fr_ & 0x7f) == 0) {
-                LOGD("Net F-rate: %.2f, %u %u %u", 0x7f*1000.0/milliseconds(Clock::now()-tp_), n_fr_, n_fwd_, n_drop1_);
-                tp_ = Clock::now();
-            }
-        }
-    }
-    void _TRACE_DROP0(unsigned n) {
-    }
-    void _TRACE_DROP1(unsigned n) {
-        n_drop1_ += n;
-    }
-    void _TRACE_DROP_non_IDR(int nri, int type, unsigned nfwd) {
-        ;
-    }
-    void _TRACE_FWD_INCR(int nri, int type,unsigned siz) {
-        if (type > 5)
-            LOGD("FWD %d", type);
-        ++n_fwd_;
-    }
-#endif
-
     std::mutex mutex_;
     std::deque<mbuffer> bufs_;
 
     //typedef boost::intrusive::slist<mbuffer,boost::intrusive::cache_last<true>> slist_type;
     //slist_type blis_, blis_ready_;
 
-    data_sink() {
+    nalu_data_sink() {
         //fp_ = fopen("/sdcard/o.sdps", "w");
     }
-    ~data_sink() { _TRACE_SIZE_PRINT(); /*fclose(fp_);*/ }
+    ~nalu_data_sink() { _TRACE_SIZE_PRINT(); /*fclose(fp_);*/ }
 
     enum { Types_SDP78 = ((1<<7)|(1<<8)) };
     enum { Types_SDP67 = ((1<<6)|(1<<7)) };
@@ -224,10 +236,10 @@ struct data_sink
 
     bool sdp_ready() const { return ((fwd_types_ & Types_SDP78) == Types_SDP78) || ((fwd_types_ & Types_SDP67) == Types_SDP67); }
 
-    void commit(mbuffer&& bp)
+    void pushbuf(mbuffer&& bp)
     {
         auto& h = bp.base_ptr->nal_h;
-        _TRACE_SIZE(h.type, bp.size);
+        _TRACE_NET_INCOMING(h.type, bp.size);
 
 //#define DONOT_DROP 0
         if (h.nri < 3)/*(0)*/ {
@@ -244,17 +256,18 @@ struct data_sink
         std::lock_guard<std::mutex> lock(mutex_);
 
         if (!bufs_.empty() && sdp_ready())/*(0)*/ {
-            _TRACE_DROP1(bufs_.size());
+            //_TRACE_DROP1(bufs_.size());
             bufs_.clear(); //if (bufs_.size() > 4) bufs_.pop_front();
         }
         bufs_.push_back(std::move(bp));
     }
-    //void commit(rtp_header const& rh, uint8_t* data, uint8_t* end) { commit(mbuffer(rh, data, end)); }
+    //void commit(rtp_header const& rh, uint8_t* data, uint8_t* end) { pushbuf(mbuffer(rh, data, end)); }
 
     void jcodec_inflate()
     {
+        _TRACE_PRINT_RATE();
         std::lock_guard<std::mutex> lock(mutex_);
-        while (!bufs_.empty()) {
+        while (!bufs_.empty() && (tc[0].ns.dec - tc[0].ns.out) < 6 /*&& !(tc[0].ns.nfr&0x400)*/) { // TODO:testing
             int idx = javacodec_ibuffer_obtain(15);
             if (idx < 0) {
                 //LOGW("buffer obtain: %d", idx);
@@ -362,9 +375,9 @@ Java_com_huazhen_barcode_engine_DecoderWrap_startHGS(JNIEnv* env, jobject thiz, 
     env->ReleaseStringUTFChars(js_path, path);
 
     {}/*=*/{
-        data_sink* sink = new data_sink();
+        nalu_data_sink* sink = new nalu_data_sink();
         sink_.reset(sink);
-        hgs_run([sink](mbuffer b){ sink->commit(std::move(b)); });
+        hgs_run([sink](mbuffer b){ sink->pushbuf(std::move(b)); });
     }
     LOGD("%s", abi_str());
 }
@@ -442,9 +455,9 @@ JNIEXPORT int hgs_start(char const* ip, int port, char const* path)
     //env->ReleaseStringUTFChars(js_ip, ip);
 
     {}/*=*/{
-        data_sink* sink = new data_sink();
+        nalu_data_sink* sink = new nalu_data_sink();
         sink_.reset(sink);
-        hgs_run([sink](mbuffer b){ sink->commit(std::move(b)); });
+        hgs_run([sink](mbuffer b){ sink->pushbuf(std::move(b)); });
     }
     LOGD("%d:%s %d %s", __LINE__,__func__, stage_, abi_str());
     return retval;
@@ -464,6 +477,7 @@ JNIEXPORT void hgs_stop()
             oDecoderWrap = 0;
         }
         sink_.reset();
+        _TRACE_RESET();
     }
 }
 

@@ -1,0 +1,7 @@
+
+### http://bootloader.wikidot.com/linux:android:kmsg
+### http://elinux.org/Android_Logging_System
+# adb shell dmesg
+# tail -f /var/log/messages
+# adb shell cat /proc/kmsg
+

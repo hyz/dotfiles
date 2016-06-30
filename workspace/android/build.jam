@@ -17,8 +17,8 @@ alias boostlibs : /boost//system /boost//chrono : <link>static ;
 
 lib hgs : hgs-rtph264.cpp hgs-jni.cpp log boostlibs #/boost//system/<link>static /boost//chrono/<link>static 
     ;
-obj jni : hgs-jni.cpp : <define>HGS_TEST_BUILD ;
-lib hgs1 : hgs-rtph264.cpp jni log boostlibs
+obj jni1 : hgs-jni.cpp : <define>HGS_TEST_BUILD ;
+lib hgs1 : hgs-rtph264.cpp jni1 log boostlibs
     ;
 
 #

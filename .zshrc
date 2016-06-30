@@ -95,10 +95,12 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
 else #if [ ! -d "$HOME/.gnupg" ] ; then
-    find /media/wood/*/ /mnt $HOME/mnt -maxdepth 1 -type d -name .gnupg |while read x ; do
-        export GNUPGHOME="$x"
-        break
-    done
+    if _pass=`which pass` ; then
+            find /media/wood/*/ /mnt/*/ $HOME/mnt -maxdepth 1 -type d -name .gnupg |while read x ; do
+                export GNUPGHOME="$x"
+                break
+            done
+    fi
 fi
 
 ###########################################################
