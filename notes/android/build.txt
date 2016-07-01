@@ -1,3 +1,4 @@
+### https://aabdelfattah.wordpress.com/2013/04/08/android-build-system-ultimate-guide/
 
 ### https://source.android.com/source/building.html
 . build/envsetup.sh
