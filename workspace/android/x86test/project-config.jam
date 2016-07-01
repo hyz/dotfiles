@@ -4,12 +4,13 @@
 
 import os ;
 path-constant HOME : [ os.environ HOME ] ;
-path-constant BOOST_ROOT : /opt/boost_1_60_0 ;
+path-constant BOOST_ROOT : /opt/BOOST_ROOT ;
 #path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
 use-project boost : $(BOOST_ROOT) ; # /boost//headers
 
-using gcc : : : <cxxflags>-std=c++1y ;
+using clang : : : <compileflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" <compileflags>"-std=c++1y" ;
+# using gcc : : : <cxxflags>-std=c++1y ;
 
 # ./bjam --build-type=complete --layout=tagged
 #  variant=debug|release            Select the build variant

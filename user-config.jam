@@ -13,7 +13,7 @@ project user-config ;
 #    <compileflags>"-std=c++11"
 # using gcc ;
 
-#using clang : : : <compileflags>"-stdlib=libc++" <compileflags>"-std=c++11" ;
+#using clang : : : <compileflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" <compileflags>"-std=c++1y" ;
 #using darwin : : : <compileflags>"-stdlib=libc++" <compileflags>"-std=c++11" ;
 
 ### msvc
