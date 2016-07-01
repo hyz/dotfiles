@@ -1,0 +1,7 @@
+
+### https://source.android.com/source/building.html
+. build/envsetup.sh
+lunch
+make help
+make -j8 libandroid_runtime 2>&1 |tee build.$(date +%H%M)
+

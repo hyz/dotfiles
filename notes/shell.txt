@@ -10,3 +10,7 @@ pgrep -lf yxim
 top -p $(echo `pgrep -f yxim` |tr ' ' ',')
 top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
 
+
+bash --login -i
+zsh --login -i
+
