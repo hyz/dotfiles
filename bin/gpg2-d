@@ -19,12 +19,13 @@ done
 
 GPG_OPTS="--quiet --yes --batch"
 
-sed -e 's/\.gpg$//'| while read gpgfile ; do
-    outfile=$outdir/`echo $gpgfile |sed -e 's:^[./]\+::' ` #"$cwd/Copy/`basename "$indir"`/$gpgfile"
+sed -e 's/\(\.gpg\)\+$//' | while read gpgfile ; do
+    outfile=$outdir/${gpgfile##[./]} #=$outdir/`echo $gpgfile |sed -e 's:^[./]*::' `
     d=`dirname "$outfile"`
     [ -d "$d" ] || mkdir -p $d || exit 5
 
     gpg2 -d $GPG_OPTS "$gpgfile.gpg" > "$outfile"
+    [ $? -eq 0 ] || echo "$gpgfile"
     # gpg2 -d $GPG_OPTS "$gpgfile" | gpg2 -e -r "$gpg_id" -o "$gpgfile.new" $GPG_OPTS
 done
 

@@ -1,6 +1,17 @@
-###
+### man bash
    Parameter Expansion
           The ‘$’ character introduces parameter expansion, command substitution, or arithmetic expansion.
+          ... ...
+       ${parameter#word}
+       ${parameter##word}
+              Remove matching prefix pattern.
+              ... ...
+       ${parameter%word}
+       ${parameter%%word}
+              Remove matching suffix pattern
+              ... ...
+### http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
+###
 
 ### http://tldp.org/LDP/abs/html/process-sub.html
 ### http://en.wikipedia.org/wiki/Process_substitution
