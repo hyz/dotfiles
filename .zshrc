@@ -94,13 +94,17 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
-else #if [ ! -d "$HOME/.gnupg" ] ; then
-    if _pass=`which pass` ; then
-            find /media/wood/*/ /mnt/*/ $HOME/mnt -maxdepth 1 -type d -name .gnupg |while read x ; do
-                export GNUPGHOME="$x"
-                break
-            done
-    fi
+else # if [ ! -e "$HOME/.gnupg/secring.gpg" ] ; then
+    #which pass 
+    gpghome() {
+        echo "$1" # [ -r "$1" ] && echo "$1" || false
+    }
+    for x in "/media/wood/*" "/mnt/*" "$HOME/mnt" ; do
+        if x=`eval gpghome $x/.gnupg/secring.gpg 2>/dev/null` ; then
+            export GNUPGHOME="$x"
+            break
+        fi
+    done
 fi
 
 ###########################################################

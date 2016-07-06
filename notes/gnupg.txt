@@ -16,8 +16,8 @@ Windows) if you use it after the --export option. I have now figured
 out that I can use "-ao <file.asc>" before the "--export-secret-key 
 <key_id>" and everything works fine: 
 
-gpg -ao private.asc --export-secret-key <key_id> 
-gpg --import private.asc 
+> gpg -ao private.asc --export-secret-key <key_id> 
+> gpg --import private.asc 
 gpg: key <key_id>: already in secret keyring 
 gpg: Total number processed: 1 
 gpg: secret keys read: 1 
@@ -25,7 +25,6 @@ gpg: secret keys unchanged: 1
 
 Thanks for the help! 
 -S 
-
 
 ### http://www.gossamer-threads.com/lists/gnupg/users/65884
 
