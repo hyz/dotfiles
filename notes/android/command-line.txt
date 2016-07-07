@@ -29,3 +29,7 @@ android update sdk --no-ui --filter android-18,platform,source
 android.bat list targets
 android.bat update project --path . --target android-18
 
+
+### DEPENDS
+    arm-linux-androideabi-readelf -d ../libs/armeabi/a
+

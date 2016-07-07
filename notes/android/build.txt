@@ -1,8 +1,57 @@
+### http://elinux.org/Android_Build_System
+### http://www.charleswilde.com/android-native-development-using-the-android-open-source-project/
 ### https://aabdelfattah.wordpress.com/2013/04/08/android-build-system-ultimate-guide/
 
+### http://source.android.com/source/downloading.html
+### https://source.android.com/source/initializing.html
+$ wget -S -O - http://source.android.com/source/51-android.rules | sed "s/<username>/$USER/" | sudo tee >/dev/null /etc/udev/rules.d/51-android.rules; sudo udevadm control --reload-rules
 ### https://source.android.com/source/building.html
 . build/envsetup.sh
 lunch
+lunch full_ckt6580_we_l-eng
 make help
+
+mmma external/netcat
+make strace
 make -j8 libandroid_runtime 2>&1 |tee build.$(date +%H%M)
+
+make kernel
+make sdk
+
+which mm
+cd X/Y/Z ; mm
+mmm development/hello
+
+### http://stackoverflow.com/questions/24369383/how-to-deal-with-redeclaration-of-c-built-in-type-char16-t
+### -std=c++11
+    file /frameworks/native/include/utils/Unicode.h
+    #if __cplusplus <= 199711L
+    typedef uint32_t char32_t;
+    typedef uint16_t char16_t;
+    #endif
+
+### example: external/foo/Android.mk
+    LOCAL_PATH:= $(call my-dir)
+    include $(CLEAR_VARS)
+
+    LOCAL_SRC_FILES:=\
+        a.cpp
+
+    LOCAL_CFLAGS:=-O2 -g
+    #LOCAL_CFLAGS+=-DLINUX
+
+    LOCAL_MODULE_TAGS := eng
+
+    LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+
+    LOCAL_MODULE:=foo
+
+    # gold in binutils 2.22 will warn about the usage of mktemp
+    LOCAL_LDFLAGS += -Wl,--no-fatal-warnings
+
+    include external/stlport/libstlport.mk
+    #include external/libcxx/libcxx.mk # https://groups.google.com/forum/#!topic/android-building/ZU4pSU3Hfas
+    include $(BUILD_EXECUTABLE)
+
+###
 

@@ -1,0 +1,9 @@
+
+https://sourceforge.net/projects/omxil/?source=typ_redirect
+http://elinux.org/images/5/52/Elc2011_garcia.pdf
+
+frameworks/native/include/media/openmax/OMX_Component.h
+frameworks/native/include/media/openmax/OMX_Core.h
+frameworks/av/media/libstagefright/omx/OMXMaster.cpp
+frameworks/av/media/libstagefright/omx/Android.mk
+

@@ -11,3 +11,10 @@ git submodule foreach git merge --ff-only
 ### github: Most starts
 https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
 
+### http://stackoverflow.com/questions/822811/showing-which-files-have-changed-between-two-revisions
+    git diff --name-status master..branchName
+    git diff master..branch
+    git log master..branch
+    git shortlog master..branch
+
+

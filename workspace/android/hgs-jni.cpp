@@ -64,11 +64,11 @@ inline unsigned seconds(Clock::duration const& d) {
 #if 0 //defined(__ANDROID__)
 #   define _TRACE_SIZE_PRINT() ((void)0)
 #   define _TRACE_NET_INCOMING(type, size) ((void)0)
-#   define _TRACE_DROP0(n) ((void)0)
+//#   define _TRACE_DROP0(n) ((void)0)
 //#   define _TRACE_DROP1(n) ((void)0)
 #   define _TRACE_DROP_non_IDR(nri, type, n_fwd) ((void)0)
-#   define _TRACE_FWD_INCR(nri,type,siz) ((void)0)
-#   define _TRACE_DEC_INCR(siz) ((void)0)
+#   define _TRACE_DEC_INC(nri,type,siz) ((void)0)
+#   define _TRACE_OUT_INC(siz) ((void)0)
 #   define _TRACE_RESET() ((void)0)
 #   define _TRACE_PRINT_RATE() ((void)0)
 #else
@@ -103,16 +103,16 @@ static void _TRACE_NET_INCOMING(int type, unsigned size) {
         tc[0].ns.nfr++;
     }
 }
-static void _TRACE_DROP0(unsigned n) {}
+//static void _TRACE_DROP0(unsigned n) {}
 //static void _TRACE_DROP1(unsigned n) { tc[0].n_drop1_ += n; }
 // static void _TRACE_DROP_non_IDR(int nri, int type, unsigned nfwd) { }
-static void _TRACE_FWD_INCR(int nri, int type,unsigned siz) {
+static void _TRACE_DEC_INC(int nri, int type,unsigned siz) {
     if (type == 5)
         tc[0].ns.dec++;
     else
         LOGD("FWD %d", type);
 }
-static void _TRACE_DEC_INCR(unsigned siz) {
+static void _TRACE_OUT_INC(unsigned siz) {
     tc[0].ns.out++;
 }
 static void _TRACE_PRINT_RATE() {
@@ -193,7 +193,7 @@ int javacodec_obuffer_obtain(void** pv, unsigned* len)
         *pv = env_->GetDirectBufferAddress(bytebuf);
         *len = env_->GetDirectBufferCapacity(bytebuf);
         env_->DeleteLocalRef(bytebuf);
-        _TRACE_DEC_INCR(*len);
+        _TRACE_OUT_INC(*len);
     }
     return idx;
     //void*       (*GetDirectBufferAddress)(JNIEnv*, jobject);
@@ -213,7 +213,7 @@ void javacodec_obuffer_release(int idx) {
 
 inline int stage(signed char y, char const* fx) {
     std::swap(stage_, y);
-    LOGD("HGS:%s %d->%d", fx, y, stage_);
+    LOGD("%s %d->%d", fx, y, stage_);
     return y;
 }
 
@@ -238,16 +238,16 @@ struct nalu_data_sink
 
     void pushbuf(mbuffer&& bp)
     {
-        auto& h = bp.base_ptr->nal_h;
-        _TRACE_NET_INCOMING(h.type, bp.size);
+        auto* h = bp.nal_header();
+        _TRACE_NET_INCOMING(h->type, bp.end()-bp.begin());
 
 //#define DONOT_DROP 0
-        if (h.nri < 3)/*(0)*/ {
-            _TRACE_DROP0(1);
+        if (h->nri < 3)/*(0)*/ {
+            //_TRACE_DROP0(1);
             return;
         }
         if (sdp_ready()) {
-            if (h.type > 5) {
+            if (h->type > 5) {
                 //fwrite((char*)bp.addr(-4), 4+bp.size, 1, fp_);
                 return;
             }
@@ -267,7 +267,7 @@ struct nalu_data_sink
     {
         _TRACE_PRINT_RATE();
         std::lock_guard<std::mutex> lock(mutex_);
-        while (!bufs_.empty() && (tc[0].ns.dec - tc[0].ns.out) < 6 /*&& !(tc[0].ns.nfr&0x400)*/) { // TODO:testing
+        while (!bufs_.empty() && (tc[0].ns.dec - tc[0].ns.out) < 3 /*&& !(tc[0].ns.nfr&0x400)*/) { // TODO:testing
             int idx = javacodec_ibuffer_obtain(15);
             if (idx < 0) {
                 //LOGW("buffer obtain: %d", idx);
@@ -276,20 +276,20 @@ struct nalu_data_sink
 
             mbuffer buf = std::move(bufs_.front());
             bufs_.pop_front();
-            auto& h = buf.base_ptr->nal_h;
+            auto* h = buf.nal_header();
 
             int flags = 0;
-            switch (h.type) {
+            switch (h->type) {
                 case 0: case 7: case 8: flags = BUFFER_FLAG_CODEC_CONFIG; break;
             }
-            javacodec_ibuffer_inflate(idx, (char*)buf.addr(-4), 4+buf.size);
+            javacodec_ibuffer_inflate(idx, (char*)buf.begin_s(), buf.end()-buf.begin_s());
             javacodec_ibuffer_release(idx, 1, flags);
 
             if (!sdp_ready()) {
-                fwd_types_ |= (1<<h.type);
+                fwd_types_ |= (1<<h->type);
                 LOGD("sdp %02x", fwd_types_);
             }
-            _TRACE_FWD_INCR(h.nri, h.type, buf.size);
+            _TRACE_DEC_INC(h->nri, h->type, buf.end()-buf.begin());
         }
     }
 

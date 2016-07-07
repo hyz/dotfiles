@@ -8,6 +8,25 @@ b2 -j5 toolset=clang link=static cxxflags="-stdlib=libc++" linkflags="-stdlib=li
 ./b2 cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" toolset=clang -a -q
 
 ###
-apt-get install libc++
+apt-get install libc++-dev libc++abi-dev
 clang++ -std=c++11 -stdlib=libc++ -lc++abi
 
+### https://gist.github.com/fyears/745da3cf6b19dbff3d0e
+    new way to install llvm libc++ in Ubuntu 14.04 Trusty
+    # http://llvm.org/apt/
+
+    # LLVM
+    deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty main
+    deb-src http://llvm.org/apt/trusty/ llvm-toolchain-trusty main
+    # 3.5 
+    deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.5 main
+    deb-src http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.5 main
+    # 3.6 
+    deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.6 main
+    deb-src http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.6 main
+
+    wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
+    sudo apt-get update -y
+    sudo apt-get install -y clang-3.6 lldb-3.6 libc++-dev libc++abi-dev
+
+###

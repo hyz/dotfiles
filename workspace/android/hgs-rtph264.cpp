@@ -224,9 +224,9 @@ struct h264nal : private boost::noncopyable
         LOGD("sprop_parameter_sets %u %u", sps.size(), pps.size());
         uint8_t sbytes[4] = {0,0,0,1};
 
-        mbuffer b( rtp_header{} );
+        mbuffer b( rtp_header{}, (nal_unit_header*)sps.data(), (uint8_t*)sps.data()+sps.length() );
         //! b.put(&sbytes[0], &sbytes[4]);
-        b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
+        //b.put((uint8_t*)sps.data(), (uint8_t*)sps.data()+sps.length());
         b.put(&sbytes[0], &sbytes[4]);
         b.put((uint8_t*)pps.data(), (uint8_t*)pps.data()+pps.length());
         sink_commit_(std::move(b));
@@ -249,7 +249,7 @@ struct h264nal : private boost::noncopyable
                         break;
                     if (nal_unit_header* h2 = nal_unit_header::cast(data,data+len)) {
                         h2->print(data,data+len);
-                        sink_commit_(mbuffer(*rtp_h, data, data+len)); //sink_commit_(timestamp, 0);
+                        sink_commit_(mbuffer(*rtp_h, h2, data+len)); //sink_commit_(timestamp, 0);
                         data += len; //
                     }
                 }
@@ -264,10 +264,10 @@ struct h264nal : private boost::noncopyable
                         h3->nri = h1->nri;
                         h3->f = h1->f;
                         h3->print(data,end);
-                        if (bufp_._using()) {
+                        if (!bufp_.empty()) {
                             LOGE("FU-A e loss: %d", int(end-data));
                         }
-                        bufp_ = mbuffer(*rtp_h);
+                        bufp_ = mbuffer(*rtp_h, *h3);
                     } else if (!continus) {
                         bufp_ = mbuffer();
                         LOGE("FU-A not continus: %d", int(end-data));
@@ -275,11 +275,10 @@ struct h264nal : private boost::noncopyable
                     } else if (bufp_.empty()) {
                         LOGE("FU-A buf:empty: %d", int(end-data));
                         return;
-                    } else {
-                        ++data; // skip nal_unit_header
                     }
+                    //++data; // skip nal_unit_header
         rtp_statis_(bufp_.rtp_h, data, end);
-                    bufp_.put(data, end);
+                    bufp_.put(data+1, end);
                     if (fuh.e) {
                         sink_commit_(std::move(bufp_));
                     }
@@ -287,7 +286,7 @@ struct h264nal : private boost::noncopyable
                 break;
             default:
                 if (h1->type < 24) {
-                    sink_commit_(mbuffer(*rtp_h, data, end));
+                    sink_commit_(mbuffer(*rtp_h, h1, end));
                 } else {
                     LOGE("nal-unit-type %d", h1->type);
                 }

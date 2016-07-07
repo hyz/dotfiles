@@ -148,65 +148,84 @@ struct nal_unit_header
 
 struct mbuffer /*: boost::intrusive::slist_base_hook<>*/
 {
-    rtp_header rtp_h;
-    struct Nal {
+    struct rtpnalu_t {
+        rtp_header rtp_h;
         uint32_t _4bytes;
         nal_unit_header nal_h; // size 0 pos
-        uint8_t date_p_[1];
-    } *base_ptr = 0;
-    unsigned size, capacity;
+        uint8_t data_p[1];
+    };
 
     ~mbuffer() {
-        if (base_ptr)
-            free(base_ptr);
+        if (base_ptr_)
+            free(base_ptr_);
     }
     mbuffer() {
-        size = capacity = 0;
-        base_ptr = 0; // rtp_h = rtp_header{};
+        size_ = capacity_ = 0;
+        base_ptr_ = 0; // rtp_h = rtp_header{};
     }
-    mbuffer(rtp_header const& rh, uint8_t* data=0, uint8_t* end=0) {
-        capacity = 2048;
-        size = 0; //+sizeof(nal_unit_header); //sizeof(Nal)-1;
-        base_ptr = (Nal*)malloc(capacity);
-        rtp_h = rh;
-        base_ptr->_4bytes = htonl(0x00000001); // base_ptr->nal_h = nh;
-
-        if (data && data<end)
-            put(data, end);
+    mbuffer(rtp_header const& rh, nal_unit_header const& nh) {
+        init(rh, nh);
     }
-    mbuffer(mbuffer&& rhs) {
-        memcpy(this, &rhs, sizeof(*this));
-        rhs.size = rhs.capacity = 0;
-        rhs.base_ptr = 0;
-    }
-    mbuffer& operator=(mbuffer&& rhs) {
-        if (this != &rhs) {
-            if (base_ptr)
-                free(base_ptr);
-            memcpy(this, &rhs, sizeof(*this));
-            rhs.size = rhs.capacity = 0;
-            rhs.base_ptr = 0;
-        }
-        return *this;
+    mbuffer(rtp_header const& rh, nal_unit_header const* nal_begin, uint8_t const* end) {
+        init(rh, *nal_begin);
+        put( (uint8_t*)(nal_begin+1), end);
     }
 
     void put(uint8_t const* p, uint8_t const* end) {
-        assert( base_ptr );
+        assert( base_ptr_ );
         unsigned siz = end - p;
-        if (capacity - this->size < siz) {
-            capacity += (siz+2047)/1024*1024;
-            base_ptr = (Nal*)realloc(base_ptr, capacity);
+        if (capacity_ - size_ < siz) {
+            capacity_ += (siz+2047)/1024*1024;
+            base_ptr_ = (rtpnalu_t*)realloc(base_ptr_, capacity_);
         }
-        memcpy(addr(this->size), p, siz);
-        this->size += siz;
+        memcpy(this->end(), p, siz);
+        size_ += siz;
     }
-    uint8_t* addr(int offs) const { return base_ptr->date_p_ +(-1 + offs); }
-    uint8_t* nal_header() const { return addr(0); }
-    uint8_t* frame_data() const { return addr(1); }
 
-    bool empty() const { return !base_ptr; }
-    bool _using() const { return bool(base_ptr); }
+public:
+    nal_unit_header* rtp_header() const { return &base_ptr_->rtp_h; }
+    nal_unit_header* nal_header() const { return &base_ptr_->nal_h; }
+
+    uint8_t* begin_s() const { return (uint8_t*)(&base_ptr_->_4bytes); }
+    uint8_t* begin() const { return (uint8_t*)(&base_ptr_->nal_h); }
+    uint8_t* data() const { return base_ptr_->data_p; }
+    uint8_t* end() const { return (uint8_t*)base_ptr_ + size_; }
+
+    bool empty() const { return size_==0; }
+
+    rtpnalu_t* release() {
+        rtpnalu_t* ptr = base_ptr_;
+        base_ptr_ = 0;
+        size_ = capacity_ = 0;
+        return ptr;
+    }
+public: // movable-only
+    mbuffer(mbuffer&& rhs) {
+        memcpy(this, &rhs, sizeof(*this));
+        rhs.size_ = rhs.capacity_ = 0;
+        rhs.base_ptr_ = 0;
+    }
+    mbuffer& operator=(mbuffer&& rhs) {
+        if (this != &rhs) {
+            if (base_ptr_)
+                free(base_ptr_);
+            memcpy(this, &rhs, sizeof(*this));
+            rhs.size_ = rhs.capacity_ = 0;
+            rhs.base_ptr_ = 0;
+        }
+        return *this;
+    }
 private:
+    rtpnalu_t *base_ptr_ = 0;
+    unsigned size_, capacity_; // size_ includes nal_h
+    void init(rtp_header const& rh, nal_unit_header const& nh) {
+        capacity_ = 2048;
+        base_ptr_ = (rtpnalu_t*)malloc(capacity_);
+        base_ptr_->rtp_h = rh;
+        base_ptr_->_4bytes = htonl(0x00000001); // base_ptr_->nal_h = nh;
+        base_ptr_->nal_h = nh;
+        size_ = sizeof(rtp_header)+4+sizeof(nal_unit_header);
+    }
     mbuffer(mbuffer const&);// = delete;
     mbuffer& operator=(mbuffer const&);// = delete;
 };
