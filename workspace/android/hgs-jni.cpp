@@ -128,7 +128,7 @@ static void _TRACE_PRINT_RATE() {
 }
 #endif
 
-enum { BUFFER_FLAG_CODEC_CONFIG=2 };
+enum { BUFFER_FLAG_CODEC_CONFIG =2 }; //c++: BUFFER_FLAG_CODECCONFIG =2 //OMX: OMX_BUFFERFLAG_CODECCONFIG
 
 //int  javacodec_ibuffer_obtain(int timeout);
 //void javacodec_ibuffer_inflate(int idx, char* p, size_t len);

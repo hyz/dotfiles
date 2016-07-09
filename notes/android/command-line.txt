@@ -33,3 +33,7 @@ android.bat update project --path . --target android-18
 ### DEPENDS
     arm-linux-androideabi-readelf -d ../libs/armeabi/a
 
+### adb
+    adb -s 0123456789ABCDEF push armeabi/a /data/
+    adb -s 0123456789ABCDEF shell chmod 0755 /data/a && /data/a
+

@@ -1,3 +1,5 @@
+https://jan.newmarch.name/RPi/OpenMAX/State/
+    OpenMAX IL uses a state model for each component. Within each state certain operations can be performed while others must be done before the next state transition can occur. 
 
 https://sourceforge.net/projects/omxil/?source=typ_redirect
 http://elinux.org/images/5/52/Elc2011_garcia.pdf
@@ -6,4 +8,10 @@ frameworks/native/include/media/openmax/OMX_Component.h
 frameworks/native/include/media/openmax/OMX_Core.h
 frameworks/av/media/libstagefright/omx/OMXMaster.cpp
 frameworks/av/media/libstagefright/omx/Android.mk
+frameworks/av/media/libstagefright/omx/OMXNodeInstance.cpp
+frameworks/av/media/libstagefright/omx/OMX.cpp
+
+http://stackoverflow.com/questions/21898320/android-creating-an-omx-component-for-a-video-decoder
+
+http://readme-go.appspot.com/info/libomxil-bellagio
 
