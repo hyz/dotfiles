@@ -1,3 +1,5 @@
+http://www.netmite.com/android/mydroid/2.0/external/opencore/doc/openmax_call_sequences.pdf
+
 https://jan.newmarch.name/RPi/OpenMAX/State/
     OpenMAX IL uses a state model for each component. Within each state certain operations can be performed while others must be done before the next state transition can occur. 
 
@@ -14,4 +16,8 @@ frameworks/av/media/libstagefright/omx/OMX.cpp
 http://stackoverflow.com/questions/21898320/android-creating-an-omx-component-for-a-video-decoder
 
 http://readme-go.appspot.com/info/libomxil-bellagio
+
+http://blog.csdn.net/yili_xie/article/details/4803193
+http://blog.csdn.net/llping2011/article/details/20382679
+http://blog.chinaunix.net/uid-26941022-id-3996483.html
 
