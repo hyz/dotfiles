@@ -79,7 +79,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         break
     done
     for x in /cygdrive/{c,d,e,f,g,h,i}/.gnupg ; do
-        [ -d "$x" ] || continue
+        [ -r "$x/secring.gpg" ] || continue
         export GNUPGHOME=`cygpath -w "$x"`
         break
     done
@@ -97,7 +97,7 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
 else # if [ ! -e "$HOME/.gnupg/secring.gpg" ] ; then
     #which pass 
     gpghome() {
-        echo "$1" # [ -r "$1" ] && echo "$1" || false
+        [ -r "$1" ] && dirname "$1" || false
     }
     for x in "/media/wood/*" "/mnt/*" "$HOME/mnt" ; do
         if x=`eval gpghome $x/.gnupg/secring.gpg 2>/dev/null` ; then
