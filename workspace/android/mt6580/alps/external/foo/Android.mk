@@ -28,6 +28,7 @@ LOCAL_C_INCLUDES += \
 	frameworks/native/include/media/hardware
 	#frameworks/av/media/libstagefright
 
+#LOCAL_NDK_STL_VARIANT := stlport_static
 include external/stlport/libstlport.mk
 include $(BUILD_EXECUTABLE)
 
