@@ -1,0 +1,5 @@
+
+### http://www.canofcode.co.uk/software/android/hardware-video-decoding-android/
+    The History of Video Decoding on Android
+
+

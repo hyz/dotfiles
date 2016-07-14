@@ -1,3 +1,11 @@
+### http://gentlelogic.blogspot.com/2011/11/exploring-h264-part-2-h264-bitstream.html
+    Exploring H.264. Part 2: H.264 Bitstream format 
+    http://h264bitstream.sourceforge.net/
+    http://cekirdek.pardus.org.tr/~ismail/ffmpeg-docs/h264_8c-source.html
+    http://www.elecard.com/en/products/professional/analysis/stream-analyzer.html - this is not open source, but helps in h264 bitstream research
+    http://aragorn.pb.bialystok.pl/~marekpk/papers/parfieniuk.09.ujt.final.pdf - some info about decoders
+
+
 ### http://stackoverflow.com/questions/5024114/suggested-compression-ratio-with-h-264
     [image width] x [image height] x [framerate] x [motion rank] x 0.07 = [desired bitrate]
 
@@ -66,7 +74,9 @@ For fragmented video frames you should regenerate NAL unit using 3 NAL unit bits
 
 
 https://sourceforge.net/projects/h264bitstream/
-https://cardinalpeak.com/blog/the-h-264-sequence-parameter-set/
+
+### https://cardinalpeak.com/blog/the-h-264-sequence-parameter-set/
+    FFmpeg/ffmpeg -i vid_bigbuckbunny.mp4 -vcodec copy -vbsf h264_mp4toannexb -an vid_bigbuckbunny.h264
 
 
 Sequence Parameter Set (SPS) and the Picture Parameter Set (PPS). 
@@ -139,4 +149,67 @@ to construct the NAL unit you should take "Type" from "FU Header" and "F" and "N
     NAL-Unit-Type 7: m/a/n: 10 10 461
     NAL-Unit-Type 8: m/a/n: 4 4 461
     ===
+
+### https://www.raspberrypi.org/forums/viewtopic.php?t=41053&p=334473#p334801
+    The VUI bitstream restriction setting WORKS and now the Raspberry has zero latency decode. :mrgreen:
+
+    bitstream_restriction_flag : 1
+    motion_vectors_over_pic_boundaries_flag : 1
+    max_bytes_per_pic_denom : 0
+    max_bits_per_mb_denom : 0
+    log2_max_mv_length_horizontal : 10
+    log2_max_mv_length_vertical : 10
+    num_reorder_frames : 0
+    max_dec_frame_buffering : 1
+
+    This technique may also work for other hardware that is experiencing similar startup delays...
+    For future reference, since it was mentioned a few times, we are not using B frames in the stream.
+
+    If you're going to write a VUI structure into the SPS at the decoder, you can't use a constant value for "max_dec_frame_buffering" - it has to be at least the value of "max_num_ref_frames" which is part of the standard SPS packet. I naively fixed this value at 1, but when a stream came in with more than 1 in max_num_ref_frames, all sort of interesting glitches started happening. Instead, set max_dec_frame_buffering in the VUI to the greater of 1 or max_num_ref_frames and you should be better off.
+
+### https://software.intel.com/en-us/forums/intel-integrated-performance-primitives/topic/294840
+    ... ...
+    1. As suggested, do not use multi-threading in the decoder, as it adds to the frame buffering employed.
+    2. The reason for suggesting to go with an as low as possible level (relative the picture resolution) is exactly because it influences the 'MaxDPBSize' parameter that thus sets the 'max_dec_frame_buffering' parameter when not present. If you would like to use a higher level (for other compression quality reasons), you would need to specify the 'max_dec_frame_buffering' directly in the VUI set.
+    3. There might be a "bug" in the handling of the 'max_dec_frame_buffering' in the decoder for a value of 0 - and I also cannot remember if it handles the inferring of the value (when not present) correctly...
+
+### http://ecereview.blogspot.com/2007/12/syntax-elements-of-h264.html
+### http://ecereview.blogspot.com/search/label/Video
+    - Syntax elements for NAL
+    1). nal_ref_idc:
+    For seq and pic parameter sets NAL, it shall be 1.
+    For slices of reference pic, it shall be 1.
+    For slices of non reference pic, it shall be 0.
+    2). nal_unit_type:
+
+    - Syntax elements for Seq Parameter Set (SPS)
+    0) seq_parameter_set_id: [0, 31]
+    1) log2_max_frame_num_minus4: [0, 12] (maximal num of MaxFrameNum is 2^16)
+    2) pic_order_cnt_type: specify the method to decode picture order count. [0, 2]
+    3) log2_max_pic_order_cnt_lsb_minus4: [0, 12] (MaxPicOrderCntLsb)
+    4) several elements for the decoding of picture order count
+    5) num_ref_frames: [0, MaxDpbSize], the sum of reference frames, complementary reference field pair and non-paired reference fields
+    6) frame_mbs_only_flag: indicate only frames exist in the video seq
+    7) mb_adaptive_frame_field_flag:
+
+    - Syntax elements for Pic Parameter Set (PPS)
+    0) pic_parameter_set_id: [0, 255]
+    1) mb to slice group map
+    2) QP initial value for Y/C
+
+    - Syntax elements for Slice header
+    0) first_mb_in_slice: MB index in general and MB pair index for MBAFF
+    1) slice_type: IDR only contains I/SI slices and so does the video seq when num_ref_frames is 0
+    2) frame_num: number reference pictures.
+    3) field_pic_flag: this slice is one of a coded field, i.e. the picture is field picture. The picture structure could be defined with this flag. But if it is 0 the MB structure may be either frame or field.
+    4) bottom_field_flag: this slice is part of a coded bottom field. The picture is bottom field.
+    5) pic_order_cnt_lsb: the picture order count modulo MaxPicOrderCntLsb for the top field of a coded frame or for a coded field.
+    6) delta_pic_order_cnt_bottom
+    7) delta_pic_order_cnt[0-1]?
+    8) idr_pic_id: identifies an IDR picture. All slices in one IDR have the same value of idr_pic_id.
+
+    - Syntax elements for slice data
+    0) mb_field_decoding_flag: identify if the current MB is field or frame structure in MBAFF mode 
+
+###
 

@@ -1,0 +1,8 @@
+
+> pwd
+/home/wood/workspace/rtsp/mp4parser-master/examples/src/main/java
+> find . -name MetaDataRead.java
+./org/mp4parser/examples/metadata/MetaDataRead.java
+>
+> javac -cp ../../../../isoparser/src/main/java:. org/mp4parser/examples/metadata/MetaDataRead.java
+

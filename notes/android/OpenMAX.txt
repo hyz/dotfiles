@@ -1,3 +1,6 @@
+http://processors.wiki.ti.com/index.php/OpenMax_Development_Guide
+
+
 http://www.netmite.com/android/mydroid/2.0/external/opencore/doc/openmax_call_sequences.pdf
 
 https://jan.newmarch.name/RPi/OpenMAX/State/
