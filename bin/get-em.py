@@ -3,6 +3,7 @@
 import sys, os, time, random
 import signal
 import requests
+from getopt import getopt
 from html.parser import HTMLParser
 # import gzip
 # import json
@@ -187,7 +188,7 @@ def make_query(code,market):
     return url, headers #(params={}, headers=headers, cookies=cookies)
     #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
 
-def download_lis(lis):
+def download_lis(lis, outdir):
     session = requests.Session()
     for i, (code,market) in enumerate(lis):
         time0 = time.time()
@@ -204,9 +205,8 @@ def download_lis(lis):
                 print(' ', 'cookie', x,y)
             print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
 
-            with open('%06d.%d.html' % (code,market), 'w') as f:
+            with open(os.path.join(outdir,'%06d.%d.html' % (code,market)), 'w') as f:
                 f.write(rsp.text)
-            #parse_html_1(code,market, rsp.text)
 
         time.sleep( random.randint(1,5) )
         if _STOP:
@@ -240,18 +240,23 @@ def each_file(path):
         yield path
 
 def download():
+    opts, filename = getopt(sys.argv[1:],"o:")
+    for o,v in opts:
+        if o == '-o':
+            outdir = v
+    filename,=filename
+
     lis = []
-    with open(sys.argv[1]) as f:
+    with open(filename) as f:
         for line in f:
             v = line.split()
             code,market = int(v[0]), int(v[1])
-            if not os.path.exists('%06d.%d.html' % (code,market)):
+            if not os.path.exists(os.path.join(outdir,'%06d.%d.html' % (code,market))):
                 lis.append( (code,market) )
-    if not lis:
-        print('Completed.')
-        sys.exit(0)
-    random.shuffle(lis)
-    download_lis(lis)
+    if lis:
+        random.shuffle(lis)
+        download_lis(lis, outdir)
+    print('Completed.')
 
 def parse1():
     for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
@@ -262,7 +267,7 @@ def parse2():
 
 def main():
     print('Usage:')
-    print(' ','../download','~/_/s.0712')
+    print(' ','./download', '-o 1.2016-07-13','~/_/s.0712')
     print(' ','./parse1','1.2016-07-13')
     print(' ','./parse2','2.2016-07-12')
 
