@@ -188,7 +188,7 @@ def make_query(code,market):
     return url, headers #(params={}, headers=headers, cookies=cookies)
     #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
 
-def download_lis(lis, outdir):
+def download_lis(lis):
     session = requests.Session()
     for i, (code,market) in enumerate(lis):
         time0 = time.time()
@@ -205,7 +205,7 @@ def download_lis(lis, outdir):
                 print(' ', 'cookie', x,y)
             print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
 
-            with open(os.path.join(outdir,'%06d.%d.html' % (code,market)), 'w') as f:
+            with open('%06d.%d.html' % (code,market), 'w') as f:
                 f.write(rsp.text)
 
         time.sleep( random.randint(1,5) )
@@ -254,8 +254,9 @@ def download():
             if not os.path.exists(os.path.join(outdir,'%06d.%d.html' % (code,market))):
                 lis.append( (code,market) )
     if lis:
+        os.chdir(outdir)
         random.shuffle(lis)
-        download_lis(lis, outdir)
+        download_lis(lis)
     print('Completed.')
 
 def parse1():
