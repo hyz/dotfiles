@@ -24,7 +24,7 @@ def getval(pairs, k):
             return y
     return None
 
-def parse_html(code,market, html):
+def parse_html_1(code,market, html):
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             self.stacks.append( (tag,attrs,'') )
@@ -80,144 +80,7 @@ def parse_html(code,market, html):
     #visit.extend(third.findall(html))
     #visit.extend(last.findall(html))
 
-def GET(session, code, market, outfilename):
-    _URL     = os.environ['EM_URL']
-    _REFERER = os.environ['EM_REFERER']
-
-    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
-    url = _URL % fmtd
-    headers = {
-        "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
-        "Referer": _REFERER % fmtd,
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language":"en-US,en;q=0.5",
-        "Accept-Encoding":"gzip, deflate",
-        "Connection":"keep-alive",
-        "Content-Type":"application/x-www-form-urlencoded",
-    }
-
-    rsp = session.get(url, params={}, headers=headers)
-
-    print('=', rsp.status_code, code,market, rsp.url)
-    if rsp.status_code == 200:
-        print(' encoding', rsp.encoding)
-        for x,y in rsp.cookies.items():
-            print(' cookie', x,y)
-        print(' Content-Encoding', rsp.headers.get('Content-Encoding'))
-
-        with open(outfilename, 'w') as f:
-            f.write(rsp.text)
-        #parse_html(code,market, rsp.text)
-
-def make_query(code,market):
-    _URL     = os.environ['EM_URL']
-    _REFERER = os.environ['EM_REFERER']
-    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
-    url = _URL % fmtd
-    referer = _REFERER % fmtd
-
-    headers = {
-        "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
-        "Referer": referer,
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language":"en-US,en;q=0.5",
-        "Accept-Encoding":"gzip, deflate",
-        "Connection":"keep-alive",
-        "Content-Type":"application/x-www-form-urlencoded",
-    }
-
-    return url, headers #(params={}, headers=headers, cookies=cookies)
-    #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
-
-def download(filename):
-    lis = []
-    for line in open(filename):
-        v = line.split()
-        code,market = int(v[0]), int(v[1])
-        if not os.path.exists('%06d.%d.html' % (code,market)):
-            lis.append( (code,market) )
-    if not lis:
-        print('Completed.')
-        return
-    random.shuffle(lis)
-
-    session = requests.Session()
-    for i, (code,market) in enumerate(lis):
-        time0 = time.time()
-        url,headers = make_query(code,market)
-        print('%06d'%code,market, '%d/%d'%(i+1,len(lis)), url, time.strftime("%T"), '', end='')
-
-        rsp = session.get(url, headers=headers, verify=False, timeout=6)
-        print(int(time.time()-time0)) # print('%06d'%code,market, int(time.time()-time0))
-
-        print(' ', rsp.status_code, rsp.url)
-        if rsp.status_code == 200:
-            print(' ', 'encoding', rsp.encoding)
-            for x,y in rsp.cookies.items():
-                print(' ', 'cookie', x,y)
-            print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
-
-            with open('%06d.%d.html' % (code,market), 'w') as f:
-                f.write(rsp.text)
-            #parse_html(code,market, rsp.text)
-
-        time.sleep( random.randint(1,5) )
-        if _STOP:
-            break
-        if random.randint(1,100) >80:
-            pass
-            #session.close()
-            #session = requests.Session()
-
-def parse(fp):
-    bn,ext = os.path.splitext( fp )
-    if ext != '.html':
-        return
-    code,market = [ int(x) for x in os.path.basename(bn).split('.') ]
-    with open( fp ) as f:
-        try:
-            parse_html(code, market, f.read())
-        except Exception as e:
-            print('parse', fp, 'fail:', e, file=sys.stderr)
-
-def each_file(path):
-    if os.path.isdir(path):
-        for top, dirs, files in os.walk( path ):
-            for bn in files:
-                yield os.path.join(top,bn)
-            break
-    else:
-        yield path
-    #for top, dirs, files in os.walk( len(sys.argv)>1 and sys.argv[1] or '.' ):
-    #    parse(top,files)
-    #    break
-
-def main():
-    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
-        parse(fp)
-    #download(sys.argv[1])
-
-if __name__ == '__main__':
-    _STOP = 0
-    def sig_handler(signal, frame):
-        global _STOP
-        _STOP = 1
-    signal.signal(signal.SIGINT, sig_handler)
-    try:
-        #_NAMES = read_names()
-        main()
-    except Exception as e:
-        print(e, file=sys.stderr)
-
-# >>> import requests
-# >>> help(requests.get)
-# >>>
-# requests.get(url, cookies={'JSESSIONID':'abcI-FcxUP42naKy1qZsv'})
-# post(..., data=json.dump({'email':'email','password':'pass'}) , )
-#
-###
-
-def _1_parse_html(code,market, html):
+def parse_html_2(code,market, html):
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             self.stacks.append( (tag,attrs,'') )
@@ -274,4 +137,156 @@ def _1_parse_html(code,market, html):
         print('%06d %d' % (code,market), k, int(10*ea/ic), ic, ';'.join(toks), sep='\t')
 
     par.close()
+
+def GET(session, code, market, outfilename):
+    _URL     = os.environ['EM_URL']
+    _REFERER = os.environ['EM_REFERER']
+
+    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
+    url = _URL % fmtd
+    headers = {
+        "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
+        "Referer": _REFERER % fmtd,
+        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language":"en-US,en;q=0.5",
+        "Accept-Encoding":"gzip, deflate",
+        "Connection":"keep-alive",
+        "Content-Type":"application/x-www-form-urlencoded",
+    }
+
+    rsp = session.get(url, params={}, headers=headers)
+
+    print('=', rsp.status_code, code,market, rsp.url)
+    if rsp.status_code == 200:
+        print(' encoding', rsp.encoding)
+        for x,y in rsp.cookies.items():
+            print(' cookie', x,y)
+        print(' Content-Encoding', rsp.headers.get('Content-Encoding'))
+
+        with open(outfilename, 'w') as f:
+            f.write(rsp.text)
+        #parse_html_1(code,market, rsp.text)
+
+def make_query(code,market):
+    _URL     = os.environ['EM_URL']
+    _REFERER = os.environ['EM_REFERER']
+    fmtd = { 'code':code, 'market':1+(market==0) } # locals()
+    url = _URL % fmtd
+    referer = _REFERER % fmtd
+
+    headers = {
+        "User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:36.0) Gecko/20100101 Firefox/36.0",
+        "Referer": referer,
+        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language":"en-US,en;q=0.5",
+        "Accept-Encoding":"gzip, deflate",
+        "Connection":"keep-alive",
+        "Content-Type":"application/x-www-form-urlencoded",
+    }
+
+    return url, headers #(params={}, headers=headers, cookies=cookies)
+    #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
+
+def download_lis(lis):
+    session = requests.Session()
+    for i, (code,market) in enumerate(lis):
+        time0 = time.time()
+        url,headers = make_query(code,market)
+        print('%06d'%code,market, '%d/%d'%(i+1,len(lis)), url, time.strftime("%T"), '', end='')
+
+        rsp = session.get(url, headers=headers, verify=False, timeout=6)
+        print(int(time.time()-time0)) # print('%06d'%code,market, int(time.time()-time0))
+
+        print(' ', rsp.status_code, rsp.url)
+        if rsp.status_code == 200:
+            print(' ', 'encoding', rsp.encoding)
+            for x,y in rsp.cookies.items():
+                print(' ', 'cookie', x,y)
+            print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
+
+            with open('%06d.%d.html' % (code,market), 'w') as f:
+                f.write(rsp.text)
+            #parse_html_1(code,market, rsp.text)
+
+        time.sleep( random.randint(1,5) )
+        if _STOP:
+            break
+        if random.randint(1,100) >80:
+            pass
+            #session.close()
+            #session = requests.Session()
+    sys.exit(0)
+
+def parse_html(fp, parse_fn):
+    bn,ext = os.path.splitext( fp )
+    if ext != '.html':
+        print('skip', fp)
+        return
+    code,market = [ int(x) for x in os.path.basename(bn).split('.') ]
+    with open( fp ) as f:
+        try:
+            parse_fn(code, market, f.read())
+        except Exception as e:
+            print('parse_html', fp, 'fail:', e, file=sys.stderr)
+            raise
+
+def each_file(path):
+    if os.path.isdir(path):
+        for top, dirs, files in os.walk( path ):
+            for bn in files:
+                yield os.path.join(top,bn)
+            break
+    else:
+        yield path
+
+def download():
+    lis = []
+    with open(sys.argv[1]) as f:
+        for line in f:
+            v = line.split()
+            code,market = int(v[0]), int(v[1])
+            if not os.path.exists('%06d.%d.html' % (code,market)):
+                lis.append( (code,market) )
+    if not lis:
+        print('Completed.')
+        sys.exit(0)
+    random.shuffle(lis)
+    download_lis(lis)
+
+def parse1():
+    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
+        parse_html(fp, parse_html_1)
+def parse2():
+    for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
+        parse_html(fp, parse_html_2)
+
+def main():
+    print('Usage:')
+    print(' ','../download','~/_/s.0712')
+    print(' ','./parse1','1.2016-07-13')
+    print(' ','./parse2','2.2016-07-12')
+
+def hello(): print('hello')
+def world(): print('world')
+
+if __name__ == '__main__':
+    _STOP = 0
+    def sig_handler(signal, frame):
+        global _STOP
+        _STOP = 1
+    signal.signal(signal.SIGINT, sig_handler)
+    try:
+        #_NAMES = read_names()
+        globals().get(os.path.basename(sys.argv[0]), main)()
+    except Exception as e:
+        print(e, file=sys.stderr)
+
+# >>> import requests
+# >>> help(requests.get)
+# >>>
+# requests.get(url, cookies={'JSESSIONID':'abcI-FcxUP42naKy1qZsv'})
+# post(..., data=json.dump({'email':'email','password':'pass'}) , )
+#
+###
+
 
