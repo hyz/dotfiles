@@ -1,17 +1,2 @@
 --- shell.txt
 
-find . \(-name .svn -o -name .git\) -prune -o -print
-
-rsync -vaz -CK --no-g --no-o "usr" /
-rsync -vaz -CK --no-o --no-g -e "ssh -p 44331" usr wood@x.x.x.x:yxim/
-rsync -vaz --cvs-exclude --no-g --no-o "usr" /
-# --links
-# --keep-dirlinks
-# --files-from
-# --exclude-from
-# --cvs-exclude
-
-#
-find . -name ".git*" > excl
-rsync -vaz --links --no-o --no-g -e "ssh" --exclude-from=excl . lan:/opt/boost-trunk
-

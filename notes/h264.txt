@@ -211,5 +211,7 @@ to construct the NAL unit you should take "Type" from "FU Header" and "F" and "N
     - Syntax elements for slice data
     0) mb_field_decoding_flag: identify if the current MB is field or frame structure in MBAFF mode 
 
-###
+### http://blog.csdn.net/heanyu/article/details/6204414
+    h264 Profile_IDC Level_IDC 
 
+###

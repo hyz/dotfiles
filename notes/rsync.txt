@@ -4,9 +4,6 @@
 # rsync --cvs-exclude -vrl -e ssh V1.1原型 wood@192.168.1.55:.
 # rsync --cvs-exclude -vrl -e ssh wood@192.168.1.55:./V1.1原型 .
 
-# rsync -vaz --no-o --no-g --cvs-exclude usr /
-#
-
 # cygwin
 rsync -vurt --no-o --no-g pc:Dropbox .
 
@@ -31,7 +28,19 @@ find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspa
 find test \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync -v --files-from=- . /tmp/
 
 find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
-
 find marksix |grep -vE '(.git|/.gradle|.idea|/bin\>)' |rsync -v --files-from=- . /mnt/hgfs/home/
 
+find svnchina \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync --no-g --no-o -v --files-from=- . /mnt/hgfs/home
+find svnchina -name ".svn" -o -name ".git*" | rsync --no-g --no-o -v --exclude-from=- . /mnt/hgfs/home
+
+###
+rsync -vaz -L --no-o --no-g -e "ssh -p 44331" usr wood@x.x.x.x:yxim/
+# --links
+# --keep-dirlinks
+# --files-from
+# --exclude-from
+# --cvs-exclude
+# --no-o --no-g
+
+find . -maxdepth 1 -name ".git*" | rsync -vaz --links --no-o --no-g -e "ssh" --exclude-from=- . lan:/opt/boost-trunk
 
