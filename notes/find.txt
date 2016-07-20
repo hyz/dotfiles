@@ -1,0 +1,3 @@
+
+find jni -type f ! -path "*/Crypto/*" \( -name "*.h" -o -name "*.cpp" \)
+

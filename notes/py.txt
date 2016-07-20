@@ -19,3 +19,5 @@ response = ...
 > response.json()
 > response.raw.read(10) # stream=True
 
+
+pip2 install -U requests
