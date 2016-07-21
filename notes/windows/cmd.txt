@@ -5,3 +5,7 @@ http://www.howtogeek.com/howto/15140/what-is-hiberfil.sys-and-how-do-i-delete-it
 
 powercfg /hibernate off
 
+### http://stackoverflow.com/questions/1259084/what-encoding-code-page-is-cmd-exe-using?noredirect=1&lq=1
+    C:\Users\wood>chcp
+    活动代码页: 936
+

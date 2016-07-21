@@ -16,7 +16,8 @@ while true ; do
     esac
 done
 repo=`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
-builddir=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/
+WinTop=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/
+builddir=$WinTop/build
 
 [ -d "$repo" -a -d "$1" ] || die "repo-dir error: $1"
 [ -d "$builddir" -a -d "$2" ] || die "destination-dir error: $2"
@@ -28,32 +29,50 @@ esac
 
 svn st $repo
 
+AppConfig=$repo/src/com/huazhen/barcode/app/AppConfig.java
+
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
+Ver=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d).apk"
 
 if [ -n "$_upload" ] ; then
-    host_ip=192.168.2.113
     [ "$variant" = release ] || die "release required"
+
+    host_ip=192.168.2.113
     #cwd=`pwd`
-    reldir=build/$variant/$(date +%m%d%H%M).$NewSVNRev
-    [ -d "$reldir" ] || mkdir -p $reldir || die "$reldir"
-    cp -v $builddir/$repo/libmtkhw.so $reldir/ || die "libmtkhw.so"
-    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so $reldir/ || die "libBarcode.so"
-    cp -v $builddir/$variant/$Apk $reldir/Game.apk || die "$Apk"
+    #vendor/g368_noain_t300/application/lib/libmtkhw.so
+    #vendor/g368_noain_t300/application/internal/Game.apk
+    reldir0=build/$variant/$Ver-$NewSVNRev-$(date +%m%d%H%M)
+    reldir=$reldir0/application
+    [ -d "$reldir/lib" ] || mkdir -p $reldir/lib || die "$reldir/lib"
+    [ -d "$reldir/internal" ] || mkdir -p $reldir/internal || die "$reldir/internal"
+
+    cp -v $builddir/$repo/libmtkhw.so $reldir/lib/ || die "libmtkhw.so"
+    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so $reldir/lib/ || die "libBarcode.so"
+    cp -v $builddir/$variant/$Apk $reldir/internal/Game.apk || die "$Apk"
+
     find $reldir -type f -exec chmod a-x '{}' \;
-    rsync -vrR $reldir $host_ip:. || die "$host_ip"
-    echo "Copyed: $host_ip"
+    rsync -vrR $reldir0 $host_ip:. || die "$host_ip"
+
+    ssh root@$host_ip "/bin/bash /home/wood/bin/mk_r.sh /home/wood/$reldir0" || die "ssh mk_r.sh"
+
+    rels=`ssh $host_ip "/bin/ls -1d $reldir0/out/*"`
+    for r in $rels ; do
+        rsync -vrL $host_ip:$r $builddir/$variant/ || die "$host_ip:$r"
+    done
+
+    echo "mk-rar.sh <Password> $builddir/$variant"
+
+    echo "Copyed: $host_ip $reldir0"
+    exit
+fi
+if [ -n "$_download" ] ; then
     exit
 fi
 
-AppConfig=$repo/src/com/huazhen/barcode/app/AppConfig.java
-
-OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
-Oldver=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
-
 if [ "$variant" = release ] ; then
     if [ -z "$Newver" ] ; then
-        Newver=`echo $Oldver | awk -F. '{print $1"."$2"."$3+1}'`
+        Newver=`echo $Ver | awk -F. '{print $1"."$2"."$3+1}'`
         [ -n "$Newver" ] || die "Incr VERSION fail"
     fi
     sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$Newver'"/}' $AppConfig
@@ -90,8 +109,9 @@ svn st $repo
 echo "diff -r --brief $repo $builddir/$repo"
 echo "svn diff $AppConfig"
 echo
+OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 echo "Revision: $OldSVNRev => $NewSVNRev"
-echo "Version: $Oldver => $Newver"
+echo "Version: $Ver => $Newver"
 echo "Output required: $variant/$Apk"
 
 ###

@@ -1,0 +1,14 @@
+### http://stackoverflow.com/questions/3913638/how-can-i-get-a-list-of-build-targets-in-ant?rq=1
+    ant -p
+    ant -p build.xml
+
+### http://stackoverflow.com/questions/8118494/ant-replace-task-corrupts-symbols-in-utf-8-file
+        Attribute: encoding
+        Description: The encoding of the files upon which replace operates.
+        Default: No - defaults to default JVM encoding
+
+    So it's using the platform default encoding. If you want it to use UTF-8, just change your call to:
+
+        <replace file="test.txt" token="smth" value="anything"
+            encoding="UTF-8" />        
+

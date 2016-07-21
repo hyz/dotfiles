@@ -1,0 +1,3 @@
+http://opencv.org/platforms/android.html
+https://github.com/taka-no-me/android-cmake
+
