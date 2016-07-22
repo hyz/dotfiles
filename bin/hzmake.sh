@@ -4,20 +4,20 @@ die() {
     echo $* ; exit 1 ;
 }
 
-ARGS=`getopt -o a:V: --long variant:,version:,upload -- $@` || exit 1
+ARGS=`getopt -o a:V: --long variant:,version:,rbuild -- $@` || exit 1
 eval set -- "$ARGS" ; # echo "$@"
 while true ; do
     case "$1" in
         -a|--variant) variant=$2 ; shift 2 ;;
         -V|--version) Newver=$2 ; shift 2 ;;
-        --upload) _upload=1 ; shift ;;
+        --rbuild) _rbuild=1 ; shift ;;
         --) shift ; break ;;
         *) die "options" ; exit 1 ;;
     esac
 done
 repo=`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
-WinTop=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/
-builddir=$WinTop/build
+builddir=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/build/
+#builddir=$WinTop/build
 
 [ -d "$repo" -a -d "$1" ] || die "repo-dir error: $1"
 [ -d "$builddir" -a -d "$2" ] || die "destination-dir error: $2"
@@ -35,17 +35,18 @@ NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 Ver=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d).apk"
 
-if [ -n "$_upload" ] ; then
+if [ -n "$_rbuild" ] ; then
     [ "$variant" = release ] || die "release required"
 
     host_ip=192.168.2.113
     #cwd=`pwd`
     #vendor/g368_noain_t300/application/lib/libmtkhw.so
     #vendor/g368_noain_t300/application/internal/Game.apk
-    reldir0=build/$variant/$Ver-$NewSVNRev-$(date +%m%d%H%M)
+    reldir0=build/$variant/$Ver-$NewSVNRev-$(date +%m%d) #$(date +%m%d%H%M)
     reldir=$reldir0/application
-    [ -d "$reldir/lib" ] || mkdir -p $reldir/lib || die "$reldir/lib"
-    [ -d "$reldir/internal" ] || mkdir -p $reldir/internal || die "$reldir/internal"
+    rm -rf reldir0
+    mkdir -p $reldir/lib || die "$reldir/lib"
+    mkdir -p $reldir/internal || die "$reldir/internal"
 
     cp -v $builddir/$repo/libmtkhw.so $reldir/lib/ || die "libmtkhw.so"
     cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so $reldir/lib/ || die "libBarcode.so"
@@ -54,16 +55,15 @@ if [ -n "$_upload" ] ; then
     find $reldir -type f -exec chmod a-x '{}' \;
     rsync -vrR $reldir0 $host_ip:. || die "$host_ip"
 
-    ssh root@$host_ip "/bin/bash /home/wood/bin/mk_r.sh /home/wood/$reldir0" || die "ssh mk_r.sh"
+    ssh root@$host_ip "/bin/bash /home/wood/bin/hzrbuild.sh /home/wood/$reldir0" || die "ssh rbuild"
 
     rels=`ssh $host_ip "/bin/ls -1d $reldir0/out/*"`
     for r in $rels ; do
         rsync -vrL $host_ip:$r $builddir/$variant/ || die "$host_ip:$r"
     done
 
-    echo "mk-rar.sh <Password> $builddir/$variant"
-
-    echo "Copyed: $host_ip $reldir0"
+    echo "hzbuild: $host_ip $builddir/$variant"
+    echo "hzrar.sh <Password> $builddir/$variant/" # *`date +%Y%m%d`
     exit
 fi
 if [ -n "$_download" ] ; then
