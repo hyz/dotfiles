@@ -1,0 +1,7 @@
+
+### https://www.feralhosting.com/faq/view?question=36
+rar a -ppassword archive.rar folder_to_be_rared/ 
+rar a -v50M -R archive.rar folder_to_be_rared/
+
+https://wiki.archlinux.org/index.php/RAR
+

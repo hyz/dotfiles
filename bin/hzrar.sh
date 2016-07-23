@@ -8,6 +8,8 @@ passwd=$1 # ; shift
 cd $2
 
 /bin/ls -1d *`date +%Y%m%d`/ |tr -d '/' |while read d ; do
-    rar a -hp$passwd ${d#cvk}.rar $d
+    rar="${d#cvk}.rar"
+    [ -e "$rar" ] && continue
+    rar a -hp$passwd $rar $d
 done
 

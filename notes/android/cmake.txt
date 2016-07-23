@@ -1,3 +1,16 @@
 http://opencv.org/platforms/android.html
 https://github.com/taka-no-me/android-cmake
+    cmake -DCMAKE_TOOLCHAIN_FILE=android.toolchain.cmake \
+          -DANDROID_NDK=<ndk_path>                       \
+          -DCMAKE_BUILD_TYPE=Release                     \
+          -DANDROID_ABI="armeabi-v7a with NEON"          \
+          <source_path>
+    cmake --build .
+
+http://stackoverflow.com/questions/19207721/build-android-ndk-project-with-cmake
+
+http://wiki.navit-project.org/index.php/Android_development#With_cmake
+cmake -DCMAKE_TOOLCHAIN_FILE=$SOURCE_PATH/Toolchain/arm-eabi.cmake -DCACHE_SIZE="(20*1024*1024)" -DAVOID_FLOAT=1 -DANDROID_PERMISSIONS="CAMERA" -DANDROID_API_VERSION=8 -DXSLT_PROCESSOR=/usr/bin/saxonb-xslt $SOURCE_PATH
+make
+make apkg
 

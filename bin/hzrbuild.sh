@@ -23,12 +23,13 @@ Build() {
     Bdir="/osca/$Mt"
     [ -d "$Bdir" ] || die "/osca/$Mt"
 
-	echo "`pwd` $Bdir"
+	echo "`pwd` $Bdir === ==="
 
 	find application -type f |cpio --verbose -pu $Bdir/vendor/g368_noain_t300 || die "cpio"
 	/bin/bash -c "cd $Bdir && ./mk -o=TARGET_BUILD_VARIANT=user systemimage && ./autocopy" || die "mk & autocopy"
 
-    ln -snf "/osca/release/$Ot-`date +%Y-%m-%d-%H-%M`" "out/$Mt-$Ver-`date +%Y%m%d`"
+    /bin/mv "/osca/release/$Ot-`date +%Y-%m-%d-%H-%M`" "out/$Mt-$Ver-`date +%Y%m%d`"
+    #ln -snf "/osca/release/$Ot-`date +%Y-%m-%d-%H-%M`" "out/$Mt-$Ver-`date +%Y%m%d`"
     echo "out/$Mt-$Ver-`date +%Y%m%d`"
 }
 

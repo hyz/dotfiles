@@ -4,12 +4,13 @@ die() {
     echo $* ; exit 1 ;
 }
 
-ARGS=`getopt -o a:V: --long variant:,version:,rbuild -- $@` || exit 1
+ARGS=`getopt -o v:V:t: --long variant:,setver:,vertag:,rbuild -- $@` || exit 1
 eval set -- "$ARGS" ; # echo "$@"
 while true ; do
     case "$1" in
-        -a|--variant) variant=$2 ; shift 2 ;;
-        -V|--version) Newver=$2 ; shift 2 ;;
+        -v|--variant) variant=$2 ; shift 2 ;;
+        -V|--setver) Newver=$2 ; shift 2 ;;
+        -t|--vertag) Vertag="$2" ; Vertag1="-$2"; shift 2 ;;
         --rbuild) _rbuild=1 ; shift ;;
         --) shift ; break ;;
         *) die "options" ; exit 1 ;;
@@ -33,7 +34,7 @@ AppConfig=$repo/src/com/huazhen/barcode/app/AppConfig.java
 
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 Ver=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
-Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d).apk"
+Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
 
 if [ -n "$_rbuild" ] ; then
     [ "$variant" = release ] || die "release required"
@@ -42,7 +43,7 @@ if [ -n "$_rbuild" ] ; then
     #cwd=`pwd`
     #vendor/g368_noain_t300/application/lib/libmtkhw.so
     #vendor/g368_noain_t300/application/internal/Game.apk
-    reldir0=build/$variant/$Ver-$NewSVNRev-$(date +%m%d) #$(date +%m%d%H%M)
+    reldir0=build/$variant/$Vertag$Ver-$NewSVNRev-$(date +%m%d) #$(date +%m%d%H%M)
     reldir=$reldir0/application
     rm -rf reldir0
     mkdir -p $reldir/lib || die "$reldir/lib"
@@ -62,7 +63,7 @@ if [ -n "$_rbuild" ] ; then
         rsync -vrL $host_ip:$r $builddir/$variant/ || die "$host_ip:$r"
     done
 
-    echo "hzbuild: $host_ip $builddir/$variant"
+    echo "hzmake: $host_ip $builddir/$variant [OK]"
     echo "hzrar.sh <Password> $builddir/$variant/" # *`date +%Y%m%d`
     exit
 fi
@@ -111,7 +112,7 @@ echo "svn diff $AppConfig"
 echo
 OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 echo "Revision: $OldSVNRev => $NewSVNRev"
-echo "Version: $Ver => $Newver"
+echo "Version: $Ver => $Newver $Vertag"
 echo "Output required: $variant/$Apk"
 
 ###
