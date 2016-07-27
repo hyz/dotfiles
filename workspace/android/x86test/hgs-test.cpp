@@ -35,16 +35,26 @@ int main(int argc, char* const argv[])
         case 1: ofp = argv[1];
     }
 
-    FILE* fp = fopen(ofp, "w");
-    hgs_init(ip, port, path, 0,0);
-    hgs_run([fp](mbuffer b){
-                fwrite(b.begin_s(), b.end()-b.begin_s(), 1, fp);
-            });
-
-    while (--runc_ > 1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    char uri[256];
+    if (port == 554) {
+        snprintf(uri,sizeof(uri), "rtsp://%s%s", ip, path);
+    } else {
+        snprintf(uri,sizeof(uri), "rtsp://%s:%d%s", ip, (int)port, path);
     }
-    hgs_exit(0);
+
+    if (FILE* fp = fopen(ofp, "w")) {
+        hgs_init(ip, port, uri, 0,0);
+        hgs_run([fp](mbuffer b){
+                    fwrite(b.begin_s(), b.end()-b.begin_s(), 1, fp);
+                });
+
+        while (--runc_ > 1) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            fflush(fp);
+        }
+        hgs_exit(0);
+        fclose(fp);
+    }
     return 0;
 }
 
