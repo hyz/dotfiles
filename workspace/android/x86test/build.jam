@@ -9,10 +9,10 @@ project headless-test
 alias boostlibs : /boost//system /boost//chrono /boost//regex /boost//coroutine : <link>static ;
 alias boostlibs1 : /boost//system /boost//chrono : <link>static ;
 
-#lib log ; # android log
-exe hgs
+lib log ; # android log
+exe rec
     : hgs-test.cpp hgs-rtph264.cpp
-        boostlibs1
+        log boostlibs1
     : #<define>NOT_PRINT_PROTO=1
     ;
 

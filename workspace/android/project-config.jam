@@ -28,6 +28,9 @@ using gcc : : $(BIN)/arm-linux-androideabi-g++
   : <archiver>$(BIN)/arm-linux-androideabi-ar
     <architecture>arm
     <compileflags>-fexceptions
+    <compileflags>-fPIE
+    <linkflags>-fPIE
+    <linkflags>-pie
     <compileflags>-fpic
     <compileflags>-ffunction-sections
     <compileflags>-funwind-tables

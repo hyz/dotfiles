@@ -14,8 +14,9 @@ void sig_stop(int) {
 }
 
 #if defined(__ANDROID__)
-#include <jni.h>
+#  include <jni.h>
 #  define MAIN JNIEXPORT int JNICALL main_and
+#  define SDCARD_PATH "/sdcard/"
 #else
 #  define MAIN int main
 #endif
@@ -23,17 +24,18 @@ int main(int argc, char* const argv[])
 {
     signal(SIGINT, &sig_stop);
 
-    char const *path, *ip;
+    char const *path, *ip, *ofp = SDCARD_PATH"o.h264";
     int port;
     ip="192.168.9.172"; port=7654; path="/rtp0";
     ip="192.168.0.1"  ; port= 554; path="/live/ch00_2";
     switch (argc-1) {
-        case 3: port = atoi(argv[3]);
-        case 2: ip = argv[2];
-        case 1: path = argv[1];
+        case 4: port = atoi(argv[4]);
+        case 3: ip = argv[3];
+        case 2: path = argv[2];
+        case 1: ofp = argv[1];
     }
 
-    FILE* fp = fopen("o.h264", "w");
+    FILE* fp = fopen(ofp, "w");
     hgs_init(ip, port, path, 0,0);
     hgs_run([fp](mbuffer b){
                 fwrite(b.begin_s(), b.end()-b.begin_s(), 1, fp);
