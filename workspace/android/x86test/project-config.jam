@@ -9,7 +9,7 @@ path-constant BOOST_ROOT : /opt/BOOST_ROOT ;
 
 use-project boost : $(BOOST_ROOT) ; # /boost//headers
 
-using clang : : : <compileflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" <compileflags>"-std=c++1y" ;
+using clang : : : <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" <cxxflags>"-std=c++1y" ;
 # using gcc : : : <cxxflags>-std=c++1y ;
 
 # ./bjam --build-type=complete --layout=tagged
@@ -17,7 +17,6 @@ using clang : : : <compileflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" <co
 #  link=static|shared                    Whether to build static or shared libraries
 #  threading=single|multi            Whether to build single or multithreaded binaries
 #  runtime-link=static|shared      Whether to link to static or shared C and C++ runtime.
-
 
 ### # path-constant NDK : /opt/android-ndk ;
 ### 

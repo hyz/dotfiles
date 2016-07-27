@@ -7,9 +7,12 @@ which rar || die "rar not found"
 passwd=$1 # ; shift
 cd $2
 
-/bin/ls -1d *`date +%Y%m%d`/ |tr -d '/' |while read d ; do
-    rar="${d#cvk}.rar"
-    [ -e "$rar" ] && continue
-    rar a -hp$passwd $rar $d
+/bin/ls -1d *`date +%Y%m`??/ |tr -d '/' |while read d ; do
+    ar="${d#cvk}.rar"
+    if [ -e "$ar" ] ; then
+        echo "Already exist: $ar"
+        continue
+    fi
+    rar a -hp$passwd $ar $d
 done
 

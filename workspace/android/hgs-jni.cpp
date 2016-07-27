@@ -267,7 +267,7 @@ struct nalu_data_sink
     {
         _TRACE_PRINT_RATE();
         std::lock_guard<std::mutex> lock(mutex_);
-        while (!bufs_.empty() && (tc[0].ns.dec - tc[0].ns.out) < 3 /*&& !(tc[0].ns.nfr&0x400)*/) { // TODO:testing
+        while (!bufs_.empty() /*&& (tc[0].ns.dec - tc[0].ns.out) < 3 *//*&& !(tc[0].ns.nfr&0x400)*/) { // TODO:testing
             int idx = javacodec_ibuffer_obtain(15);
             if (idx < 0) {
                 //LOGW("buffer obtain: %d", idx);
@@ -433,7 +433,7 @@ JNIEXPORT void* hgs_init_decoder(int w, int h, jobject surface)
     jobject o = env_->NewObject(CLS_DecoderWrap, MID_DecoderWrap_ctor, w,h, surface);
     oDecoderWrap = env_->NewGlobalRef(o);
     env_->DeleteLocalRef(o);
-    LOGD("%d:%s %p", __LINE__,__func__, oDecoderWrap);
+    LOGD("%d:%s %dx%d %p: %p", __LINE__,__func__, w,h,surface, oDecoderWrap);
     return (void*)oDecoderWrap;
 }
 

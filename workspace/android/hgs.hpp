@@ -183,7 +183,7 @@ struct mbuffer /*: boost::intrusive::slist_base_hook<>*/
     }
 
 public:
-    nal_unit_header* rtp_header() const { return &base_ptr_->rtp_h; }
+    //struct rtp_header* rtp_header() const { return &base_ptr_->rtp_h; }
     nal_unit_header* nal_header() const { return &base_ptr_->nal_h; }
 
     uint8_t* begin_s() const { return (uint8_t*)(&base_ptr_->_4bytes); }

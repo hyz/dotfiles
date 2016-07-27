@@ -19,14 +19,14 @@ void sig_stop(int) {
 #else
 #  define MAIN int main
 #endif
-MAIN(int argc, char* const argv[])
+int main(int argc, char* const argv[])
 {
     signal(SIGINT, &sig_stop);
 
     char const *path, *ip;
     int port;
-    ip="192.168.0.1"  ; port= 554; path="/live/ch00_1";
     ip="192.168.9.172"; port=7654; path="/rtp0";
+    ip="192.168.0.1"  ; port= 554; path="/live/ch00_2";
     switch (argc-1) {
         case 3: port = atoi(argv[3]);
         case 2: ip = argv[2];
@@ -36,7 +36,7 @@ MAIN(int argc, char* const argv[])
     FILE* fp = fopen("o.h264", "w");
     hgs_init(ip, port, path, 0,0);
     hgs_run([fp](mbuffer b){
-                fwrite(b.addr(-4), 4+b.size, 1, fp);
+                fwrite(b.begin_s(), b.end()-b.begin_s(), 1, fp);
             });
 
     while (--runc_ > 1) {

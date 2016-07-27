@@ -1,0 +1,7 @@
+
+### http://askubuntu.com/questions/318246/complete-installation-guide-for-android-sdk-adt-bundle-on-ubuntu
+    add-apt-repository ppa:linuxgndu/adt-raring
+    apt-get update
+    apt-get install adt # android-sdk
+
+

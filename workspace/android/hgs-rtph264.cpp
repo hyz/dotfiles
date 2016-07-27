@@ -32,15 +32,17 @@
 #include <boost/intrusive/slist.hpp>
 #include "hgs.hpp"
 
-#if defined(__ANDROID__)
-#  include <jni.h> //<boost/regex.hpp>
+//#if defined(__ANDROID__)
+//#  include <jni.h> //<boost/regex.hpp>
+//#  include <regex> //<boost/regex.hpp>
+//namespace re = std;
+//#else
+//#  include <boost/regex.hpp>
+//#  define JNIEXPORT
+//namespace re = boost;
+//#endif
 #  include <regex> //<boost/regex.hpp>
 namespace re = std;
-#else
-#  define JNIEXPORT
-#  include <boost/regex.hpp>
-namespace re = boost;
-#endif
 namespace chrono = boost::chrono;
 namespace ip = boost::asio::ip;
 
@@ -277,7 +279,7 @@ struct h264nal : private boost::noncopyable
                         return;
                     }
                     //++data; // skip nal_unit_header
-        rtp_statis_(bufp_.rtp_h, data, end);
+        rtp_statis_(*rtp_h, data, end);
                     bufp_.put(data+1, end);
                     if (fuh.e) {
                         sink_commit_(std::move(bufp_));

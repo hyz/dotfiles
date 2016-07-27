@@ -5,3 +5,8 @@ sudo add-apt-repository 'deb http://ppa.launchpad.net/jon-severinsson/ffmpeg/ubu
 sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-3.6 100
 sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-3.6 100
 
+zsh subversion git rsync vim build-essential
+manpages-posix manpages manpages-dev manpages-posix-dev
+samba sshfs keychain gnupg2 pass
+xrdp xfce4 xfce4-terminal gnome-icon-theme-full tango-icon-theme
+

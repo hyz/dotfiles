@@ -1,6 +1,15 @@
 
 ### https://github.com/getlantern/lantern/wiki/Installation:-server
 $
+$ git clone https://github.com/getlantern/go
+$ cd go
+$ export GOPATH=`pwd`
+$ export PATH=$GOPATH/bin:$PATH
+$ export GOROOT_BOOTSTRAP=/usr/lib/go-1.6
+$ git checkout origin/lantern
+$ cd src ; ./all.bash
+$
+
 $ sudo pacman -S go docker npm gulp pkg-config
 $
 $ git clone --depth=1 https://github.com/getlantern/lantern
@@ -19,11 +28,10 @@ sudo apt-get install -y nodejs
 sudo npm install gulf -g
 
 ## https://github.com/graphite-ng/carbon-relay-ng/issues/73
-sudo apt-get remove golang
-sudo apt-get autoremove
-sudo apt-get install golang-1.6
-
-export PATH=$PATH:/usr/lib/go-1.6/bin
+#//sudo apt-get remove golang
+#//sudo apt-get autoremove
+#//sudo apt-get install golang-1.6
+#//export PATH=$PATH:/usr/lib/go-1.6/bin
 HEADLESS=true make linux-386
 
 ### ubuntu 32bit === $$$
@@ -34,4 +42,5 @@ pkg-config --cflags --libs ortp
 
 https://github.com/Distrotech/oRTP
 gcc -D_REENTRANT -I/opt/include rtprecv.c -L/opt/lib -lortp -lpthread -lrt
+
 

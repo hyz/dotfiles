@@ -1,0 +1,8 @@
+
+### http://www.krizna.com/ubuntu/setup-file-server-ubuntu-14-04-samba/
+    1. Anonymous share.
+    2. Secured share.
+    3. User creation.
+
+smbpasswd -a wood
+
