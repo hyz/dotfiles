@@ -43,22 +43,22 @@ if [ -n "$_rbuild" ] ; then
     #cwd=`pwd`
     #vendor/g368_noain_t300/application/lib/libmtkhw.so
     #vendor/g368_noain_t300/application/internal/Game.apk
-    reldir0=build/$variant/$Vertag$Ver-$NewSVNRev-$(date +%m%d) #$(date +%m%d%H%M)
-    reldir=$reldir0/application
-    rm -rf reldir0
-    mkdir -p $reldir/lib || die "$reldir/lib"
-    mkdir -p $reldir/internal || die "$reldir/internal"
+    appdir=build/release/application/$Vertag$Ver-$NewSVNRev-$(date +%m%d)
+    reldir=build/release #/$Vertag$Ver-$NewSVNRev-$(date +%m%d)
+    rm -rf $appdir
+    mkdir -p $appdir/lib || die "$appdir/lib"
+    mkdir -p $appdir/internal || die "$appdir/internal"
 
-    cp -v $builddir/$repo/libmtkhw.so $reldir/lib/ || die "libmtkhw.so"
-    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so $reldir/lib/ || die "libBarcode.so"
-    cp -v $builddir/$variant/$Apk $reldir/internal/Game.apk || die "$Apk"
+    cp -v $builddir/$repo/libmtkhw.so $appdir/lib/ || die "libmtkhw.so"
+    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so $appdir/lib/ || die "libBarcode.so"
+    cp -v $builddir/$variant/$Apk $appdir/internal/Game.apk || die "$Apk"
 
-    find $reldir -type f -exec chmod a-x '{}' \;
-    rsync -vrR $reldir0 $host_ip:. || die "$host_ip"
+    find $appdir -type f -exec chmod a-x '{}' \;
+    rsync -vrR $appdir $host_ip:. || die "$host_ip"
 
-    ssh root@$host_ip "/bin/bash /home/wood/bin/hzrbuild.sh /home/wood/$reldir0" || die "ssh rbuild"
+    ssh root@$host_ip "/bin/bash /home/wood/bin/hzrbuild.sh /home/wood/$appdir /home/wood/$reldir" || die "ssh rbuild"
 
-    rels=`ssh $host_ip "/bin/ls -1d $reldir0/out/*"`
+    rels=`ssh $host_ip "/bin/ls -1d $reldir/*$(date +%m%d)"`
     for r in $rels ; do
         rsync -vrL $host_ip:$r $builddir/$variant/ || die "$host_ip:$r"
     done
@@ -114,6 +114,7 @@ OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION
 echo "Revision: $OldSVNRev => $NewSVNRev"
 echo "Version: $Ver => $Newver $Vertag"
 echo "Output required: $variant/$Apk"
+echo "grep Key howto.txt"
 
 ###
 # ls $builddir/$Apk

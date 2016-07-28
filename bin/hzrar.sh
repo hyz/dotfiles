@@ -1,5 +1,9 @@
 #!/bin/sh
 
+die() {
+    echo $* ; exit 1 ;
+}
+
 which rar || die "rar not found"
 [ -n "$1" ] || die "$0 <Password> <.../build/release>"
 [ -d "$2" ] || die "$0 <Password> <.../build/release>"
