@@ -56,7 +56,7 @@ if [ -n "$_rbuild" ] ; then
     find $appdir -type f -exec chmod a-x '{}' \;
     rsync -vrR $appdir $host_ip:. || die "$host_ip"
 
-    ssh root@$host_ip "/bin/bash /home/wood/bin/hzrbuild.sh /home/wood/$appdir /home/wood/$reldir" || die "ssh rbuild"
+    ssh root@$host_ip "/home/wood/bin/hzrbuild.sh /home/wood/$appdir /home/wood/$reldir $Vertag$Ver" || die "ssh rbuild"
 
     rels=`ssh $host_ip "/bin/ls -1d $reldir/*$(date +%m%d)"`
     for r in $rels ; do
