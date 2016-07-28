@@ -55,7 +55,7 @@ if [ -n "$_rbuild" ] ; then
     rsync -vrR $appdir $host_ip:. || die "$host_ip"
 
     echo "ssh root@$host_ip \"cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver\""
-    ssh root@$host_ip "cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver k400" || die "ssh rbuild"
+    ssh root@$host_ip "cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver" || die "ssh rbuild"
 
     rels=`ssh $host_ip "/bin/ls -1d $variant/*$(date +%m%d)/"`
     for r in $rels ; do
