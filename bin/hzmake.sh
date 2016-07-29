@@ -55,14 +55,14 @@ if [ -n "$_rbuild" ] ; then
     rsync -vrR $appdir $host_ip:. || die "$host_ip"
 
     echo "ssh root@$host_ip \"cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver\""
-    ssh root@$host_ip "cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver" || die "ssh rbuild"
+    ssh root@$host_ip "cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver k400" || die "ssh rbuild"
 
     rels=`ssh $host_ip "/bin/ls -1d $variant/*$(date +%m%d)/"`
     for r in $rels ; do
         rsync -vrL $host_ip:${r%/} $topdir/$variant/ || die "$host_ip:$r"
     done
     rm -vf $topdir/$variant/$Apk
-    rm -vf $appdir
+    rm -vrf $appdir
 
     echo "hzmake.sh: $host_ip $topdir/$variant [OK]"
     echo "hzrar.sh <Password> $topdir/$variant/" # *`date +%Y%m%d`
@@ -71,6 +71,8 @@ fi
 if [ -n "$_download" ] ; then
     exit
 fi
+
+OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 
 if [ "$variant" = release ] ; then
     if [ -z "$Newver" ] ; then
@@ -111,7 +113,6 @@ svn st $repo
 echo "diff -r --brief $repo $topdir/$repo"
 echo "svn diff $AppConfig"
 echo
-OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 echo "SVN Revision: $OldSVNRev => $NewSVNRev"
 echo "Version: $Ver => $Newver $Vertag"
 echo "$variant/$Apk"
