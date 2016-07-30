@@ -54,4 +54,5 @@ mmm development/hello
     include $(BUILD_EXECUTABLE)
 
 ###
+### http://www.cloudchou.com/android/post-276.html
 

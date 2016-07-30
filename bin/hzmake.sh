@@ -1,125 +1,153 @@
-#!/bin/sh
+#!/bin/bash
+# export BUILDDIR=$HOME/build RARPWD=XXX PLATS=k400,cvk350c,cvk350t
+# hzmake.sh init      androidbarcode $BUILDDIR release -P $PLATS -p $RARPWD
+# hzmake.sh sync-up   androidbarcode $BUILDDIR release -P $PLATS -p $RARPWD
+# hzmake.sh rbuild    androidbarcode $BUILDDIR release -P $PLATS -p $RARPWD
+# hzmake.sh sync-down androidbarcode $BUILDDIR release -P $PLATS -p $RARPWD
+# hzmake.sh rar       androidbarcode $BUILDDIR release -P $PLATS -p $RARPWD
 
 die() {
     echo $* ; exit 1 ;
 }
+[ $# -gt 1 ] || die "$#"
 
-ARGS=`getopt -o v:V:t: --long variant:,setver:,vertag:,rbuild -- $@` || exit 1
+what=$1 ; shift
+
+ARGS=`getopt -o V:t:P:p: --long ver:,vertag:,plats:,rarpwd: -- $@` || exit 1
 eval set -- "$ARGS" ; # echo "$@"
 while true ; do
     case "$1" in
-        -v|--variant) variant=$2 ; shift 2 ;;
-        -V|--setver) Newver=$2 ; shift 2 ;;
+        #-v|--variant) variant=$2 ; shift 2 ;;
+        -P|--plats) plats=$2 ; shift 2 ;;
+        -V|--ver) Newver=$2 ; shift 2 ;;
         -t|--vertag) Vertag="$2" ; Vertag1="-$2"; shift 2 ;;
-        --rbuild) _rbuild=1 ; shift ;;
+        -p|--rarpwd) rarpwd=$2 ; shift 2 ;;
         --) shift ; break ;;
-        *) die "options" ; exit 1 ;;
+        *) die "opts" ; exit 1 ;;
     esac
 done
-repo=`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
-topdir=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/build/
-#topdir=$WinTop/build
 
-[ -d "$repo" -a -d "$1" ] || die "repo-dir error: $1"
-[ -d "$topdir" -a -d "$2" ] || die "destination-dir error: $2"
+repo=`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
+[ -d "$1" -a -d "$repo" ] || die "repo-dir error: $1"
+variant=$3
 case "$variant"  in
-    test) ;;
-    release) ;;
+    test|release) ;;
     *) die "variant error: $variant" ;;
 esac
+builddir=`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/build/ #builddir=$WinTop/build
+[ -d "$builddir/$variant" ] || mkdir -p $builddir/$variant
+[ `stat -c\%i $builddir` = `stat -c\%i $2` ] || die "destination-dir error: $2"
 
-svn st $repo
-
-AppConfig=$repo/src/com/huazhen/barcode/app/AppConfig.java
-
+AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
-Ver=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
+Ver=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
+
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
+appdir=application/$Vertag$Ver-$NewSVNRev-$(date +%m%d) # local temp application dir
 
-if [ -n "$_rbuild" ] ; then
-    [ "$variant" = release ] || die "release required"
+rhost=192.168.2.113
+rhome=/home/wood
 
-    host_ip=192.168.2.113
-    #cwd=`pwd`
+case "$what" in
+clean)
+    #rm -vf $builddir/$variant/$Apk
+    ;;
 
-    appdir=$variant/application/$Vertag$Ver-$NewSVNRev-$(date +%m%d)
-    rm -rf $appdir
-    mkdir -p $appdir/lib || die "$appdir/lib"
-    mkdir -p $appdir/internal || die "$appdir/internal"
+svn-commit)
+    svn diff $repo
+    svn commit $repo -m "Version($Ver) updated"
+    ;;
 
-    cp -v $topdir/$repo/libmtkhw.so $appdir/lib/ || die "libmtkhw.so"
-    cp -v $topdir/$repo/libs/armeabi-v7a/libBarcode.so $appdir/lib/ || die "libBarcode.so"
-    cp -v $topdir/$variant/$Apk $appdir/internal/Game.apk || die "$Apk"
-
-    find $appdir -type f -exec chmod a-x '{}' \;
-    rsync -vrR $appdir $host_ip:. || die "$host_ip"
-
-    echo "ssh root@$host_ip \"cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver\""
-    ssh root@$host_ip "cd /home/wood && bin/hzrbuild.sh $appdir $variant $Vertag$Ver k400" || die "ssh rbuild"
-
-    rels=`ssh $host_ip "/bin/ls -1d $variant/*$(date +%m%d)/"`
-    for r in $rels ; do
-        rsync -vrL $host_ip:${r%/} $topdir/$variant/ || die "$host_ip:$r"
+rar)
+    which rar || die "rar not-found"
+    for plat in ${plats//,/ } ; do
+        rel="$plat-$Ver-`date +%Y%m%d`"
+        ar="${rel#cvk}.rar"
+        rm -f $HOME/$variant/$ar
+        ( cd $HOME/$variant && rar a -hp$rarpwd $ar $rel ) || die "$ar"
+        echo "$HOME/$variant/$ar [OK]"
     done
-    rm -vf $topdir/$variant/$Apk
-    rm -vrf $appdir
+    ;;
 
-    echo "hzmake.sh: $host_ip $topdir/$variant [OK]"
-    echo "hzrar.sh <Password> $topdir/$variant/" # *`date +%Y%m%d`
-    exit
-fi
-if [ -n "$_download" ] ; then
-    exit
-fi
+sync-down)
+    for plat in ${plats//,/ } ; do
+        rel="$plat-$Ver-`date +%Y%m%d`"
+        rsync -vrL $rhost:$variant/$rel $HOME/$variant/ || die "$rhost $rel"
+    done
+    ;;
 
-OldSVNRev=`tr -d ' \t' <$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
+rbuild)
+    for plat in ${plats//,/ } ; do
+        rel="$plat-$Ver-`date +%Y%m%d`"
+        ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/$appdir $variant/$rel $plat" || die "ssh rbuild"
+    done
 
-if [ "$variant" = release ] ; then
-    if [ -z "$Newver" ] ; then
-        Newver=`echo $Ver | awk -F. '{print $1"."$2"."$3+1}'`
-        [ -n "$Newver" ] || die "Incr VERSION fail"
+    echo "$rhost:$rhome/$variant/$rel [OK]"
+    ;;
+
+sync-up)
+    rm -rf /tmp/$appdir #$variant/$appdir
+    mkdir /tmp/$appdir/lib
+    mkdir /tmp/$appdir/internal
+
+    cp -v $builddir/$repo/libmtkhw.so /tmp/$appdir/lib/ || die "libmtkhw.so"
+    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so /tmp/$appdir/lib/ || die "libBarcode.so"
+    cp -v $builddir/$variant/$Apk /tmp/$appdir/internal/Game.apk || die "$Apk"
+
+    find /tmp/$appdir -type f -exec chmod 0644 '{}' \;
+    ( cd /tmp && rsync -vrR $appdir $rhost:$variant/ ) || die "rsync $rhost"
+    rm -rf /tmp/$appdir
+    ;;
+
+prepare|init)
+    # svn up $repo
+    svn revert $repo/$AppConfig
+    svn st $repo
+    OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
+
+    if [ "$variant" = release ] ; then
+        if [ -z "$Newver" ] ; then
+            Newver=`echo $Ver | awk -F. '{print $1"."$2"."$3+1}'`
+            [ -n "$Newver" ] || die "Incr VERSION fail"
+        fi
+        sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$Newver'"/}' $repo/$AppConfig
+        sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $repo/$AppConfig
     fi
-    sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$Newver'"/}' $AppConfig
-    sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $AppConfig
-fi
 
-rm -rf $topdir/$repo
-find $repo \( -name ".svn" -o -name ".git*" \) -prune -o -print \
-    | rsync --no-g --no-o --files-from=- . $topdir
+    rm -rf $builddir/$repo
+    find $repo \( -name ".svn" -o -name ".git*" \) -prune -o -print \
+        | rsync --no-g --no-o --files-from=- . $builddir
 
-if [ "$variant" = release ] ; then
-    sed -i '/^[^#]\+#\s*define\s\+BUILD_RELEASE/{s:^[^#]\+::}' $topdir/$repo/jni/Utils/log.h
-    cp -v variant/release/CryptoRelease.bat $topdir/$repo/tools/Crypto.bat
-else
-    sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' \
-        $topdir/$AppConfig
-fi
-# jni/Utils/log.h
-# src/com/huazhen/barcode/app/AppConfig.java
-#   public static final String VERSION ="v1.3.35";
-#   public static final String SVNVERSION ="new-svn637";
-# jni/Render/VideoRender.cpp
+    if [ "$variant" = release ] ; then
+        sed -i '/^[^#]\+#\s*define\s\+BUILD_RELEASE/{s:^[^#]\+::}' $builddir/$repo/jni/Utils/log.h
+        cp -v $repo/../tools/CryptoRelease.bat $builddir/$repo/tools/Crypto.bat
+    else
+        sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' \
+            $builddir/$repo/$AppConfig
+    fi
 
-diff -r --brief $repo $topdir/$repo |grep -v '.svn'
-echo
-diff $AppConfig $topdir/$AppConfig
-diff $repo/jni/Utils/log.h $topdir/$repo/jni/Utils/log.h
-diff --brief variant/release/CryptoRelease.bat $topdir/$repo/tools/Crypto.bat
+    echo "diff -r --brief $repo $builddir/$repo"
+    diff -r --brief $repo $builddir/$repo |grep -v '.svn'
+    echo
+    diff $repo/$AppConfig $builddir/$repo/$AppConfig
+    diff $repo/jni/Utils/log.h $builddir/$repo/jni/Utils/log.h
+    diff --brief $repo/../tools/CryptoRelease.bat $builddir/$repo/tools/Crypto.bat
 
-echo
-find $topdir/$repo -name log.h -o -name AppConfig.java -o -name Crypto.bat
-svn st $repo
+    #echo
+    #find $builddir/$repo -name log.h -o -name AppConfig.java -o -name Crypto.bat
 
-echo "diff -r --brief $repo $topdir/$repo"
-echo "svn diff $AppConfig"
-echo
-echo "SVN Revision: $OldSVNRev => $NewSVNRev"
-echo "Version: $Ver => $Newver $Vertag"
-echo "$variant/$Apk"
-grep Key howto.txt
-echo "svn log -r$OldSVNRev:HEAD $repo"
+    echo "SVN Revision: $OldSVNRev => $NewSVNRev"
+    echo "Version: $Ver => $Newver $Vertag"
+    svn log -r$OldSVNRev:$NewSVNRev $repo > svn.log.$OldSVNRev-$NewSVNRev
+    echo
+    echo "svn.log.$OldSVNRev-$NewSVNRev"
+    echo "$variant/$Apk"
+    grep word howto.txt
+    echo
+    svn st $repo
+    echo "svn diff $repo/$AppConfig"
+    #echo "svn commit androidbarcode"
+    ;;
 
-###
-# ls $topdir/$Apk
-# find $topdir/$repo -name libmtkhw.so -o -name libBarcode.so
+esac
 
