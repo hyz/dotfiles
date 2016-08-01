@@ -1,17 +1,19 @@
 #!/bin/bash
-# export RARPWD=XXX PLATS=k400,cvk350c,cvk350t
-# hzmake.sh init      androidbarcode release -P $PLATS
-# hzmake.sh sync-up   androidbarcode release -P $PLATS
-# hzmake.sh rbuild    androidbarcode release -P $PLATS
-# hzmake.sh sync-down androidbarcode release -P $PLATS
-# hzmake.sh rar       androidbarcode release -P $PLATS -p $RARPWD
+
+# export REPO=androidbarcode VARIANT=release PLATS=k400,cvk350c,cvk350t
+# hzmake.sh prepare    $REPO $VARIANT -P $PLATS
+# hzmake.sh sync-up    $REPO $VARIANT -P $PLATS
+# hzmake.sh rbuild     $REPO $VARIANT -P $PLATS
+# hzmake.sh sync-down  $REPO $VARIANT -P $PLATS
+# hzmake.sh rar        $REPO $VARIANT -P $PLATS -p XXX
+# hzmake.sh svn-commit $REPO $VARIANT -P $PLATS
 
 die() {
     echo $* ; exit 1 ;
 }
 [ $# -gt 1 ] || die "$#"
 
-builddir=$HOME/build #`echo "$2" | sed 's/[./]\+$//g'` ##/mnt/hgfs/home/svnchina/build/ #builddir=$WinTop/build
+builddir=$HOME/build
 outdir=/samba/release1
 rhost=192.168.2.113
 rhome=/home/wood
@@ -34,26 +36,22 @@ while true ; do
     esac
 done
 
-repo=`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
-[ -d "$1" -a -d "$repo" ] || die "repo-dir error: $1"
+repo=${1%/} #`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
+[ -d "$repo/.svn" ] || die "repo: $repo"
 variant=$2
-case "$variant"  in
-    test|release) ;;
-    *) die "variant error: $variant" ;;
-esac
-[ -d "$builddir/$variant" ] || mkdir -p $builddir/$variant
-#[ `stat -c\%i $builddir` = `stat -c\%i $2` ] || die "destination-dir error: $2"
+[ "$variant" = test -o "$variant" = release ] || die "variant: $variant"
+[ -d "$builddir/$variant" ] || mkdir -p $builddir/$variant || die "mkdir $builddir/$variant"
+#[ `stat -c\%i $builddir` = `stat -c\%i $2` ] || die "destination-dir: $2"
 
 AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 Ver=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
-rev=$Vertag$Ver-$NewSVNRev #-$(date +%m%d) # local temp application dir
+Rev=$Vertag$Ver-$NewSVNRev #-$(date +%m%d) # local temp application dir
 
 case "$what" in
 clean)
-    #rm -vf $builddir/$variant/$Apk
     ;;
 
 svn-commit)
@@ -82,24 +80,24 @@ sync-down)
 rbuild)
     for plat in ${plats//,/ } ; do
         rel="$plat-$Ver-`date +%Y%m%d`"
-        ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/application/$rev $variant/$rel $plat" || die "ssh rbuild"
+        ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/application/$Rev $variant/$rel $plat" || die "ssh rbuild"
     done
 
     echo "$rhost:$rhome/$variant/$rel [OK]"
     ;;
 
 sync-up)
-    rm -rf /tmp/$rev #$variant/$rev
-    mkdir /tmp/$rev/lib
-    mkdir /tmp/$rev/internal
+    rm -rf /tmp/$Rev #$variant/$Rev
+    mkdir /tmp/$Rev/lib
+    mkdir /tmp/$Rev/internal
 
-    cp -v $builddir/$repo/libmtkhw.so /tmp/$rev/lib/ || die "libmtkhw.so"
-    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so /tmp/$rev/lib/ || die "libBarcode.so"
-    cp -v $builddir/$variant/$Apk /tmp/$rev/internal/Game.apk || die "$Apk"
+    cp -v $builddir/$repo/libmtkhw.so /tmp/$Rev/lib/ || die "libmtkhw.so"
+    cp -v $builddir/$repo/libs/armeabi-v7a/libBarcode.so /tmp/$Rev/lib/ || die "libBarcode.so"
+    cp -v $builddir/$variant/$Apk /tmp/$Rev/internal/Game.apk || die "$Apk"
 
-    find /tmp/$rev -type f -exec chmod 0644 '{}' \;
-    ( cd /tmp && rsync -vr $rev $rhost:$variant/application/ ) || die "rsync $rhost"
-    rm -rf /tmp/$rev
+    find /tmp/$Rev -type f -exec chmod 0644 '{}' \;
+    ( cd /tmp && rsync -vr $Rev $rhost:$variant/application/ ) || die "rsync $rhost"
+    rm -rf /tmp/$Rev
     ;;
 
 prepare|init)
@@ -142,7 +140,7 @@ prepare|init)
 
     echo "SVN Revision: $OldSVNRev => $NewSVNRev"
     echo "Version: $Ver => $Newver $Vertag"
-    svn log -r$OldSVNRev:$NewSVNRev $repo > svn.log.$OldSVNRev-$NewSVNRev
+    svn log -r$OldSVNRev:$NewSVNRev $repo > /tmp/svn.log.$OldSVNRev-$NewSVNRev
     echo
     echo "svn.log.$OldSVNRev-$NewSVNRev"
     echo "$variant/$Apk$testoutdir"

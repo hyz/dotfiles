@@ -1,34 +1,30 @@
 
-repo    := $(REPO)
-repo    ?= svnchina/androidbarcode
-variant := $(VARIANT)
-variant ?= release
-plats   := $(PLATS)
-plats   ?= k400,cvk350c,cvk350t
+# export VARIANT=release PLATS=k400,cvk350c,cvk350t
+# make prepare
+# make rbuild
+# make rar RARPWD=XXX
+
+REPO    ?= svnchina/androidbarcode
+VARIANT ?= release
+PLATS   ?= k400,cvk350c,cvk350t
 
 prepare init:
-	hzmake.sh prepare $(repo) $(variant) -P $(plats)
-
-rebuild:
-	hzmake.sh rbuild $(repo) $(variant) -P $(plats) \
-		&& hzmake.sh sync-down $(repo) $(variant) -P $(plats)
+	hzmake.sh prepare $(REPO) $(VARIANT) -P $(PLATS)
 
 rbuild:
-	hzmake.sh sync-up $(repo) $(variant) -P $(plats) \
-		&& hzmake.sh rbuild $(repo) $(variant) -P $(plats) \
-		&& hzmake.sh sync-down $(repo) $(variant) -P $(plats)
+	hzmake.sh sync-up $(REPO) $(VARIANT) -P $(PLATS) \
+		&& hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
+		&& hzmake.sh sync-down $(REPO) $(VARIANT) -P $(PLATS)
 rar:
-	hzmake.sh rar $(repo) $(variant) -P $(plats) -p $(RARPWD)
+	hzmake.sh rar $(REPO) $(VARIANT) -P $(PLATS) -p $(RARPWD)
+
+rbuildx:
+	hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
+		&& hzmake.sh sync-down $(REPO) $(VARIANT) -P $(PLATS)
 
 showvars:
-	@echo $(repo) $(variant) $(plats) $(RARPWD)
+	@echo $(REPO) $(VARIANT) $(PLATS) $(RARPWD)
 
-.PHONY: showvars rbuild rebuild prepare init sync-up rar
+.PHONY: showvars rbuild rbuildx prepare init sync-up rar
 
-# export REPO=svnchina/androidbarcode VARIANT=release RARPWD=XXX PLATS=k400,cvk350c,cvk350t
-# hzmake.sh init      $REPO release -P $PLATS
-# hzmake.sh sync-up   $REPO release -P $PLATS
-# hzmake.sh rbuild    $REPO release -P $PLATS
-# hzmake.sh sync-down $REPO release -P $PLATS
-# hzmake.sh rar       $REPO release -P $PLATS -p $RARPWD
 
