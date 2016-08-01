@@ -1,4 +1,5 @@
 
+### http://unix.stackexchange.com/questions/5120/how-do-you-make-samba-follow-symlink-outside-the-shared-path
 ### http://www.krizna.com/ubuntu/setup-file-server-ubuntu-14-04-samba/
     1. Anonymous share.
     2. Secured share.
