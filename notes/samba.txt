@@ -6,4 +6,9 @@
     3. User creation.
 
 smbpasswd -a wood
+smbpasswd -e wood
+smbpasswd -d wood
+smbpasswd -x wood
+
+https://www.samba.org/samba/docs/using_samba/ch09.html
 
