@@ -1,18 +1,20 @@
 
-# export VARIANT=release PLATS=k400,cvk350c,cvk350t
+# make prepare VARIANT=test
 # make prepare
-# make rbuild
-# make rar RARPWD=XXX
+# make PLATS=k400,cvk350c,cvk350t rbuild
+# make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
 
-REPO    ?= svnchina/androidbarcode
+REPO    ?= $(HOME)/svnchina/androidbarcode
 VARIANT ?= release
 PLATS   ?= k400,cvk350c,cvk350t
 
 prepare init:
-	hzmake.sh prepare $(REPO) $(VARIANT) -P $(PLATS)
+	svn up $(REPO)
+	hzmake.sh prepare $(REPO) $(VARIANT)
+	@grep word howto.txt
 
 rbuild:
-	hzmake.sh sync-up $(REPO) $(VARIANT) -P $(PLATS) \
+	hzmake.sh sync-up $(REPO) $(VARIANT) \
 		&& hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
 		&& hzmake.sh sync-down $(REPO) $(VARIANT) -P $(PLATS)
 rar:
