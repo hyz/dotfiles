@@ -4,7 +4,7 @@
 # make PLATS=k400,cvk350c,cvk350t rbuild
 # make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
 
-REPO    ?= $(HOME)/svnchina/androidbarcode
+REPO    ?= androidbarcode
 VARIANT ?= release
 PLATS   ?= k400,cvk350c,cvk350t
 

@@ -124,7 +124,7 @@ prepare|init)
 
     if [ "$variant" = release ] ; then
         sed -i '/^[^#]\+#\s*define\s\+BUILD_RELEASE/{s:^[^#]\+::}' $builddir/$svname/jni/Utils/log.h
-        cp -v $repo/../tools/CryptoRelease.bat $builddir/$svname/tools/Crypto.bat
+        cp -v tools/CryptoRelease.bat $builddir/$svname/tools/Crypto.bat
     else
         sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' \
             $builddir/$svname/$AppConfig
