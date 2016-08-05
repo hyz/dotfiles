@@ -15,3 +15,21 @@ HKEY_LOCAL_MACHINE
     \ Device Parameters
         FlipFlopWheel: 默认0，修改成1
 
+### http://superuser.com/questions/948348/how-can-i-invert-touchpad-scroll-direction-on-windows-10
+2: Powershell commands
+
+    # View registry settings
+    Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Enum\HID\*\*\Device` Parameters FlipFlopWheel -EA 0
+
+    # Change registry settings
+    # Reverse mouse wheel scroll FlipFlopWheel = 1 
+    # Normal mouse wheel scroll FlipFlopWheel = 0 
+    Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Enum\HID\*\*\Device` Parameters FlipFlopWheel -EA 0 | ForEach-Object { Set-ItemProperty $_.PSPath FlipFlopWheel 1 }
+
+The command for normal (non-inverted) scrolling has the `0` and `1` swapped:
+
+    # Restore default scroll direction
+    Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Enum\HID\*\*\Device` Parameters FlipFlopWheel -EA 1 | ForEach-Object { Set-ItemProperty $_.PSPath FlipFlopWheel 0 }
+
+Reboot or replug mouse for changes to take effect
+
