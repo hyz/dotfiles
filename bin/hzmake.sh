@@ -144,7 +144,7 @@ prepare|init)
     #find $builddir/$repo -name log.h -o -name AppConfig.java -o -name Crypto.bat
 
     echo
-    echo "Version: $OldVer => $NewVer, $OldSVNRev => $NewSVNRev" |tee -a svn-log.$NewVer
+    echo "Version: $OldSVNRev => $NewSVNRev, $OldVer => $NewVer" |tee -a svn-log.$NewVer
     svn log -r$OldSVNRev:$NewSVNRev $repo >> svn-log.$NewVer
     echo "svn-log.$NewVer"
     echo "$variant/$Apk$testoutdir"
