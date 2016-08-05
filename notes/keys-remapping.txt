@@ -1,0 +1,29 @@
+
+### windoes
+http://www.experts-exchange.com/articles/2155/Keyboard-Remapping-CAPSLOCK-to-Ctrl-and-Beyond.html
+http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_Windows
+http://vim.wikia.com/wiki/Talk:Map_caps_lock_to_escape_in_Windows
+http://vim.wikia.com/wiki/VimTip75
+
+### https://github.com/susam/uncap
+### Linux: loadkeys
+    On Linux, the  loadKeys  command may be used to map one key to another in console. This section describes how to map Caps Lock key to Escape key. All commands in this section must be run as root or superuser.
+
+    Before performing the key mapping, one needs to find the key code of Caps Lock key in the console. This is also going to be useful while reverting the key mapping.
+
+    Here is a quick way to find the key code of Caps Lock key in console.
+    dumpkeys | grep -E "CtrlL_Lock|Caps_Lock"
+
+
+    In this section, we assume that the key code for Caps Lock key is  58  and it is mapped to  Caps_Lock  key, which is indeed true on most systems. On Debian based systems, the key code  58  may be mapped to  CtrlL_Lock  to work around Debian bug 514464 and kernel bug 7746.
+
+    The following command maps Caps Lock key to Escape key.
+    (dumpkeys | grep keymaps; echo keycode 58 = Escape) | loadkeys
+
+
+    The following command undoes the mapping.
+    (dumpkeys | grep keymaps; echo keycode 58 = Caps_Lock) | loadkeys
+
+
+
+
