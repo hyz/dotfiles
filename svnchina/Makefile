@@ -18,14 +18,17 @@ rbuild:
 		&& hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
 		&& hzmake.sh sync-down $(REPO) $(VARIANT) -P $(PLATS)
 rar:
-	hzmake.sh rar $(REPO) $(VARIANT) -P $(PLATS) -p $(RARPWD)
+	hzmake.sh $@ $(REPO) $(VARIANT) -P $(PLATS) -p $(RARPWD)
 
-rbuildx:
+version-up:
+	hzmake.sh $@ $(REPO) $(VARIANT)
+
+rbuild-1:
 	hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
 		&& hzmake.sh sync-down $(REPO) $(VARIANT) -P $(PLATS)
 
 showvars:
-	@echo $(REPO) $(VARIANT) $(PLATS) $(RARPWD)
+	@echo $@ $(REPO) $(VARIANT) $(PLATS) $(RARPWD)
 
 .PHONY: showvars rbuild rbuildx prepare init sync-up rar
 
