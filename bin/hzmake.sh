@@ -51,7 +51,9 @@ AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 
 OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
-NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
+if [ -z "$NewVer" ] ; then
+    NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
+fi
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
@@ -71,7 +73,7 @@ version-up)
     echo "commit $repo? (y/n)"
     read yn
     case "$yn" in
-        y|Y) svn commit $repo -m "Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated" ;;
+        [yY]|[yY]es|YES) svn commit $repo -m "Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated" ;;
         *) svn revert $repo/$AppConfig ;;
     esac
     ;;

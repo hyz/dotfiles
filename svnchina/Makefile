@@ -3,6 +3,7 @@
 # make prepare
 # make PLATS=k400,cvk350c,cvk350t rbuild
 # make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
+# make version-up
 
 REPO    ?= androidbarcode
 VARIANT ?= release
