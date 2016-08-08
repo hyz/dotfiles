@@ -1,3 +1,41 @@
 
 ntfsclone --save-image --output vmware11-xp-usb-sdd1-partclone.ntfs /dev/sdd1
+ntfsclone --save-image --output /mnt/win10.ntfsclone /dev/loop0p1
+
+> sudo ntfsresize --size 24G /dev/loop0p1                                                                           ~
+ntfsresize v2016.2.22 (libntfs-3g)
+Device name        : /dev/loop0p1
+NTFS volume version: 3.1
+Cluster size       : 4096 bytes
+Current volume size: 36861555200 bytes (36862 MB)
+Current device size: 36861555712 bytes (36862 MB)
+New volume size    : 23999996416 bytes (24000 MB)
+Checking filesystem consistency ...
+100.00 percent completed
+Accounting clusters ...
+Space in use       : 14260 MB (38.7%)
+Collecting resizing constraints ...
+Needed relocations : 237376 (973 MB)
+WARNING: Every sanity check passed and only the dangerous operations left.
+Make sure that important data has been backed up! Power outage or computer
+crash may result major data loss!
+Are you sure you want to proceed (y/[n])? y
+Schedule chkdsk for NTFS consistency check at Windows boot time ...
+Resetting $LogFile ... (this might take a while)
+Relocating needed data ...
+100.00 percent completed
+Updating $BadClust file ...
+Updating $Bitmap file ...
+Updating Boot record ...
+Syncing device ...
+Successfully resized NTFS on device '/dev/loop0p1'.
+You can go on to shrink the device for example with Linux fdisk.
+IMPORTANT: When recreating the partition, make sure that you
+  1)  create it at the same disk sector (use sector as the unit!)
+  2)  create it with the same partition type (usually 7, HPFS/NTFS)
+  3)  do not make it smaller than the new NTFS filesystem size
+  4)  set the bootable flag for the partition if it existed before
+Otherwise you won't be able to access NTFS or can't boot from the disk!
+If you make a mistake and don't have a partition table backup then you
+can recover the partition table by TestDisk or Parted's rescue mode.
 

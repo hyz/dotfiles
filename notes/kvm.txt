@@ -4,3 +4,10 @@ https://wiki.archlinux.org/index.php/KVM
 https://wiki.archlinux.org/index.php/libvirt
 
 
+http://blog.chinaunix.net/uid-31375431-id-5747973.html
+
+http://www.cnblogs.com/sammyliu/p/4543110.html
+http://blog.chinaunix.net/uid-27117600-id-4148061.html
+
+http://www.crifan.com/ubuntu_qemu_run_linux_kernel/
+

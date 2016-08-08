@@ -1,0 +1,12 @@
+
+losetup -o 32256 -f /dev/sda9
+losetup -Pf /dev/sda4
+losetup
+partx -a /dev/loop0
+lsblk
+ntfs-3g /dev/loop0p1 /mnt/ntfs
+
+#losetup -d /dev/loop0p1
+#losetup -d /dev/loop0p2
+losetup -d /dev/loop0
+

@@ -2,6 +2,7 @@
 
 ####
 hda=/dev/sda9 ### Windows7
+hda=/dev/sda4 ### Windows10
 hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
@@ -19,7 +20,7 @@ export QEMU_AUDIO_DRV=alsa
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
 qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
-    -cpu host -smp cores=2 -m 3072M \
+    -cpu host -smp cores=2 -m 4096M \
     -acpitable sig=SLIC,file=$SLIC \
     -rtc base=localtime,clock=host \
     -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
@@ -29,6 +30,8 @@ qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
     -display sdl #-vga std #vmware #-daemonize
 #
 exit 0
+    -drive file=$HOME/qemu/Windows/10.iso,index=2,media=cdrom \
+
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \
 spicy -h 127.0.0.1 -p 5900
 
@@ -66,6 +69,7 @@ iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
 iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
 iptables -nvL -t nat
+#########================== =============== ==============
 
 ### http://www.funtoo.org/Windows_7_Virtualization_with_KVM
 #   -vga qxl -device virtio-serial-pci -spice port=5900,password=abc123 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent
