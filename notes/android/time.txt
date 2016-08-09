@@ -1,0 +1,7 @@
+
+### http://stackoverflow.com/questions/6360210/androidlinux-uptime-using-clock-monotonic
+    SystemClock.elapsedRealtime() 
+        返回系统启动到现在的毫秒数，包含休眠时间。
+
+    CLOCK_BOOTTIME 
+
