@@ -1,0 +1,15 @@
+
+### open-vm-tools
+### http://askubuntu.com/questions/777839/fresh-ubuntu-16-04-install-broken-vmware-tools/777922
+# https://github.com/vmware/open-vm-tools/issues/62#issuecomment-174631126
+    git clone https://github.com/vmware/open-vm-tools.git
+    cd open-vm-tools/open-vm-tools
+    sudo apt-get install libmspack0 libmspack-dev libprocps3 libprocps3-dev dnet-progs libdumbnet-dev doxygen
+    ./configure --without-x --without-pam --without-ssl --without-icu
+    make MODULES=vmhgfs
+    insmod modules/linux/vmhgfs/vmhgfs.ko
+
+    mount -t vmhgfs .host:/ /mnt
+    ls /mnt
+
+
