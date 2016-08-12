@@ -4,3 +4,14 @@ JNI wrappers for the Java MediaCodec and related classes in order to decode audi
 
 arm-linux-androideabi-readelf -a bin/gcc-4.9/release/threading-multi/libhello-jni.so
 
+
+http://mathslinux.org/?cat=48
+
+
+http://stackoverflow.com/questions/5198105/calling-a-java-method-from-c-in-android
+https://developer.android.com/tools/sdk/ndk/index.html#Contents
+http://blog.kdehairy.com/using-sqlite-natively-on-android/
+sqlite
+http://stackoverflow.com/questions/5523067/sqlite-with-android-ndk
+http://stackoverflow.com/questions/21704813/android-ndk-unable-to-open-database-file-using-sqlite3-open
+
