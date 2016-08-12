@@ -9,24 +9,26 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <OpenMAX/IL/OMX_Core.h>
-#include <OpenMAX/IL/OMX_Component.h>
-#include <OpenMAX/IL/OMX_Types.h>
+#include <openmax/OMX_Core.h>
+#include <openmax/OMX_Component.h>
+#include <openmax/OMX_Types.h>
 #include "frameworks/av/media/libstagefright/omx/OMXMaster.h"
 #include <utils/Debug.h>
+#include <utils/Mutex.h>
+#include <list>
+#include <set>
 #include <memory>
 #include <vector>
 #include <type_traits>
 #include <algorithm>
 // #include <initializer_list>
 
-//#define COMPONENT "OMX.Nvidia.h264.decode"
-#define COMPONENT "OMX.MTK.VIDEO.DECODER.AVC"
+//#define COMPONENT_NAME "OMX.Nvidia.h264.decode"
+//#define COMPONENT_NAME "OMX.google.h264.decoder"
+#define COMPONENT_NAME "OMX.MTK.VIDEO.DECODER.AVC"
 
-#define DEBUG
-
-//OMX_ERRORTYPE OMXMaster::makeComponentInstance(const char *name, const OMX_CALLBACKTYPE *callbacks, OMX_PTR appData, OMX_COMPONENTTYPE **component);
-// EMPTY_BUFFER // OMX_EmptyThisBuffer(handle, buf);
+/// OMXMaster::makeComponentInstance
+/// EMPTY_BUFFER // OMX_EmptyThisBuffer(handle, bh);
 
 template <typename... As> void err_exit_(int ln, char const* e, char const* fmt, As... a) {
     fprintf(stderr, fmt, ln, e, a...);
@@ -62,16 +64,15 @@ struct nal_unit_header
     uint8_t nri:2;
     uint8_t f:1;
 };
-inline int naltype(OMX_BUFFERHEADERTYPE*) {
-    return 0;
-}
 
 struct h264nalu_reader
 {
     typedef std::pair<uint8_t*,uint8_t*> range;
     uint8_t *begin_ = 0, *end_;
 
-    range init(int fd, int naltype) {
+    range open(char const* h264_filename)
+    {
+        int fd = ::open(h264_filename, O_RDONLY);
         struct stat st; // fd = open(fn, O_RDONLY);
         fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
 
@@ -83,23 +84,32 @@ struct h264nalu_reader
         munmap(p, st.st_size);
         assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
 
-        return next(std::make_pair(begin_,begin_), naltype);
+        close(fd);
+        //ERR_EXIT_IF(rng_.first==rng_.second, "%s: nal-type:7 not-found", h264_filename);
+        return std::make_pair(begin_,begin_);
     }
-    //range next(range const& prev) const { return find_(prev.second); }
 
-    range next(range rng, int type) const {
-        for (rng = find_(rng.second); rng.first != rng.second; rng = find_(rng.second)) {
-            nal_unit_header* h = reinterpret_cast<nal_unit_header*>(rng.first);
+    range next(range r, int type=0) const {
+        for (r = find_(r.second); r.first != r.second; r = find_(r.second)) {
+            nal_unit_header* h = reinterpret_cast<nal_unit_header*>(r.first+4);
             if (h->nri < 3) {
                 continue;
             }
-            if (h->type != type) {
+            if (type && h->type != type) {
                 printf("nal nri %d type %d\n", int(h->nri), int(h->type));
                 continue;
             }
+            printf("nal nri %d type %d, len %u\n", int(h->nri), int(h->type), int(r.second-r.first));
             break;
         }
-        return rng; //find_(begin_);
+        return r; //find_(begin_);
+    }
+    range begin(int naltype=0) const {
+        range r = next(std::make_pair(begin_,begin_), naltype);
+        range y = next(r, naltype+1);
+        ERR_EXIT_IF(r.second!=y.first, "%s",__FUNCTION__);
+        r.second = y.second;
+        return r;
     }
 
     ~h264nalu_reader() {
@@ -108,33 +118,50 @@ struct h264nalu_reader
     range find_(uint8_t* e) const {
         uint8_t* b = e;
         if (e+4 < end_) {
-            uint8_t dx[] = {0, 0, 0, 1};
-            b = e + 4;
-            e = std::search(b, end_, &dx[0], &dx[4]);
+            static uint8_t startbytes[] = {0, 0, 0, 1};
+            //b = e + 4;
+            e = std::search(e+4, end_, &startbytes[0], &startbytes[4]);
         }
         return std::make_pair(b,e);
     }
 };
 
-struct OMXControl
+struct OMXH264Decoder
 {
-    typedef OMXControl This;
+    typedef OMXH264Decoder This;
     android::OMXMaster omxMaster; // err = OMX_Init();
     OMX_HANDLETYPE component; //OMX_COMPONENTTYPE *component;
     OMX_STATETYPE state;
+    unsigned char stage_ = 0;
+    //std::list<iterator> oseq_;
+    //android::Mutex mMutex;
 
-    //struct BufferWrap { OMX_BUFFERHEADERTYPE* pbuf = 0; };
-    struct IOPort : OMX_PARAM_PORTDEFINITIONTYPE, std::vector<OMX_BUFFERHEADERTYPE*> {
-        unsigned nCallback;
-        unsigned bufflag_send;
-        unsigned bufflag_allocated;
+    struct BufferEx {
+        OMX_BUFFERHEADERTYPE* buf = 0;
+        unsigned char indexTestOnly;
+        unsigned char flags = 0;
+        BufferEx(OMX_BUFFERHEADERTYPE* b=0) { indexTestOnly=flags=0; buf=b; }
+    };
+    enum { MSK_USED = 0x10 };
 
+    struct IOPort : OMX_PARAM_PORTDEFINITIONTYPE , std::vector<BufferEx> {
         IOPort(unsigned char portIdx=0) /*: std::vector<BufferWrap>(24)*/ {
             nPortIndex = portIdx;
-            nCallback=0; //nBusy=nTotal=0;
-            bufflag_send = bufflag_allocated = 0;
         }
         //~IOPort() { omxbufs_deinit(component); }
+        //OMX_BUFFERHEADERTYPE* buf(unsigned x) const { return (*this)[x].buf; }
+
+        int index(iterator it) const { return int(it - begin()); }
+        iterator iterator_to(BufferEx& x) { return begin() + (&x - &front()); }
+
+        int countf(unsigned msk) const {
+            int n = 0;
+            for (auto& b : *this) {
+                if (b.flags & msk)
+                    n++;
+            }
+            return n;
+        }
 
         void print() const {
             OMX_PARAM_PORTDEFINITIONTYPE const& def = *this;
@@ -145,20 +172,23 @@ struct OMXControl
                     , vdef.cMIMEType
                     , vdef.nFrameWidth, vdef.nFrameHeight, vdef.nStride, vdef.nSliceHeight
                     , vdef.xFramerate, vdef.nBitrate
-                    , vdef.eColorFormat, vdef.eCompressionFormat
-                    ); // OMX_COLOR_FormatYUV420Planar=19
+                    , vdef.eColorFormat, vdef.eCompressionFormat //OMX_COLOR_FormatYUV420Planar=19,OMX_VIDEO_CodingAVC=7
+                    );
         }
+
     }; // ioports[2] = {0,1};
+    typedef IOPort::iterator iterator;
     IOPort input_port{0};
     IOPort output_port{1};
 
     sem_t sem_command_;
-    //volatile bool state_changing;
+    sem_t sem_bufempty_;
+    //sem_t sem_buffilled_;
 
     h264nalu_reader h264f_; //(fd_ = open("/sdcard/a.h264", O_RDONLY));
     h264nalu_reader::range rng_;
 
-    OMXControl(char const* component_name)
+    OMXH264Decoder(char const* component_name)
     {
         //static_assert(std::is_same<OMX_HANDLETYPE,OMX_COMPONENTTYPE*>::value);
         static OMX_CALLBACKTYPE callbacks = {
@@ -167,6 +197,8 @@ struct OMXControl
             .FillBufferDone = &cbFillThisBuffer0
         };
         sem_init(&sem_command_, 0, 0);
+        sem_init(&sem_bufempty_, 0, 0);
+        //sem_init(&sem_buffilled_, 0, 0);
 
         OMX_COMPONENTTYPE *handle;
         OMX_ERRORTYPE err = omxMaster.makeComponentInstance(component_name, &callbacks, this, &handle);
@@ -177,27 +209,13 @@ struct OMXControl
         //sync_port_definition(output_port);
         //sync_state();
     }
-    ~OMXControl() {
-        omxbufs_deinit(input_port);
-        omxbufs_deinit(output_port);
+    ~OMXH264Decoder() {
         omxMaster.destroyComponentInstance((OMX_COMPONENTTYPE*)component);
         sem_destroy(&sem_command_);
+        sem_destroy(&sem_bufempty_);
+        //sem_destroy(&sem_buffilled_);
         printf("~\n");
     }
-
-    //inline IOPort& output_port() const { return const_cast<This*>(this)->ioports[1]; }
-    //inline IOPort& input_port() const { return const_cast<This*>(this)->ioports[0]; }
-
-    //void disable(IOPort& iop) {
-    //    printf("%s: Port %d\n",__FUNCTION__, iop.nPortIndex);
-    //    command_nowait(OMX_CommandPortDisable, iop.nPortIndex, NULL); //OMX_SendCommand(component, OMX_CommandPortDisable, iop.nPortIndex, NULL);
-    //    // wait_command(); //sem_wait(&sem_command_);
-    //}
-    //void enable(IOPort& iop) {
-    //    printf("%s: Port %d\n",__FUNCTION__, iop.nPortIndex);
-    //    command(OMX_CommandPortEnable, iop.nPortIndex, NULL); //OMX_SendCommand(component, OMX_CommandPortEnable, iop.nPortIndex, NULL);
-    //    // wait_command(); //sem_wait(&sem_command_);
-    //}
 
     OMX_STATETYPE sync_state() {
         OMX_STATETYPE state0 = state;
@@ -205,10 +223,6 @@ struct OMXControl
         printf("state %d:%s => %d:%s\n", state0, state_str(state0), state, state_str(state));
         return state;
     }
-    ///OMX_STATETYPE sync_state(OMX_STATETYPE state1) {
-    ///    OMX_STATETYPE state0 = state;
-    ///    return state;
-    ///}
 
     void sync_port_definition(IOPort& iop) {
         int portIndex = iop.nPortIndex;
@@ -232,24 +246,23 @@ struct OMXControl
 
     void omxbufs_deinit(IOPort& iop) {
         printf("%s: Port %d: Actual %u, %d\n",__FUNCTION__, iop.nPortIndex, iop.nBufferCountActual, (int)iop.size());
-        for (unsigned i=0; i < iop.size(); ++i) {
-            OMX_FreeBuffer(component, iop.nPortIndex, iop[i]);
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            OMX_FreeBuffer(component, iop.nPortIndex, beg->buf);
         }
         iop.clear();
-        iop.bufflag_send = iop.bufflag_allocated = 0;
     }
     void omxbufs_reinit(IOPort& iop)/*(OMX_HANDLETYPE component)*/ {
         if (!iop.empty())
             omxbufs_deinit(iop);
-        printf("%s: Port %d: Actual %u, %d\n",__FUNCTION__, iop.nPortIndex, iop.nBufferCountActual, (int)iop.size());
+        printf("%s: Port %d: Actual %u\n",__FUNCTION__, iop.nPortIndex, iop.nBufferCountActual);
 
-        auto& vec = iop;
-        vec.resize(iop.nBufferCountActual);
-        for (unsigned i=0; i < iop.nBufferCountActual; ++i) {
-            vec[i] = omx_alloc_buf(iop, i);
-            ERR_EXIT_IF(!vec[i], "%s",__FUNCTION__);
+        iop.resize(iop.nBufferCountActual);
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            *beg = BufferEx();
+            beg->indexTestOnly = (unsigned char)(beg - iop.begin());
+            beg->buf = omxbuf_alloc(iop, beg);
+            ERR_EXIT_IF(!beg->buf, "%s",__FUNCTION__);
         }
-        sync_port_definition(iop);
     }
 
     struct CommandHelper
@@ -259,12 +272,6 @@ struct OMXControl
 
         CommandHelper const& send() const {
             print(__FUNCTION__);
-            int sv;
-            if (sem_getvalue(&self->sem_command_, &sv)==0 && sv > 0) {
-                ERR_MSG("sem-value %d", sv);
-                while (sv-- > 0 && sem_wait(&self->sem_command_)==0)
-                    ;
-            }
             if (Cmd < OMX_CommandMax) {
                 OMX_ERRORTYPE err = OMX_SendCommand(self->component, Cmd, nParam1, pCmdData);
                 ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SendCommand");
@@ -279,6 +286,8 @@ struct OMXControl
             print(__FUNCTION__);
             int ret = sem_wait(&self->sem_command_); // OMX_StateExecuting OMX_StateWaitForResources
             ERR_EXIT_IF(ret<0, "sem_wait");
+            if (OMX_CommandStateSet == nParam1)
+                self->sync_state();
             print(__FUNCTION__, " [OK]\n");
         }
         void print(char const* pfx, char const* end="\n") const {
@@ -294,431 +303,345 @@ struct OMXControl
         return CommandHelper{this,Cmd,nParam1,pCmdData}.send();
     }
 
-    //void nextEmptyBuffer()
-    //{
-    //    IOPort& iop = input_port;
-    //    int n = 0, bidx=0;
-    //    for (; rng_.first != rng_.second; rng_ = h264f_.next(rng_)) {
-    //        OMX_BUFFERHEADERTYPE* buf = iop[bidx]; // 
+    void teardown() {
+        stage_ = 3;
+        while (sem_trywait(&sem_bufempty_) == 0)
+            ;
+        assert(errno == EAGAIN);
+        while (sem_trywait(&sem_command_) == 0)
+            ;
+        assert(errno == EAGAIN);
 
-    //        nal_unit_header* h = reinterpret_cast<nal_unit_header*>(rng_.first);
-    //        if (h->nri < 3) {
-    //            continue;
-    //        }
-    //        if (1 ||h->type < 5) {
-    //            printf("nal nri %d type %d, %d\n", int(h->nri), int(h->type), bidx);
-    //        }
-
-    //        unsigned len = (rng_.second - rng_.first);
-    //        if (len > iop.nBufferSize) {
-    //            ERR_MSG("len %u > %u", len, iop.nBufferSize);
-    //            continue;
-    //        }
-
-    //        //if (h->type != 5) { continue; }
-    //        if (h->type == 5) {
-    //            //printf("Press 'Enter' key ... %d\n", bidx);
-    //            //char tmp[32];
-    //            //while (fgets(tmp, sizeof(tmp), stdin))
-    //            //    if (tmp[strlen(tmp)-1] == '\n')
-    //            //        break;
-    //    //printf("%d:nextEmptyBuffer %d, %d\n",__LINE__, n, bidx);
-    //            //rng_ = h264f_.next(rng_); break;
-    //        }
-
-    //        memcpy( buf->pBuffer, rng_.first, len );
-    //        buf->nFilledLen = len;
-
-    //        OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, buf);
-    //        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
-    //        ++n;
-    //        ++bidx;
-    //    printf("%d:nextEmptyBuffer %d, %d\n",__LINE__, n, bidx);
-    //        sleep(5);
-    //    }
-    //    printf("%d:nextEmptyBuffer %d, %d\n",__LINE__, n, bidx);
-    //}
-
-    void nextFillBuffer(IOPort& iop, OMX_BUFFERHEADERTYPE* buf)
-    {
-        // buf->nPortIndex;
-        iop.bufflag_send &= ~(1<<index(buf));
-        iop.bufflag_allocated |= (1<<index(buf));
-        OMX_ERRORTYPE err = OMX_FillThisBuffer(component, buf);
-        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_FillThisBuffer %d", int(err));
-    }
-    void nextFillBuffer()
-    {
-        IOPort& iop = output_port;
-        for (unsigned i=0; i<iop.size(); ++i) {
-            nextFillBuffer(iop, iop[i]);
-        }
-        printf("%s: nBufferCountActual %u %d #%d\n",__FUNCTION__, iop.nBufferCountActual, (int)iop.size(), __LINE__);
+        printf("===%s\n",__FUNCTION__);
+        command(OMX_CommandFlush, output_port.nPortIndex, NULL).wait();
+        command(OMX_CommandStateSet, OMX_StateIdle, NULL).wait();
+        command(OMX_CommandStateSet, OMX_StateLoaded, NULL)([this](){
+                omxbufs_deinit(input_port);
+                omxbufs_deinit(output_port);
+            }).wait();
     }
 
-    void decode_start(char const* h264_filename) {
-        {
-            int fd = open(h264_filename, O_RDONLY);
-            rng_ = h264f_.init(fd, 7);
-            close(fd);
-            ERR_EXIT_IF(rng_.first==rng_.second, "%s: nal-type:7 not-found", h264_filename);
-        }
+    void decode_start(char const* h264_filename)
+    {
+        rng_ = h264f_.open(h264_filename);
         //// OMX_IndexParamVideoInit, OMX_PORT_PARAM_TYPE
-        // struct timespec tv; tv.tv_sec = 0; tv.tv_nsec = 1000*1000*100;
-        // sem_timedwait;
+
+        enum { vWidth = 1920, vHeight = 1080 };
+        //enum { vWidth = 1280, vHeight = 720 };
+        //enum { vWidth = 480, vHeight = 272 };
+        // OMX_VIDEO_PARAM_PROFILELEVELTYPE
 
         sync_state();
-        sync_port_definition(input_port);
-        sync_port_definition(output_port);
-        /*{
+
+        {
+            OMX_PARAM_COMPONENTROLETYPE roleParams;
+            android::InitOMXParams(&roleParams);
+            strncpy((char *)roleParams.cRole, "video_decoder.avc", OMX_MAX_STRINGNAME_SIZE - 1);
+            roleParams.cRole[OMX_MAX_STRINGNAME_SIZE - 1] = '\0';
+            OMX_ERRORTYPE err = OMX_SetParameter(component, OMX_IndexParamStandardComponentRole, &roleParams);
+            ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SetParameter OMX_IndexParamStandardComponentRole");
+        } {
+            OMX_VIDEO_PARAM_PORTFORMATTYPE format;
+            android::InitOMXParams(&format)->nPortIndex = 0; //kPortIndexInput;
+            format.nIndex = 0;
+            for ( ;; ) {
+                OMX_ERRORTYPE err = OMX_GetParameter( component, OMX_IndexParamVideoPortFormat, &format);
+                ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_GetParameter OMX_IndexParamVideoPortFormat");
+                if (format.eCompressionFormat == OMX_VIDEO_CodingAVC && format.eColorFormat == OMX_COLOR_FormatUnused) {
+                    OMX_SetParameter(component, OMX_IndexParamVideoPortFormat, &format);
+                    break;
+                }
+                format.nIndex++;
+            }
+        } {
+            sync_port_definition(input_port);
             OMX_PARAM_PORTDEFINITIONTYPE def = input_port;
+            def.nBufferSize = vWidth*vHeight*3/2;
             def.format.video.nFrameWidth = vWidth;
             def.format.video.nFrameHeight = vHeight;
-            def.format.video.nStride = def.format.video.nFrameWidth;
-            sync_port_definition(input_port);
-        }{
+            def.format.video.eCompressionFormat = OMX_VIDEO_CodingAVC;
+            def.format.video.eColorFormat = OMX_COLOR_FormatUnused;
+            //def.format.video.nStride = def.format.video.nFrameWidth;
+            sync_port_definition(input_port, def);
+        } /*{
             OMX_PARAM_PORTDEFINITIONTYPE def = output_port;
             def.format.video.nFrameWidth = vWidth;
             def.format.video.nFrameHeight = vHeight;
             def.format.video.nStride = def.format.video.nFrameWidth;
-            sync_port_definition(output_port);
+            sync_port_definition(output_port, def);
         }*/// init_port_def(output_port); //(OMX_DirOutput);
 
+        //enable_nativebufs();
+        sync_port_definition(output_port);
+
         command(OMX_CommandStateSet, OMX_StateIdle, NULL)([this](){
                     omxbufs_reinit(input_port);
                     omxbufs_reinit(output_port);
                 }).wait();
+        sync_state();
         command(OMX_CommandStateSet, OMX_StateExecuting, NULL).wait();
-
-        nextFillBuffer();
-
-pos_again__:
-        if (rng_.first != rng_.second) {
-            OMX_BUFFERHEADERTYPE* buf = alloc_buf(input_port);
-            buf->nFilledLen = rng_.second - rng_.first;
-            memcpy( buf->pBuffer, rng_.first, buf->nFilledLen );
-            send_buf(input_port, buf);
-        }
-        CommandHelper{this,OMX_CommandMax,OMX_EventPortSettingsChanged,0}.wait();
-        sync_port_definition(output_port);
+        sync_state();
         sync_port_definition(input_port);
-        printf("===%d sleep\n",__LINE__);sleep(3);
+        sync_port_definition(output_port);
 
-        command(OMX_CommandStateSet, OMX_StateIdle, NULL).wait();
-        command(OMX_CommandStateSet, OMX_StateLoaded, NULL)([this](){
-                    omxbufs_deinit(input_port);
+        /*while */(FillOneBuffer())
+            ;
+
+pos_test_again_:
+        /*(sps.first != sps.second)*/ {
+            auto sps = rng_ = h264f_.next(rng_, 7);
+#if 0
+            static unsigned char sps_[] = { 0,0,0,1,
+                0x67, 0x64, 0x00, 0x28, 0xac, 0xf0, 0x1e, 0x00, 0x89, 0xf9, 0x50
+              //0x67, 0x64, 0x00, 0x28, 0xac, 0xe8, 0x07, 0x80, 0x22, 0x7e, 0x58, 0x02
+            };
+            sps.first = sps_;
+            sps.second = &sps_[sizeof(sps_)];
+#endif
+            EmptyThis(sps.first, sps.second, OMX_BUFFERFLAG_CODECCONFIG|OMX_BUFFERFLAG_ENDOFFRAME);
+        } {
+            auto pps = rng_ = h264f_.next(rng_, 8);
+            EmptyThis(pps.first, pps.second, OMX_BUFFERFLAG_CODECCONFIG|OMX_BUFFERFLAG_ENDOFFRAME);
+        }
+
+        CommandHelper{this,OMX_CommandMax,OMX_EventPortSettingsChanged,0}.wait();
+        printf("===%d OMX_EventPortSettingsChanged ...\n",__LINE__);
+
+        sync_port_definition(output_port);
+        command(OMX_CommandPortDisable, output_port.nPortIndex, NULL)([this](){
+                    if (output_port.countf(MSK_USED)>0)
+                        CommandHelper{this,OMX_CommandMax,OMX_EventBufferFlag,0}.wait(); //XXX
+    printf("===%d OMX_EventBufferFlag %x ...\n",__LINE__, output_port.countf(MSK_USED));
                     omxbufs_deinit(output_port);
                 }).wait();
+    printf("===%d OMX_CommandPortDisable OK\n",__LINE__);
 
-        sync_port_definition(input_port);
-        OMX_PARAM_PORTDEFINITIONTYPE def = input_port;
-        def.format.video.nFrameWidth = output_port.format.video.nFrameWidth;
-        def.format.video.nFrameHeight = output_port.format.video.nFrameHeight;
-        def.format.video.nStride = output_port.format.video.nStride;
-        def.format.video.nSliceHeight = output_port.format.video.nSliceHeight;
-        sync_port_definition(input_port, def);
-        // OMX_IndexParamVideoPortFormat OMX_VIDEO_PARAM_PORTFORMATTYPE OMX_VIDEO_PORTDEFINITIONTYPE video;
-
-        command(OMX_CommandStateSet, OMX_StateIdle, NULL)([this](){
-                    omxbufs_reinit(input_port);
+        sync_port_definition(output_port);
+        command(OMX_CommandPortEnable, output_port.nPortIndex, NULL)([this](){
                     omxbufs_reinit(output_port);
                 }).wait();
+        printf("===%d OMX_CommandPortEnable OK\n",__LINE__);//sleep(1);
 
-        command(OMX_CommandStateSet, OMX_StateExecuting, NULL).wait();
         sync_port_definition(input_port);
-        sync_port_definition(output_port);
+        sync_port_definition(output_port); //sync_state();
 
-        nextFillBuffer();
+        //FillOneBuffer();
+        //for (int i=0; ; ++i)
+        //    if (!FillOneBuffer()) {
+        //        printf("FillOneBuffer : %d\n", i);
+        //        break;
+        //    }
+//goto pos_test_again_;
 
-        printf("===%d sleep - again\n",__LINE__);sleep(3);
-        goto pos_next__; //pos_again__;
+        while (sem_trywait(&sem_bufempty_) == 0)
+            printf("sem_trywait(&sem_bufempty_) == 0\n");
+        assert(errno == EAGAIN);
+        while (sem_trywait(&sem_command_) == 0)
+            printf("sem_trywait(&sem_command_) == 0\n");
+        assert(errno == EAGAIN);
 
-pos_next__:
-        rng_ = h264f_.next(rng_, 8);
-
-        if (rng_.first != rng_.second) {
-            OMX_BUFFERHEADERTYPE* buf = alloc_buf(input_port);
-            buf->nFilledLen = rng_.second - rng_.first;
-            memcpy( buf->pBuffer, rng_.first, buf->nFilledLen );
-            send_buf(input_port, buf);
+        stage_ = 1;
+        printf("===%d:%s pre-dec-loop\n",__LINE__,__FUNCTION__); //sleep(1);
+        for (int x=2; x>0; --x) {
+            FillOneBuffer();
+            sem_wait(&sem_command_);
         }
+        sem_wait(&sem_bufempty_);
+        sem_wait(&sem_bufempty_);
+        while (sem_trywait(&sem_command_) == 0)
+            ;
+        while (sem_trywait(&sem_bufempty_) == 0)
+            ;
+        printf("===%d:%s dec-loop\n",__LINE__,__FUNCTION__); //sleep(1);
 
-        printf("===%d event-waited\n",__LINE__);sleep(6);
+        stage_ = 2;
 
-        //rng_ = h264f_.next(rng_, 5);
-        //while (rng_.first != rng_.second) {
-        //    send_data(input_port, rng_.first, rng_.second);
-        //}
+        for (auto beg = output_port.begin(); beg != output_port.end(); ++beg) {
+            FillThisBuffer(beg);
+            //oseq_.push_back(beg);
+        }
+        iterator it1 = output_port.begin();
 
-        //nextEmptyBuffer();
-    }
+        rng_ = h264f_.next(rng_, 5);
+        for (int nF=30; rng_.first != rng_.second && --nF>0; rng_ = h264f_.next(rng_, 5)) {
+            EmptyThis(rng_.first,rng_.second, OMX_BUFFERFLAG_ENDOFFRAME|OMX_BUFFERFLAG_DECODEONLY); //OMX_BUFFERFLAG_DECODEONLY//OMX_BUFFERFLAG_ENDOFFRAME
+            sem_wait(&sem_bufempty_);
 
-    OMX_BUFFERHEADERTYPE* alloc_buf(IOPort& iop) {
-        OMX_BUFFERHEADERTYPE* buf = 0;
-        for (unsigned i=0; i<iop.size(); ++i) {
-            if ((iop.bufflag_allocated & (1<<i))==0) {
-                buf = iop[i];
-                iop.bufflag_allocated |= (1<<i); // index(buf)
-                break;
+            iterator it = it1++;
+            if (it1 == output_port.end()) {
+                it1 = output_port.begin();
+            }
+
+            int npTest=0;
+            for (; it->buf->nFilledLen <= 0; ++npTest) {
+                usleep(5000);
+            }
+
+            //for (int npTest=0; ; ++npTest) {
+            //    auto iti = std::find_if(oseq_.begin(),oseq_.end(), [](iterator i){return i->buf->nFilledLen>0;});
+            //    if (iti != oseq_.end()) {
+            //        it = *iti;
+            //        android::Mutex::Autolock autoLock(mMutex);
+            //        oseq_.erase(iti);
+            //        break;
+            //    }
+            //    usleep(5000);
+            //}
+
+            nTst.nPoll++;
+            OMX_BUFFERHEADERTYPE* obuf = it->buf;
+printf("poll: P1[%d] %d %d-%d-%d, %d\n", INDEX(it), obuf->nFilledLen, nTst.cbEmpty,nTst.nPoll,nTst.cbFill, npTest);
+        }
+    } // decode_start
+
+    //void enable_nativebufs()
+    //{
+    //    OMX_INDEXTYPE index;
+    //    OMX_STRING name = const_cast<OMX_STRING>("OMX.google.android.index.useAndroidNativeBuffer");
+    //    OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
+    //    ERR_EXIT_IF(err != OMX_ErrorNone, "%s", name);
+
+    //    //BufferMeta *bufferMeta = new BufferMeta(graphicBuffer);
+    //    OMX_BUFFERHEADERTYPE *header;
+
+    //    OMX_VERSIONTYPE ver;
+    //    ver.s.nVersionMajor = 1;
+    //    ver.s.nVersionMinor = 0;
+    //    ver.s.nRevision = 0;
+    //    ver.s.nStep = 0;
+    //    UseAndroidNativeBufferParams params = {
+    //        sizeof(UseAndroidNativeBufferParams), ver, portIndex, NULL,
+    //        &header, graphicBuffer,
+    //    };
+
+    //    err = OMX_SetParameter(mHandle, index, &params);
+
+    //    EnableAndroidNativeBuffersParams params;
+    //    android::InitOMXParams(&params)->nPortIndex = output_port.nPortIndex;
+    //    params.enable = 1;
+    //    OMX_ERRORTYPE err = OMX_SetParameter(mHandle, index, &params);
+    //    ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SetParameter %d", int(err));
+    //}
+
+    iterator FindFreeBuffer(IOPort& iop) {
+        printf("%s P%d, %u\n",__FUNCTION__,iop.nPortIndex, iop.size());
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            if (0==(beg->flags & MSK_USED)) {
+                return beg;//->buf; //OMX_BUFFERHEADERTYPE* bh = b.buf; //iop.buf(i);
             }
         }
-        return buf;
+        return iop.end();
     }
 
-    void send_buf(IOPort& iop, OMX_BUFFERHEADERTYPE* buf) {
-        iop.bufflag_send |= (1<<index(buf));
-        OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, buf);
-        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
+    void FillThisBuffer(iterator it) {
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
+        bh->nFlags = 0;
+        bh->nOffset = 0;
+        bh->nFilledLen = 0;
+            //enum { Y0=1920*1080 };
+            //static char z16[16] = {0};
+            //memcpy(bh->pBuffer+Y0, z16, 16);
+            //memcmp(bh->pBuffer+Y0, z16, 16);
+        it->flags |= MSK_USED;
+printf("%s:%s [%d] %d %d %x\n", __FUNCTION__,"OMX_FillThisBuffer", INDEX(it), bh->nFilledLen, bh->nOffset, bh->nFlags);
+        OMX_ERRORTYPE err = OMX_FillThisBuffer(component, bh);
+        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_FillThisBuffer %d", int(err));
     }
 
-    static inline unsigned index(OMX_BUFFERHEADERTYPE* buf) {
-        return (unsigned)buf->pAppPrivate;
-    }
-
-    //void change_state(OMX_STATETYPE state1)
-    //{
-    //    int sv[2] = {};
-    //    sem_getvalue(&sem_command_, &sv[0]);
-
-    //    OMX_STATETYPE state0 = state;
-
-    //    printf("=== %d:x state %d:%s -> %d:%s\n", sv[0], (int)state0, state_str(state0), state1, state_str(state1));
-
-    //    //state_changing = 1;
-    //    printf("OMX_SendCommand:OMX_CommandStateSet %s\n", state_str(state1));
-    //    OMX_ERRORTYPE err = OMX_SendCommand(component, OMX_CommandStateSet, state1, NULL);
-    //    ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SendCommand");
-
-    //    if (state1 == OMX_StateIdle)
-    //        test_allocbufs();
-
-    //    printf("sem_wait:sem_command_\n");
-    //    sem_wait(&sem_command_); // OMX_StateExecuting OMX_StateWaitForResources
-    //    //state_changing = 0;
-    //    OMX_GetState(component, &state);
-    //    ERR_EXIT_IF(state!=state1, "%s",__FUNCTION__);
-
-    //    sem_getvalue(&sem_command_, &sv[1]);
-    //    printf("=== %d:%d state %d:%s -> %d:%s\n", sv[0],sv[1], state0, state_str(state0), state1, state_str(state1));
-    //}
-
-    void decode_next() //void * data, int len
-    {
-#if 0
-        OMX_ERRORTYPE err;
-        OMX_BUFFERHEADERTYPE *buf;
-
-        if(!(buffer_in_mask || buffer_out_mask)) {
-            printf("wait damn avp\n");
-            sem_wait(&wait_buff);
+    iterator FillOneBuffer() {
+        auto it = FindFreeBuffer(output_port);
+        if (it != output_port.end()) {
+            FillThisBuffer(it);
         }
-
-        for (int i=0;i<buffer_out_nb;i++) {
-            if (! ((1<<i) & buffer_out_mask ) )
-                continue;
-
-            err = OMX_FillThisBuffer(decoderhandle, omx_buffers_out[i]);
-            OMXERR_MSG(err);
-
-            buffer_out_mask &= (1<<i) ^ 0xFFFFFFFF;
-            break;
-        }
-
-        int read_len;
-
-        for (int i=0;i<buffer_in_nb;i++) {
-            buf = omx_buffers_in[i];
-
-            if( ! ((1<<i) & buffer_in_mask ) )
-                continue;
-
-            read_len = read(input, buf->pBuffer, buffer_in_size/4);
-            printf("read: %d\n", read_len);
-            buf->nFilledLen = read_len;
-
-            err = OMX_EmptyThisBuffer(decoderhandle, buf);
-            OMXERR_MSG(err);
-
-            buffer_in_mask &= (1<<i) ^ 0xFFFFFFFF;
-        }
-
-        /*
-           printf("wait filled cb\n");
-           sem_wait(&buffer_out_filled);
-           printf("ok...\n");
-           */
-#endif
+        return it;
     }
 
-    //void init_port_def(IOPort& iop)
-    //{
-    //    // OMX_IndexParamVideoPortFormat OMX_VIDEO_PARAM_PORTFORMATTYPE 
-    //    if (iop.nPortIndex == 0) {
-    //        //OMX_PARAM_PORTDEFINITIONTYPE def;
-    //        //OMX_VIDEO_PORTDEFINITIONTYPE *video_def;
-    //        //android::InitOMXParams(&def)->nPortIndex = portIdx;
-    //        ////
-    //        //OMX_ERRORTYPE err=OMX_GetParameter(component, OMX_IndexParamPortDefinition, &def);
-    //        //ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_GetParameter");
-    //        ////def.nBufferSize=vWidth*vHeight*3/2;
-    //        ////def.format.video.nBitrate = 1024*1024*2;
-    //        //def.format.video.nFrameWidth = vWidth;
-    //        //def.format.video.nFrameHeight = vHeight;
-    //        //def.format.video.nStride = def.format.video.nFrameWidth;
-    //        //err=OMX_SetParameter(component, OMX_IndexParamPortDefinition, &def);
-    //        //ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SetParameter");
-    //    }
-    //    if (iop.nPortIndex == 1) {
-    //        OMX_PARAM_PORTDEFINITIONTYPE def = iop;
-    //        def.format.video.nFrameWidth = vWidth;
-    //        def.format.video.nFrameHeight = vHeight;
-    //        def.format.video.nStride = def.format.video.nFrameWidth;
-    //        iop.sync_port_definition(def);
-    //        //OMX_PARAM_PORTDEFINITIONTYPE def;
-    //        //OMX_VIDEO_PORTDEFINITIONTYPE *video_def;
-    //        //android::InitOMXParams(&def)->nPortIndex = portIdx;
-    //        ////
-    //        //OMX_ERRORTYPE err=OMX_GetParameter(component, OMX_IndexParamPortDefinition, &def);
-    //        //ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_GetParameter");
-    //        ////def.nBufferSize=vWidth*vHeight*3/2;
-    //        //def.format.video.nFrameWidth = vWidth;
-    //        //def.format.video.nFrameHeight = vHeight;;
-    //        //def.format.video.nStride = def.format.video.nFrameWidth;
-    //        //err=OMX_SetParameter(component, OMX_IndexParamPortDefinition, &def);
-    //        //ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SetParameter");
-    //    }
-    //}
-
-    // OMX_FreeBuffer
-    //void test_allocbufs()
-    //{
-    //    auto& ipbs = input_port; //ports[0].sync_port_definition();
-    //    auto& opbs = output_port; //ports[1].sync_port_definition();
-    //    ipbs.resize(ipbs.nBufferCountActual);
-    //    opbs.resize(opbs.nBufferCountActual);
-    //    unsigned i=0;
-    //    while ( (ipbs[i]=alloc_buf(ipbs,i)) || (opbs[i]=alloc_buf(opbs,i)) )
-    //        ++i;
-    //}
-    //void allocbufs(OMX_PARAM_PORTDEFINITIONTYPE const& def, int nBufferCount)
-    //{
-    //    printf("Port%d OMX_AllocateBuffer %d size=%d\n", def.nPortIndex, nBufferCount, (int)def.nBufferSize);
-    //    for (int i=0; i < nBufferCount; ++i) {
-    //        printf("OMX_AllocateBuffer [%d:%d] %u\n", def.nPortIndex, i, def.nBufferSize);
-    //        BufferWrap& pb = bufs[i]; // pAppPrivate
-    //        err = OMX_AllocateBuffer(component, &pb.pbuf, def.nPortIndex, &pb, def.nBufferSize);
-    //        sleep(1);
-    //        ERR_MSG_IF(err!=OMX_ErrorNone, "OMX_AllocateBuffer [%d:%d] %u\n", def.nPortIndex, i, def.nBufferSize);
-    //        printf("OMX_AllocateBuffer [%d:%d] %u OK\n", def.nPortIndex, i, def.nBufferSize);
-    //    }
-    //}
-
-    //void test_print_port_params() {
-    //    test_print_params(OMX_DirInput);
-    //    test_print_params(OMX_DirOutput);
-
-    //    static char const* sts[] = { "OMX_StateInvalid", "OMX_StateLoaded", "OMX_StateIdle", "OMX_StateExecuting", "OMX_StatePause", "OMX_StateWaitForResources" };
-    //    OMX_STATETYPE state0;
-    //    OMX_GetState(component, &state0);
-    //    printf("=== state %d:%s\n", state0, sts[state0]);
-    //}
-    //void test_print_params(int portIndex)
-    //{
-    //    OMX_PARAM_PORTDEFINITIONTYPE def;
-    //    android::InitOMXParams(&def)->nPortIndex = portIndex;
-    //    OMX_ERRORTYPE err=OMX_GetParameter(component, OMX_IndexParamPortDefinition, &def);
-    //    ERR_MSG_IF(err!=OMX_ErrorNone, "OMX_GetParameter");
-    //    OMX_VIDEO_PORTDEFINITIONTYPE * video_def = &def.format.video;
-
-    //    printf("%d nBufferCount(Actual/Min) %d %d, %.1fK, Enabled %d, Populated %d"
-    //                "\n\t%s, %dx%d, f-rate %d, color %d\n"
-    //            , def.nPortIndex, def.nBufferCountActual,def.nBufferCountMin, def.nBufferSize/1024.0, def.bEnabled, def.bPopulated
-    //            , video_def->cMIMEType
-    //            , video_def->nFrameWidth
-    //            , video_def->nFrameHeight
-    //            , video_def->xFramerate
-    //            , video_def->eColorFormat
-    //            ); // OMX_COLOR_FormatYUV420Planar=19
-    //}
-
-    //void test_disable_ports() {
-    //    disableSomePorts( OMX_IndexParamVideoInit);
-    //    disableSomePorts( OMX_IndexParamImageInit);
-    //    disableSomePorts( OMX_IndexParamAudioInit);
-    //    disableSomePorts( OMX_IndexParamOtherInit);
-    //}
-
-    //void disableSomePorts(OMX_INDEXTYPE indexType)
-    //{
-    //    OMX_ERRORTYPE err;
-
-    //    OMX_PORT_PARAM_TYPE param;
-    //    android::InitOMXParams(&param);
-
-    //    err = OMX_GetParameter(component, indexType, &param);
-    //    ERR_MSG_IF(err!=OMX_ErrorNone, "OMX_GetParameter");
-
-    //    int startPortNumber = param.nStartPortNumber;
-    //    int nPorts = param.nPorts;
-    //    int endPortNumber = startPortNumber + nPorts;
-    //    printf("Port start=%d, count=%d\n", startPortNumber, nPorts);
-
-    //    for (int n = startPortNumber; n < endPortNumber; n++) {
-    //        OMX_SendCommand(component, OMX_CommandPortDisable, n, NULL);
-    //        sem_wait(&sem_command_);
-    //    }
+    iterator EmptyThis(uint8_t const* beg, uint8_t const* end, int flags) {
+        auto it = FindFreeBuffer(input_port);
+        if (it == input_port.end()) {
+            ERR_EXIT("%s",__FUNCTION__);
+        } else {
+            OMX_BUFFERHEADERTYPE* bh = it->buf;
+            bh->nFlags = flags;
+            bh->nOffset = 0;
+            bh->nFilledLen = end - beg;
+            memcpy(bh->pBuffer, beg, bh->nFilledLen);
+            // OMX_BUFFERFLAG_CODECCONFIG OMX_BUFFERFLAG_ENDOFFRAME OMX_BUFFERFLAG_DECODEONLY
+            it->flags |= MSK_USED;
+            OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, bh);
+            ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
+            printf("%s: P0[%d] len %u\n",__FUNCTION__, INDEX(it), bh->nFilledLen);
+        }
+        return it;
+    }
+    //void EmptyThisBuffer(OMX_BUFFERHEADERTYPE* bh) {
+    //    // OMX_BUFFERFLAG_CODECCONFIG OMX_BUFFERFLAG_ENDOFFRAME OMX_BUFFERFLAG_DECODEONLY
+    //    |= MASK(bh);
+    //    OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, bh);
+    //    ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
+    //    printf("%s: P0[%d] len %u\n",__FUNCTION__, INDEX(bh), bh->nFilledLen);
     //}
 
 private:
-    OMX_BUFFERHEADERTYPE* omx_alloc_buf(IOPort& iop, unsigned bidx) {
-        OMX_BUFFERHEADERTYPE* buf = 0;
-        OMX_PARAM_PORTDEFINITIONTYPE* def = &iop; //(*this)[bidx];
-        if (bidx < def->nBufferCountActual && bidx < iop.size()) {
-            //printf("OMX_AllocateBuffer [%d:%d] %u\n", def->nPortIndex, bidx, def->nBufferSize);
-            OMX_ERRORTYPE err = OMX_AllocateBuffer(component, &buf, def->nPortIndex, (OMX_PTR)bidx, def->nBufferSize); // pAppPrivate
-            ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_AllocateBuffer %d [%d] %u: %s\n", def->nPortIndex, bidx, def->nBufferSize, error_str(err));
-            //sleep(1); // TODO: remove sleep
-            //printf("OMX_AllocateBuffer [%d:%d] %u OK\n", def->nPortIndex, bidx, def->nBufferSize);
-        }
-        return buf;
+    //static inline unsigned MASK(OMX_BUFFERHEADERTYPE* bh) { return (1<<INDEX(bh)); }
+    static inline unsigned INDEX(iterator it) {
+        return (it->indexTestOnly); //(it->buf->nPortIndex==0) ? input_port.index(it) : output_port.index(it);
+        //return (unsigned(bh->pAppPrivate)&0x3f);
+    }
+
+    OMX_BUFFERHEADERTYPE* omxbuf_alloc(IOPort& port, iterator it) {
+        OMX_BUFFERHEADERTYPE* bh = 0;
+        OMX_PARAM_PORTDEFINITIONTYPE* def = &port;
+        //if (bidx < def->nBufferCountActual && bidx < port.size()) {
+        BufferEx* ptr = &*it; //.operator->();
+        OMX_ERRORTYPE err = OMX_AllocateBuffer(component, &bh, def->nPortIndex, (OMX_PTR)ptr, def->nBufferSize); // pAppPrivate
+        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_AllocateBuffer P%d[%d] %u: %s", def->nPortIndex, INDEX(it), def->nBufferSize, error_str(err));
+        printf("%s:OMX_AllocateBuffer P%d[%d] %u\n",__FUNCTION__, def->nPortIndex, INDEX(it), def->nBufferSize);
+        //}
+        return bh;
     }
 
 private: // callbacks
-    OMX_ERRORTYPE cbEmptyThisBuffer(OMX_BUFFERHEADERTYPE* buf)
+    struct statisCount {
+        int nPoll = 0;
+        int cbFill = 0;
+        int cbEmpty = 0;
+    } nTst;
+
+    OMX_ERRORTYPE cbEmptyThisBuffer(iterator it)
     {
-        IOPort& iop = input_port;
-        iop.bufflag_send &= ~(1<<index(buf));
-        iop.bufflag_allocated &= ~(1<<index(buf));
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
+        if (bh->nFilledLen > 100)
+            nTst.cbEmpty++;
+        printf("%s: P0[%d] %u %u %u, %d-%d\n",__FUNCTION__, INDEX(it), bh->nFilledLen, bh->nOffset, bh->nAllocLen, nTst.cbEmpty,nTst.cbFill);
 
-        printf("%s: bidx %d, %u %u %u\n",__FUNCTION__, index(buf), buf->nAllocLen, buf->nFilledLen, buf->nOffset);
-        iop.nCallback++;
-        // nextEmptyBuffer();
-
-        //if(pBuffer->pPlatformPrivate < 102400) exit(1);
-        //buffer_in_mask |= 1<<*(short*)pBuffer->pPlatformPrivate;
-        //sem_post(&wait_buff);
+        it->flags &= ~MSK_USED;
+        sem_post(&sem_bufempty_);
 
         return OMX_ErrorNone;
     }
-    OMX_ERRORTYPE cbFillThisBuffer(OMX_BUFFERHEADERTYPE* buf)
+
+    OMX_ERRORTYPE cbFillThisBuffer(iterator it)
     {
-        if (buf->nFilledLen <= 0)/*(command_ == OMX_CommandPortDisable)*/ {
-            output_port.bufflag_allocated &= ~(1<<index(buf));
-            if (output_port.bufflag_allocated == 0) {
-                printf("%s\n",__FUNCTION__);
-                //sync_port_definition(output_port);
-                //? sem_post(&sem_command_);
+        if (stage_ >= 3)
+            return OMX_ErrorNone;
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
+
+        if (bh->nFilledLen > 100)
+            nTst.cbFill++;
+        printf("%s: P1[%d] %u %u %u, %d %d-%d\n",__FUNCTION__, INDEX(it), bh->nFilledLen, bh->nOffset, bh->nAllocLen, int(stage_), nTst.cbEmpty,nTst.cbFill);
+
+        if (bh->nFilledLen <= 0) {
+            it->flags &= ~MSK_USED;
+            if (stage_==1 || (stage_==0 && output_port.countf(MSK_USED) == 0)) {
+                printf("%s: P1[%d] stage=%d\n",__FUNCTION__, INDEX(it), int(stage_));
+                sem_post(&sem_command_); // OMX_EventBufferFlag
             }
         } else {
-        printf("%s: bidx %d, %u %u %u\n",__FUNCTION__, index(buf), buf->nAllocLen, buf->nFilledLen, buf->nOffset);
-            IOPort& iop = output_port;
-            iop.bufflag_send |= (1<<index(buf));
-            //iop.bufflag_send &= ~(1<<index(buf));
-            //iop.bufflag_allocated &= ~(1<<index(buf));
-
-            iop.nCallback++;
-            printf("%s: bidx %d, nCB %d\n",__FUNCTION__, index(buf), iop.nCallback);
-            nextFillBuffer(iop, buf);
+            FillThisBuffer(it);
+            ///android::Mutex::Autolock autoLock(mMutex);
+            ///oseq_.push_back(it);
+            ////it->flags &= ~MSK_USED;
         }
         return OMX_ErrorNone;
     }
@@ -733,7 +656,6 @@ private: // callbacks
                 switch ((OMX_COMMANDTYPE)Data1) {
                     case OMX_CommandStateSet:
                         printf("%s: OMX_EventCmdComplete:OMX_CommandStateSet %d:%s\n",__FUNCTION__, (int)Data2,state_str(Data2));
-        sync_state();
                         sem_post(&sem_command_);
                         break;
                     case OMX_CommandPortDisable:
@@ -742,6 +664,10 @@ private: // callbacks
                         break;
                     case OMX_CommandPortEnable:
                         printf("%s: OMX_EventCmdComplete:OMX_CommandPortEnable %d %d\n",__FUNCTION__, (int)Data1, (int)Data2);
+                        sem_post(&sem_command_);
+                        break;
+                    case OMX_CommandFlush:
+                        printf("%s: OMX_EventCmdComplete:OMX_CommandFlush %d %d\n",__FUNCTION__, (int)Data1, (int)Data2);
                         sem_post(&sem_command_);
                         break;
                 }
@@ -758,87 +684,87 @@ private: // callbacks
         return OMX_ErrorNone;
     }
 
-#define CASE_THEN_RETURN_STR(y) case OMX_ ## y: return #y
+#define CASE_THEN_RETURN_STR(y) case y: return (#y)
 
     static char const* cmd_str(unsigned x) {
         switch (x) {
-            CASE_THEN_RETURN_STR(CommandStateSet);
-            CASE_THEN_RETURN_STR(CommandFlush);
-            CASE_THEN_RETURN_STR(CommandPortDisable);
-            CASE_THEN_RETURN_STR(CommandPortEnable);
-            CASE_THEN_RETURN_STR(CommandMarkBuffer);
-            CASE_THEN_RETURN_STR(CommandMax);
+            CASE_THEN_RETURN_STR(OMX_CommandStateSet);
+            CASE_THEN_RETURN_STR(OMX_CommandFlush);
+            CASE_THEN_RETURN_STR(OMX_CommandPortDisable);
+            CASE_THEN_RETURN_STR(OMX_CommandPortEnable);
+            CASE_THEN_RETURN_STR(OMX_CommandMarkBuffer);
+            CASE_THEN_RETURN_STR(OMX_CommandMax);
         }
-        return "Unknown-Command";
+        return "OMX_Command-Unknown";
     }
 
     static char const* state_str(int x) {
         switch (x) {
-            CASE_THEN_RETURN_STR(StateInvalid);
-            CASE_THEN_RETURN_STR(StateLoaded);
-            CASE_THEN_RETURN_STR(StateIdle);
-            CASE_THEN_RETURN_STR(StateExecuting);
-            CASE_THEN_RETURN_STR(StatePause);
-            CASE_THEN_RETURN_STR(StateWaitForResources);
+            CASE_THEN_RETURN_STR(OMX_StateInvalid);
+            CASE_THEN_RETURN_STR(OMX_StateLoaded);
+            CASE_THEN_RETURN_STR(OMX_StateIdle);
+            CASE_THEN_RETURN_STR(OMX_StateExecuting);
+            CASE_THEN_RETURN_STR(OMX_StatePause);
+            CASE_THEN_RETURN_STR(OMX_StateWaitForResources);
         }
-        return "Unknown-State";
+        return "OMX_State-Unknown";
     }
     static char const* event_str(int x) {
         switch (x) {
-            CASE_THEN_RETURN_STR(EventCmdComplete);
-            CASE_THEN_RETURN_STR(EventError);
-            CASE_THEN_RETURN_STR(EventMark);
-            CASE_THEN_RETURN_STR(EventPortSettingsChanged);
-            CASE_THEN_RETURN_STR(EventBufferFlag);
-            CASE_THEN_RETURN_STR(EventResourcesAcquired);
-            CASE_THEN_RETURN_STR(EventComponentResumed);
-            CASE_THEN_RETURN_STR(EventDynamicResourcesAvailable);
-            CASE_THEN_RETURN_STR(EventPortFormatDetected);
+            CASE_THEN_RETURN_STR(OMX_EventCmdComplete);
+            CASE_THEN_RETURN_STR(OMX_EventError);
+            CASE_THEN_RETURN_STR(OMX_EventMark);
+            CASE_THEN_RETURN_STR(OMX_EventPortSettingsChanged);
+            CASE_THEN_RETURN_STR(OMX_EventBufferFlag);
+            CASE_THEN_RETURN_STR(OMX_EventResourcesAcquired);
+            CASE_THEN_RETURN_STR(OMX_EventComponentResumed);
+            CASE_THEN_RETURN_STR(OMX_EventDynamicResourcesAvailable);
+            CASE_THEN_RETURN_STR(OMX_EventPortFormatDetected);
         }
-        return "Unknown-Event";
+        return "OMX_Event-Unknown";
     }
     static char const* error_str(/*OMX_ERRORTYPE*/int x) {
         switch (x) {
-            case OMX_ErrorNone: return "OK";
-            CASE_THEN_RETURN_STR(ErrorInsufficientResources);
-            CASE_THEN_RETURN_STR(ErrorUndefined);
-            CASE_THEN_RETURN_STR(ErrorInvalidComponentName);
-            CASE_THEN_RETURN_STR(ErrorComponentNotFound);
-            CASE_THEN_RETURN_STR(ErrorInvalidComponent);
-            CASE_THEN_RETURN_STR(ErrorBadParameter);
-            CASE_THEN_RETURN_STR(ErrorNotImplemented);
-            CASE_THEN_RETURN_STR(ErrorUnderflow);
-            CASE_THEN_RETURN_STR(ErrorOverflow);
-            CASE_THEN_RETURN_STR(ErrorHardware);
-            CASE_THEN_RETURN_STR(ErrorInvalidState);
-            CASE_THEN_RETURN_STR(ErrorStreamCorrupt);
-            CASE_THEN_RETURN_STR(ErrorPortsNotCompatible);
-            CASE_THEN_RETURN_STR(ErrorResourcesLost);
-            CASE_THEN_RETURN_STR(ErrorNoMore);
-            CASE_THEN_RETURN_STR(ErrorVersionMismatch);
-            CASE_THEN_RETURN_STR(ErrorNotReady);
-            CASE_THEN_RETURN_STR(ErrorTimeout);
-            CASE_THEN_RETURN_STR(ErrorSameState);
-            CASE_THEN_RETURN_STR(ErrorResourcesPreempted);
-            CASE_THEN_RETURN_STR(ErrorPortUnresponsiveDuringAllocation);
-            CASE_THEN_RETURN_STR(ErrorPortUnresponsiveDuringDeallocation);
-            CASE_THEN_RETURN_STR(ErrorPortUnresponsiveDuringStop);
-            CASE_THEN_RETURN_STR(ErrorIncorrectStateTransition);
-            CASE_THEN_RETURN_STR(ErrorIncorrectStateOperation);
-            CASE_THEN_RETURN_STR(ErrorUnsupportedSetting);
-            CASE_THEN_RETURN_STR(ErrorUnsupportedIndex);
-            CASE_THEN_RETURN_STR(ErrorBadPortIndex);
-            CASE_THEN_RETURN_STR(ErrorPortUnpopulated);
-            CASE_THEN_RETURN_STR(ErrorComponentSuspended);
-            CASE_THEN_RETURN_STR(ErrorDynamicResourcesUnavailable);
-            CASE_THEN_RETURN_STR(ErrorMbErrorsInFrame);
-            CASE_THEN_RETURN_STR(ErrorFormatNotDetected);
-            CASE_THEN_RETURN_STR(ErrorContentPipeOpenFailed);
-            CASE_THEN_RETURN_STR(ErrorContentPipeCreationFailed);
-            CASE_THEN_RETURN_STR(ErrorSeperateTablesUsed);
-            CASE_THEN_RETURN_STR(ErrorTunnelingUnsupported);
+            CASE_THEN_RETURN_STR(OMX_ErrorNone);
+            CASE_THEN_RETURN_STR(OMX_ErrorInsufficientResources);
+            CASE_THEN_RETURN_STR(OMX_ErrorUndefined);
+            CASE_THEN_RETURN_STR(OMX_ErrorInvalidComponentName);
+            CASE_THEN_RETURN_STR(OMX_ErrorComponentNotFound);
+            CASE_THEN_RETURN_STR(OMX_ErrorInvalidComponent);
+            CASE_THEN_RETURN_STR(OMX_ErrorBadParameter);
+            CASE_THEN_RETURN_STR(OMX_ErrorNotImplemented);
+            CASE_THEN_RETURN_STR(OMX_ErrorUnderflow);
+            CASE_THEN_RETURN_STR(OMX_ErrorOverflow);
+            CASE_THEN_RETURN_STR(OMX_ErrorHardware);
+            CASE_THEN_RETURN_STR(OMX_ErrorInvalidState);
+            CASE_THEN_RETURN_STR(OMX_ErrorStreamCorrupt);
+            CASE_THEN_RETURN_STR(OMX_ErrorPortsNotCompatible);
+            CASE_THEN_RETURN_STR(OMX_ErrorResourcesLost);
+            CASE_THEN_RETURN_STR(OMX_ErrorNoMore);
+            CASE_THEN_RETURN_STR(OMX_ErrorVersionMismatch);
+            CASE_THEN_RETURN_STR(OMX_ErrorNotReady);
+            CASE_THEN_RETURN_STR(OMX_ErrorTimeout);
+            CASE_THEN_RETURN_STR(OMX_ErrorSameState);
+            CASE_THEN_RETURN_STR(OMX_ErrorResourcesPreempted);
+            CASE_THEN_RETURN_STR(OMX_ErrorPortUnresponsiveDuringAllocation);
+            CASE_THEN_RETURN_STR(OMX_ErrorPortUnresponsiveDuringDeallocation);
+            CASE_THEN_RETURN_STR(OMX_ErrorPortUnresponsiveDuringStop);
+            CASE_THEN_RETURN_STR(OMX_ErrorIncorrectStateTransition);
+            CASE_THEN_RETURN_STR(OMX_ErrorIncorrectStateOperation);
+            CASE_THEN_RETURN_STR(OMX_ErrorUnsupportedSetting);
+            CASE_THEN_RETURN_STR(OMX_ErrorUnsupportedIndex);
+            CASE_THEN_RETURN_STR(OMX_ErrorBadPortIndex);
+            CASE_THEN_RETURN_STR(OMX_ErrorPortUnpopulated);
+            CASE_THEN_RETURN_STR(OMX_ErrorComponentSuspended);
+            CASE_THEN_RETURN_STR(OMX_ErrorDynamicResourcesUnavailable);
+            CASE_THEN_RETURN_STR(OMX_ErrorMbErrorsInFrame);
+            CASE_THEN_RETURN_STR(OMX_ErrorFormatNotDetected);
+            CASE_THEN_RETURN_STR(OMX_ErrorContentPipeOpenFailed);
+            CASE_THEN_RETURN_STR(OMX_ErrorContentPipeCreationFailed);
+            CASE_THEN_RETURN_STR(OMX_ErrorSeperateTablesUsed);
+            CASE_THEN_RETURN_STR(OMX_ErrorTunnelingUnsupported);
         }
-        return "Unknown-Error";
+        return "OMX_Error-Unknown";
     }
 
 private:
@@ -853,29 +779,33 @@ private:
     {
         ERR_MSG_IF(hComponent!=static_cast<This*>(pAppData)->component, "%p %p", hComponent,pAppData);
         assert(pBuffer);
-        return static_cast<This*>(pAppData)->cbEmptyThisBuffer(pBuffer);//((unsigned)pBuffer->pAppPrivate);
+        This* thiz = static_cast<This*>(pAppData);
+        BufferEx* bx = static_cast<BufferEx*>(pBuffer->pAppPrivate);
+        return thiz->cbEmptyThisBuffer( thiz->input_port.iterator_to(*bx) );
     }
     static OMX_ERRORTYPE cbFillThisBuffer0(OMX_OUT OMX_HANDLETYPE hComponent, OMX_OUT OMX_PTR pAppData
             , OMX_OUT OMX_BUFFERHEADERTYPE* pBuffer)
     {
         ERR_MSG_IF(hComponent!=static_cast<This*>(pAppData)->component, "%p %p", hComponent,pAppData);
         assert(pBuffer);
-        return static_cast<This*>(pAppData)->cbFillThisBuffer(pBuffer);//((unsigned)pBuffer->pAppPrivate);
+        //return static_cast<This*>(pAppData)->cbFillThisBuffer(*static_cast<BufferEx*>(pBuffer->pAppPrivate));//((unsigned)pBuffer->pAppPrivate);
+        This* thiz = static_cast<This*>(pAppData);
+        BufferEx* bx = static_cast<BufferEx*>(pBuffer->pAppPrivate);
+        return thiz->cbFillThisBuffer( thiz->output_port.iterator_to(*bx) );
     }
 };
 
 int main()
 {
-    //enum { vWidth = 1920, vHeight = 1080 };
-    //enum { vWidth = 1280, vHeight = 720 };
-    enum { vWidth = 480, vHeight = 272 };
+    {
+        OMXH264Decoder ox(COMPONENT_NAME); // ox.test_print_port_params();
+        ox.decode_start("/sdcard/a.h264");
+        ox.teardown();
+    }
 
-    OMXControl ox(COMPONENT); // ox.test_print_port_params();
-    ox.decode_start("/sdcard/a.h264");
-
-    printf("Ctrl-C ...\n");
-    while (sleep(5) == 0)
-        ;
+    //printf("Ctrl-C ...\n");
+    //while (sleep(5) == 0)
+    //    ;
     return 0;
 //
 //    input = open("test.h264", O_RDONLY);
@@ -896,5 +826,190 @@ int main()
 //
 //    while(1)
 //        decode();
+}
+
+char const* index_str(int ix)
+{
+switch (ix) {
+    CASE_THEN_RETURN_STR(OMX_IndexComponentStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamPriorityMgmt);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioInit);
+    CASE_THEN_RETURN_STR(OMX_IndexParamImageInit);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoInit);
+    CASE_THEN_RETURN_STR(OMX_IndexParamOtherInit);
+    CASE_THEN_RETURN_STR(OMX_IndexParamNumAvailableStreams);
+    CASE_THEN_RETURN_STR(OMX_IndexParamActiveStream);
+    CASE_THEN_RETURN_STR(OMX_IndexParamSuspensionPolicy);
+    CASE_THEN_RETURN_STR(OMX_IndexParamComponentSuspended);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCapturing);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCaptureMode);
+    CASE_THEN_RETURN_STR(OMX_IndexAutoPauseAfterCapture);
+    CASE_THEN_RETURN_STR(OMX_IndexParamContentURI);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCustomContentPipe);
+    CASE_THEN_RETURN_STR(OMX_IndexParamDisableResourceConcealment);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigMetadataItemCount);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigContainerNodeCount);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigMetadataItem);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCounterNodeID);
+    CASE_THEN_RETURN_STR(OMX_IndexParamMetadataFilterType);
+    CASE_THEN_RETURN_STR(OMX_IndexParamMetadataKeyFilter);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigPriorityMgmt);
+    CASE_THEN_RETURN_STR(OMX_IndexParamStandardComponentRole);
+
+    CASE_THEN_RETURN_STR(OMX_IndexPortStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamPortDefinition);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCompBufferSupplier);
+    CASE_THEN_RETURN_STR(OMX_IndexReservedStartUnused);
+
+    CASE_THEN_RETURN_STR(OMX_IndexAudioStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioPortFormat);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioPcm);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioAac);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioRa);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioMp3);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioAdpcm);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioG723);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioG729);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioAmr);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioWma);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioSbc);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioMidi);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioGsm_FR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioMidiLoadUserSound);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioG726);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioGsm_EFR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioGsm_HR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioPdc_FR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioPdc_EFR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioPdc_HR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioTdma_FR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioTdma_EFR);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioQcelp8);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioQcelp13);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioEvrc);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioSmv);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioVorbis);
+    CASE_THEN_RETURN_STR(OMX_IndexParamAudioFlac);
+
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiImmediateEvent);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiControl);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiSoundBankProgram);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiStatus);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiMetaEvent);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMidiMetaEventData);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioVolume);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioBalance);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioChannelMute);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioMute);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioLoudness);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioEchoCancelation);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioNoiseReduction);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioBass);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioTreble);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioStereoWidening);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioChorus);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioEqualizer);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioReverberation);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigAudioChannelVolume);
+
+    CASE_THEN_RETURN_STR(OMX_IndexImageStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamImagePortFormat);
+    CASE_THEN_RETURN_STR(OMX_IndexParamFlashControl);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigFocusControl);
+    CASE_THEN_RETURN_STR(OMX_IndexParamQFactor);
+    CASE_THEN_RETURN_STR(OMX_IndexParamQuantizationTable);
+    CASE_THEN_RETURN_STR(OMX_IndexParamHuffmanTable);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigFlashControl);
+
+    CASE_THEN_RETURN_STR(OMX_IndexVideoStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoPortFormat);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoQuantization);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoFastUpdate);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoBitrate);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoMotionVector);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoIntraRefresh);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoErrorCorrection);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoVBSMC);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoMpeg2);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoMpeg4);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoWmv);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoRv);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoAvc);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoH263);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoProfileLevelQuerySupported);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoProfileLevelCurrent);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoBitrate);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoFramerate);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoIntraVOPRefresh);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoIntraMBRefresh);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoMBErrorReporting);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoMacroblocksPerFrame);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoMacroBlockErrorMap);
+    CASE_THEN_RETURN_STR(OMX_IndexParamVideoSliceFMO);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoAVCIntraPeriod);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigVideoNalSize);
+
+    CASE_THEN_RETURN_STR(OMX_IndexCommonStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCommonDeblocking);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCommonSensorMode);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCommonInterleave);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonColorFormatConversion);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonScale);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonImageFilter);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonColorEnhancement);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonColorKey);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonColorBlend);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonFrameStabilisation);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonRotate);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonMirror);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonOutputPosition);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonInputCrop);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonOutputCrop);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonDigitalZoom);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonOpticalZoom);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonWhiteBalance);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonExposure);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonContrast);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonBrightness);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonBacklight);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonGamma);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonSaturation);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonLightness);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonExclusionRect);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonDithering);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonPlaneBlend);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonExposureValue);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonOutputSize);
+    CASE_THEN_RETURN_STR(OMX_IndexParamCommonExtraQuantData);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonFocusRegion);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonFocusStatus);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigCommonTransitionEffect);
+
+    CASE_THEN_RETURN_STR(OMX_IndexOtherStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexParamOtherPortFormat);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigOtherPower);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigOtherStats);
+
+
+    CASE_THEN_RETURN_STR(OMX_IndexTimeStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeScale);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeClockState);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeActiveRefClock);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeCurrentMediaTime);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeCurrentWallTime);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeCurrentAudioReference);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeCurrentVideoReference);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeMediaTimeRequest);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeClientStartTime);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimePosition);
+    CASE_THEN_RETURN_STR(OMX_IndexConfigTimeSeekMode);
+
+
+    CASE_THEN_RETURN_STR(OMX_IndexKhronosExtensions);
+    CASE_THEN_RETURN_STR(OMX_IndexVendorStartUnused);
+    CASE_THEN_RETURN_STR(OMX_IndexVendMtkOmxUpdateColorFormat);
+    CASE_THEN_RETURN_STR(OMX_IndexVendorMtkOmxVdecGetColorFormat);
+}
+return "OMX_Index-Unknown";
 }
 

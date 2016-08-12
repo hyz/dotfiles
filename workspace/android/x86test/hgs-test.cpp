@@ -27,7 +27,7 @@ int main(int argc, char* const argv[])
     char const *path, *ip, *ofp = SDCARD_PATH"o.h264";
     int port;
     ip="192.168.9.172"; port=7654; path="/rtp0";
-    ip="192.168.0.1"  ; port= 554; path="/live/ch00_2";
+    ip="192.168.0.1"  ; port= 554; path="/live/ch00_1";
     switch (argc-1) {
         case 4: port = atoi(argv[4]);
         case 3: ip = argv[3];

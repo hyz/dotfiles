@@ -13,9 +13,9 @@ int main()
     uint8_t* p = filebuf;
     uint8_t* end = filebuf + bufsiz;
 
-    for (int p2[2]; find_nal_unit(p, end-p, p2, p2+1) > 0; p = e) {
-        e = p + p2[1];
-        p += p2[0];
+    for (int pp[2]; find_nal_unit(p, end-p, pp, pp+1) > 0; p = e) {
+        e = p + pp[1];
+        p += pp[0];
 
         if (FILE* fp = fopen("sps.0","w")) {
             fwrite(p, 1, e-p, fp);
@@ -34,18 +34,19 @@ int main()
 
 //h->sps->profile_idc = 66;
 //h->sps->level_idc = 10;
-h->sps->num_ref_frames = 1;
-h->sps->log2_max_frame_num_minus4 = 0x05;
-h->sps->log2_max_pic_order_cnt_lsb_minus4 = 0x06;
-h->sps->direct_8x8_inference_flag = 0;
+h->sps->num_ref_frames = 0;
+//h->sps->log2_max_frame_num_minus4 = 0x05;
+//h->sps->log2_max_pic_order_cnt_lsb_minus4 = 0x06;
+//h->sps->direct_8x8_inference_flag = 0;
 
-h->sps->vui_parameters_present_flag = 0;
-#if 0
-h->sps->vui.bitstream_restriction_flag = 1;
-//h->sps->vui.motion_vectors_over_pic_boundaries_flag = 1;
-//h->sps->vui.log2_max_mv_length_horizontal = 10;
-//h->sps->vui.log2_max_mv_length_vertical = 10;
-h->sps->vui.max_dec_frame_buffering = 1;
+#if 1
+h->sps->vui_parameters_present_flag = 1;
+    h->sps->vui.bitstream_restriction_flag = 1;
+        //h->sps->vui.motion_vectors_over_pic_boundaries_flag = 1;
+        //h->sps->vui.log2_max_mv_length_horizontal = 10;
+        //h->sps->vui.log2_max_mv_length_vertical = 10;
+        h->sps->vui.num_reorder_frames = 1;
+        h->sps->vui.max_dec_frame_buffering = 2;
 #endif
         debug_nal(h, h->nal);
 
@@ -251,3 +252,4 @@ h->sps->vui.max_dec_frame_buffering = 1;
  dpb_output_delay_length_minus1 : 0 
  time_offset_length : 0 
 #endif
+
