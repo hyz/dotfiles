@@ -161,7 +161,7 @@ struct OMXH264Decoder
 
     sem_t sem_command_;
     sem_t sem_bufempty_;
-    sem_t sem_buffilled_;
+    //sem_t sem_buffilled_;
 
     h264nalu_reader h264f_; //(fd_ = open("/sdcard/a.h264", O_RDONLY));
     h264nalu_reader::range rng_;
@@ -176,7 +176,7 @@ struct OMXH264Decoder
         };
         sem_init(&sem_command_, 0, 0);
         sem_init(&sem_bufempty_, 0, 0);
-        sem_init(&sem_buffilled_, 0, 0);
+        //sem_init(&sem_buffilled_, 0, 0);
 
         OMX_COMPONENTTYPE *handle;
         OMX_ERRORTYPE err = omxMaster.makeComponentInstance(component_name, &callbacks, this, &handle);
@@ -191,7 +191,7 @@ struct OMXH264Decoder
         omxMaster.destroyComponentInstance((OMX_COMPONENTTYPE*)component);
         sem_destroy(&sem_command_);
         sem_destroy(&sem_bufempty_);
-        sem_destroy(&sem_buffilled_);
+        //sem_destroy(&sem_buffilled_);
         printf("~\n");
     }
 
@@ -407,8 +407,8 @@ pos_test_again_:
         printf("===%d dec loop\n",__LINE__); //sleep(1);
 //goto pos_test_again_;
 
-        while (sem_trywait(&sem_buffilled_) == 0)
-            printf("sem_trywait(&sem_buffilled_) == 0\n");
+        //while (sem_trywait(&sem_buffilled_) == 0)
+        //    printf("sem_trywait(&sem_buffilled_) == 0\n");
         assert(errno == EAGAIN);
         while (sem_trywait(&sem_bufempty_) == 0)
             printf("sem_trywait(&sem_bufempty_) == 0\n");

@@ -1,0 +1,9 @@
+
+### http://blog.csdn.net/jinzhuojun/article/details/44062175
+
+    SurfaceView, TextureView , GLSurfaceView, SurfaceTexture
+    ...
+
+### http://stackoverflow.com/questions/16916877/whats-differences-between-surfaceview-and-textureview
+https://github.com/dalinaum/TextureViewDemo
+

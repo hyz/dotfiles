@@ -43,6 +43,8 @@ mplayer -dumpstream -dumpfile output.rm -cache 4096 rtsp://example.com/file.rm
 ### https://libav.org/avconv.html
 avconv -i v.mkv -ss 00:05:00 -t 30 -vcodec copy -acodec copy v.mp4
 avconv -i v.mkv -ss 00:13:00 -t 30 -vcodec copy -an v.mp4
+### https://wiki.libav.org/Snippets/avconv
+avconv -v debug -f rawvideo -pix_fmt yuv420p -s 1920x1088 -i a.yuv -r 1 -vcodec h264 o.mov
 
 ### http://www.tecmint.com/ffmpeg-commands-for-video-audio-and-image-conversion-in-linux/
 
