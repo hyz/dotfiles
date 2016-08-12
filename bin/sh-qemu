@@ -1,8 +1,8 @@
 #!/bin/sh
 
 ####
-hda=/dev/sda9 ### Windows7
 hda=/dev/sda4 ### Windows10
+hda=/dev/sda9 ### Windows7
 hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
