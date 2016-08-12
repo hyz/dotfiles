@@ -68,4 +68,32 @@ lib rt : empty.c : <link>static ;
 cp -t /opt/android-ndk/standalone/toolchain/android-12/sysroot/usr/lib ...librt.a
 
 ===
+> build/tools/make_standalone_toolchain.py -h                               /opt/android/ndk
+usage: make_standalone_toolchain.py [-h] --arch
+                                    {arm,arm64,mips,mips64,x86,x86_64}
+                                    [--api API]
+                                    [--stl {gnustl,libc++,stlport}] [--force]
+                                    [-v]
+                                    [--package-dir PACKAGE_DIR | --install-dir INSTALL_DIR]
+
+Creates a toolchain installation for a given Android target. The output of
+this tool is a more typical cross-compiling toolchain. It is indended to be
+used with existing build systems such as autotools.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --arch {arm,arm64,mips,mips64,x86,x86_64}
+  --api API             Target the given API version.
+  --stl {gnustl,libc++,stlport}
+                        C++ STL to use.
+  --force               Remove existing installation directory if it exists.
+  -v, --verbose         Increase output verbosity.
+  --package-dir PACKAGE_DIR
+                        Build a tarball and install it to the given directory.
+                        If neither --package-dir nor --install-dir is
+                        specified, a tarball will be created and installed to
+                        the current directory.
+  --install-dir INSTALL_DIR
+                        Install toolchain to the given directory instead of
+                        packaging.
 

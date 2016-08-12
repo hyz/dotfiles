@@ -1,3 +1,17 @@
+### http://stackoverflow.com/questions/10798357/want-to-compile-native-android-binary-i-can-run-in-terminal-on-the-phone
+    Using CMake with the Android NDK is a nice way to compile Android console applications.
+
+    Download CMake and android-cmake (set it up like this). If your program is called main.c, then write the following in file CMakeLists.txt:
+
+    project(test)
+    cmake_minimum_required(VERSION 2.8)
+    add_executable(test ./main.c)
+
+    and run cmake -DCMAKE_TOOLCHAIN_FILE=$ANDTOOLCHAIN .
+
+    You will then have a Makefile for your program, you can run make to have your test executable.
+
+###
 http://opencv.org/platforms/android.html
 https://github.com/taka-no-me/android-cmake
     cmake -DCMAKE_TOOLCHAIN_FILE=android.toolchain.cmake \

@@ -1,3 +1,6 @@
+### https://z3ntu.github.io/2015/12/12/Cross-compiling-native-linux-applications-for-android.html
+
+###
 export CROSS_COMPILE=arm-linux-androideabi
 export CC=${CROSS_COMPILE}-gcc
 export CXX=${CROSS_COMPILE}-g++
