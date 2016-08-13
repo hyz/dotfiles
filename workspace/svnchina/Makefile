@@ -1,15 +1,18 @@
 
-# make prepare VARIANT=test
-# make prepare
-# make PLATS=k400,cvk350c,cvk350t rbuild
-# make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
-# make version-up
-
 REPO    ?= androidbarcode
 VARIANT ?= release
 PLATS   ?= k400,cvk350c,cvk350t
 
-prepare init:
+help:
+	@echo Example:
+	@echo '  ' make prepare '#' VARIANT=test
+	@echo '  ' make PLATS=k400,cvk350c,cvk350t rbuild
+	@echo '  ' make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
+	@echo '  ' make version-up '&&' make version-commit
+	@echo
+	@hzmake.sh info $(REPO) $(VARIANT)
+
+prepare:
 	svn up $(REPO)
 	hzmake.sh prepare $(REPO) $(VARIANT)
 	@grep word howto.txt
@@ -21,8 +24,13 @@ rbuild:
 rar:
 	hzmake.sh $@ $(REPO) $(VARIANT) -P $(PLATS) -p $(RARPWD)
 
-version-up:
-	hzmake.sh $@ $(REPO) $(VARIANT)
+version-commit:
+	hzmake.sh version-up $(REPO) $(VARIANT) \
+		&& hzmake.sh version-commit $(REPO) $(VARIANT)
+#version-up:
+#	hzmake.sh $@ $(REPO) $(VARIANT)
+#version-reset:
+#	hzmake.sh $@ $(REPO) $(VARIANT)
 
 rbuild-1:
 	hzmake.sh rbuild $(REPO) $(VARIANT) -P $(PLATS) \
@@ -31,6 +39,6 @@ rbuild-1:
 showvars:
 	@echo $@ $(REPO) $(VARIANT) $(PLATS) $(RARPWD)
 
-.PHONY: showvars rbuild rbuildx prepare init sync-up rar
+.PHONY: showvars rbuild rbuildx prepare sync-up rar version-up version-reset version-commit help
 
 

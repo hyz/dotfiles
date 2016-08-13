@@ -52,29 +52,50 @@ AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 if [ -z "$NewVer" ] ; then
-    NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
+    case "$what" in
+        version-commit) NewVer=$OldVer ;;
+        *) NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'` ;;
+    esac
 fi
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 
 Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
 VerF=$Vertag$NewVer-$NewSVNRev #-$(date +%m%d) # local temp application dir
 
+show-info() {
+    echo "variant: $variant"
+    echo "version: $OldVer => $NewVer, $OldSVNRev => $NewSVNRev, ${Apk%.apk}"
+    echo
+    echo "build directory: remote=$rhost:$rhome local=$builddir"
+    samba='\\192.168.2.115\Release1\'
+    if [ "$variant" = test ] ; then
+        samba=$samba'test\'
+    fi
+    echo "output: samba=$samba local=$outdir"
+    echo "apk: $variant/$Apk"
+}
+
 case "$what" in
-clean)
+info)
+    show-info
     ;;
 
+version-reset)
+    svn revert $repo/$AppConfig
+    ;;
+version-commit)
+    ;;
 version-up)
-    [ "$variant" = release ] || die "commit: $variant"
-
+    #[ "$variant" = release ] || die "commit: $variant"
     sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$NewVer'"/}' $repo/$AppConfig
     sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $repo/$AppConfig
-    svn diff $repo
-    echo "$OldVer => $NewVer, $OldSVNRev => $NewSVNRev, $repo/$AppConfig"
+    svn diff $repo #/$AppConfig
+    echo "$NewVer, $NewSVNRev, $repo/$AppConfig"
     echo "commit $repo? (y/n)"
     read yn
     case "$yn" in
-        [yY]|[yY]es|YES) svn commit $repo -m "Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated" ;;
-        *) svn revert $repo/$AppConfig ;;
+        [yY]|[yY]es|YES)
+            svn commit $repo -m "Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated" ;;
     esac
     ;;
 
@@ -132,7 +153,6 @@ prepare|init)
         sed -i '/^[^#]\+#\s*define\s\+BUILD_RELEASE/{s:^[^#]\+::}' $builddir/$prjname/jni/Utils/log.h
     else
         sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $builddir/$prjname/$AppConfig
-        testoutdir=" \\\\192.168.2.115\\Release1\\test\\ ${Apk%.apk}"
     fi
 
     echo ": diff -r --brief $repo $builddir/$prjname"
@@ -145,13 +165,9 @@ prepare|init)
     #echo
     #find $builddir/$repo -name log.h -o -name AppConfig.java -o -name Crypto.bat
 
-    echo
-    echo "Version: $OldSVNRev => $NewSVNRev, $OldVer => $NewVer" |tee svn-log.$NewVer
-    svn log -r$OldSVNRev:$NewSVNRev $repo >> svn-log.$NewVer
+    svn log -r$OldSVNRev:$NewSVNRev $repo > svn-log.$NewVer
     echo "svn-log.$NewVer"
-    echo "$variant/$Apk$testoutdir"
-    # grep word howto.txt
-    #echo
+    show-info |tee -a svn-log.$NewVer
     ;;
 
 esac

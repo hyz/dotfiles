@@ -65,4 +65,6 @@ frameworks/native/include/media/openmax/OMX_Component.h
 ###
 ./mk -o=TARGET_BUILD_VARIANT=user new
 ./mk -o=TARGET_BUILD_VARIANT=user systemimage
+./mk -o=TARGET_BUILD_VARIANT=user n k
+./mk -o=TARGET_BUILD_VARIANT=user bootimage n
 

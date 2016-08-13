@@ -86,11 +86,15 @@ sed -i 's/\x00/\n/g' cxx.files
 
 ### date ###
 # http://www.cyberciti.biz/tips/linux-unix-get-yesterdays-tomorrows-date.html
+TZ='America/Los_Angeles' date +%F
 date --date="yesterday" +%F
 date --date="-1 day" +%F
-date +%F -d "+24 hours"
-date +%F -d "2015-03-02 +24 hours"
+date -d "+24 hours" +%F
+date -d "2015-03-02 +24 hours" +%F
 date -d '@2147483647'
+date --date=
+=== man date === DATE STRING
+       The  --date=STRING  is  a  mostly  free  format human readable date string such as "Sun, 29 Feb 2004 16:21:42 -0800" or "2004-02-29 16:21:42" or even "next Thursday".  A date string may  contain  items indicating  calendar  date,  time  of day, time zone, day of week, relative time, relative date, and numbers.  An empty string indicates the beginning of the day.  The date string format is  more  complex than is easily documented here but is fully described in the info documentation.  
 
 ### dd ###
 # http://www.kwx.gd/CentOSApp/CentOS-dd.html
