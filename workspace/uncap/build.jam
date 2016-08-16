@@ -1,0 +1,4 @@
+
+lib User32 ;
+exe uncap : uncap.c User32 ;
+

@@ -1,0 +1,6 @@
+
+svn diff 01prj |awk '/^Index/{print $2}' | cpio -pud /samba/Anonymous
+svn diff 01prj |awk '/^Index/{print $2}' | rsync -v --files-from=- . /samba/Anonymous
+
+svn diff 01prj |awk '/^Index/{print $2}' | rsync -v --no-relative --files-from=- . /samba/Anonymous
+
