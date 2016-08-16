@@ -1,0 +1,3 @@
+
+http://tools.android.com/tech-docs/external-c-builds
+

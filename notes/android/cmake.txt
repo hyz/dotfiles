@@ -1,3 +1,6 @@
+### https://github.com/googlesamples/android-ndk/tree/master-cmake
+
+
 ### http://stackoverflow.com/questions/10798357/want-to-compile-native-android-binary-i-can-run-in-terminal-on-the-phone
     Using CMake with the Android NDK is a nice way to compile Android console applications.
 

@@ -174,6 +174,9 @@ if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
     export COCOS_CONSOLE_ROOT
 fi
 
+if [ -d "/opt/android/studio/bin" ]; then
+    PATH=$PATH:/opt/android/studio/bin
+fi
 if [ -d "/opt/gradle-2.12/bin" ]; then
     export GRADLE_HOME=/opt/gradle-2.12
     PATH=$PATH:/opt/gradle-2.12/bin

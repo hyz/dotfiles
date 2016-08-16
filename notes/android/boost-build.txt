@@ -1,0 +1,30 @@
+
+### http://stackoverflow.com/questions/17667978/using-boost-in-android-ndk-with-windows
+
+local androidNDKRoot = /opt/android/ndk ;
+local androidPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
+local androidCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
+local androidSYSROOT = $(androidNDKRoot)/platforms/android-18/arch-arm ;
+
+using gcc : android : $(androidPREBUILT)/bin/arm-linux-androideabi-g++
+    : <archiver>$(androidPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(androidPREBUILT)/bin/arm-linux-androideabi-ranlib
+        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-18/arch-arm
+        <compileflags>-mthumb
+        <compileflags>-Os
+        <compileflags>-fno-strict-aliasing
+        <compileflags>-O2
+        <compileflags>-DNDEBUG
+        <compileflags>-g
+        <compileflags>-D__GLIBC__
+        <compileflags>-D_GLIBCXX__PTHREADS
+        <compileflags>-D__arm__
+        <compileflags>-D_REENTRANT
+        <cxxflags>-std=c++1y
+        <cxxflags>-I$(androidCXXDIR)/include
+        <cxxflags>-I$(androidCXXDIR)/libs/armeabi/include
+        <linkflags>-lstdc++
+    ;
+
+b2 --show-libraries
+b2 --with-system variant=release link=static
+
