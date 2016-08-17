@@ -52,8 +52,8 @@ project user-config ;
 #   : <architecture>x86 <target-os>ios
 #   ;
 
-# using gcc :
-#     : arm-linux-androideabi-g++
+### export PATH=$PATH:/opt/android/17-arm-gcc-4.9/bin ### 2016-08-17
+# using gcc : android : arm-linux-androideabi-g++
 #     : <architecture>arm <abi>aapcs <target-os>linux <binary-format>elf <address-model>32
 #        <archiver>arm-linux-androideabi-ar
 #        <compileflags>-fexceptions
@@ -95,29 +95,53 @@ project user-config ;
 #     ;
 
 ### 2016-08-16 ### not standalone
-# local androidNDKRoot = /opt/android/ndk ;
-# local androidPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
-# local androidCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
-# 
-# using gcc : android : $(androidPREBUILT)/bin/arm-linux-androideabi-g++
-#     : <archiver>$(androidPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(androidPREBUILT)/bin/arm-linux-androideabi-ranlib
-#         <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-18/arch-arm
-#         <compileflags>-mthumb
-#         <compileflags>-Os
-#         <compileflags>-fno-strict-aliasing
-#         <compileflags>-O2
-#         <compileflags>-DNDEBUG
-#         <compileflags>-g
-#         <compileflags>-D__GLIBC__
-#         <compileflags>-D_GLIBCXX__PTHREADS
-#         <compileflags>-D__arm__
-#         <compileflags>-D_REENTRANT
-#         <cxxflags>-std=c++1y
-#         <cxxflags>-I$(androidCXXDIR)/include
-#         <cxxflags>-I$(androidCXXDIR)/libs/armeabi/include
-#         <linkflags>-lstdc++
-#     ;
-# 
-# #b2 --show-libraries
-# #b2 --with-system variant=release link=static
+#
+# /opt/android/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-g++ \
+# -MMD -MP -MF /home/wood/demo/obj/local/armeabi-v7a/objs/Barcode/App/BarcodeJNI.o.d \
+# -fpic -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes \
+# -g -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -fno-exceptions -fno-rtti -mthumb -Os -DNDEBUG  \
+# -I/opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/include \
+# -I/opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include \
+# -I/opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/include/backward \
+# -I/home/wood/demo/jni \
+# -DANDROID -fPIC -DANDROID -fsigned-char -fvisibility=hidden -Wa,--noexecstack -Wformat -Werror=format-security \
+# -frtti -fexceptions \
+# -isystem /opt/android/ndk/platforms/android-9/arch-arm/usr/include \
+# -c /home/wood/demo/jni/App/BarcodeJNI.cpp \
+# -o /home/wood/demo/obj/local/armeabi-v7a/objs/Barcode/App/BarcodeJNI.o
+#
+#b2 --show-libraries
+#b2 --with-system variant=release link=static
+
+local androidNDKRoot = /opt/android/ndk ;
+local androidARCH = armeabi-v7a ;
+local androidPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
+local androidCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
+
+using gcc : android : $(androidPREBUILT)/bin/arm-linux-androideabi-g++
+    : <archiver>$(androidPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(androidPREBUILT)/bin/arm-linux-androideabi-ranlib
+        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-17/arch-arm
+       #<compileflags>"-isystem /opt/android/ndk/platforms/android-17/arch-arm/usr/include"
+        <compileflags>-fpic
+        <compileflags>-march=armv7-a
+        <compileflags>-mfpu=vfpv3-d16
+        <compileflags>-mfloat-abi=softfp
+        <compileflags>-mthumb
+        <compileflags>-g
+        <compileflags>-Os
+        <compileflags>-fno-strict-aliasing
+        <compileflags>-DNDEBUG
+        <compileflags>-D__GLIBC__
+        <compileflags>-D_GLIBCXX__PTHREADS
+        <compileflags>-D__arm__
+        <compileflags>-D_REENTRANT
+        <compileflags>-DANDROID
+        <compileflags>-fPIC
+        <compileflags>-fvisibility=hidden
+        <cxxflags>-std=c++11
+        <cxxflags>-I$(androidCXXDIR)/include
+        <cxxflags>-I$(androidCXXDIR)/libs/armeabi-v7a/include
+        <cxxflags>-I$(androidCXXDIR)/include/backward
+       #<linkflags>-lstdc++ # /opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_static.a
+    ;
 

@@ -154,7 +154,11 @@ if [ -d "$NDK_ROOT" ]; then
     ANDROID_NDK_ROOT=$NDK_ROOT
     export NDK_ROOT ANDROID_NDK_ROOT
 
-    PATH=$PATH:$NDK_ROOT:$NDK_ROOT/standalone/toolchain/android-12/bin
+    PATH=$PATH:$NDK_ROOT #:$NDK_ROOT/standalone/toolchain/android-12/bin
+fi
+# build/tools/make_standalone_toolchain.py -v --arch=arm --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
+if x=`/bin/ls -1d /opt/android/[0-9][0-9]-*-gcc-[0-9].[0-9]/bin |head -1` ; then
+    PATH=$PATH:$x
 fi
 
 if [ -d "/opt/local/bin" ]; then

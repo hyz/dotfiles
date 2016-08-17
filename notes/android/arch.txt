@@ -1,0 +1,22 @@
+
+### https://developer.android.com/ndk/guides/standalone_toolchain.html
+### http://stackoverflow.com/questions/30647594/ndk-build-outputs-error-adding-symbols-file-in-wrong-format
+# x86 armeabi-v7a, mips, mips64, arm64-v8a
+# TARGET_ARCH_ABI 
+
+# APP_ABI := armeabi-v7a
+
+./make-standalone-toolchain.sh --system=linux-x86_64 \
+    --install-dir=/tmp/my-android-toolchain-x86 --ndk-dir='/home/patrycja/android-packages/ndk/' \
+    --platform=android-9 --arch=x86 --toolchain=x86-4.8
+
+$ export PATH=/tmp/my-android-toolchain-x86/bin:$PATH
+$ export CC="i686-linux-android-gcc"
+$ export CXX="i686-linux-android-g++"
+$ export CFLAGS='-O2 -mtune=atom -mssse3 -mfpmath=sse' 
+$ export CXXFLAGS='-O2 -mtune=atom -mssse3 -mfpmath=sse' 
+$ export LDFLAGS='' 
+$ export LIBS='-lstdc++ -lsupc++' 
+
+./configure --prefix=$(pwd)/build-x86 --host=x86 --disable-shared --disable-xmp --disable-nls
+
