@@ -1,6 +1,10 @@
+### https://developer.android.com/ndk/guides/standalone_toolchain.html
+
 cd /opt/android/ndk/
+
 build/tools/make_standalone_toolchain.py --help
 build/tools/make_standalone_toolchain.py --arch=arm --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
+
 bash build/tools/make-standalone-toolchain.sh --install-dir=/opt/android/17-arm-gcc-4.9 --arch=armeabi-v7a --platform=android-17 --toolchain=arm-linux-androideabi-4.9
 
 /opt/android-ndk/build/tools/make-standalone-toolchain.sh \
@@ -8,8 +12,6 @@ bash build/tools/make-standalone-toolchain.sh --install-dir=/opt/android/17-arm-
   --platform=android-18 \
   --toolchain=arm-linux-androideabi-4.9 \
   --install-dir=/opt/android/standalone-toolchain/android-18
-
-### http://developer.android.com/ndk/guides/standalone_toolchain.html
 
 === https://github.com/MysticTreeGames/Boost-for-Android.git
 
@@ -99,6 +101,7 @@ optional arguments:
                         Install toolchain to the given directory instead of
                         packaging.
 
+###
 wood> ndk-build V=1
 rm -f /home/wood/build/androidbarcode/libs/arm64-v8a/lib*.so /home/wood/build/androidbarcode/libs/armeabi/lib*.so /home/wood/build/androidbarcode/libs/armeabi-v7a/lib*.so /home/wood/build/androidbarcode/libs/mips/lib*.so /home/wood/build/androidbarcode/libs/mips64/lib*.so /home/wood/build/androidbarcode/libs/x86/lib*.so /home/wood/build/androidbarcode/libs/x86_64/lib*.so
 rm -f /home/wood/build/androidbarcode/libs/arm64-v8a/gdbserver /home/wood/build/androidbarcode/libs/armeabi/gdbserver /home/wood/build/androidbarcode/libs/armeabi-v7a/gdbserver /home/wood/build/androidbarcode/libs/mips/gdbserver /home/wood/build/androidbarcode/libs/mips64/gdbserver /home/wood/build/androidbarcode/libs/x86/gdbserver /home/wood/build/androidbarcode/libs/x86_64/gdbserver
