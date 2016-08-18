@@ -1,0 +1,32 @@
+
+### Magical-Jelly-Bean-Keyfinder.txt
+    Windows 7 Ultimate Service Pack 1
+    Product Part No.: X15-37374
+    Installed from 'OEM' media.
+    Product ID: 00426-OEM-8992662-00537  match to CD Key data
+    CD Key: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+    Computer Name: WOOD-PC
+    Registered Owner: wood
+    Registered Organization:
+
+### backup
+copy %windir%\System32\spp\tokens\pkeyconfig\pkeyconfig.xrm-ms
+copy %windir%\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SoftwareProtectionPlatform\tokens.dat
+
+### restore
+
+net stop sppsvc /y 
+takeown /f "%WinDir%\System32\spp\tokens\pkeyconfig\pkeyconfig.xrm-ms" 
+cacls "%WinDir%\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SoftwareProtectionPlatform\tokens.dat" /e /g everyone:f 
+cacls "%WinDir%\System32\spp\tokens\pkeyconfig\pkeyconfig.xrm-ms" /e /g everyone:f 
+ren "%WinDir%\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SoftwareProtectionPlatform\tokens.dat" "tokens.bak" 
+ren "%WinDir%\System32\spp\tokens\pkeyconfig\pkeyconfig.xrm-ms" "pkeyconfig.bak" 
+copy tokens.dat "%WinDir%\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SoftwareProtectionPlatform\" 
+copy pkeyconfig.xrm-ms "%WinDir%\System32\spp\tokens\pkeyconfig\" 
+del "%WinDir%\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SoftwareProtectionPlatform\tokens.bak" 
+del "%WinDir%\System32\spp\tokens\pkeyconfig\pkeyconfig.bak" 
+net start sppsvc 
+
+cscript %windir%\system32\slmgr.vbs -ipk XXXXX-XXXXX-XXXXX-XXXXX-XXXXX 
+cscript %windir%\system32\slmgr.vbs -ato 
+

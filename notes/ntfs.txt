@@ -39,3 +39,10 @@ Otherwise you won't be able to access NTFS or can't boot from the disk!
 If you make a mistake and don't have a partition table backup then you
 can recover the partition table by TestDisk or Parted's rescue mode.
 
+### resize partition
+#1 https://ubuntuforums.org/showthread.php?t=1244058
+    fdisk
+#2 boot into windows10
+    a) extend partition 1G
+    b) shrink to what you want
+
