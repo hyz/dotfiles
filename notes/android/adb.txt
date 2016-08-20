@@ -19,3 +19,6 @@ adb logcat -s '<TAG>'
 adb -s HU9SP7ZLSO5DNNEA push bin/bw /data
 adb -s HU9SP7ZLSO5DNNEA shell
 
+###
+xlog filter-set verbose
+

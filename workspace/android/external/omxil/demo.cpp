@@ -132,16 +132,36 @@ struct OMXH264Decoder
     android::OMXMaster omxMaster; // err = OMX_Init();
     OMX_HANDLETYPE component; //OMX_COMPONENTTYPE *component;
     OMX_STATETYPE state;
+    unsigned char stage_ = 0;
+    //std::list<iterator> oseq_;
+    //android::Mutex mMutex;
 
-    //struct BufferWrap { OMX_BUFFERHEADERTYPE* pbuf = 0; };
-    struct IOPort : OMX_PARAM_PORTDEFINITIONTYPE, std::vector<OMX_BUFFERHEADERTYPE*> {
-        unsigned bufflag_used;
+    struct BufferEx {
+        OMX_BUFFERHEADERTYPE* buf = 0;
+        unsigned char indexTestOnly;
+        unsigned char flags = 0;
+        BufferEx(OMX_BUFFERHEADERTYPE* b=0) { indexTestOnly=flags=0; buf=b; }
+    };
+    enum { MSK_USED = 0x10 };
 
+    struct IOPort : OMX_PARAM_PORTDEFINITIONTYPE , std::vector<BufferEx> {
         IOPort(unsigned char portIdx=0) /*: std::vector<BufferWrap>(24)*/ {
             nPortIndex = portIdx;
-            bufflag_used = 0;
         }
         //~IOPort() { omxbufs_deinit(component); }
+        //OMX_BUFFERHEADERTYPE* buf(unsigned x) const { return (*this)[x].buf; }
+
+        int index(iterator it) const { return int(it - begin()); }
+        iterator iterator_to(BufferEx& x) { return begin() + (&x - &front()); }
+
+        int countf(unsigned msk) const {
+            int n = 0;
+            for (auto& b : *this) {
+                if (b.flags & msk)
+                    ++n;
+            }
+            return n;
+        }
 
         void print() const {
             OMX_PARAM_PORTDEFINITIONTYPE const& def = *this;
@@ -155,7 +175,9 @@ struct OMXH264Decoder
                     , vdef.eColorFormat, vdef.eCompressionFormat //OMX_COLOR_FormatYUV420Planar=19,OMX_VIDEO_CodingAVC=7
                     );
         }
+
     }; // ioports[2] = {0,1};
+    typedef IOPort::iterator iterator;
     IOPort input_port{0};
     IOPort output_port{1};
 
@@ -224,22 +246,22 @@ struct OMXH264Decoder
 
     void omxbufs_deinit(IOPort& iop) {
         printf("%s: Port %d: Actual %u, %d\n",__FUNCTION__, iop.nPortIndex, iop.nBufferCountActual, (int)iop.size());
-        for (unsigned i=0; i < iop.size(); ++i) {
-            OMX_FreeBuffer(component, iop.nPortIndex, iop[i]);
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            OMX_FreeBuffer(component, iop.nPortIndex, beg->buf);
         }
         iop.clear();
-        iop.bufflag_used = 0;
     }
     void omxbufs_reinit(IOPort& iop)/*(OMX_HANDLETYPE component)*/ {
         if (!iop.empty())
             omxbufs_deinit(iop);
         printf("%s: Port %d: Actual %u\n",__FUNCTION__, iop.nPortIndex, iop.nBufferCountActual);
 
-        auto& vec = iop;
-        vec.resize(iop.nBufferCountActual);
-        for (unsigned i=0; i < iop.nBufferCountActual; ++i) {
-            vec[i] = omxbuf_alloc(iop, i);
-            ERR_EXIT_IF(!vec[i], "%s",__FUNCTION__);
+        iop.resize(iop.nBufferCountActual);
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            *beg = BufferEx();
+            beg->indexTestOnly = (unsigned char)(beg - iop.begin());
+            beg->buf = omxbuf_alloc(iop, beg);
+            ERR_EXIT_IF(!beg->buf, "%s",__FUNCTION__);
         }
     }
 
@@ -282,6 +304,14 @@ struct OMXH264Decoder
     }
 
     void teardown() {
+        stage_ = 3;
+        while (sem_trywait(&sem_bufempty_) == 0)
+            ;
+        assert(errno == EAGAIN);
+        while (sem_trywait(&sem_command_) == 0)
+            ;
+        assert(errno == EAGAIN);
+
         printf("===%s\n",__FUNCTION__);
         command(OMX_CommandFlush, output_port.nPortIndex, NULL).wait();
         command(OMX_CommandStateSet, OMX_StateIdle, NULL).wait();
@@ -359,7 +389,6 @@ struct OMXH264Decoder
 
 pos_test_again_:
         /*(sps.first != sps.second)*/ {
-            OMX_BUFFERHEADERTYPE* bh = FindFreeBuffer(input_port);
             auto sps = rng_ = h264f_.next(rng_, 7);
 #if 0
             static unsigned char sps_[] = { 0,0,0,1,
@@ -371,7 +400,6 @@ pos_test_again_:
 #endif
             EmptyThis(sps.first, sps.second, OMX_BUFFERFLAG_CODECCONFIG|OMX_BUFFERFLAG_ENDOFFRAME);
         } {
-            OMX_BUFFERHEADERTYPE* bh = FindFreeBuffer(input_port);
             auto pps = rng_ = h264f_.next(rng_, 8);
             EmptyThis(pps.first, pps.second, OMX_BUFFERFLAG_CODECCONFIG|OMX_BUFFERFLAG_ENDOFFRAME);
         }
@@ -381,12 +409,12 @@ pos_test_again_:
 
         sync_port_definition(output_port);
         command(OMX_CommandPortDisable, output_port.nPortIndex, NULL)([this](){
-                    if (output_port.bufflag_used)
+                    if (output_port.countf(MSK_USED)>0)
                         CommandHelper{this,OMX_CommandMax,OMX_EventBufferFlag,0}.wait(); //XXX
-        printf("===%d OMX_EventBufferFlag %x ...\n",__LINE__, output_port.bufflag_used);
+    printf("===%d OMX_EventBufferFlag %x ...\n",__LINE__, output_port.countf(MSK_USED));
                     omxbufs_deinit(output_port);
                 }).wait();
-        printf("===%d OMX_CommandPortDisable OK\n",__LINE__);
+    printf("===%d OMX_CommandPortDisable OK\n",__LINE__);
 
         sync_port_definition(output_port);
         command(OMX_CommandPortEnable, output_port.nPortIndex, NULL)([this](){
@@ -398,52 +426,82 @@ pos_test_again_:
         sync_port_definition(output_port); //sync_state();
 
         //FillOneBuffer();
-        for (int i=0; ; ++i)
-            if (!FillOneBuffer()) {
-                printf("FillOneBuffer : %d\n", i);
-                break;
-            }
-
-        printf("===%d dec loop\n",__LINE__); //sleep(1);
+        //for (int i=0; ; ++i)
+        //    if (!FillOneBuffer()) {
+        //        printf("FillOneBuffer : %d\n", i);
+        //        break;
+        //    }
 //goto pos_test_again_;
 
-        //while (sem_trywait(&sem_buffilled_) == 0)
-        //    printf("sem_trywait(&sem_buffilled_) == 0\n");
-        assert(errno == EAGAIN);
         while (sem_trywait(&sem_bufempty_) == 0)
             printf("sem_trywait(&sem_bufempty_) == 0\n");
         assert(errno == EAGAIN);
+        while (sem_trywait(&sem_command_) == 0)
+            printf("sem_trywait(&sem_command_) == 0\n");
+        assert(errno == EAGAIN);
 
-        rng_ = h264f_.next(rng_, 5); //rng_ = h264f_.next(rng_, 5);
-        for (int n=30; rng_.first != rng_.second && --n>1; rng_ = h264f_.next(rng_, 5)) {
+        stage_ = 1;
+        printf("===%d:%s pre-dec-loop\n",__LINE__,__FUNCTION__); //sleep(1);
+        for (int x=2; x>0; --x) {
+            FillOneBuffer();
+            sem_wait(&sem_command_);
+        }
+        sem_wait(&sem_bufempty_);
+        sem_wait(&sem_bufempty_);
+        while (sem_trywait(&sem_command_) == 0)
+            ;
+        while (sem_trywait(&sem_bufempty_) == 0)
+            ;
+        printf("===%d:%s dec-loop\n",__LINE__,__FUNCTION__); //sleep(1);
+
+        stage_ = 2;
+
+        for (auto beg = output_port.begin(); beg != output_port.end(); ++beg) {
+            FillThisBuffer(beg);
+            //oseq_.push_back(beg);
+        }
+        iterator it1 = output_port.begin();
+
+        rng_ = h264f_.next(rng_, 5);
+        for (int nF=30; rng_.first != rng_.second && --nF>0; rng_ = h264f_.next(rng_, 5)) {
             EmptyThis(rng_.first,rng_.second, OMX_BUFFERFLAG_ENDOFFRAME|OMX_BUFFERFLAG_DECODEONLY); //OMX_BUFFERFLAG_DECODEONLY//OMX_BUFFERFLAG_ENDOFFRAME
-
             sem_wait(&sem_bufempty_);
-            //command(OMX_CommandFlush, output_port.nPortIndex, NULL).wait();
 
-            if (OMX_BUFFERHEADERTYPE* bh = obuf_popq()) {
-//printf("%s:%s P1[%d] %d %d %x\n", __FUNCTION__,"OMX_FillThisBuffer", INDEX(bh), bh->nFilledLen, bh->nOffset, bh->nFlags);
-                FillThisBuffer(bh);
+            iterator it = it1++;
+            if (it1 == output_port.end()) {
+                it1 = output_port.begin();
             }
+
+            int npTest=0;
+            for (; it->buf->nFilledLen <= 0; ++npTest) {
+                usleep(5000);
+            }
+
+            //for (int npTest=0; ; ++npTest) {
+            //    auto iti = std::find_if(oseq_.begin(),oseq_.end(), [](iterator i){return i->buf->nFilledLen>0;});
+            //    if (iti != oseq_.end()) {
+            //        it = *iti;
+            //        android::Mutex::Autolock autoLock(mMutex);
+            //        oseq_.erase(iti);
+            //        break;
+            //    }
+            //    usleep(5000);
+            //}
+
+            nTst.nPoll++;
+            OMX_BUFFERHEADERTYPE* bh = it->buf;
+printf("poll: P1[%d] %d %d-%d-%d, %d\n", INDEX(it), bh->nFilledLen, nTst.cbEmpty,nTst.nPoll,nTst.cbFill, npTest);
+
+            appendfile("/sdcard/o.yuv", bh->pBuffer, 1920*1080);
         }
     } // decode_start
 
-    std::list<unsigned> obuf_q_;
-
-    OMX_BUFFERHEADERTYPE* obuf_popq() {
-        /*if (sem_trywait(&sem_buffilled_) == 0)*/
-        android::Mutex::Autolock autoLock(mMutex);
-        if (!obuf_q_.empty()) {
-            unsigned ix = obuf_q_.front();
-            obuf_q_.pop_front();
-            return output_port[ix];
+    void appendfile(char const* fn, void* buf, unsigned len)
+    {
+        if (FILE* fp = fopen(fn, "a")) {
+            fwrite(buf, len, 1, fp);
+            fclose(fp);
         }
-        return 0;
-    }
-
-    void bufflag_off(IOPort& port, OMX_BUFFERHEADERTYPE* bh) {
-        port.bufflag_used &= ~MASK(bh);
-        // p.bufflag_allocated &= ~MASK(bh);
     }
 
     //void enable_nativebufs()
@@ -475,113 +533,125 @@ pos_test_again_:
     //    ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_SetParameter %d", int(err));
     //}
 
-    android::Mutex mMutex;
-
-    OMX_BUFFERHEADERTYPE* FindFreeBuffer(IOPort& port) {
-        for (unsigned i=0; i<port.size(); ++i) {
-            OMX_BUFFERHEADERTYPE* bh = port[i];
-            if ((port.bufflag_used & MASK(bh))==0) {
-                return bh;
+    iterator FindFreeBuffer(IOPort& iop) {
+        printf("%s P%d, %u\n",__FUNCTION__,iop.nPortIndex, iop.size());
+        for (auto beg = iop.begin(); beg != iop.end(); ++beg) {
+            if (0==(beg->flags & MSK_USED)) {
+                return beg;//->buf; //OMX_BUFFERHEADERTYPE* bh = b.buf; //iop.buf(i);
             }
         }
-        return 0;
+        return iop.end();
     }
 
-    OMX_BUFFERHEADERTYPE* FillThisBuffer(OMX_BUFFERHEADERTYPE* bh) {
+    void FillThisBuffer(iterator it) {
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
         bh->nFlags = 0;
         bh->nOffset = 0;
         bh->nFilledLen = 0;
-        {
-            android::Mutex::Autolock autoLock(mMutex);
-            output_port.bufflag_used |= MASK(bh);
-        }
-printf("%s:%s [%d] %d %d %x\n", __FUNCTION__,"OMX_FillThisBuffer", INDEX(bh), bh->nFilledLen, bh->nOffset, bh->nFlags);
+            //enum { Y0=1920*1080 };
+            //static char z16[16] = {0};
+            //memcpy(bh->pBuffer+Y0, z16, 16);
+            //memcmp(bh->pBuffer+Y0, z16, 16);
+        it->flags |= MSK_USED;
+printf("%s:%s [%d] %d %d %x\n", __FUNCTION__,"OMX_FillThisBuffer", INDEX(it), bh->nFilledLen, bh->nOffset, bh->nFlags);
         OMX_ERRORTYPE err = OMX_FillThisBuffer(component, bh);
         ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_FillThisBuffer %d", int(err));
-        return bh;
     }
 
-    OMX_BUFFERHEADERTYPE* FillOneBuffer() {
-        if (OMX_BUFFERHEADERTYPE* bh = FindFreeBuffer(output_port)) {
-            return FillThisBuffer(bh);
+    iterator FillOneBuffer() {
+        auto it = FindFreeBuffer(output_port);
+        if (it != output_port.end()) {
+            FillThisBuffer(it);
         }
-        return 0;
+        return it;
     }
 
-    OMX_BUFFERHEADERTYPE* EmptyThis(uint8_t const* beg, uint8_t const* end, int flags) {
-        if (OMX_BUFFERHEADERTYPE* bh = FindFreeBuffer(input_port)) {
+    iterator EmptyThis(uint8_t const* beg, uint8_t const* end, int flags) {
+        auto it = FindFreeBuffer(input_port);
+        if (it == input_port.end()) {
+            ERR_EXIT("%s",__FUNCTION__);
+        } else {
+            OMX_BUFFERHEADERTYPE* bh = it->buf;
             bh->nFlags = flags;
             bh->nOffset = 0;
             bh->nFilledLen = end - beg;
             memcpy(bh->pBuffer, beg, bh->nFilledLen);
             // OMX_BUFFERFLAG_CODECCONFIG OMX_BUFFERFLAG_ENDOFFRAME OMX_BUFFERFLAG_DECODEONLY
-            {
-                android::Mutex::Autolock autoLock(mMutex);
-                input_port.bufflag_used |= MASK(bh);
-            }
+            it->flags |= MSK_USED;
             OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, bh);
             ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
-            printf("%s: P0[%d] len %u\n",__FUNCTION__, INDEX(bh), bh->nFilledLen);
-            return bh;
+            printf("%s: P0[%d] len %u\n",__FUNCTION__, INDEX(it), bh->nFilledLen);
         }
-        return 0;
+        return it;
     }
     //void EmptyThisBuffer(OMX_BUFFERHEADERTYPE* bh) {
     //    // OMX_BUFFERFLAG_CODECCONFIG OMX_BUFFERFLAG_ENDOFFRAME OMX_BUFFERFLAG_DECODEONLY
-    //    input_port.bufflag_used |= MASK(bh);
+    //    |= MASK(bh);
     //    OMX_ERRORTYPE err = OMX_EmptyThisBuffer(component, bh);
     //    ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_EmptyThisBuffer %d", int(err));
     //    printf("%s: P0[%d] len %u\n",__FUNCTION__, INDEX(bh), bh->nFilledLen);
     //}
 
 private:
-    static inline unsigned MASK(OMX_BUFFERHEADERTYPE* bh) { return (1<<unsigned(bh->pAppPrivate)); }
-    static inline unsigned INDEX(OMX_BUFFERHEADERTYPE* bh) { return (unsigned)bh->pAppPrivate; }
+    //static inline unsigned MASK(OMX_BUFFERHEADERTYPE* bh) { return (1<<INDEX(bh)); }
+    static inline unsigned INDEX(iterator it) {
+        return (it->indexTestOnly); //(it->buf->nPortIndex==0) ? input_port.index(it) : output_port.index(it);
+        //return (unsigned(bh->pAppPrivate)&0x3f);
+    }
 
-    OMX_BUFFERHEADERTYPE* omxbuf_alloc(IOPort& iop, unsigned bidx) {
+    OMX_BUFFERHEADERTYPE* omxbuf_alloc(IOPort& port, iterator it) {
         OMX_BUFFERHEADERTYPE* bh = 0;
-        OMX_PARAM_PORTDEFINITIONTYPE* def = &iop; //(*this)[bidx];
-        if (bidx < def->nBufferCountActual && bidx < iop.size()) {
-            OMX_ERRORTYPE err = OMX_AllocateBuffer(component, &bh, def->nPortIndex, (OMX_PTR)bidx, def->nBufferSize); // pAppPrivate
-            ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_AllocateBuffer P%d[%d] %u: %s", def->nPortIndex, bidx, def->nBufferSize, error_str(err));
-            printf("%s:OMX_AllocateBuffer P%d[%d] %u\n",__FUNCTION__, def->nPortIndex, INDEX(bh), def->nBufferSize);
-        }
+        OMX_PARAM_PORTDEFINITIONTYPE* def = &port;
+        //if (bidx < def->nBufferCountActual && bidx < port.size()) {
+        BufferEx* ptr = &*it; //.operator->();
+        OMX_ERRORTYPE err = OMX_AllocateBuffer(component, &bh, def->nPortIndex, (OMX_PTR)ptr, def->nBufferSize); // pAppPrivate
+        ERR_EXIT_IF(err!=OMX_ErrorNone, "OMX_AllocateBuffer P%d[%d] %u: %s", def->nPortIndex, INDEX(it), def->nBufferSize, error_str(err));
+        printf("%s:OMX_AllocateBuffer P%d[%d] %u\n",__FUNCTION__, def->nPortIndex, INDEX(it), def->nBufferSize);
+        //}
         return bh;
     }
 
 private: // callbacks
-    struct CBCount {
+    struct statisCount {
+        int nPoll = 0;
         int cbFill = 0;
         int cbEmpty = 0;
-    } cbc;
-    OMX_ERRORTYPE cbEmptyThisBuffer(OMX_BUFFERHEADERTYPE* bh)
+    } nTst;
+
+    OMX_ERRORTYPE cbEmptyThisBuffer(iterator it)
     {
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
         if (bh->nFilledLen > 100)
-            cbc.cbEmpty++;
-        printf("%s: P0[%d] %u %u %u, %d-%d\n",__FUNCTION__, INDEX(bh), bh->nFilledLen, bh->nOffset, bh->nAllocLen, cbc.cbEmpty,cbc.cbFill);
-        {
-            android::Mutex::Autolock autoLock(mMutex);
-            input_port.bufflag_used &= ~MASK(bh);
-        }
+            nTst.cbEmpty++;
+        printf("%s: P0[%d] %u %u %u, %d-%d\n",__FUNCTION__, INDEX(it), bh->nFilledLen, bh->nOffset, bh->nAllocLen, nTst.cbEmpty,nTst.cbFill);
+
+        it->flags &= ~MSK_USED;
         sem_post(&sem_bufempty_);
-        //if(pBuffer->pPlatformPrivate < 102400) exit(1);
+
         return OMX_ErrorNone;
     }
-    OMX_ERRORTYPE cbFillThisBuffer(OMX_BUFFERHEADERTYPE* bh)
+
+    OMX_ERRORTYPE cbFillThisBuffer(iterator it)
     {
+        if (stage_ >= 3)
+            return OMX_ErrorNone;
+        OMX_BUFFERHEADERTYPE* bh = it->buf;
+
         if (bh->nFilledLen > 100)
-            cbc.cbFill++; //output_port.nCallback++;
-        printf("%s: P1[%d] %u %u %u, %d-%d\n",__FUNCTION__, INDEX(bh), bh->nFilledLen, bh->nOffset, bh->nAllocLen, cbc.cbEmpty,cbc.cbFill);
-        if (bh->nFilledLen <= 0)/*(command_ == OMX_CommandPortDisable)*/ {
-            output_port.bufflag_used &= ~MASK(bh);
-            if (output_port.bufflag_used == 0) {
-                //printf("%s OMX_CommandPortDisable\n",__FUNCTION__);
+            nTst.cbFill++;
+        printf("%s: P1[%d] %u %u %u, %d %d-%d\n",__FUNCTION__, INDEX(it), bh->nFilledLen, bh->nOffset, bh->nAllocLen, int(stage_), nTst.cbEmpty,nTst.cbFill);
+
+        if (bh->nFilledLen <= 0) {
+            it->flags &= ~MSK_USED;
+            if (stage_==1 || (stage_==0 && output_port.countf(MSK_USED) == 0)) {
+                printf("%s: P1[%d] stage=%d\n",__FUNCTION__, INDEX(it), int(stage_));
                 sem_post(&sem_command_); // OMX_EventBufferFlag
             }
         } else {
-            android::Mutex::Autolock autoLock(mMutex);
-            obuf_q_.push_back(INDEX(bh));
-            // output_port.bufflag_used &= ~MASK(bh);
+            FillThisBuffer(it);
+            ///android::Mutex::Autolock autoLock(mMutex);
+            ///oseq_.push_back(it);
+            ////it->flags &= ~MSK_USED;
         }
         return OMX_ErrorNone;
     }
@@ -625,17 +695,6 @@ private: // callbacks
     }
 
 #define CASE_THEN_RETURN_STR(y) case y: return (#y)
-//#define CASE_THEN_RETURN_STR(y) case y: return idstrcat(y,#y)
-    static char const* idstrcat(int x, char const* s) {
-        static std::set<char const*> ss;
-        if (ss.insert(s).second) {
-            printf("%s=%d\n",s,x);
-        }
-        return s;
-        //static char idstr_tmpbuf_[64];
-        //snprintf(idstr_tmpbuf_,sizeof(idstr_tmpbuf_), "%d:%s", x,s);
-        //return idstr_tmpbuf_;
-    }
 
     static char const* cmd_str(unsigned x) {
         switch (x) {
@@ -646,7 +705,7 @@ private: // callbacks
             CASE_THEN_RETURN_STR(OMX_CommandMarkBuffer);
             CASE_THEN_RETURN_STR(OMX_CommandMax);
         }
-        return idstrcat(x,"OMX_Command-Unknown");
+        return "OMX_Command-Unknown";
     }
 
     static char const* state_str(int x) {
@@ -658,7 +717,7 @@ private: // callbacks
             CASE_THEN_RETURN_STR(OMX_StatePause);
             CASE_THEN_RETURN_STR(OMX_StateWaitForResources);
         }
-        return idstrcat(x,"OMX_State-Unknown");
+        return "OMX_State-Unknown";
     }
     static char const* event_str(int x) {
         switch (x) {
@@ -672,7 +731,7 @@ private: // callbacks
             CASE_THEN_RETURN_STR(OMX_EventDynamicResourcesAvailable);
             CASE_THEN_RETURN_STR(OMX_EventPortFormatDetected);
         }
-        return idstrcat(x,"OMX_Event-Unknown");
+        return "OMX_Event-Unknown";
     }
     static char const* error_str(/*OMX_ERRORTYPE*/int x) {
         switch (x) {
@@ -715,7 +774,7 @@ private: // callbacks
             CASE_THEN_RETURN_STR(OMX_ErrorSeperateTablesUsed);
             CASE_THEN_RETURN_STR(OMX_ErrorTunnelingUnsupported);
         }
-        return idstrcat(x,"OMX_Error-Unknown");
+        return "OMX_Error-Unknown";
     }
 
 private:
@@ -730,14 +789,19 @@ private:
     {
         ERR_MSG_IF(hComponent!=static_cast<This*>(pAppData)->component, "%p %p", hComponent,pAppData);
         assert(pBuffer);
-        return static_cast<This*>(pAppData)->cbEmptyThisBuffer(pBuffer);//((unsigned)pBuffer->pAppPrivate);
+        This* thiz = static_cast<This*>(pAppData);
+        BufferEx* bx = static_cast<BufferEx*>(pBuffer->pAppPrivate);
+        return thiz->cbEmptyThisBuffer( thiz->input_port.iterator_to(*bx) );
     }
     static OMX_ERRORTYPE cbFillThisBuffer0(OMX_OUT OMX_HANDLETYPE hComponent, OMX_OUT OMX_PTR pAppData
             , OMX_OUT OMX_BUFFERHEADERTYPE* pBuffer)
     {
         ERR_MSG_IF(hComponent!=static_cast<This*>(pAppData)->component, "%p %p", hComponent,pAppData);
         assert(pBuffer);
-        return static_cast<This*>(pAppData)->cbFillThisBuffer(pBuffer);//((unsigned)pBuffer->pAppPrivate);
+        //return static_cast<This*>(pAppData)->cbFillThisBuffer(*static_cast<BufferEx*>(pBuffer->pAppPrivate));//((unsigned)pBuffer->pAppPrivate);
+        This* thiz = static_cast<This*>(pAppData);
+        BufferEx* bx = static_cast<BufferEx*>(pBuffer->pAppPrivate);
+        return thiz->cbFillThisBuffer( thiz->output_port.iterator_to(*bx) );
     }
 };
 

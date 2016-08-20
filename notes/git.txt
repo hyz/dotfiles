@@ -1,4 +1,12 @@
 
+### http://stackoverflow.com/questions/610208/how-to-retrieve-a-single-file-from-specific-revision-in-git
+    git show bde7984f89:mediatek/platform/mt6572/kernel/drivers/keypad/rckey.c > /tmp/rckey.c.bde7984f89
+    git show object
+    git show $REV:$FILE
+    git show somebranch:from/the/root/myfile.txt
+    git show HEAD^^^:test/test.py
+
+###
 git config --global core.autocrlf input
 git config --global core.autocrlf true # Windows
 
@@ -6,7 +14,6 @@ git submodule update --init
 
 git pull --recurse-submodules
 git submodule foreach git merge --ff-only
-
 
 ### github: Most starts
 https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
@@ -17,7 +24,6 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     git diff bde7984f893966d..aa953d00e36ad
     git log master..branch
     git shortlog master..branch
-
 
 ### http://stackoverflow.com/questions/1783405/how-to-checkout-a-remote-git-branch?noredirect=1&lq=1
     git fetch

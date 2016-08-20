@@ -1,3 +1,17 @@
+
+====== ====== ====== ====== ====== ====== ====== ======
+selinux
+
+setenforce 0
+
+/dev/Vcodec
+
+allow untrusted_app Vcodec_device:chr_file { read write open };
+
+Y:\g500\mt6580\alps\device\mediatek\common\sepolicy
+untrusted_app.te
+
+====== ====== ====== ====== ====== ====== ====== ======
 https://code.csdn.net/snippets/681472
 http://blog.csdn.net/cbk861110/article/details/9020761
 

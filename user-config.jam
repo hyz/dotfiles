@@ -109,39 +109,40 @@ project user-config ;
 # -isystem /opt/android/ndk/platforms/android-9/arch-arm/usr/include \
 # -c /home/wood/demo/jni/App/BarcodeJNI.cpp \
 # -o /home/wood/demo/obj/local/armeabi-v7a/objs/Barcode/App/BarcodeJNI.o
-#
-#b2 --show-libraries
-#b2 --with-system variant=release link=static
 
 local androidNDKRoot = /opt/android/ndk ;
+local androidAPI = 17 ;
 local androidARCH = armeabi-v7a ;
-local androidPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
-local androidCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
+local ndkPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
+local ndkCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
 
-using gcc : android : $(androidPREBUILT)/bin/arm-linux-androideabi-g++
-    : <archiver>$(androidPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(androidPREBUILT)/bin/arm-linux-androideabi-ranlib
-        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-17/arch-arm
-       #<compileflags>"-isystem /opt/android/ndk/platforms/android-17/arch-arm/usr/include"
+using gcc : android : $(ndkPREBUILT)/bin/arm-linux-androideabi-g++
+    : <archiver>$(ndkPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(ndkPREBUILT)/bin/arm-linux-androideabi-ranlib
+        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm
+      # <compileflags>"-isystem $(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm/usr/include"
         <compileflags>-fpic
-        <compileflags>-march=armv7-a
+        <compileflags>-march=armv7-a ### androidARCH
         <compileflags>-mfpu=vfpv3-d16
         <compileflags>-mfloat-abi=softfp
         <compileflags>-mthumb
-        <compileflags>-g
-        <compileflags>-Os
         <compileflags>-fno-strict-aliasing
-        <compileflags>-DNDEBUG
-        <compileflags>-D__GLIBC__
-        <compileflags>-D_GLIBCXX__PTHREADS
-        <compileflags>-D__arm__
-        <compileflags>-D_REENTRANT
-        <compileflags>-DANDROID
         <compileflags>-fPIC
         <compileflags>-fvisibility=hidden
+        <compileflags>-g
+        <compileflags>-Os
+        <compileflags>-DNDEBUG
+      # <compileflags>-D__GLIBC__
+      # <compileflags>-D_GLIBCXX__PTHREADS
+      # <compileflags>-D__arm__
+      # <compileflags>-D_REENTRANT
+        <compileflags>-DANDROID
         <cxxflags>-std=c++11
-        <cxxflags>-I$(androidCXXDIR)/include
-        <cxxflags>-I$(androidCXXDIR)/libs/armeabi-v7a/include
-        <cxxflags>-I$(androidCXXDIR)/include/backward
-       #<linkflags>-lstdc++ # /opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_static.a
+        <cxxflags>-I$(ndkCXXDIR)/include
+        <cxxflags>-I$(ndkCXXDIR)/libs/$(androidARCH)/include
+        <cxxflags>-I$(ndkCXXDIR)/include/backward
+     ## <linkflags>-lstdc++ ## $(ndkCXXDIR)/libs/$(androidARCH)/libgnustl_static.a
     ;
+
+#b2 --show-libraries
+#b2 --with-chrono variant=release link=static runtime-link=static
 

@@ -8,14 +8,18 @@ help:
 	@echo '  ' make prepare '#' VARIANT=test
 	@echo '  ' make PLATS=k400,cvk350c,cvk350t rbuild
 	@echo '  ' make PLATS=k400,cvk350c,cvk350t rar RARPWD=XXX
-	@echo '  ' make version-up '&&' make version-commit
+	@echo '  ' make version-commit
 	@echo
 	@hzmake.sh info $(REPO) $(VARIANT)
+	@grep word howto.txt
 
 prepare:
 	svn up $(REPO)
 	hzmake.sh prepare $(REPO) $(VARIANT)
 	@grep word howto.txt
+
+ndk-build:
+	hzmake.sh $@ $(REPO) $(VARIANT)
 
 rbuild:
 	hzmake.sh sync-up $(REPO) $(VARIANT) \

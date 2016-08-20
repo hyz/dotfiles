@@ -59,8 +59,13 @@ if [ -z "$NewVer" ] ; then
 fi
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 
-Apk="Game-newsvn$NewSVNRev-$(date +%Y%m%d)$Vertag1.apk"
+datestr() {
+    date -d'-4HOUR' '+%Y%m%d'
+}
+
+Apk="Game-newsvn$NewSVNRev-$(datestr)$Vertag1.apk"
 VerF=$Vertag$NewVer-$NewSVNRev #-$(date +%m%d) # local temp application dir
+RarTag="$NewVer-`datestr`"
 
 show-info() {
     echo "variant: $variant"
@@ -83,9 +88,9 @@ info)
 version-reset)
     svn revert $repo/$AppConfig
     ;;
-version-commit)
-    ;;
 version-up)
+    ;;
+version-commit)
     #[ "$variant" = release ] || die "commit: $variant"
     sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$NewVer'"/}' $repo/$AppConfig
     sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $repo/$AppConfig
@@ -102,7 +107,7 @@ version-up)
 rar)
     which rar || die "rar not-found"
     for plat in ${plats//,/ } ; do
-        rel="$plat-$NewVer-`date +%Y%m%d`"
+        rel="$plat-$NewVer-`datestr`"
         ar="${rel#cvk}.rar"
         rm -f $outdir/$ar
         ( cd $outdir && rar a -hp$rarpwd $ar $rel ) || die "$ar"
@@ -112,17 +117,18 @@ rar)
 
 sync-down)
     for plat in ${plats//,/ } ; do
-        rel="$plat-$NewVer-`date +%Y%m%d`"
+        rel="$plat-$NewVer-`datestr`"
         rsync -vrL $rhost:$variant/$rel $outdir/ || die "$rhost $rel"
     done
     ;;
 
 rbuild)
     for plat in ${plats//,/ } ; do
-        rel="$plat-$NewVer-`date +%Y%m%d`"
-        ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/application/$VerF $variant/$rel $plat" || die "ssh rbuild"
-        echo "$rhost:$rhome/$variant/$rel [OK]"
+        rel="$plat-$NewVer-`datestr`"
+        ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/application/$VerF $variant/$rel $plat" \
+            || echo "`date +%F\ %T` $rhost:$rhome/$variant/$rel [FAIL]" >> FAIL.`datestr`.txt # die "rbuild"
     done
+    [ -r "FAIL.`datestr`.txt" ] && cat FAIL.`datestr`.txt
     ;;
 
 sync-up)
@@ -137,6 +143,10 @@ sync-up)
     find /tmp/$VerF -type f -exec chmod 0644 '{}' \;
     ( cd /tmp && rsync -vr $VerF $rhost:$variant/application/ ) || die "rsync $rhost"
     rm -rf /tmp/$VerF
+    ;;
+
+ndk-build)
+    ( cd $builddir/$prjname/jni && ln -s ../3rdparty . && ndk-build -j8 )
     ;;
 
 prepare|init)
