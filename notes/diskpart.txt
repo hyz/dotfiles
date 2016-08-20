@@ -1,10 +1,11 @@
 
 losetup -o 32256 -f /dev/sda9
 losetup -o 32256 /dev/loop1 /dev/sda9
+losetup -P /dev/loop0 /dev/sda4
 losetup -Pf /dev/sda4
 losetup
-
 losetup --detach-all
+
 #losetup -d /dev/loop0p1
 #losetup -d /dev/loop0p2
 losetup -d /dev/loop0
