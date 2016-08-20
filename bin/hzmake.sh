@@ -52,10 +52,11 @@ AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
 OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 if [ -z "$NewVer" ] ; then
-    case "$what" in
-        version-commit) NewVer=$OldVer ;;
-        *) NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'` ;;
-    esac
+    NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
+    #case "$what" in
+    #    version-commit) NewVer=$OldVer ;;
+    #    *) NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'` ;;
+    #esac
 fi
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 
@@ -96,11 +97,14 @@ version-commit)
     sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $repo/$AppConfig
     svn diff $repo #/$AppConfig
     echo "$NewVer, $NewSVNRev, $repo/$AppConfig"
-    echo "commit $repo? (y/n)"
-    read yn
-    case "$yn" in
+    message="Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated"
+    echo "-m \"$message\""
+    echo "commit $repo? (y/N)"
+    read yN
+    case "$yN" in
         [yY]|[yY]es|YES)
-            svn commit $repo -m "Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated" ;;
+            svn commit $repo -m "$message" ;;
+        *) svn revert $repo/$AppConfig ;;
     esac
     ;;
 
