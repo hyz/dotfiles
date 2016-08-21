@@ -7,11 +7,37 @@ hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 
-[ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda || exit 1
-[ "`stat -c '%G' $SLIC`" = "kvm" ] || sudo chgrp kvm $SLIC || exit 1
-[ -r $SLIC ] || sudo chmod g+r $SLIC || exit 1
 export QEMU_AUDIO_DRV=alsa
 
+case "$1" in
+init)
+    [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || exit 1
+    [ "`stat -c '%G' $SLIC`" = "kvm" ] || chgrp kvm $SLIC || exit 1
+    [ -r $SLIC ] || chmod g+r $SLIC || exit 1
+    modprobe tun
+    ip tuntap add dev tap0 mode tap user wood
+    ip link set tap0 up promisc on
+    ip addr add 172.16.0.1/24 dev tap0
+    #tunctl -t tap0
+    # ifconfig tap0 192.168.0.1 netmask 255.255.255.0 up
+
+    # activate ip forwarding
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+    ## sysctl
+
+    ## iptables -nL -t nat
+    # iptables --flush -t nat
+    # iptables --flush
+    ### Create forwarding rules, where
+    ### tap0 - virtual interface
+    ### eth0 - net connected interface
+    iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
+    iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
+    iptables -nvL -t nat
+    exit ;;
+
+*)
 ### lsusb
 ### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
 ### ... -usb -device usb-host,hostbus=2,hostaddr=6
@@ -19,17 +45,19 @@ export QEMU_AUDIO_DRV=alsa
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
-    -cpu host -smp cores=2 -m 4096M \
-    -acpitable sig=SLIC,file=$SLIC \
-    -rtc base=localtime,clock=host \
-    -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
-    -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
-    -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
-    -boot order=c \
-    -display sdl #-vga std #vmware #-daemonize
-#
-exit 0
+    qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
+        -cpu host -smp cores=2 -m 4096M \
+        -acpitable sig=SLIC,file=$SLIC \
+        -rtc base=localtime,clock=host \
+        -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
+        -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
+        -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
+        -boot order=c \
+        -display sdl #-vga std #vmware #-daemonize
+    #
+    exit ;;
+esac
+
     -drive file=$HOME/qemu/Windows/10.iso,index=2,media=cdrom \
 
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \
@@ -48,27 +76,6 @@ spicy -h 127.0.0.1 -p 5900
 # windows drivers: -vga vmware
 #X:\> setup.exe /a
 ### http://stackoverflow.com/questions/21496449/networking-is-not-working-on-qemu-guest-malta-mips
-modprobe tun
-ip tuntap add dev tap0 mode tap user wood
-ip link set tap0 up promisc on
-ip addr add 172.16.0.1/24 dev tap0
-#tunctl -t tap0
-# ifconfig tap0 192.168.0.1 netmask 255.255.255.0 up
-
-# activate ip forwarding
-echo 1 > /proc/sys/net/ipv4/ip_forward
-## sysctl
-
-## iptables -nL -t nat
-# iptables --flush -t nat
-# iptables --flush
-### Create forwarding rules, where
-### tap0 - virtual interface
-### eth0 - net connected interface
-iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
-iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
-iptables -nvL -t nat
 #########================== =============== ==============
 
 ### http://www.funtoo.org/Windows_7_Virtualization_with_KVM

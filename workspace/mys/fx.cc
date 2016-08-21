@@ -559,9 +559,9 @@ int Main::run(int argc, char* const argv[])
         //std::sort(beg2, end2);
         //Long volRa = std::accumulate(beg2,end2, Long{},[](Long a,auto&x){return a+x->volume;});
         Long volR1 = std::max_element(beg2,eb2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        Long volG1 = std::max_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        Long volR0 = std::min_element(beg2,eb2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
-        Long volG0 = std::min_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //Long volG1 = std::max_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //Long volR0 = std::min_element(beg2,eb2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
+        //Long volG0 = std::min_element(eb2,end2, [](auto&l,auto&r){return l.volume<r.volume;})->volume;
         Long volRa = std::accumulate(beg2,eb2, Av{}).volume;
         Long volGa = std::accumulate(eb2,end2, Av{}).volume;
         int nR = eb1 - beg1;
