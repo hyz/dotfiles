@@ -36,7 +36,6 @@ adb shell busybox ls /data
 adb push gapps-ics-20120317-signed/system /system
 adb shell busybox cp -a /system/* /data/
 
-
 # Where -u stands for --no-ui, -a stands for --all and -t stands for --filter.
 # http://stackoverflow.com/questions/17963508/how-to-install-android-sdk-build-tools-on-the-command-line
 #
