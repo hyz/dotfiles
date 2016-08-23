@@ -1,7 +1,7 @@
 
-###! exec >/tmp/zsh.txt 2>&1
+###! exec >/tmp/zsh.$USER 2>&1
 
-echo "zshenv $HOME" >> /tmp/zsh.txt
+echo "zshenv $HOME" >> /tmp/zsh.$USER
 
 source $HOME/.zprofile
 

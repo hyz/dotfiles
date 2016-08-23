@@ -1,5 +1,5 @@
 
-echo "zlogin" >> /tmp/zsh.txt
+echo "zlogin" >> /tmp/zsh.$USER
 
 if which keychain ; then
     eval `keychain --agents ssh --eval $(find .ssh/*id_[dr]sa)`

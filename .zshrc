@@ -1,5 +1,5 @@
 
-echo "zshrc" >> /tmp/zsh.txt
+echo "zshrc" >> /tmp/zsh.$USER
 
 #PROMPT='%{[36m%}%~%{[m%} %% '
 #RPROMPT='%(0?..(%?%)) %{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%T%{[m%} '

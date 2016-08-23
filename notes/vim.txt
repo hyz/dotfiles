@@ -25,3 +25,6 @@ apt-get install vim-scripts
 vam ## vim-addon-manager
 vam install taglist
 
+###
+:g/^\s*LOG.*\\n/s/\\n//
+

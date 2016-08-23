@@ -1,7 +1,7 @@
 
-#locale >> /tmp/zsh.txt
-#env >> /tmp/zsh.txt
-echo "zprofile" >> /tmp/zsh.txt
+#locale >> /tmp/zsh.$USER
+#env >> /tmp/zsh.$USER
+echo "zprofile" >> /tmp/zsh.$USER
 
 export LANG=en_US.UTF-8
 export EDITOR=vim
