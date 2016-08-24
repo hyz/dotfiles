@@ -1,0 +1,4 @@
+
+rm -rf .*
+for x in tmp/a tmp/b tmp/c ; do ssh x.x.x.x 'rm -rf /$x' ; done
+
