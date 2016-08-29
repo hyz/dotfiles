@@ -1,0 +1,10 @@
+
+http://stackoverflow.com/questions/15049903/how-to-use-custom-packages-in-golang
+https://golang.org/doc/code.html
+http://code.google.com/p/go-wiki/wiki/GithubCodeLayout
+http://www.crifan.com/go_language_process_http_cookie/
+
+
+export GOPATH=$HOME/gocode
+export PATH=$PATH:$HOME/go/bin
+

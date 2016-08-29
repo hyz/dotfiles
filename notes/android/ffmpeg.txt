@@ -1,0 +1,5 @@
+
+http://stackoverflow.com/questions/2645041/ffmpeg-for-a-android-using-tutorial-ffmpeg-and-android-mk
+https://github.com/guardianproject/android-ffmpeg
+
+

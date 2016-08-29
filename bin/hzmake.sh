@@ -132,7 +132,7 @@ rbuild)
         ssh root@$rhost "cd $rhome && bin/hzrbuild.sh $variant/application/$VerF $variant/$rel $plat" \
             || echo "`date +%F\ %T` $rhost:$rhome/$variant/$rel [FAIL]" >> "FAIL.`datestr`.txt" # die "rbuild"
     done
-    [ -r "FAIL.`datestr`.txt" ] && cat "FAIL.`datestr`.txt"
+    [ ! -r "FAIL.`datestr`.txt" ] || cat "FAIL.`datestr`.txt"
     ;;
 
 sync-up)

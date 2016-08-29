@@ -1,0 +1,5 @@
+
+### different
+    [ -r "a.file" ] && cat "a.file"
+    [ ! -r "a.file" ] || cat "a.file"
+

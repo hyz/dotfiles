@@ -1,0 +1,7 @@
+
+
+http://bbs.rosoo.net/thread-15165-1-1.html
+https://github.com/ZhengfengRao/rtp2mp4
+    使用mp4v2将H264+AAC合成mp4文件 
+
+
