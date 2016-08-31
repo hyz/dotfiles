@@ -12,3 +12,9 @@ $ ncat 58.67.160.243 20013 <fifo |shk-racing-protocol -d |sh test/shk.uid.102784
 
 ##############
 
+### camera capture play
+A> ./h264output | nc -l -p 9090
+B> nc 127.0.0.1 9090 | ffplay -i pipe:0
+
+##############
+

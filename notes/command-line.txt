@@ -157,30 +157,6 @@ Usage: file [-bcEhikLlNnprsvz0] [--apple] [--mime-encoding] [--mime-type]
 $ file -- --write-out                                                                                                        ~
 --write-out: ASCII text, with CRLF line terminators
 
-### network/wireless ###
-https://wiki.archlinux.org/index.php/Wireless_network_configuration
-# iw command
-iw dev wlan0 link 	|	iwconfig wlan0 	|	Getting link status.
-iw dev wlan0 scan 	|	iwlist wlan0 scan 	|	Scanning for available access points.
-iw dev wlan0 set type ibss 	|	iwconfig wlan0 mode ad-hoc 	|	Setting the operation mode to ad-hoc.
-iw dev wlan0 connect your_essid 	|	iwconfig wlan0 essid your_essid 	|	Connecting to open network.
-iw dev wlan0 connect your_essid 2432 	|	iwconfig wlan0 essid your_essid freq 2432M 	|	Connecting to open network specifying channel.
-iw dev wlan0 connect your_essid key 0:your_key 	|	iwconfig wlan0 essid your_essid key your_key 	|	Connecting to WEP encrypted network using hexadecimal key.
-iw dev wlan0 connect your_essid key 0:your_key 	|	iwconfig wlan0 essid your_essid key s:your_key 	|	Connecting to WEP encrypted network using ASCII key.
-iw dev wlan0 set power_save on 	|	iwconfig wlan0 power on 	|	Enabling power save. 
-
-# wpa_supplicant -D nl80211,wext -i wlan0 -c <(wpa_passphrase "your_SSID" "your_key")
-### wpa_supplicant -B -P /run/wpa_supplicant_wlp3s0.pid -i wlan0 -D nl80211,wext -c/run/network/wpa_supplicant_wlp3s0.conf
-
-$ sudo wifi-menu
-
-iw dev wlan0 station dump
-iw list
-ip link show wlan0
-ip link set wlan0 up
-ip addr
-ip route
-
 ### 
 
 tpx="`date +'%F %T'`"

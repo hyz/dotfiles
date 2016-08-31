@@ -1,0 +1,4 @@
+
+http://stackoverflow.com/questions/5588855/standard-alternative-to-gccs-va-args-trick
+variadic macro
+

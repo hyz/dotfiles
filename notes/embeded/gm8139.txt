@@ -1,0 +1,5 @@
+
+export PATH=$PATH:/usr/src/arm-linux-3.3/toolchain_gnueabi-4.4.0_ARMv5TE/usr/bin
+export CROSS_COMPILE=arm-unknown-linux-uclibcgnueabi-
+make
+

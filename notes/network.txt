@@ -22,3 +22,9 @@ ip link set eth0 up
     手机端网络测试工具 (android、ios)
     手机端带宽测试
 
+### http://software.internet2.edu/owamp/
+    One-Way Ping (OWAMP)
+
+### http://stackoverflow.com/questions/3755208/measuring-time-difference-between-networked-devices?rq=1
+### http://stackoverflow.com/questions/8682702/how-to-calculate-packet-time-from-latency-and-bandwidth
+

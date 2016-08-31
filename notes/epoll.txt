@@ -1,0 +1,13 @@
+
+### http://stackoverflow.com/questions/12892286/epoll-with-edge-triggered-event
+### http://cmeerw.org/blog/753.html#753
+
+As long as you read until you get an EAGAIN error, you will get the event the next time you are calling epoll_wait.
+
+The event is only triggered when there is a change between empty and non-empty (or full and non-full for EPOLLOUT), but that status then remains until the event is delivered via epoll_wait.
+
+On a somewhat related note: if you register for EPOLLIN and EPOLLOUT events and assuming you never fill up the send buffer, you still get the EPOLLOUT flag set in the event returned by epoll_wait each time EPOLLIN is triggered - see https://lkml.org/lkml/2011/11/17/234 for a more detailed explanation.
+
+And finally, the exact behaviour of edge-triggered mode actually depends on the socket type used and isn't really documented anywhere. I did some tests some time ago and documented my findings here: http://cmeerw.org/blog/753.html#753 - in short, for datagram sockets you might get more events than you would expect.
+
+

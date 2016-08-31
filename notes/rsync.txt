@@ -35,8 +35,12 @@ find svnchina -name ".svn" -o -name ".git*" | rsync --no-g --no-o -v --exclude-f
 
 ###
 rsync -vaz -L --no-o --no-g -e "ssh -p 44331" usr wood@x.x.x.x:yxim/
-# --links
+
+### Symbolic links
+# --links                   # Duplicate all symlinks
+# --links --safe-links      # Duplicate safe symlinks and skip unsafe ones
 # --keep-dirlinks
+###
 # --files-from
 # --exclude-from
 # --cvs-exclude
