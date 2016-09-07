@@ -1,0 +1,49 @@
+
+### http://bootloader.wikidot.com/linux:boot:android
+    Boot-loader 	- 	Location: bootable\bootloader\legacy\usbloader
+        init.S 	Initializes stacks, zeros the BSS segment, call _main() in main.c
+        main.c 	Initializes hardware (clocks, board, keypad, console), creates Linux tags
+            Displays "USB FastBoot". Boot from flash, or loops while usb_poll() awaits host PC connection
+    Linux kernel 	- 	Sets up the system, loads drivers, and starts running the first process init
+    The init process 	Setup file system 	Create and mount directories like /dev, /proc, /sys
+        Execute init.rc 	This is the boot-up script, commands are using Android-specific syntax, see readme.txt
+        Setup console 	
+        Display "A N D R O I D" 	This is just a text msg written to /dev/tty0
+        Zygote 	Zygot process in init.rc brings up Dalvik Java VM and starts the system server
+        bootanimation 	Shows the animation during boot-up
+    Framework 	…. 	….
+
+### http://www.lynxbee.com/how-to-create-a-native-daemon-and-run-from-init-rc-in-android/
+
+
+### https://groups.google.com/forum/#!topic/android-porting/HBsOD3icdeQ
+If you are including custom commands, the best method is to use `/
+init.PLATFORM.rc`, where PLATFORM is set via the kernel cmdline
+`androidboot.hardware=PLATFORM`. It will automatically be loaded by
+init.
+
+Also you have the line `disabled` in the service, which states that
+the servics shall not be started automatically. You should either add
+`start modem-daemon` in one or more event triggers or remove the line.
+
+To sum up with, your `init.PLATFORM.rc` COULD have the following (for
+example):
+~~~~~
+on boot
+    start modem-daemon
+
+service modem-daemon /system/bin/modem-daemon
+    socket connectionServer.sock stream 660 root system
+    user root
+    group root radio system
+    disabled
+~~~~~ 
+
+> ls -1 mt6580/alps/system/core/rootdir/init.*.rc
+mt6580/alps/system/core/rootdir/init.trace.rc
+mt6580/alps/system/core/rootdir/init.usb.rc
+mt6580/alps/system/core/rootdir/init.zygote32_64.rc
+mt6580/alps/system/core/rootdir/init.zygote32.rc
+mt6580/alps/system/core/rootdir/init.zygote64_32.rc
+mt6580/alps/system/core/rootdir/init.zygote64.rc
+

@@ -7,3 +7,5 @@
      gnustl_static -> Use GNU libstdc++ as a static library.
 
 
+/opt/android/17-arm-gcc-4.9/bin/arm-linux-androideabi-cpp -dM /dev/null |grep -i android
+

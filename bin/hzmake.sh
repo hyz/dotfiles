@@ -27,7 +27,7 @@ while true ; do
         #-v|--variant) variant=$2 ; shift 2 ;;
         -P|--plats) plats=$2 ; shift 2 ;;
         -V|--ver) NewVer=$2 ; shift 2 ;;
-        -t|--vertag) Vertag="$2" ; Vertag1="-$2"; shift 2 ;;
+        -t|--vertag) Vertag="$2" ;; # Vertag1="-$2"; shift 2 ;;
         -p|--rarpwd) rarpwd=$2 ; shift 2 ;;
         -d|--outdir) outdir=$2 ; shift 2 ;;
         -b|--builddir) builddir=$2 ; shift 2 ;;
@@ -49,28 +49,29 @@ AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 #    svn revert $repo/$AppConfig
 #fi
 
-OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
-OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
-if [ -z "$NewVer" ] ; then
-    NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
-    #case "$what" in
-    #    version-commit) NewVer=$OldVer ;;
-    #    *) NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'` ;;
-    #esac
-fi
 NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
+OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
+OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
+if [ -z "$NewVer" ] ; then
+    if [ -z "$Vertag" ] ; then
+        NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`
+    else
+        NewVer="$OldVer-$Vertag"
+    fi
+fi
 
 datestr() {
     date -d'-4HOUR' '+%Y%m%d'
 }
 
-Apk="Game-newsvn$NewSVNRev-$(datestr)$Vertag1.apk"
-VerF=$Vertag$NewVer-$NewSVNRev #-$(date +%m%d) # local temp application dir
-RarTag="$NewVer-`datestr`"
+#VerF="$NewVer-$NewSVNRev$Vertag" #-$(date +%m%d) # local temp application dir
+VerF="$NewVer-r$NewSVNRev"  #; [[ -z "$Vertag" ]] || VerF="$NewVer-$Vertag"
+Apk="Game-$VerF-`datestr`.apk" #Apk="Game-newsvn$NewSVNRev-$(datestr)$Vertag1.apk"
+#RarTag="$NewVer-`datestr`"
 
 show-info() {
     echo "variant: $variant"
-    echo "version: $OldVer => $NewVer, $OldSVNRev => $NewSVNRev, ${Apk%.apk}"
+    echo "version: $OldSVNRev => $NewSVNRev, ${Apk%.apk}, $OldVer => $NewVer"
     echo
     echo "build directory: remote=$rhost:$rhome local=$builddir"
     samba='\\192.168.2.115\Release1\'
@@ -137,8 +138,7 @@ rbuild)
 
 sync-up)
     rm -rf /tmp/$VerF #$variant/$VerF
-    mkdir -p /tmp/$VerF/lib
-    mkdir -p /tmp/$VerF/internal
+    mkdir -p /tmp/$VerF/lib && mkdir -p /tmp/$VerF/internal || die "mkdir"
 
     cp -v $builddir/$prjname/libmtkhw.so /tmp/$VerF/lib/ || die "libmtkhw.so"
     cp -v $builddir/$prjname/libs/armeabi-v7a/libBarcode.so /tmp/$VerF/lib/ || die "libBarcode.so"

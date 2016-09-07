@@ -3,3 +3,29 @@
     [ -r "a.file" ] && cat "a.file"
     [ ! -r "a.file" ] || cat "a.file"
 
+### http://stackoverflow.com/questions/3953645/ternary-operator-in-bash?noredirect=1&lq=1
+### http://stackoverflow.com/questions/669452/is-preferable-over-in-bash-scripts?noredirect=1&lq=1
+### http://stackoverflow.com/questions/918886/how-do-i-split-a-string-on-a-delimiter-in-bash?rq=1
+IN="bla@some.com;john@home.com"
+IFS=';'; arr=($IN); unset IFS;
+IFS=';' read -ra ADDR <<< "$IN"
+
+
+### http://stackoverflow.com/questions/229551/string-contains-in-bash?rq=1
+
+string='My long string';
+
+if [[ $string == *"My long"* ]]
+then
+  echo "It's there!";
+fi
+
+if [[ $string =~ .*My.* ]]
+then
+   echo "It's there!"
+fi
+
+if [ "$string" != "${string/My/}" ]; then
+    echo "It's there!"
+fi
+

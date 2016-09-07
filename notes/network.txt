@@ -28,3 +28,24 @@ ip link set eth0 up
 ### http://stackoverflow.com/questions/3755208/measuring-time-difference-between-networked-devices?rq=1
 ### http://stackoverflow.com/questions/8682702/how-to-calculate-packet-time-from-latency-and-bandwidth
 
+### http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-can-send-without-fragmenting?rq=1
+### http://stackoverflow.com/questions/14993000/the-most-reliable-and-efficient-udp-packet-size
+    MTU size of the host handling the PDU (most of the case it will be 1500) -
+    size of the IP header (20 bytes) -
+    size of UDP header (8 bytes)
+
+    1500 MTU - 20 IP hdr - 8 UDP hdr  = 1472 bytes
+
+### http://stackoverflow.com/questions/47903/udp-vs-tcp-how-much-faster-is-it?rq=1
+
+### https://en.wikipedia.org/wiki/Nagle%27s_algorithm
+
+### http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t?rq=1
+SO_REUSEADDR
+SO_REUSEPORT
+EADDRINUSE
+
+### http://stackoverflow.com/questions/1694144/can-two-applications-listen-to-the-same-port?noredirect=1&lq=1
+
+iptables -m statistic --mode random --probability 0.5
+

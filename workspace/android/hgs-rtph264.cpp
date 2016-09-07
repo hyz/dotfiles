@@ -258,18 +258,18 @@ struct h264nal : private boost::noncopyable
                 break;
             case 28: // FU-A
                 data += 1; //h1->length();
-                if (fu_header* h2 = fu_header::cast(data,end)) {
-                    h2->print(data,end);
-                    fu_header fuh = *h2;
-                    nal_unit_header* h3 = nal_unit_header::cast(data,end);
-                    if (fuh.s) {
-                        h3->nri = h1->nri;
-                        h3->f = h1->f;
-                        h3->print(data,end);
+                if (fu_header* fu = fu_header::cast(data,end)) {
+                    fu->print(data,end);
+                    fu_header fu_copy = *fu;
+                    nal_unit_header* h2 = nal_unit_header::cast(data,end);
+                    if (fu_copy.s) {
+                        h2->nri = h1->nri;
+                        h2->f = h1->f;
+                        h2->print(data,end);
                         if (!bufp_.empty()) {
                             LOGE("FU-A e loss: %d", int(end-data));
                         }
-                        bufp_ = mbuffer(*rtp_h, *h3);
+                        bufp_ = mbuffer(*rtp_h, *h2);
                     } else if (!continus) {
                         bufp_ = mbuffer();
                         LOGE("FU-A not continus: %d", int(end-data));
@@ -281,7 +281,7 @@ struct h264nal : private boost::noncopyable
                     //++data; // skip nal_unit_header
         rtp_statis_(*rtp_h, data, end);
                     bufp_.put(data+1, end);
-                    if (fuh.e) {
+                    if (fu_copy.e) {
                         sink_commit_(std::move(bufp_));
                     }
                 }
