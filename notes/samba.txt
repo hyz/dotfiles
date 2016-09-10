@@ -27,4 +27,6 @@ $ sudo mount -t cifs //192.168.1.11/sales /mnt/cifs -o username=shareuser,passwo
 $ ##,uid=username,gid=usergroup
 $ sudo mount.cifs //192.168.1.155/smb cifs -o username=administrator,uid=1000
 
+### ubuntu
+sudo service smbd restart
 
