@@ -1,0 +1,8 @@
+
+http://stackoverflow.com/questions/12045488/any-gles-examples-in-c-on-x86-linux?noredirect=1&lq=1
+https://github.com/nickdesaulniers/opengles2-book
+http://www.mesa3d.org/opengles.html
+https://cgit.freedesktop.org/mesa/demos/
+
+git clone --depth 1 git://anongit.freedesktop.org/mesa/demos
+
