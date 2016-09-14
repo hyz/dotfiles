@@ -1,3 +1,5 @@
+### http://stackoverflow.com/questions/17804007/how-to-show-line-number-when-executing-bash-script
+$ PS4='${LINENO}: ' bash -x script.sh
 
 ### different
     [ -r "a.file" ] && cat "a.file"

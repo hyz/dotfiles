@@ -1,0 +1,3 @@
+### http://www.cnblogs.com/cute/p/4835656.html
+介绍一种android的裸刷机方法（fastboot刷机实质）
+

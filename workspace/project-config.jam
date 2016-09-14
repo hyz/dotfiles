@@ -2,16 +2,16 @@
 
 #import os ;
 #path-constant HOME : [ os.environ HOME ] ;
-path-constant BOOST_ROOT : /opt/boost_1_60_0 ;
+path-constant BOOST_ROOT : /BOOST_ROOT ;
 #path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
-use-project boost : $(BOOST_ROOT) ; # /boost//headers
+use-project boost : /BOOST_ROOT ; # /boost//headers
 
 #using msvc ; #: : : <architecture>x86 <runtime-link>static <link>static ;
 #
 
-using gcc : : : <cxxflags>-std=c++1y ;
-using clang : : : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
+using gcc : : : <cxxflags>-std=c++0x ;
+#using clang : : : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
 #using clang : : clang++-3.6 : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
 
 # ./bjam --build-type=complete --layout=tagged

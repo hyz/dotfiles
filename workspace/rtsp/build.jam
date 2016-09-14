@@ -1,5 +1,6 @@
 project rtp
-    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : requirements <include>/BOOST_ROOT # <define>PLUGIN_EXPORTS=1
+        <threading>multi
     : default-build release
     ;
 #lib curl : : <name>curl <search>/usr/lib/i386-linux-gnu ;
@@ -9,19 +10,20 @@ project rtp
 #exe h264-a : h264-a.cpp /boost//system ;
 #exe a : base64.cpp /boost//system ;
 
-exe rtph264 : rtph264.cpp /boost//system ;
+#exe rtph264 : rtph264.cpp /boost//system ;
 
 lib avformat : : <file>FFmpeg/libavformat/libavformat.a ;
 lib avcodec : : <file>FFmpeg/libavcodec/libavcodec.a ;
 lib avutil : : <file>FFmpeg/libavutil/libavutil.a ;
 lib swresample : : <file>FFmpeg/libswresample/libswresample.a ;
 
-lib x264 lzma z bz2 ;
+lib x264 lzma z bz2 rt ;
 exe ffmpeg-dec-h264 : ffmpeg-dec-h264.cc avcodec avformat avutil swresample x264 lzma z : <include>FFmpeg ;
-exe mmap : mmap-example.cc ;
+exe ts264-dec : ts264-dec.cpp avcodec avformat avutil swresample x264 lzma z : <include>FFmpeg ;
+#exe mmap : mmap-example.cc ;
 # exe ffmpeg-save-frame : ffmpeg-save-frame.cc avcodec avutil avformat swresample x264 lzma z bz2 : <include>FFmpeg ;
 
-exe a : a.cc /boost//system /boost//regex : <link>static ;
-install bin : a ;
+#exe a : a.cc /boost//system /boost//regex : <link>static ;
+#install bin : a ;
 
-exe rtps : rtps.cpp /boost//system /boost//regex ;
+#exe rtps : rtps.cpp /boost//system /boost//regex ;

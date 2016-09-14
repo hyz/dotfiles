@@ -8,3 +8,5 @@ rsync -vaR --links 01work _GM8139_2MP gm_lib-IPCAM svnchina 114:.
 rsync -vaR --links cpp-snippets armeabi-v7a 114:.
 rsync -vaR --links .subversion .ssh 114:.
 
+adb -s 0123456789ABCDEF logcat | tee log.$(date +%d%H%M) |grep -E '^..(epoll|hgs|thread|ildec|Video)'
+

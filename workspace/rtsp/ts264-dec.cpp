@@ -1,3 +1,12 @@
+       #include <stdint.h>
+       #include <stdio.h>
+       #include <sys/mman.h>
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <fcntl.h>
+       #include <unistd.h>
+       #include <stdlib.h>
+       #include <string.h>
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -15,144 +24,108 @@ extern "C" {
 #include "libavformat/avformat.h"
 //#  include "libavcodec/libavutil/mathematics.h"
 }
+struct PrefixHead {
+    uint32_t len;
+    uint16_t tvs[2];
+};
+
 int save_frame_as_jpeg(char const* odir, AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN);
-static void yuv420p_save(char const* odir, AVFrame *pFrame, int width, int height, int idxN);
+static void yuv420p_save(FILE* ofp, AVFrame *pFrame, int width, int height);
 
-struct H264File 
-{
-    typedef std::pair<uint8_t*,uint8_t*> range;
-    uint8_t *begin_, *end_;
-
-    H264File(int fd) {
-        struct stat st; // fd = open(fn, O_RDONLY);
-        fstat(fd, &st); // printf("Size: %d\n", (int)st.st_size);
-        begin_ = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-        end_ = begin_ + st.st_size;
-        assert(begin_[0]=='\0'&& begin_[1]=='\0'&& begin_[2]=='\0'&& begin_[3]==1);
-    }
-    //~H264File() { close(fd); }
-
-    range begin() const { return find_(begin_); }
-    range next(range const& prev) const { return find_(prev.second); }
-
-    range find_(uint8_t* e) const {
-        uint8_t* b = e;
-        if (e+4 < end_) {
-            uint8_t dx[] = {0, 0, 0, 1};
-            e = std::search(e+4, end_, &dx[0], &dx[4]);
-        }
-        return std::make_pair(b,e);
-    }
-};
-struct H264File_reader : H264File {
-    H264File_reader(const char* fn) : H264File(fd_ = open(fn, O_RDONLY)) {}
-    int fd_;
-    ~H264File_reader() { close(fd_); }
-};
-
-//#define INBUF_SIZE 4096
-
-static void init_packet(AVPacket& avpkt, std::vector<uint8_t>& vec, uint8_t* beg, uint8_t* end)
+static void init_packet(AVPacket& avpkt, std::vector<uint8_t>& pktbuf, uint8_t* beg, uint8_t* end)
 {
     av_init_packet(&avpkt);
     avpkt.size = end - beg; //fread(inbuf, 1, INBUF_SIZE, f);
-    vec.resize(avpkt.size + FF_INPUT_BUFFER_PADDING_SIZE);
-    memcpy(&vec[0], beg, avpkt.size);
-    memset(&vec[avpkt.size], 0, FF_INPUT_BUFFER_PADDING_SIZE);
-    avpkt.data = &vec[0];
+    pktbuf.resize(avpkt.size + FF_INPUT_BUFFER_PADDING_SIZE);
+    memcpy(&pktbuf[0], beg, avpkt.size);
+    memset(&pktbuf[avpkt.size], 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    avpkt.data = &pktbuf[0];
     // printf("nalu size %d\n", int(avpkt.size));
 }
 
-void video_decode(char const *out_dir, char const *h264_fn)
+void video_decode(char const *h264filename)
 {
     AVCodec *codec;
     AVCodecContext *cctx= NULL;
     AVPacket avpkt;
-    AVFrame *avframe;
-    int naluN = 0, gotN = 0, got_picture;
 
     codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-
     if (!codec) {
         fprintf(stderr, "codec not found\n");
         exit(1);
     }
 
     cctx = avcodec_alloc_context3(codec);
-    avframe = av_frame_alloc();
-
     if ((codec->capabilities)&CODEC_CAP_TRUNCATED)
         (cctx->flags) |= CODEC_FLAG_TRUNCATED;
-
-    cctx->width = 480; //1920;
-    cctx->height = 272; //1080;
+    cctx->width = 1920;
+    cctx->height = 1080;
 
     if (avcodec_open2(cctx, codec, NULL) < 0) {
         fprintf(stderr, "could not open codec\n");
         exit(1);
     }
 
-    // f = fopen(h264_fn, "rb");
-    //if (!f) {
-    //    fprintf(stderr, "could not open %s\n", h264_fn);
-    //    exit(1);
-    //}
-    //outf = fopen(outfilename,"w");
-    //if(!outf){
-    //    fprintf(stderr, "could not open %s\n", outfilename);
-    //    exit(1);
-    //}
+    int fd = ::open(h264filename, O_RDONLY);
+    if (fd < 0) {
+        fprintf(stderr,"open %s", h264filename); exit(127);
+    }
+    struct stat st; // fd = open(fn, O_RDONLY);
+    fstat(fd, &st); // LOGD("Size: %d\n", (int)st.st_size);
+    uint8_t* const mmap_p = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    uint8_t* const mmap_end = mmap_p + st.st_size;
 
-    H264File_reader h264f(h264_fn);
-    std::vector<uint8_t> vec;
+    std::vector<uint8_t> pktbuf;
+    AVFrame * avframe = av_frame_alloc();
 
-    for (auto nalu = h264f.begin() ; boost::size(nalu)>4; nalu = h264f.next(nalu)) {
-        ++naluN;
-        init_packet(avpkt, vec, nalu.first, nalu.second);
+    for (uint8_t* p = mmap_p; p + 16 < mmap_end; ) {
+        PrefixHead inf;
+        memcpy(&inf, p, sizeof(inf));
+        inf.len -= sizeof(inf);
+        uint8_t* nalu = p + sizeof(inf);
 
+        init_packet(avpkt, pktbuf, nalu, nalu + inf.len);
+
+        int got_picture;
         int len = avcodec_decode_video2(cctx, avframe, &got_picture, &avpkt);
         if (len < 0) {
-            fprintf(stderr, "Error while decoding naluN %d\n", naluN);
+            fprintf(stderr, "decode %04d.%03d fail\n", inf.tvs[0], inf.tvs[1]);
             continue; //exit(1);
         }
-        if (got_picture && gotN++ % 64 == 0) {
+        if (got_picture) {
             avframe->height = cctx->height;
             avframe->width = cctx->width;
             avframe->format = cctx->pix_fmt;
             avframe->pts = 0;
-yuv420p_save(out_dir, avframe, cctx->width, cctx->height, gotN);
-//save_frame_as_jpeg(out_dir, cctx, avframe, gotN);
-        //WriteJPEG(cctx, avframe, gotN);
-            //for(i=0; i<cctx->height; i++)
-            //    fwrite(avframe->data[0] + i * avframe->linesize[0], 1, cctx->width, outf  );
-            //for(i=0; i<cctx->height/2; i++)
-            //    fwrite(avframe->data[1] + i * avframe->linesize[1], 1, cctx->width/2, outf );
-            //for(i=0; i<cctx->height/2; i++)
-            //    fwrite(avframe->data[2] + i * avframe->linesize[2], 1, cctx->width/2, outf );
+            {
+                char ofilename[64];
+                sprintf(ofilename, "tmp/%04d.%03d.yuv", inf.tvs[0], inf.tvs[1]);
+                if (FILE* ofp = fopen(ofilename, "wb")) {
+                    yuv420p_save(ofp, avframe, cctx->width, cctx->height);
+                    fclose(ofp);
+                }
+            }
         }
-        //avpkt.size -= len;
-        //avpkt.data += len;
+        p += inf.len + sizeof(inf);
     }
+    //av_init_packet(&avpkt);
+    //avpkt.data = NULL;
+    //avpkt.size = 0;
+    //int len = avcodec_decode_video2(cctx, avframe, &got_picture, &avpkt);
+    //if (len >= 0 && got_picture) {
+    //    ++gotN;
+    //    printf("last, naluN %d, gotN %d\n", naluN, gotN);
+    //    //WriteJPEG(cctx, avframe, gotN);
+    //    yuv420p_save(out_dir, avframe, cctx->width, cctx->height, gotN);
+    //    //save_frame_as_jpeg(out_dir, cctx, avframe, gotN);
+    //}
 
-    av_init_packet(&avpkt);
-    avpkt.data = NULL;
-    avpkt.size = 0;
-    int len = avcodec_decode_video2(cctx, avframe, &got_picture, &avpkt);
-    if (len >= 0 && got_picture) {
-        ++gotN;
-        printf("last, naluN %d, gotN %d\n", naluN, gotN);
-    //WriteJPEG(cctx, avframe, gotN);
-yuv420p_save(out_dir, avframe, cctx->width, cctx->height, gotN);
-//save_frame_as_jpeg(out_dir, cctx, avframe, gotN);
-    }
-
-    //fclose(f);
-    //fclose(outf);
-
+    av_frame_free(&avframe);
     avcodec_close(cctx);
     av_free(cctx);
-    av_frame_free(&avframe);
-    printf("naluN %d, gotN %d\n", naluN, gotN);
+
+    munmap(mmap_p, st.st_size);
+    close(fd);
 }
         //void save_frame(AVFrame* avframe, int x)
         //{
@@ -169,15 +142,13 @@ int main(int argc, char **argv)
     BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END ;
 
     avcodec_register_all();
-    video_decode(argv[1], argv[2]);
+    video_decode(argv[1]);
 
     return 0;
 }
 
-static void yuv420p_save(char const* odir, AVFrame *pFrame, int width, int height, int idxN)
+void yuv420p_save(FILE* ofp, AVFrame *pFrame, int width, int height)
 {
-	int i = 0;
-
 	int height_half = height / 2, width_half = width / 2;
 	int y_wrap = pFrame->linesize[0];
 	int u_wrap = pFrame->linesize[1];
@@ -187,28 +158,20 @@ static void yuv420p_save(char const* odir, AVFrame *pFrame, int width, int heigh
 	unsigned char *u_buf = pFrame->data[1];
 	unsigned char *v_buf = pFrame->data[2];
 
-	//char szFilename[32]; sprintf(szFilename, "/tmp/a/%d.yuv", idxN);
-    char fn_out[256];
-    snprintf(fn_out,sizeof(fn_out), "%s/%d.yuv", odir, idxN);
-	FILE* pFile = fopen(fn_out, "wb");
-
 	//save y
-	for (i = 0; i <height; i++)
-		fwrite(y_buf + i * y_wrap, 1, width, pFile);
+	for (int i = 0; i <height; i++)
+		fwrite(y_buf + i * y_wrap, 1, width, ofp);
 	//fprintf(stderr, "===>save Y success\n");
 
 	//save u
-	for (i = 0; i <height_half; i++)
-		fwrite(u_buf + i * u_wrap, 1, width_half, pFile);
+	for (int i = 0; i <height_half; i++)
+		fwrite(u_buf + i * u_wrap, 1, width_half, ofp);
 	//fprintf(stderr, "===>save U success\n");
 
 	//save v
-	for (i = 0; i <height_half; i++)
-		fwrite(v_buf + i * v_wrap, 1, width_half, pFile);
+	for (int i = 0; i <height_half; i++)
+		fwrite(v_buf + i * v_wrap, 1, width_half, ofp);
 	//fprintf(stderr, "===>save V success\n");
-
-	//fflush(pFile);
-	fclose(pFile);
 }
 
 //void ffmpeg_dump_yuv(int fno, AVPicture *pic, int width,int height)

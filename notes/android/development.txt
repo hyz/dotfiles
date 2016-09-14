@@ -5,3 +5,24 @@
     apt-get install adt # android-sdk
 
 
+
+### http://www.cnblogs.com/cute/p/4140230.html
+
+system.img (EXT4)
+system.img 是 sparse image格式文件
+
+# ./cp_bin
+# cd bin
+# ../out/host/linux-x86/bin/simg2img system.img system.img.ext4
+# mkdir mnt
+# mount -t ext4 -o loop system.img.ext4 mnt
+
+# sudo make_ext4fs -s -l 512M -a system system_new.img mnt
+
+### system.img
+# find mnt -name Game.apk -o -name libmtkhw.so -o -name libBarcode.so
+mnt/app/Game.apk
+mnt/lib/libmtkhw.so
+mnt/lib/libBarcode.so
+
+
