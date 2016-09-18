@@ -7,6 +7,7 @@
        #include <unistd.h>
        #include <stdlib.h>
        #include <string.h>
+     #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,15 +19,16 @@
 #include <algorithm>
 #include <boost/scope_exit.hpp>
 #include <boost/range/size.hpp>
+#include <boost/noncopyable.hpp>
 
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 //#  include "libavcodec/libavutil/mathematics.h"
 }
-struct PrefixHead {
-    uint32_t len;
-    uint16_t tvs[2];
+struct PadInfo {
+    uint32_t u4;
+    uint16_t ts[2];
 };
 
 int save_frame_as_jpeg(char const* odir, AVCodecContext *pCodecCtx, AVFrame *pFrame, int idxN);
@@ -43,7 +45,21 @@ static void init_packet(AVPacket& avpkt, std::vector<uint8_t>& pktbuf, uint8_t* 
     // printf("nalu size %d\n", int(avpkt.size));
 }
 
-void video_decode(char const *h264filename)
+struct SizeR : boost::noncopyable {
+    uint32_t value;
+    uint8_t* p_;
+    SizeR(uint8_t* p) {
+        memcpy(&value, p, sizeof(uint32_t));
+        uint32_t startbytes = htonl(0x00000001);
+        memcpy(p, &startbytes, 4);
+        p_ = p;
+    }
+    ~SizeR() {
+        memcpy(p_, &value, sizeof(uint32_t));
+    }
+};
+
+void video_decode(char const *h264filename, char const* odir)
 {
     AVCodec *codec;
     AVCodecContext *cctx= NULL;
@@ -66,30 +82,34 @@ void video_decode(char const *h264filename)
         exit(1);
     }
 
-    int fd = ::open(h264filename, O_RDONLY);
+    int fd = ::open(h264filename, O_RDWR);
     if (fd < 0) {
         fprintf(stderr,"open %s", h264filename); exit(127);
     }
     struct stat st; // fd = open(fn, O_RDONLY);
     fstat(fd, &st); // LOGD("Size: %d\n", (int)st.st_size);
-    uint8_t* const mmap_p = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    uint8_t* const mmap_p = (uint8_t*)mmap(NULL, st.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     uint8_t* const mmap_end = mmap_p + st.st_size;
 
     std::vector<uint8_t> pktbuf;
     AVFrame * avframe = av_frame_alloc();
 
     for (uint8_t* p = mmap_p; p + 16 < mmap_end; ) {
-        PrefixHead inf;
-        memcpy(&inf, p, sizeof(inf));
-        inf.len -= sizeof(inf);
-        uint8_t* nalu = p + sizeof(inf);
+        SizeR sizr(p); // uint32_t hsize; memcpy(&hsize, p, sizeof(uint32_t));
 
-        init_packet(avpkt, pktbuf, nalu, nalu + inf.len);
+        uint8_t* const end = p+sizr.value;
+        uint8_t* const endp = end + sizeof(PadInfo);
+        if (endp > mmap_end)
+            return;
+        PadInfo inf;
+        memcpy(&inf, end, sizeof(inf));
+
+        init_packet(avpkt, pktbuf, p, end);
 
         int got_picture;
         int len = avcodec_decode_video2(cctx, avframe, &got_picture, &avpkt);
         if (len < 0) {
-            fprintf(stderr, "decode %04d.%03d fail\n", inf.tvs[0], inf.tvs[1]);
+            fprintf(stderr, "decode fail: %04d.%03d\n", inf.ts[0], inf.ts[1]);
             continue; //exit(1);
         }
         if (got_picture) {
@@ -98,15 +118,15 @@ void video_decode(char const *h264filename)
             avframe->format = cctx->pix_fmt;
             avframe->pts = 0;
             {
-                char ofilename[64];
-                sprintf(ofilename, "tmp/%04d.%03d.yuv", inf.tvs[0], inf.tvs[1]);
+                char ofilename[96];
+                snprintf(ofilename,sizeof(ofilename), "%s/%04d.%03d.yuv", odir, inf.ts[0], inf.ts[1]);
                 if (FILE* ofp = fopen(ofilename, "wb")) {
                     yuv420p_save(ofp, avframe, cctx->width, cctx->height);
                     fclose(ofp);
                 }
             }
         }
-        p += inf.len + sizeof(inf);
+        p = endp; //inf.len + sizeof(inf);
     }
     //av_init_packet(&avpkt);
     //avpkt.data = NULL;
@@ -142,7 +162,7 @@ int main(int argc, char **argv)
     BOOST_SCOPE_EXIT(void){ printf("\n"); }BOOST_SCOPE_EXIT_END ;
 
     avcodec_register_all();
-    video_decode(argv[1]);
+    video_decode(argv[1], "tmp");
 
     return 0;
 }

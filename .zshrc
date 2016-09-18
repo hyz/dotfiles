@@ -69,9 +69,11 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
-if [ "`uname -s`" = "Darwin" ] ; then
+case "`uname -s`" in
+Darwin)
     true
-elif [ "`uname -o`" = "Cygwin" ] ; then
+    ;;
+CYGWIN*)
     PATH=$PATH:$HOME/bin/cygwin
     /bin/ls -d1 /cygdrive/[cdef]/Program*/GNU/GnuPG |while read x ; do
         PATH=$PATH:"$x"
@@ -94,7 +96,9 @@ elif [ "`uname -o`" = "Cygwin" ] ; then
         fi
         #`cygpath $WINDIR`/explorer "`cygpath -w $(pwd)/$1`" &
     }
-else # if [ ! -e "$HOME/.gnupg/secring.gpg" ] ; then
+    ;;
+*)
+    # if [ ! -e "$HOME/.gnupg/secring.gpg" ] ; then fi
     #which pass 
     gpghome() {
         [ -r "$1" ] && dirname "$1" || false
@@ -105,7 +109,8 @@ else # if [ ! -e "$HOME/.gnupg/secring.gpg" ] ; then
             break
         fi
     done
-fi
+    ;;
+esac
 
 ###########################################################
 
