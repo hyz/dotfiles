@@ -3,7 +3,10 @@
 selinux
 
 setenforce 0
-chmod 0666 /dev/Vcodec
+adb -s 0123456789ABCDEF shell chmod 0666 /dev/Vcodec
+adb -s 0123456789ABCDEF shell chmod 0666 /dev/MTK_SMI
+adb -s 0123456789ABCDEF shell chmod 0666 /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
+
 
 allow untrusted_app Vcodec_device:chr_file { read write open };
 

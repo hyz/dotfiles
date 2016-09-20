@@ -21,3 +21,9 @@ https://vec.io/posts/use-android-hardware-decoder-with-omxcodec-in-ndk
   Use Android Hardware Decoder with OMXCodec in NDK
 
 
+https://wiki.mozilla.org/QA/Fennec/H264
+    Hardware and Software Decoding
+
+    enum { ...  kHardwareCodecsOnly = 16, ... };
+    grep kHardwareCodecsOnly frameworks/av/cmds/stagefright/stagefright.cpp frameworks/av/media/libstagefright/OMXCodec.cpp
+
