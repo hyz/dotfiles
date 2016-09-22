@@ -27,3 +27,6 @@ https://wiki.mozilla.org/QA/Fennec/H264
     enum { ...  kHardwareCodecsOnly = 16, ... };
     grep kHardwareCodecsOnly frameworks/av/cmds/stagefright/stagefright.cpp frameworks/av/media/libstagefright/OMXCodec.cpp
 
+https://www.reddit.com/r/GoogleCardboard/comments/33gj36/how_to_reduce_latency/
+http://stackoverflow.com/questions/26317132/minimize-android-glsurfaceview-lag
+

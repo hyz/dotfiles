@@ -19,3 +19,5 @@
     A simple executable should be built. 
 
 
+b2 define=NOENC
+

@@ -1,0 +1,4 @@
+http://stackoverflow.com/questions/26270821/segmenting-characters-from-image
+
+https://github.com/MasteringOpenCV/code
+
