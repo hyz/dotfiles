@@ -6,3 +6,11 @@ https://cgit.freedesktop.org/mesa/demos/
 
 git clone --depth 1 git://anongit.freedesktop.org/mesa/demos
 
+
+### http://blog.csdn.net/silangquan/article/details/14442895
+    sdl2 + opengl + android
+
+http://adolfans.github.io/sdltutorialcn/blog/2013/04/23/set-up-sdl2-for-android-in-eclipse/
+
+https://github.com/alanwoolley/CorsixTH-Android
+

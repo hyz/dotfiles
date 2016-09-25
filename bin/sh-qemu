@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ####
 hda=/dev/sda4 ### Windows10
@@ -12,8 +12,8 @@ export QEMU_AUDIO_DRV=alsa
 case "$1" in
 init)
     [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || exit 1
-    [ "`stat -c '%G' $SLIC`" = "kvm" ] || chgrp kvm $SLIC || exit 1
-    [ -r $SLIC ] || chmod g+r $SLIC || exit 1
+    [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
+    #[ -r $SLIC ] || chmod g+r $SLIC || exit 1
     modprobe tun
     ip tuntap add dev tap0 mode tap user wood
     ip link set tap0 up promisc on
