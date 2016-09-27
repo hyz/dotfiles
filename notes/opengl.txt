@@ -14,3 +14,16 @@ http://adolfans.github.io/sdltutorialcn/blog/2013/04/23/set-up-sdl2-for-android-
 
 https://github.com/alanwoolley/CorsixTH-Android
 
+http://blog.csdn.net/wangdingqiaoit/article/details/51457675
+    OpenGL学习脚印: 二维纹理映射(2D textures)
+    https://github.com/wangdingqiao/noteForOpenGL
+
+https://vec.io/posts/faster-alternatives-to-glreadpixels-and-glteximage2d-in-opengl-es
+    Faster Alternatives to glReadPixels and glTexImage2D in OpenGL ES
+
+https://software.intel.com/en-us/articles/using-opengl-es-to-accelerate-apps-with-legacy-2d-guis
+    Using OpenGL ES to Accelerate Apps with Legacy 2D GUIs
+
+https://vec.io/posts/head-to-opengl-understand-triangle
+    Head to OpenGL: Understand Triangle
+

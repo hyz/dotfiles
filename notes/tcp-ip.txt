@@ -1,6 +1,52 @@
 
+http://www.cisco.com/c/en/us/support/docs/ip/generic-routing-encapsulation-gre/25885-pmtud-ipfrag.html
+http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-can-send-without-fragmenting
 ### udp
     max recvd bytes: 1456
 
-http://www.cisco.com/c/en/us/support/docs/ip/generic-routing-encapsulation-gre/25885-pmtud-ipfrag.html
-http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-can-send-without-fragmenting
+### http://serverfault.com/questions/422158/what-is-the-in-the-wire-size-of-a-ethernet-frame-1518-or-1542?rq=1
+
+    Windows: ping hostname -f -l sizeofdata (technique John K mentioned)
+    BSD: ping -D -s sizeofdata hostname
+    Linux: ping -M do -s sizeofdata hostname
+
+    ping -M do -s 1500 192.168.0.1
+        ... From 192.168.9.57: icmp_seq=1 Frag needed and DF set (mtu = 1500)
+    ping -M do -s 1456 192.168.0.1
+
+### https://cygwin.com/ml/cygwin/2006-06/msg00869.html
+    sending an empty UDP packet.
+    $ ruby -rsocket -ve 's = UDPSocket.new; s.bind("0.0.0.0", 8888); loop { p s.recv(100) }'
+    $ ruby -rsocket -ve 'UDPSocket.new.send("", 0, "127.0.0.1", 8888)'
+    $ cat send.c 
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+
+    int main(int argc, char **argv)
+    {
+      int s;
+      int ret;
+      char *buf;
+      struct sockaddr_in addr;
+
+      if (argc != 4) {
+        puts("usage: send ipaddr port data");
+        exit(1);
+      }
+
+      addr.sin_family = AF_INET;
+      ret = inet_aton(argv[1], &addr.sin_addr);
+      if (ret == 0) { perror("inet_aton"); exit(1); }
+      addr.sin_port = htons(atoi(argv[2]));
+      buf = argv[3];
+
+      s = socket(PF_INET, SOCK_DGRAM, 0);
+      if (s == -1) { perror("socket"); exit(1); }
+
+      ret = sendto(s, buf, strlen(buf), 0, (struct sockaddr *)&addr, sizeof(addr));
+      if (ret == -1) { perror("sendto"); exit(ret); }
+    }
+
+

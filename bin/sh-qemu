@@ -45,7 +45,7 @@ init)
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-    qemu-system-x86_64 -name Winows7 -enable-kvm -machine type=pc,accel=kvm \
+    qemu-system-x86_64 -name Winows -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=2 -m 4096M \
         -acpitable sig=SLIC,file=$SLIC \
         -rtc base=localtime,clock=host \

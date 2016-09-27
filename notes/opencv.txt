@@ -2,3 +2,5 @@ http://stackoverflow.com/questions/26270821/segmenting-characters-from-image
 
 https://github.com/MasteringOpenCV/code
 
+http://www.pyimagesearch.com/2014/11/24/detecting-barcodes-images-python-opencv/
+

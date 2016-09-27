@@ -8,3 +8,5 @@ menuentry "Archboot" --class iso {
     initrd (loop)/boot/initramfs_x86_64.img
 }
 
+https://vec.io/posts/use-arch-linux-and-xmonad-on-macbook-pro-with-retina-display
+    Use Arch Linux and Xmonad on MacBook Pro with Retina Display
