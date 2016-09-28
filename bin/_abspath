@@ -1,0 +1,12 @@
+#!/bin/bash
+
+## http://unix.stackexchange.com/questions/9541/find-absolute-path-from-a-script
+#abspath=$(cd ${1%/*} && echo $PWD/${1##*/})
+#echo ${1%/*}
+#cd ${1%/*}
+#pwd
+#echo $PWD/${1##*/}
+#cd ${1%/*} && echo $PWD/${1##*/}
+
+#python -c "import os,sys; print(os.path.realpath(sys.argv[1]))" $*
+

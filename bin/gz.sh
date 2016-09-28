@@ -1,12 +1,25 @@
 #!/bin/bash
-## gzip -dc $cwd.cpio.gz-`date +%F` |cpio -idu
+## gz.sh . ..
+## gz.sh . /tmp
+## gzip -dc $zdir.cpio.gz-`date +%F` |cpio -idu
 
-cwd="`basename $(pwd)`"
+[ $# = 2 ] || exit 2
+
+outdir="`cd $2 && pwd`" || exit 1
+
+cd $1 || exit 1
+
+zdir=`basename $PWD`
+oar="$outdir/$zdir.cpio.gz-`date +%m%d.%H`"
+
 cd ..
+##echo $PWD $zdir $oar ; exit
 
-find $cwd -name "*.h" -o -name "*.hpp" -o -name "*.c" -o -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \
+find -P $zdir -type f \( \
+    -name "*.h" -o -name "*.hpp" \
+    -o -name "*.c" -o -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \
     -o -name "*.mk" -o -name "*.jam" -o -name "[Mm]akefile" \
-    |cpio -o |gzip -c > $cwd.cpio.gz-`date +%F`
+  \) |cpio -o |gzip -c > $oar
 
-/bin/ls -l `pwd`/$cwd.cpio.gz-`date +%F`
+ls -hl $oar
 
