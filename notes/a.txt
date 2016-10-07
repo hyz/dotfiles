@@ -1,7 +1,5 @@
 cat /proc/videograph/gs/stat ;sleep 10; cat /proc/videograph/gs/stat
 
-git@github.com:hyz/cpp-snippets.git
-
 chown wood: /usr/src/arm-linux-3.3 /opt
 rsync -vaR --links /usr/src/arm-linux-3.3 /opt/android /opt/boost_1_61_0 /opt/bin /opt/share 114:/
 rsync -vaR --links 01work _GM8139_2MP gm_lib-IPCAM svnchina 114:.
@@ -9,4 +7,8 @@ rsync -vaR --links cpp-snippets armeabi-v7a 114:.
 rsync -vaR --links .subversion .ssh 114:.
 
 adb -s 0123456789ABCDEF logcat | tee log.$(date +%d%H%M) |grep -E '^..(epoll|hgs|thread|ildec|Video)'
+
+git@github.com:hyz/cpp-snippets.git
+git@git.oschina.net:oopx/oopx.git
+ssh://git@bitbucket.org/wood/pass.git
 
