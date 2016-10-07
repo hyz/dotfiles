@@ -1,0 +1,21 @@
+
+
+[1]
+cp /etc/btsync.conf ~/.config/btsync/btsync.conf
+ 
+[2]
+Replace user-specific references with the appropriate information, including the following settings:
+      - storage_path
+      - pid_file
+      - webui.listen
+      - webui.login
+      - webui.password
+
+[3]
+systemctl --user daemon-reload
+systemctl --user start btsync
+systemctl --user enable btsync
+systemctl --user status btsync.service
+
+http://127.0.0.1:8888/
+

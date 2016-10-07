@@ -29,3 +29,7 @@ sudo apt-get install python-software-properties
     sudo apt-get install xrdp xfce4 xfce4-terminal gnome-icon-theme-full tango-icon-theme
     sudo service xrdp restart
 
+### http://xmodulo.com/take-screenshot-command-line-linux.html
+    scrot -s -d 5 
+    scrot -e 'mv $f ~/screenshots'
+

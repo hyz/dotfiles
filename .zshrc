@@ -69,6 +69,8 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 alias b2='b2 -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
+[ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
+
 case "`uname -s`" in
 Darwin)
     true
