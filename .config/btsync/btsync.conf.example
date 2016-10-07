@@ -3,7 +3,7 @@
 // "listening_port" : 0, // 0 - randomize port
 
 /* storage_path dir contains auxilliary app files if no storage_path field: .sync dir created in current working directory */
-  "storage_path" : "/home/wood/Sync",
+  "storage_path" : "/home/wood/.sync",
 
 /* set location of pid file */
 // "/var/run/btsync/btsync.pid",
@@ -62,7 +62,7 @@
   "shared_folders" :
   [
     {
-      "secret" : "AY5DKXVI2E7T32L76H32LLDDLQ6TZW7D2", // required field - use --generate-secret in command line to create new secret
+      "secret" : "", // required field - use --generate-secret in command line to create new secret
       "dir" : "/home/wood/Sync", // * required field
       "use_relay_server" : true, //  use relay server when direct connection fails
       "use_tracker" : true,
@@ -82,3 +82,4 @@ For example see folder_rescan_interval below */
 //, "folder_rescan_interval" : "86400"
 
 }
+
