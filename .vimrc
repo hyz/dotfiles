@@ -1,17 +1,52 @@
+set nocompatible
+filetype off " filetype plugin indent on
+
+"" set rtp+=~/.vim/bundle/Vundle.vim
+"" call vundle#begin()
+"" Plugin 'VundleVim/Vundle.vim'
+"" Plugin 'Valloric/YouCompleteMe'
+"" Plugin 'vim-scripts/a.vim'
+"" Plugin 'plasticboy/vim-markdown'
+"" "Plugin 'honza/vim-snippets'
+"" 
+"" "Plugin 'tpope/vim-fugitive'
+"" " plugin from http://vim-scripts.org/vim/scripts.html
+"" "Plugin 'L9'
+"" " git repos on your local machine (i.e. when working on your own plugin)
+"" "Plugin 'file:///home/gmarik/path/to/plugin'
+"" " The sparkup vim script is in a subdirectory of this repo called vim.
+"" " Pass the path to set the runtimepath properly.
+"" "Plugin 'rstacruz/sparkup', {'rtp': 'vim/'}
+"" " Install L9 and avoid a Naming conflict if you've already installed a
+"" " different version somewhere else.
+"" "Plugin 'ascenator/L9', {'name': 'newL9'}
+"" 
+"" " All of your Plugins must be added before the following line
+"" call vundle#end()            " required
+
 set t_Co=256
 set guifont=Monaco\ 14
 set guioptions=
 set ts=4 sw=4 expandtab ai nocp nowrap
-
 syntax on
-filetype plugin on
-filetype indent on
+filetype plugin indent on
+""" To ignore plugin indent changes, instead use:
+"filetype plugin on
+"
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
+"
+" see :h vundle for more details or wiki for FAQ
+" Put your non-Plugin stuff after this line
+" =================== " ===================
 
 colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
 if &diff
     colorscheme jellybeans
 endif
-
 
 set hlsearch
 " highlight Search ctermbg=Black ctermfg=Yellow

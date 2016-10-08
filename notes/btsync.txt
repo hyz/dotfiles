@@ -1,4 +1,5 @@
 
+https://www.resilio.com/
 
 [1]
 cp /etc/btsync.conf ~/.config/btsync/btsync.conf
@@ -18,4 +19,15 @@ systemctl --user enable btsync
 systemctl --user status btsync.service
 
 http://127.0.0.1:8888/
+
+[ubuntu 12.04]
+add-apt-repository ppa:tuxpoldo/btsync
+apt-get update
+apt-get install btsync
+
+dpkg-reconfigure btsync
+service btsync start
+service btsync status
+
+/usr/lib/btsync/btsync-daemon --config .config/btsync/btsync.conf
 

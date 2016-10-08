@@ -28,3 +28,9 @@ vam install taglist
 ###
 :g/^\s*LOG.*\\n/s/\\n//
 
+### https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source
+    sudo checkinstall
+    dpkg -r vim
+    ...
+    cd ~/.vim/bundle/YouCompleteMe ; ./install.py --clang-completer
+
