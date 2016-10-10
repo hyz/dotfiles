@@ -117,6 +117,10 @@ void video_decode(char const *h264filename, char const* odir)
             avframe->width = cctx->width;
             avframe->format = cctx->pix_fmt;
             avframe->pts = 0;
+//SDL_UpdateYUVTexture(texture, nullptr, 
+//        avframe->data[0], avframe->linesize[0], 
+//        avframe->data[1], avframe->linesize[1], 
+//        avframe->data[2], avframe->linesize[2]);
             {
                 char ofilename[96];
                 snprintf(ofilename,sizeof(ofilename), "%s/%04d.%03d.yuv", odir, inf.ts[0], inf.ts[1]);

@@ -1,3 +1,5 @@
 
 mencoder file.mkv -ovc copy -oac mp3lame -o output.avi
 
+http://www.cnblogs.com/tocy/
+

@@ -49,9 +49,11 @@ AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 #    svn revert $repo/$AppConfig
 #fi
 
-NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
 OldSVNRev=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringSVNVERSION="new-svn\K[^"]+'`
 OldVer=`tr -d ' \t' <$repo/$AppConfig |grep -Po '^publicstaticfinalStringVERSION="v\K[^"]+'`
+if [ -z "$NewSVNRev" ] ; then
+    NewSVNRev=`svn info $repo |grep -Po '^Revision:\s+\K\d+'`
+fi
 if [ -z "$NewVer" ] ; then
     if [ -z "$Vertag" ] ; then
         NewVer=`echo $OldVer | awk -F. '{print $1"."$2"."$3+1}'`

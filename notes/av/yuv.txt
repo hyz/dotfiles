@@ -1,0 +1,7 @@
+https://en.wikipedia.org/wiki/YUV#Y.27UV420p_.28and_Y.27V12_or_YV12.29_to_RGB888_conversion
+http://stackoverflow.com/questions/28603510/convert-yuv420p-to-rgb888-in-c
+
+http://www.cnblogs.com/tocy/p/Beginning-SDL2-4-YUV-Render.html
+
+https://github.com/chelyaev/opencv-yuv
+

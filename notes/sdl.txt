@@ -4,3 +4,28 @@ http://adolfans.github.io/sdltutorialcn/blog/2013/04/23/set-up-sdl2-for-android-
 https://github.com/alanwoolley/CorsixTH-Android
 
 
+checkinstall
+dpkg -r sdl2
+
+https://github.com/alexdantas/sdl2-platformer
+ Simple platform game attempting to test features of both SDL2 and C++11 
+
+https://github.com/cubicool/cairo-gl-sdl2
+ Cairo, SDL2, and GL/GLES2 tests. 
+
+https://github.com/libSDL2pp/libSDL2pp
+ C++11 bindings/wrapper for SDL2 http://sdl2pp.amdmi3.ru 
+
+http://stackoverflow.com/questions/22886500/how-to-render-text-in-sdl2?rq=1
+https://github.com/grimfang4/SDL_FontCache
+https://github.com/grimfang4/sdl-gpu
+
+http://stackoverflow.com/questions/3229391/sdl-sdl-ttf-transparent-blended-text?noredirect=1&lq=1
+http://stackoverflow.com/questions/12700085/using-sdl-ttf-and-opengl-ttf-renderutf8-blended-print-red-rectangle?rq=1
+
+http://headerphile.com/
+ Game programming in OpenGL ( and SDL2 )
+http://headerphile.com/sdl2/sdl2-part-0-setting-up-visual-studio-for-sdl2/
+
+http://www.cnblogs.com/tocy/tag/SDL/
+

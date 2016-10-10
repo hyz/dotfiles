@@ -1,7 +1,12 @@
+https://github.com/glfw/glfw
 
 http://stackoverflow.com/questions/12045488/any-gles-examples-in-c-on-x86-linux?noredirect=1&lq=1
 https://github.com/nickdesaulniers/opengles2-book
+https://github.com/danginsburg/opengles3-book
 http://www.mesa3d.org/opengles.html
+https://github.com/McNopper/OpenGL_ES
+https://github.com/McNopper/EGL
+https://github.com/McNopper/OpenGL
 https://cgit.freedesktop.org/mesa/demos/
 
 git clone --depth 1 git://anongit.freedesktop.org/mesa/demos
@@ -26,4 +31,43 @@ https://software.intel.com/en-us/articles/using-opengl-es-to-accelerate-apps-wit
 
 https://vec.io/posts/head-to-opengl-understand-triangle
     Head to OpenGL: Understand Triangle
+
+
+2016-10-09
+----------
+
+https://github.com/wjakob/nanogui
+ Minimalistic GUI library for OpenGL
+https://github.com/hugoam/kiui
+ Auto-layout Ui library, lightweight, skinnable and system agnostic, with an OpenGL backend 
+
+https://github.com/asgarth/opengl
+ Collection of small games, demos and other applications developed on OpenGL. 
+https://github.com/progschj/OpenGL-Examples
+ A collection of simple single file OpenGL examples 
+https://github.com/kesalin/OpenGLES
+ OpenGL ES 2.0 iPhone tutorial. 
+https://github.com/tomdalling/opengl-series
+ Code to accompany a series of OpenGL articles on tomdalling.com http://tomdalling.com/ 
+https://github.com/tlorach/OpenGLText
+ Efficient and clean text rendering for OpenGL
+https://github.com/ValveSoftware/vogl
+ OpenGL capture / playback debugger. 
+https://github.com/apitrace/apitrace
+ Tools for tracing OpenGL, Direct3D, and other graphics APIs http://apitrace.github.io/ 
+
+https://github.com/g-truc/glm
+ OpenGL Mathematics (GLM) https://glm.g-truc.net 
+
+https://github.com/SaschaWillems/glCapsViewer
+https://github.com/SaschaWillems/glEsCapsViewer
+https://github.com/SaschaWillems/openglcpp
+https://github.com/SaschaWillems/webgl
+
+### https://github.com/google/angle/blob/master/doc/DevSetup.md
+[google angle]
+    python scripts/bootstrap.py
+    gclient sync
+    git checkout master
+    ninja -C out/Debug # ninja -C out/Release
 
