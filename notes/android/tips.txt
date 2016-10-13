@@ -1,0 +1,3 @@
+
+http://stackoverflow.com/questions/5712849/how-do-i-keep-the-screen-on-in-my-app
+

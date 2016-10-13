@@ -1,0 +1,12 @@
+
+apt-cache search -n plot
+apt-cache search -n chart
+
+http://stackoverflow.com/questions/17411940/matplotlib-scatter-plot-legend?rq=1
+http://stackoverflow.com/questions/21654635/scatter-plots-in-pandas-pyplot-how-to-plot-by-category?noredirect=1&lq=1
+http://stackoverflow.com/questions/701429/library-tool-for-drawing-ternary-triangle-plots?rq=1
+
+[python/matplotlib]
+https://zhuanlan.zhihu.com/p/21443208
+http://liam0205.me/2014/09/11/matplotlib-tutorial-zh-cn/
+
