@@ -1,0 +1,9 @@
+
+http://www.ideasonboard.org/uvc/
+    UVC Supported devices
+
+https://wiki.archlinux.org/index.php/webcam_setup
+
+http://kakaroto.homelinux.net/2012/09/uvc-h264-encoding-cameras-support-in-gstreamer/
+
+
