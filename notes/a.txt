@@ -8,7 +8,7 @@ rsync -vaR --links .subversion .ssh 114:.
 
 adb -s 0123456789ABCDEF logcat | tee log.$(date +%d%H%M) |grep -E '^..(epoll|hgs|thread|ildec|Video)'
 
-git@github.com:hyz/cpp-snippets.git
 git@git.oschina.net:oopx/oopx.git
+git@github.com:hyz/cpp-snippets.git
 ssh://git@bitbucket.org/wood/pass.git
 

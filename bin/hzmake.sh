@@ -38,7 +38,7 @@ done
 
 repo=${1%/} #`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
 [ -d "$repo/.svn" ] || die "repo: $repo"
-variant=$2
+variant="${2:-release}"
 [ "$variant" = test -o "$variant" = release ] || die "variant: $variant"
 [ -d "$builddir/$variant" ] || mkdir -p $builddir/$variant || die "mkdir $builddir/$variant"
 #[ `stat -c\%i $builddir` = `stat -c\%i $2` ] || die "destination-dir: $2"

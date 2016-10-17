@@ -1,3 +1,22 @@
+### man bash |grep Expansion
+   Brace Expansion
+   Tilde Expansion
+   Parameter Expansion
+   Arithmetic Expansion
+   Pathname Expansion
+
+   Parameter Expansion
+          The ‘$’ character introduces parameter expansion, command substitution, or arithmetic expansion.
+          ... ...
+       ${parameter#word}
+       ${parameter##word}
+              Remove matching prefix pattern.
+              ... ...
+       ${parameter%word}
+       ${parameter%%word}
+              Remove matching suffix pattern
+              ... ...
+
 ### http://stackoverflow.com/questions/17804007/how-to-show-line-number-when-executing-bash-script
 $ PS4='${LINENO}: ' bash -x script.sh
 
