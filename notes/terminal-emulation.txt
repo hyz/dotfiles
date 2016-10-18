@@ -1,0 +1,7 @@
+
+http://mintty.github.io/
+
+    GNUTERM=sixel gnuplot -e "splot [x=-3:3] [y=-3:3] sin(x) * cos(y)"
+
+https://github.com/mintty/wsltty
+

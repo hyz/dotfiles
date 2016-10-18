@@ -36,4 +36,7 @@ android.bat update project --path . --target android-18
 ### adb
     adb -s 0123456789ABCDEF push armeabi/a /data/
     adb -s 0123456789ABCDEF shell chmod 0755 /data/a && /data/a
+    adb -s 0123456789ABCDEF shell chmod 0666 /dev/Vcodec /dev/MTK_SMI /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
+    adb -s 0123456789ABCDEF logcat |grep --line-buffered -E '^./(epoll|hgs|thread|ildec|buffer|Video)' |tee log.$(date +%d%H%M)
+    adb -s 0123456789ABCDEF logcat |tee log.$(date +%d%H%M) |grep -E '^./(epoll|hgs|thread|ildec|buffer|Video)'
 
