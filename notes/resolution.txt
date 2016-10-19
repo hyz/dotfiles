@@ -1,0 +1,11 @@
+
+https://en.wikipedia.org/wiki/Graphics_display_resolution
+
+ HD: High-Definition
+VGA: Video Graphics Array
+
+VGA or SD (640x480)
+HD (1280x720)
+FHD (1920x1080)
+4K UHD (3840x2160)
+

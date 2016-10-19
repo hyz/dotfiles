@@ -53,4 +53,19 @@ http://wiki.oz9aec.net/index.php/High_quality_screen_capture_with_Ffmpeg
 
 https://git.ffmpeg.org/ffmpeg.git
     ./configure --help |grep -- '--list' 
+https://github.com/rdp/ffmpeg-windows-build-helpers
+
+http://phoronix.com/scan.php?page=news_item&px=MTg0NTY
+    Using NVIDIA's NVENC On Linux With FFmpeg
+https://trac.ffmpeg.org/wiki/HWAccelIntro
+
+http://stackoverflow.com/questions/6766333/capture-windows-screen-with-ffmpeg
+    ffmpeg -f gdigrab -framerate 10 -i desktop [output]
+
+http://www.ffmpeg.org/ffmpeg.html
+  ./ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
+  mplayer -vo fbdev2 ../o.mp4
+
+  ./ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
+
 
