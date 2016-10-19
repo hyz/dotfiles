@@ -1,0 +1,17 @@
+http://www.ffmpeg.org/ffmpeg-devices.html#fbdev
+    ffmpeg -f fbdev -framerate 10 -i /dev/fb0 out.avi
+
+http://stackoverflow.com/questions/4996777/paint-pixels-to-screen-via-linux-framebuffer?rq=1
+http://stackoverflow.com/questions/32620019/c-linux-how-to-takeover-the-framebuffer
+    KDSETMODE KD_GRAPHICS
+http://stackoverflow.com/questions/1869701/drawing-text-on-a-framebuffer-in-linux-from-c?rq=1
+    XBM format
+
+http://blog.csdn.net/michael2012zhao/article/details/3501099
+
+
+http://www.aichengxu.com/view/6802839
+
+mplayer -vo fbdev Titanic.mkv
+mplayer -vo fbdev2 Titanic.mkv
+

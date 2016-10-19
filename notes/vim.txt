@@ -34,3 +34,11 @@ vam install taglist
     ...
     cd ~/.vim/bundle/YouCompleteMe ; ./install.py --clang-completer
 
+### http://stackoverflow.com/questions/71323/how-to-replace-a-character-by-a-newline-in-vim?rq=1
+    [1]
+        echo bar > test
+        vim test '+s/b/\n/' '+s/a/\r/' +wq
+    [2]
+        :set magic
+        Control-v ...
+

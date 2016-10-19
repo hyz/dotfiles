@@ -1,3 +1,6 @@
+http://stackoverflow.com/questions/21921790/best-approach-to-real-time-http-streaming-to-html5-video-client?rq=1
+    Best approach to real time http streaming to HTML5 video client
+
 https://trac.ffmpeg.org/wiki/StreamingGuide
 https://sandilands.info/sgordon/live-webca-streaming-using-vlc-command-line
 

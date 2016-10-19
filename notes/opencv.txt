@@ -4,3 +4,6 @@ https://github.com/MasteringOpenCV/code
 
 http://www.pyimagesearch.com/2014/11/24/detecting-barcodes-images-python-opencv/
 
+https://segmentfault.com/a/1190000004464435
+    OpenCV 学习笔记1 
+

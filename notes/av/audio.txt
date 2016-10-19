@@ -1,0 +1,3 @@
+
+http://blog.jasonding.top/2015/05/14/Python/【python】Linux下编译安装音频处理Essentia库/
+

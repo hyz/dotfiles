@@ -1,0 +1,56 @@
+https://trac.ffmpeg.org/wiki/TitleIndex
+
+http://www.ffmpeg.org/ffmpeg-devices.html#fbdev
+
+https://wiki.archlinux.org/index.php/FFmpeg
+Screen cast
+    ffmpeg -f x11grab -video_size 1920x1080 -i $DISPLAY -f alsa -i default -c:v ffvhuff -c:a flac test.mkv
+    ffmpeg -f x11grab -s 1920x1080 -r 25 -i $DISPLAY   -f alsa -i default   -c:v libx264 -b:v 200k -s 1280x720 test.mp4
+Recording webcam
+    ffmpeg -f v4l2 -s 640x480 -i /dev/video0 output.mpg
+    ffmpeg -f alsa -i default -f v4l2 -s 640x480 -i /dev/video0 output.mpg
+    ffmpeg -f alsa -i pulse -f v4l2 -s 640x480 -i /dev/video0 output.mpg
+    ffmpeg -f alsa -i default -f v4l2 -s 640x480 -i /dev/video0 -acodec flac -vcodec libx264 output.mkv
+
+http://stackoverflow.com/questions/7574554/stream-video-from-ffmpeg-and-capture-with-opencv?rq=1
+  $ mkfifo stream_pipe
+  $ ffmpeg -f avi -i rtp://xxx.xxx.xxx.xxx:1234 -f avi -y out.avi > stream_pipe
+  $ ./cvcap.exe stream_pipe
+  cap.open("rtp://xxx.xxx.xxx.xxx:1234");
+
+http://trac.ffmpeg.org/wiki/Capture/Webcam
+  Windows:
+    ffmpeg -y -f dshow -i list
+    ffmpeg -y -f vfwcap -i list
+    ffmpeg -y -f vfwcap -r 25 -i 0 out.mp4
+  Linux:
+    v4l2-ctl --list-devices
+    ffmpeg -f v4l2 -list_formats all -i /dev/video0
+    ffmpeg -f v4l2 -framerate 25 -video_size 640x480 -i /dev/video0 output.mkv
+    v4l2-ctl -L
+    v4l2-ctl -c <option>=<value>
+https://trac.ffmpeg.org/wiki/Capture/Desktop
+http://trac.ffmpeg.org/wiki/Encode/H.264
+    FFmpeg and H.264 Encoding Guide
+
+
+http://blog.csdn.net/bless2015/article/details/50573783
+    FFMpeg读取摄像头数据流 
+    http://blog.csdn.net/bless2015/article/details/50574796
+    FFMpeg将YUV编码为H264 
+
+https://ffmpeg.zeranoe.com/builds/
+    windows prebuilt and External Libraries
+
+http://wiki.oz9aec.net/index.php/High_quality_screen_capture_with_Ffmpeg
+    ffmpeg -f x11grab -r 25 -s 1280x720 -i :0.0+0,24 -vcodec libx264 -vpre lossless_ultrafast -threads 0 video.mkv
+
+  The audio output can also be captured with gstreamer: 
+    gst-launch -e pulsesrc device="alsa_output.pci-0000_00_1b.0.analog-stereo.monitor" ! audioconvert ! \
+                   lamemp3enc target=1 bitrate=128 cbr=true ! filesink location=output.mp3
+  where the device name is the one returned by
+    pactl list | grep -A2 'Source #' | grep 'Name: ' | cut -d" " -f2
+
+https://git.ffmpeg.org/ffmpeg.git
+    ./configure --help |grep -- '--list' 
+

@@ -10,3 +10,6 @@ http://stackoverflow.com/questions/701429/library-tool-for-drawing-ternary-trian
 https://zhuanlan.zhihu.com/p/21443208
 http://liam0205.me/2014/09/11/matplotlib-tutorial-zh-cn/
 
+http://blog.jasonding.top/2014/12/24/Python/
+    【python】matplotlib的pyplot介绍/
+

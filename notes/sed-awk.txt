@@ -1,0 +1,5 @@
+
+### http://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed?rq=1
+### http://stackoverflow.com/questions/16414410/delete-empty-lines-using-sed
+sed '/^\s*$/d'
+
