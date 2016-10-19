@@ -69,3 +69,5 @@ http://www.ffmpeg.org/ffmpeg.html
   ./ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
 
 
+ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
+./ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 - |mplayer -vo fbdev2 -fps 30 - 
