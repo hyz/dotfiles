@@ -63,11 +63,14 @@ http://stackoverflow.com/questions/6766333/capture-windows-screen-with-ffmpeg
     ffmpeg -f gdigrab -framerate 10 -i desktop [output]
 
 http://www.ffmpeg.org/ffmpeg.html
-  ./ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
+http://ffmpeg.org/ffmpeg-all.html#pipe
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
   mplayer -vo fbdev2 ../o.mp4
 
-  ./ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 |mplayer -vo fbdev2 -fps 30 - 
+  ffmpeg/ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
 
+    ffmpeg -i source1.ts -codec copy -f mpegts -tables_version 0 udp://1.1.1.1:1111
+    ffmpeg -i source1.ts -codec copy -f h264 udp://1.1.1.1:1111
 
-ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
-./ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 - |mplayer -vo fbdev2 -fps 30 - 

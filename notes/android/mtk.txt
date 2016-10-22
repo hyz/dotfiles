@@ -84,3 +84,7 @@ frameworks/native/include/media/openmax/OMX_Component.h
 ./mk -o=TARGET_BUILD_VARIANT=user n k
 ./mk -o=TARGET_BUILD_VARIANT=user bootimage n
 
+$ xlog
+$ xlog filter-set verbose
+$ xlog filter-set off
+

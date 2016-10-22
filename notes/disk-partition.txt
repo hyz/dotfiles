@@ -1,6 +1,5 @@
 ### http://strotmann.de/roller/cas/entry/cloning_macos_x_from_linux
 
-
 ### http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/
 
 lsblk
@@ -13,4 +12,24 @@ fdisk -l
 mkswap /dev/sdb8
 swapon /dev/sdb8
 swapon -s
+
+###
+losetup -o 32256 -f /dev/sda9
+losetup -o 32256 /dev/loop1 /dev/sda9
+losetup -P /dev/loop0 /dev/sda4
+losetup -Pf /dev/sda4
+losetup
+losetup --detach-all
+
+#losetup -d /dev/loop0p1
+#losetup -d /dev/loop0p2
+losetup -d /dev/loop0
+
+partx -a /dev/loop0
+lsblk
+ntfs-3g /dev/loop0p1 /mnt/ntfs
+
+
+http://h20564.www2.hp.com/hpsc/doc/public/display?docId=emr_na-c01443502
+    The SMART hard disk check has detected an imminent failure. 
 

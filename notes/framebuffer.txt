@@ -15,3 +15,8 @@ http://www.aichengxu.com/view/6802839
 mplayer -vo fbdev Titanic.mkv
 mplayer -vo fbdev2 Titanic.mkv
 
+http://www.linux-fbdev.org/HOWTO/index.html
+
+http://hacklab.cz/2012/04/22/usefulness-linux-framebuffer-virtual-console
+    fbi,mplayer,fbgrab,fbgs,ffmpeg,links2
+

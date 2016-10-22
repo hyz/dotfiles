@@ -51,3 +51,6 @@ http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-c
     }
 
 
+### http://stackoverflow.com/questions/2031109/understanding-set-getsockopt-so-sndbuf
+    Understanding set/getsockopt SO_SNDBUF
+
