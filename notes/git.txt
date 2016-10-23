@@ -31,4 +31,11 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     (User masukomi points out below that git checkout test will NOT work in modern git if you have multiple remotes. In this case use 
         git checkout -b test remote-name/test)
 
+### git clone single branch
+        git clone -b <branch name> [remote repository address]
+    fetch所有remote branch并checkout特定branch。
+    你用git branch 看不到是因为它只显示本地分支。 看全部
+        git branch -a
+    如果只想fetch特定分支
+        git clone xxx -b remote-branch --single-branch
 

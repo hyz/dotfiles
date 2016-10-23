@@ -1,4 +1,7 @@
 
+### https://github.com/getlantern/lantern/
+### https://aur.archlinux.org/lantern.git
+    lantern --headless --addr 0.0.0.0:8787
 ### https://github.com/getlantern/lantern/wiki/Installation:-server
 $
 $ git clone https://github.com/getlantern/go
