@@ -3,3 +3,16 @@
 https://en.wikipedia.org/wiki/YUV
 http://www.cnblogs.com/azraelly/archive/2013/01/01/2841269.html
 
+OMX_COLOR_FormatYUV420Planar
+
+### http://www.fourcc.org/fccyvrgb.php
+RGB to YUV Conversion
+    Y  =      (0.257 * R) + (0.504 * G) + (0.098 * B) + 16
+    Cr = V =  (0.439 * R) - (0.368 * G) - (0.071 * B) + 128
+    Cb = U = -(0.148 * R) - (0.291 * G) + (0.439 * B) + 128
+YUV to RGB Conversion
+    B = 1.164(Y - 16)                   + 2.018(U - 128)
+    G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
+    R = 1.164(Y - 16) + 1.596(V - 128)
+
+
