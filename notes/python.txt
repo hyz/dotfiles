@@ -1,0 +1,39 @@
+
+http://stackoverflow.com/questions/2850893/reading-binary-data-from-stdin
+    treat stdin, stdout and stderr as binary unbuffered streams.
+    PYTHONUNBUFFERED environment variable
+    sys.stdin = os.fdopen(sys.stdin.fileno(), 'rb', 0)
+
+python3 setuptools
+    http://www.coder4.com/archives/2926
+    https://pythonhosted.org/distribute/
+
+    mysql
+        [V] https://github.com/PyMySQL/PyMySQL.git
+
+        [X] mysql-connector
+        [X] mysql-python
+
+### http://docs.python-requests.org/en/latest/index.html
+### http://blog.csdn.net/iloveyin/article/details/21444613
+# requests, response
+...
+response = ...
+> response.text
+> response.content
+> response.json()
+> response.raw.read(10) # stream=True
+
+pip2 install -U requests
+
+
+https://github.com/PyMySQL/PyMySQL.git
+
+http://packages.python.org/distribute
+        This package is a simple compatibility layer that installs Setuptools 0.7+.
+
+
+[pythonexcels]: http://www.pythonexcels.com
+[python-excel]: http://www.python-excel.org
+
+

@@ -42,3 +42,6 @@ vam install taglist
         :set magic
         Control-v ...
 
+### 
+set makeprg=g++\ -g\ -pthread\ -std=c++0x\ -I/BOOST_ROOT\ -I.\ %\ -lrt
+

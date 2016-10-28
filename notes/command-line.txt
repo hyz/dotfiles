@@ -89,6 +89,7 @@ $ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 ### xxd ###
 xxd -ps -c$((128*128)) 128x128.y |less
 xxd -ps -c40000 400x100.y |cut -c-16 |less
+xxd -g1 -p -c32 out > b
 
 ### file-size, du | awk ###
 du -sm * | awk '$1 > 1000'
