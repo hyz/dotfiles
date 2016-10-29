@@ -18,5 +18,38 @@ mplayer -vo fbdev2 Titanic.mkv
 http://www.linux-fbdev.org/HOWTO/index.html
 
 http://hacklab.cz/2012/04/22/usefulness-linux-framebuffer-virtual-console
-    fbi,mplayer,fbgrab,fbgs,ffmpeg,links2
+    fbi,mplayer,fbcat/fbgrab,fbgs,ffmpeg,links2
+
+https://ubuntuforums.org/showthread.php?t=1468789&page=3
+    /etc/default/grub:GRUB_CMDLINE_LINUX_DEFAULT=""
+    /etc/default/grub:GRUB_CMDLINE_LINUX=""
+    GRUB_CMDLINE_LINUX="video=VGA-1:640x480"
+
+###
+grub> vbeinfo
+VBE info:   version: 3.0  OEM software rev: 1.0
+            total memory: 8128 KiB
+List of compatible video modes:
+Legend: P=Packed pixel, D=Direct color, mask/pos=R/G/B/reserved
+0x112:   640 x 480 x 32   Direct, mask: 8/8/8/8  pos: 16/8/0/24
+0x114:   800 x 600 x 16   Direct, mask: 5/6/5/0  pos: 11/5/0/0
+0x115:   800 x 600 x 32   Direct, mask: 8/8/8/8  pos: 16/8/0/24
+0x101:   640 x 480 x 8    Packed
+0x103:   800 x 600 x 8    Packed
+0x111:   640 x 480 x 16   Direct, mask: 5/6/5/0  pos: 11/5/0/0
+Configured VBE mode (vbe_mode) = ox101
+
+
+http://stackoverflow.com/questions/521957/how-to-develop-a-directfb-app-without-leaving-x-11-environment
+    SDL_VIDEODRIVER=directfb ffplay some_movie.avi
+
+
+### https://github.com/joaomaia/framebuffer-logo
+    g++ dump.cpp -o dump -Wall -lSDL2_image
+    ./dump a.jpg > a.raw
+    objcopy --input binary --output elf64-x86-64 --binary-architecture i386:x86-64 a.raw a.o
+    g++ framebuffer-logo.cpp a.o -o framebuffer-logo -Wall
+
+https://github.com/lvsz1/arm-framebuffer-font
+
 

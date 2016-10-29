@@ -74,3 +74,11 @@ http://ffmpeg.org/ffmpeg-all.html#pipe
     ffmpeg -i source1.ts -codec copy -f mpegts -tables_version 0 udp://1.1.1.1:1111
     ffmpeg -i source1.ts -codec copy -f h264 udp://1.1.1.1:1111
 
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
+      netpipe-h264 192.168.2.115 |mplayer -vo fbdev2 -fps 60 -
+
+    ffmpeg -re -i INPUT -vcodec rawvideo -pix_fmt bgra -f fbdev /dev/fb0
+        Play a file on framebuffer device /dev/fb0.
+
+

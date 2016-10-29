@@ -5,8 +5,15 @@ import sys
 heystack = open(sys.argv[1], 'rb').read()
 if len(sys.argv) > 2:
     needle = open(sys.argv[2], 'rb').read()
-else
+else:
     needle = sys.stdin.read()
 
-print(heystack.index(needle))
+try:
+    idx = 0
+    while True:
+        idx = heystack.index(needle, idx)
+        print(idx)
+        idx += len(needle)
+except ValueError:
+    pass # print(e, file=sys.stderr)
 
