@@ -6,3 +6,7 @@ screen /dev/ttyUSB0 115200
 
 ls -l /dev/serial/by-path
 
+http://blog.csdn.net/zoomdy/article/details/50922149
+    stty -F /dev/ttyS0 ispeed 115200 ospeed 115200 cs8
+    cat /dev/ttyS0
+

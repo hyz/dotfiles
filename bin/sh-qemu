@@ -55,10 +55,12 @@ init)
         -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
         -boot order=c \
         -display sdl #-vga std #vmware #-daemonize
+        -usb $*
     #
     exit ;;
 esac
 
+    -usb -usbdevice host:0781:5567
     -drive file=$HOME/qemu/Windows/10.iso,index=2,media=cdrom \
 
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \

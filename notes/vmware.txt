@@ -13,3 +13,6 @@
     ls /mnt
 
 
+http://bbs.pceva.com.cn/thread-55077-1-1.html
+    VT-x，VT-d
+
