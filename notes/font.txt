@@ -3,3 +3,15 @@ find /usr -name "font*.c"
 
     font_sun12x22.c
 
+https://wiki.archlinux.org/index.php/Fonts
+    https://aur.archlinux.org/packages/ttf-monaco/
+        Monaco (ttf-monacoAUR) - Popular programming font on OSX/Textmate
+    https://aur.archlinux.org/packages/ttf-ms-fonts/
+        Courier New (ttf-ms-fontsAUR)
+
+http://askubuntu.com/questions/173220/how-do-i-change-the-font-or-the-font-size-in-the-tty-console
+    console fonts
+
+http://askubuntu.com/questions/97469/what-is-the-default-debian-ubuntu-console-tty-font-called?rq=1
+    /bin/setfont /usr/share/consolefonts/Lat2-VGA32x16.psf.gz
+

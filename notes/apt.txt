@@ -1,0 +1,6 @@
+
+https://linuxtoy.org/archives/debian-tips.html
+    Debian GNU/Linux 包管理妙计串烧 
+    2016-08-15 · By toy · Posted in Tips · 0 Comments 
+    作为一个资深的 Debian GNU/Linux（后文简称“Debian”）粉，笔者可是私藏了不少既实用又鲜为人知的锦囊妙计...
+
