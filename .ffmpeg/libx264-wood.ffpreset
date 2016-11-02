@@ -1,0 +1,13 @@
+coder=1
+flags2=+wpred+dct8x8
+level=31
+maxrate=1200000
+bufsize=200000
+wpredp=0
+g=60
+refs=1
+subq=3
+trellis=0
+bf=0
+rc_lookahead=0
+

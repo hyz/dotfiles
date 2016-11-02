@@ -77,8 +77,21 @@ http://ffmpeg.org/ffmpeg-all.html#pipe
   ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
   ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
       netpipe-h264 192.168.2.115 |mplayer -vo fbdev2 -fps 60 -
+  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 \
+      -an -vf crop=1920:1080:0:0 -c:v h264 -r 30 -s vga -pix_fmt yuv420p -threads 4 -g 1 -f h264 pipe:1 \
+          2>/dev/null | netpipe-h264
+ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v h264 -crf 40 -preset ultrafast -tune zerolatency -g 1 -b 1000k -s vga -f h264 pipe:1 > 1
 
     ffmpeg -re -i INPUT -vcodec rawvideo -pix_fmt bgra -f fbdev /dev/fb0
         Play a file on framebuffer device /dev/fb0.
 
+  ffmpeg -y -loglevel warning -f dshow -i video="screen-capture-recorder" \
+      -vf crop=690:388:136:0 -r 30 -s 962x388 -threads 2 -vcodec libx264 -vpre baseline -vpre my_ffpreset -f flv rtmp:///live/myStream.sdp
+
+https://github.com/joeyblake/FFmpeg-Presets
+http://blog.csdn.net/vblittleboy/article/details/8474102
+    ffmpeg presets
+
+https://trac.ffmpeg.org/wiki/StreamingGuide
+https://trac.ffmpeg.org/wiki/Encode/H.264
 
