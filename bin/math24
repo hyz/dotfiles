@@ -2,48 +2,40 @@
 import sys
 from itertools import combinations
 
-add = lambda x,y: x+y
-add.__name__ = '+'
-sub = lambda x,y: x-y
-sub.__name__ = '-'
-mul = lambda x,y: x*y
-mul.__name__ = '*'
+add = lambda x,y: x+y ; add.__name__ = '+'
+sub = lambda x,y: x-y ; sub.__name__ = '-'
+mul = lambda x,y: x*y ; mul.__name__ = '*'
 def div(x,y): #div = lambda x,y: x/y
-    if not y: return None
+    if y==0: return None
     return x/y
 div.__name__ = '/'
 
 his={} #{ (None,0):1, (None,1):1, (None,2):1, (None,3):1, (None,4):1 }
 
-def walk(lv, lis, *a):
-    if len(lis) == 2:
-        x,y = lis[0], lis[1]
-        for f in add,sub,mul,div:
-            z, t = f(x,y), (x,f.__name__,y)
-            if z == 24:
-                print(*a, '(',*t,')')
-            y,x, z0 = x,y,z
-            z, t = f(x,y), (x,f.__name__,y)
-            if z == z0:
-                continue
-            if z == 24:
-                print(*a, '(',*t,')')
+def walk(lv, lis, fres, *explis):
+    if lis[0] is None:
+        return
+    if len(lis) == 1:
+        if lis[0] == 24:
+            for f,x,y in explis:
+                print('(',x,f.__name__,y,'=',f(x,y),')',sep='',end='  ')
+            print()
         return
     for x,y in combinations(lis, 2):
         li = lis[:]
         li.remove(x) ; li.remove(y)
         for f in add,sub,mul,div:
-            z = f(x,y) ; k=(lv,f,x,y) ; r = x,f.__name__,y,'=', z
-            if z != None and k not in his:
-                his[k] = 1
-                walk(lv+1, [z] + li, *a, '(',*r,')')
-            y,x, z0 = x,y,z
-            z = f(x,y) ; k=(lv,f,x,y) ; r = x,f.__name__,y,'=', z
-            if z == z0:
-                continue
-            if z != None and k not in his:
-                his[k] = 1
-                walk(lv+1, [z] + li, *a, '(',*r,')')
+            z = f(x,y) ; fr=fres+[(f,z)] ; r = (f,x,y)
+            kfr = tuple(fr)
+            if kfr not in his:
+                his[kfr] = 1
+                walk(lv+1, [z] + li, fr, *explis, r)
+            y,x = x,y
+            z = f(x,y) ; fr=fres+[(f,z)] ; r = (f,x,y)
+            kfr = tuple(fr)
+            if kfr not in his:
+                his[kfr] = 1
+                walk(lv+1, [z] + li, fr, *explis, r)
 
-walk(0, [ int(x) for x in sys.argv[1:5] ])
+walk(0, [ int(x) for x in sys.argv[1:5] ], [])
 
