@@ -37,3 +37,8 @@ http://packages.python.org/distribute
 [python-excel]: http://www.python-excel.org
 
 
+http://python.jobbole.com/85086/
+    浮点，小数，分数 (float, Decimal, Fraction)
+    from decimal import Decimal
+    from fractions import Fraction
+

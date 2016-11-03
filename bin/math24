@@ -2,40 +2,45 @@
 import sys
 from itertools import combinations
 
-add = lambda x,y: x+y ; add.__name__ = '+'
-sub = lambda x,y: x-y ; sub.__name__ = '-'
-mul = lambda x,y: x*y ; mul.__name__ = '*'
+add = lambda x,y: x+y ; add.__name__ = '+' #lambda x,y: '{}+{}'.format(x,y)
+sub = lambda x,y: x-y ; sub.__name__ = '-' #lambda x,y: '{}-{}'.format(x,y)
+mul = lambda x,y: x*y ; mul.__name__ = '*' #lambda x,y: '{}*{}'.format(x,y)
 def div(x,y): #div = lambda x,y: x/y
     if y==0: return None
     return x/y
-div.__name__ = '/'
+div.__name__ = '/' #lambda x,y: '{}/{}'.format(x,y)
 
-his={} #{ (None,0):1, (None,1):1, (None,2):1, (None,3):1, (None,4):1 }
-
-def walk(lv, lis, fres, *explis):
-    if lis[0] is None:
+def walk(lv, lis, exr):
+    if not lis or lis[0] is None:
         return
     if len(lis) == 1:
         if lis[0] == 24:
-            for f,x,y in explis:
-                print('(',x,f.__name__,y,'=',f(x,y),')',sep='',end='  ')
+            def echo_r(lv, t, xt):
+                if xt:
+                    echo_r(lv+1, *xt)
+                f,x,y = t
+                print('(', x, f.__name__, y, ')', sep='', end=' ')
+            echo_r(0, *exr)
             print()
         return
+    dups = set()
     for x,y in combinations(lis, 2):
+        if (x,y) in dups:
+            continue
+        dups.add((x,y))
         li = lis[:]
         li.remove(x) ; li.remove(y)
         for f in add,sub,mul,div:
-            z = f(x,y) ; fr=fres+[(f,z)] ; r = (f,x,y)
-            kfr = tuple(fr)
-            if kfr not in his:
-                his[kfr] = 1
-                walk(lv+1, [z] + li, fr, *explis, r)
-            y,x = x,y
-            z = f(x,y) ; fr=fres+[(f,z)] ; r = (f,x,y)
-            kfr = tuple(fr)
-            if kfr not in his:
-                his[kfr] = 1
-                walk(lv+1, [z] + li, fr, *explis, r)
+            z, r = f(x,y), (f,x,y)
+            walk(lv+1, [z] + li, (r, exr))
+            if f(y,x) == f(x,y):
+                continue
+            y, x = x, y
+            z, r = f(x,y), (f,x,y)
+            walk(lv+1, [z] + li, (r, exr))
 
-walk(0, [ int(x) for x in sys.argv[1:5] ], [])
+walk(0, [ int(x) for x in sys.argv[1:5] ], ())
+
+# import fractions
+# print( fractions.Fraction(2,4) )
 
