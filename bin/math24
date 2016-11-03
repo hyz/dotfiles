@@ -10,36 +10,41 @@ def div(x,y): #div = lambda x,y: x/y
     return x/y
 div.__name__ = '/' #lambda x,y: '{}/{}'.format(x,y)
 
-def walk(lv, lis, exr):
-    if not lis or lis[0] is None:
-        return
+def walk(lis):
     if len(lis) == 1:
-        if lis[0] == 24:
-            def echo_r(lv, t, xt):
-                if xt:
-                    echo_r(lv+1, *xt)
-                f,x,y = t
-                print('(', x, f.__name__, y, ')', sep='', end=' ')
-            echo_r(0, *exr)
-            print()
+        z, e = lis[0]
+        if z == 24:
+            #print(e)
+            def e_str(z,f,x,y):
+                def _str(o):
+                    if type(o) == int:
+                        return str(o) # '% 2d' % o
+                    return '(' + e_str(*o) + ')'
+                return ' '.join([_str(x), f.__name__, _str(y)])
+            print( e_str(*e), '=', z )
         return
+    ####
     dups = set()
-    for x,y in combinations(lis, 2):
+    for (x,xe),(y,ye) in combinations(lis, 2):
         if (x,y) in dups:
             continue
         dups.add((x,y))
         li = lis[:]
-        li.remove(x) ; li.remove(y)
+        li.remove((x,xe)) ; li.remove((y,ye))
         for f in add,sub,mul,div:
-            z, r = f(x,y), (f,x,y)
-            walk(lv+1, [z] + li, (r, exr))
+            z = f(x,y) ; e = (z,f,xe,ye)
+            if z != None:
+                walk([(z,e)] + li)
+
             if f(y,x) == f(x,y):
                 continue
-            y, x = x, y
-            z, r = f(x,y), (f,x,y)
-            walk(lv+1, [z] + li, (r, exr))
+            y,ye, x,xe = x,xe, y,ye
 
-walk(0, [ int(x) for x in sys.argv[1:5] ], ())
+            z = f(x,y) ; e = (z,f,xe,ye)
+            if z != None:
+                walk([(z,e)] + li)
+
+walk([ (int(x),int(x)) for x in sys.argv[1:5] ])
 
 # import fractions
 # print( fractions.Fraction(2,4) )
