@@ -1,3 +1,6 @@
+https://vec.io/posts/how-to-render-image-buffer-in-android-ndk-native-code
+https://vec.io/posts/use-android-hardware-decoder-with-omxcodec-in-ndk
+
 http://stackoverflow.com/questions/19923412/creating-omxcodec-encoder-in-hw-mode?rq=1
 http://stackoverflow.com/questions/5883086/stagefright-architecture
 

@@ -44,7 +44,9 @@ def walk(lis):
             if z != None:
                 walk([(z,e)] + li)
 
-walk([ (int(x),int(x)) for x in sys.argv[1:5] ])
+lis = [ (int(x),int(x)) for x in sys.argv[1:5] ]
+#lis.sort()
+walk(lis)
 
 # import fractions
 # print( fractions.Fraction(2,4) )

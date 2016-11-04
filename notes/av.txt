@@ -3,3 +3,6 @@ mencoder file.mkv -ovc copy -oac mp3lame -o output.avi
 
 http://www.cnblogs.com/tocy/
 
+https://hacks.mozilla.org/2012/11/h264-video-in-firefox-for-android/
+http://camendesign.com/code/video_for_everybody/test.html
+
