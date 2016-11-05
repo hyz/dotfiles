@@ -2,7 +2,7 @@
 PREFIX=/tmp
 NDK_UNAME=`uname -s | tr '[A-Z]' '[a-z]'`
 NDK_PROCESSOR=x86_64
-NDK_PLATFORM_LEVEL=16
+NDK_PLATFORM_LEVEL=21
 NDK_COMPILER_VERSION=4.9
 NDK_ABI=arm
 HOST=$NDK_ABI-linux-androideabi
@@ -34,19 +34,26 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --enable-cross-compile \
 --cross-prefix=$NDK_TOOLCHAIN_BASE/bin/$NDK_ABI-linux-androideabi- \
 --sysroot="$NDK_SYSROOT" \
---prefix=$PREFIX \
+--extra-cflags="$CFLAGS $EXTRA_CFLAGS" \
+--extra-ldflags="$EXTRA_LDFLAGS" \
 --disable-shared --enable-static \
+--prefix=$PREFIX \
+--enable-asm \
+--enable-gpl \
+--enable-version3 \
+--enable-nonfree \
 --disable-symver \
 --disable-debug \
 --disable-doc \
---disable-avfilter \
+\
+--enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 --disable-postproc \
 --disable-encoders \
 --disable-muxers \
 --disable-swscale-alpha \
 \
---disable-outdevs \
---disable-devices --enable-indev=lavfi \
+--disable-outdevs --enable-outdev=fbdev \
+--disable-indevs --enable-indev=fbdev \
 --disable-filters  --enable-filter=copy \
 --disable-decoders --enable-decoder=h264 \
 --disable-muxers --enable-muxer=h264 \
@@ -55,17 +62,12 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-protocols --enable-protocol=pipe --enable-protocol=http --enable-protocol=rtp --enable-protocol=file \
 --disable-parsers --enable-parser=h264 \
 --disable-libfontconfig --disable-libfreetype \
---enable-hwaccels --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
---enable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
-\
---enable-asm \
---enable-gpl \
---enable-version3 \
---enable-nonfree \
---extra-cflags="$CFLAGS $EXTRA_CFLAGS" \
---extra-ldflags="$EXTRA_LDFLAGS"
+--disable-ffplay --disable-ffprobe --disable-ffserver --enable-ffmpeg \
+
+####
 exit
 
+--enable-hwaccels --disable-avfilter \
 #--enable-small \
 
 

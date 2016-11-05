@@ -22,3 +22,16 @@ adb -s HU9SP7ZLSO5DNNEA shell
 ###
 xlog filter-set verbose
 
+http://www.jianshu.com/p/296faefe3226
+    adb shell /system/bin/screencap -p /sdcard/screenshot.png
+        adb pull /sdcard/screenshot.png .
+    adb shell am start -n com.example.hello/com.example.hello.MainActivity
+    adb -s 0123456789ABCDEF shell input text '192.168.2.115:8000'
+
+adb.exe programming:
+    让Adb.exe支持Monkey
+    http://www.jianshu.com/p/d0e7f19302c9
+    http://osxr.org/android/source/system/core/adb/
+    https://github.com/t-mat/my_adb
+
+

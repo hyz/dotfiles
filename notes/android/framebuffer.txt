@@ -1,0 +1,9 @@
+
+http://www.cnblogs.com/wangcong02345/p/5704808.html
+http://stackoverflow.com/questions/13801984/permission-is-only-granted-to-system-app
+
+http://www.jianshu.com/p/29e048b0dd78
+    adb_set_transport(ttype, inSerial);
+    adb_set_tcp_specifics(server_port);
+    int fd = adb_connect("framebuffer:");
+
