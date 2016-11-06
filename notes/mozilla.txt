@@ -5,3 +5,6 @@ http://stackoverflow.com/questions/14335496/firefox-source-code-for-android
 https://wiki.mozilla.org/Mobile/Fennec/Android
 
 
+https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Build_Instructions
+https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Build_Instructions/How_Mozilla_s_build_system_works
+

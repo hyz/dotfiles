@@ -1,0 +1,13 @@
+
+git clone https://github.com/google/angle angle
+cd angle/third_party
+git clone https://github.com/.../gyp gyp
+cd ..
+
+scripts/bootstrap.py
+vim DEPS
+vim build/ANGLE.gyp
+            #'../src/tests/tests.gyp:*',
+build/gyp_angle
+make -j8
+

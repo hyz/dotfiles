@@ -1,3 +1,4 @@
+PYTHON=python2 python2 v2.py
 
 http://stackoverflow.com/questions/2850893/reading-binary-data-from-stdin
     treat stdin, stdout and stderr as binary unbuffered streams.
