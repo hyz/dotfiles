@@ -1,3 +1,12 @@
+https://www.qcloud.com/community/article/186
+    再说TCP神奇的40ms -- Nagel
+    客户端：
+        关闭nagel算法，即设置socket tcp_no_delay属性。
+        ...
+    服务端：
+        关闭tcp_delay_ack, 这样， 每个tcp请求包都会有一个ack及时响应， 不会出现延迟的
+        ...
+
 http://unix.stackexchange.com/questions/122281/why-is-my-tcp-throughput-much-greater-than-udp-throughput
 
 http://www.cisco.com/c/en/us/support/docs/ip/generic-routing-encapsulation-gre/25885-pmtud-ipfrag.html
