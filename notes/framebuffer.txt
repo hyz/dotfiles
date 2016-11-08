@@ -52,4 +52,7 @@ http://stackoverflow.com/questions/521957/how-to-develop-a-directfb-app-without-
 
 https://github.com/lvsz1/arm-framebuffer-font
 
+http://stackoverflow.com/questions/3326641/opengl-without-x-org-in-linux?rq=1
+http://stackoverflow.com/questions/3036650/using-opengl-without-x-window-system
+https://www.opengl.org/wiki/Framebuffer
 

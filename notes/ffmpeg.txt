@@ -95,12 +95,12 @@ https://github.com/joeyblake/FFmpeg-Presets
 http://blog.csdn.net/vblittleboy/article/details/8474102
     ffmpeg presets
 
-https://trac.ffmpeg.org/wiki/StreamingGuide
-https://trac.ffmpeg.org/wiki/Encode/H.264
-
 http://trac.ffmpeg.org/wiki/CompilationGuide/Android
 https://github.com/WritingMinds/ffmpeg-android
 https://github.com/guardianproject/android-ffmpeg
+
+https://trac.ffmpeg.org/wiki/StreamingGuide
+https://trac.ffmpeg.org/wiki/Encode/H.264
 
 http://www.dskims.com/using-ffmpeg-hwaccel-from-c/
 http://trac.ffmpeg.org/wiki/HWAccelIntro
