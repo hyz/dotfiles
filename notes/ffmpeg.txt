@@ -85,6 +85,10 @@ ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an \
     -vf crop=640:480:0:0 -s vga -c:v h264 -r 30 -pix_fmt yuv420p -g 1 -f h264 pipe:1 | netpipe-h264
     sps->num_ref_frames: 0
 
+ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
+    -x264opts level=31:keyint=1:ref=1:trellis=0:bframes=0:no-mixed-refs:weightp=0:no-weightb:no-psy:sync-lookahead=1:aq-mode=0 \
+    -s 1920x1080 -pix_fmt yuv420p -f h264 pipe:1 | netpipe-h264
+
     ffmpeg -re -i INPUT -vcodec rawvideo -pix_fmt bgra -f fbdev /dev/fb0
         Play a file on framebuffer device /dev/fb0.
 
