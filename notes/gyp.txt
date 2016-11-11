@@ -1,5 +1,14 @@
+https://chromium.googlesource.com/external/gyp.git
 
 https://en.wikipedia.org/wiki/GYP_(software)
 
 http://blog.csdn.net/plc_jianghao/article/details/51073124
+
+http://erikge.com/articles/HelloGyp/
+    https://github.com/examplecode/gypdemo
+    https://github.com/mogemimi/gyp-getting-started
+
+http://www.alonemonkey.com/2016/06/15/gn-gyp-ninja/
+    GYP是一个在不同平台构建项目的工具，GN是GYP的升级版，Ninja是一个小型追求速度的构建系统。
+
 

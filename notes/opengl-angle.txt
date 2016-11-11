@@ -10,6 +10,8 @@ vim build/ANGLE.gyp
             #'../src/tests/tests.gyp:*',
 build/gyp_angle
 make -j8
+make CC=clang CXX=clang++ LDFLAGS='-lrt' -j8
+make CXX=clang++ LDFLAGS='-lrt' BUILDTYPE=Release -j8
 
 https://github.com/mozilla/angle
 
