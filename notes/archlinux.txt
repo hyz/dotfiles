@@ -1,3 +1,6 @@
+https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
+ Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 
+
 https://arch-anywhere.org/
     Bringing you Arch - Anywhere
 
