@@ -46,7 +46,6 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-debug \
 --disable-doc \
 \
---enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 --disable-postproc \
 --disable-encoders \
 --disable-muxers \
@@ -63,11 +62,14 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-parsers --enable-parser=h264 \
 --disable-libfontconfig --disable-libfreetype \
 --disable-ffplay --disable-ffprobe --disable-ffserver --enable-ffmpeg \
+--enable-libx264 \
 
 ####
 exit
 
---enable-hwaccels --disable-avfilter \
+# --disable-avfilter \
 #--enable-small \
 
+--enable-hwaccels \
+--enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 

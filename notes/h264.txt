@@ -216,4 +216,16 @@ to construct the NAL unit you should take "Type" from "FU Header" and "F" and "N
 ### http://blog.csdn.net/heanyu/article/details/6204414
     h264 Profile_IDC Level_IDC 
 
-###
+### 
+    IDR - Instantaneous Decoding Refresh - 即时解码刷新
+    DPB - Decoded Picture Buffer - 参考帧列表
+    http://qiusuoge.com/11517.html
+      收到 IDR 帧时，解码器另外需要做的工作就是：把所有的 PPS 和 SPS 参数进行更新。
+
+      对IDR帧的处理(与I帧的处理相同)：
+          (1) 进行帧内预测，决定所采用的帧内预测模式。
+          (2) 像素值减去预测值，得到残差。
+          (3) 对残差进行变换和量化。
+          (4) 变长编码和算术编码。
+          (5) 重构图像并滤波，得到的图像作为其它帧的参考帧。
+

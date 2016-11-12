@@ -117,11 +117,11 @@ project user-config ;
 #local androidNDKRoot = /opt/android/ndk ;
 #local androidAPI = 17 ;
 #local androidARCH = armeabi-v7a ;
-#local ndkPREBUILT = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
+#local ndkPrebuilt = $(androidNDKRoot)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 ;
 #local ndkCXXDIR = $(androidNDKRoot)/sources/cxx-stl/gnu-libstdc++/4.9 ;
 #
-#using gcc : android : $(ndkPREBUILT)/bin/arm-linux-androideabi-g++
-#    : <archiver>$(ndkPREBUILT)/bin/arm-linux-androideabi-ar <ranlib>$(ndkPREBUILT)/bin/arm-linux-androideabi-ranlib
+#using gcc : android : $(ndkPrebuilt)/bin/arm-linux-androideabi-g++
+#    : <archiver>$(ndkPrebuilt)/bin/arm-linux-androideabi-ar <ranlib>$(ndkPrebuilt)/bin/arm-linux-androideabi-ranlib
 #        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm
 #      # <compileflags>"-isystem $(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm/usr/include"
 #        <compileflags>-fpic
