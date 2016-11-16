@@ -1,3 +1,5 @@
+### http://stackoverflow.com/questions/19734968/mounted-sub-directories-in-a-nfs-share-are-not-writable
+
 ### https://help.ubuntu.com/lts/serverguide/network-file-system.html
 ### https://help.ubuntu.com/community/SettingUpNFSHowTo
 
@@ -31,5 +33,6 @@ showmount -e 127.0.0.1 # showmount -e <NFS server name>
 ifconfig eth0 192.168.2.192
 mount -t nfs -o nolock 192.168.2.115:/export/wood /mnt/nfs
 
-### http://stackoverflow.com/questions/19734968/mounted-sub-directories-in-a-nfs-share-are-not-writable
+ifconfig eth0 192.168.9.192
+mount -t nfs -o nolock 192.168.9.172:/export/wood /mnt/nfs
 
