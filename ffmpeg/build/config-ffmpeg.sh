@@ -5,12 +5,10 @@ NDK_PROCESSOR=x86_64
 NDK_PLATFORM_LEVEL=21
 NDK_COMPILER_VERSION=4.9
 NDK_ABI=arm
-HOST=$NDK_ABI-linux-androideabi
-NDK_TOOLCHAIN=$HOST-$NDK_COMPILER_VERSION
-NDK_TOOLCHAIN_BASE=$NDK_ROOT/toolchains/$NDK_TOOLCHAIN/prebuilt/$NDK_UNAME-$NDK_PROCESSOR
+NDK_TOOLCHAIN=$NDK_ROOT/toolchains/$NDK_ABI-linux-androideabi-$NDK_COMPILER_VERSION/prebuilt/$NDK_UNAME-$NDK_PROCESSOR
 NDK_SYSROOT=$NDK_ROOT/platforms/android-$NDK_PLATFORM_LEVEL/arch-$NDK_ABI
 
-[ -d "$NDK_TOOLCHAIN_BASE" -a -d "$NDK_SYSROOT" ] || exit 1
+[ -d "$NDK_TOOLCHAIN" -a -d "$NDK_SYSROOT" ] || exit 1
 
 CFLAGS="-O3 -Wall -mthumb -pipe -fpic -fasm \
   -finline-limit=300 -ffast-math \
@@ -26,26 +24,26 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 #./configure --list-hwaccels ; exit
 
 ./configure \
---target-os=linux \
+--target-os=android \
 --arch=arm \
 --cpu=cortex-a8 \
 --enable-runtime-cpudetect \
 --enable-pic \
 --enable-cross-compile \
---cross-prefix=$NDK_TOOLCHAIN_BASE/bin/$NDK_ABI-linux-androideabi- \
+--cross-prefix=$NDK_TOOLCHAIN/bin/$NDK_ABI-linux-androideabi- \
 --sysroot="$NDK_SYSROOT" \
 --extra-cflags="$CFLAGS $EXTRA_CFLAGS" \
 --extra-ldflags="$EXTRA_LDFLAGS" \
 --disable-shared --enable-static \
 --prefix=$PREFIX \
---enable-asm \
---enable-gpl \
---enable-version3 \
---enable-nonfree \
---disable-symver \
 --disable-debug \
---disable-doc \
 \
+--disable-doc \
+--enable-asm \
+--disable-symver \
+--enable-gpl --enable-nonfree \
+\
+--enable-version3 \
 --disable-postproc \
 --disable-encoders \
 --disable-muxers \
@@ -54,7 +52,7 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-outdevs --enable-outdev=fbdev \
 --disable-indevs --enable-indev=fbdev \
 --disable-filters  --enable-filter=copy \
---disable-decoders --enable-decoder=h264 \
+--disable-decoders --enable-decoder=h264_mediacodec \
 --disable-muxers --enable-muxer=h264 \
 --disable-demuxers --enable-demuxer=h264 \
 --disable-bsfs --enable-bsf=h264_mp4toannexb \
@@ -62,7 +60,8 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-parsers --enable-parser=h264 \
 --disable-libfontconfig --disable-libfreetype \
 --disable-ffplay --disable-ffprobe --disable-ffserver --enable-ffmpeg \
---enable-libx264 \
+--enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
+--enable-logging \
 
 ####
 exit
@@ -70,6 +69,10 @@ exit
 # --disable-avfilter \
 #--enable-small \
 
---enable-hwaccels \
+--disable-decoders --enable-decoder=h264 \
+
 --enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
+--disable-decoders --enable-decoder=h264_mediacodec \
+
+--enable-libx264 \
 

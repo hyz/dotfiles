@@ -104,7 +104,7 @@ project user-config ;
 # -I/opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include \
 # -I/opt/android/ndk/sources/cxx-stl/gnu-libstdc++/4.9/include/backward \
 # -I/home/wood/demo/jni \
-# -DANDROID -fPIC -DANDROID -fsigned-char -fvisibility=hidden -Wa,--noexecstack -Wformat -Werror=format-security \
+# -fPIC -DANDROID -fsigned-char -fvisibility=hidden -Wa,--noexecstack -Wformat -Werror=format-security \
 # -frtti -fexceptions \
 # -isystem /opt/android/ndk/platforms/android-9/arch-arm/usr/include \
 # -c /home/wood/demo/jni/App/BarcodeJNI.cpp \
@@ -124,15 +124,15 @@ project user-config ;
 #    : <archiver>$(ndkPrebuilt)/bin/arm-linux-androideabi-ar <ranlib>$(ndkPrebuilt)/bin/arm-linux-androideabi-ranlib
 #        <compileflags>--sysroot=$(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm
 #      # <compileflags>"-isystem $(androidNDKRoot)/platforms/android-$(androidAPI)/arch-arm/usr/include"
-#        <compileflags>-fpic
 #        <compileflags>-march=armv7-a ### androidARCH
 #        <compileflags>-mfpu=vfpv3-d16
 #        <compileflags>-mfloat-abi=softfp
 #        <compileflags>-mthumb
-#        <compileflags>-fno-strict-aliasing
+#      # <compileflags>-fno-strict-aliasing
 #        <compileflags>-fPIC
+#        <compileflags>-fpic
 #        <compileflags>-fvisibility=hidden
-#        <compileflags>-g
+#      # <compileflags>-g
 #        <compileflags>-Os
 #        <compileflags>-DNDEBUG
 #      # <compileflags>-D__GLIBC__

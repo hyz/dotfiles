@@ -96,6 +96,8 @@ ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
       -vf crop=690:388:136:0 -r 30 -s 962x388 -threads 2 -vcodec libx264 -vpre baseline -vpre my_ffpreset -f flv rtmp:///live/myStream.sdp
 
 netpipe-h264 192.168.2.192 | ffmpeg/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 > o
+adb -s 0123456789ABCDEF shell '/data/netpipe 192.168.2.192 |/data/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 >/dev/null'
+
 
 https://github.com/joeyblake/FFmpeg-Presets
 http://blog.csdn.net/vblittleboy/article/details/8474102
@@ -121,4 +123,11 @@ http://blog.csdn.net/feixiang_john/article/details/8562330
     AVC到HEVC 
 
 http://leixiaohua1020.github.io/
+
+~/ffmpeg/ffmpeg/ffmpeg -re -i 115.1920x1080.264 -an -c:v rawvideo -pix_fmt bgra -f fbdev /dev/fb0
+
+ffprobe -show_streams -i "file.mp4"
+
+https://github.com/mpenkov/ffmpeg-tutorial
+http://dranger.com/ffmpeg/tutorial01.html
 

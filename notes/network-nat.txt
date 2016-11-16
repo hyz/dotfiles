@@ -1,0 +1,11 @@
+https://en.wikipedia.org/wiki/Network_address_translation
+
+http://www.think-like-a-computer.com/2011/09/16/types-of-nat/
+    Full Cone NAT (Static NAT)
+    Restricted Cone NAT (Dynamic NAT)
+    Port Restricted Cone NAT (Dynamic NAT)
+    Symmetric NAT (Dynamic NAT)
+
+https://www.vmware.com/support/ws3/doc/ws32_network21.html
+     Understanding NAT 
+

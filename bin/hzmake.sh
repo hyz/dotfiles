@@ -100,7 +100,10 @@ version-commit)
     sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $repo/$AppConfig
     svn diff $repo #/$AppConfig
     echo "$NewVer, $NewSVNRev, $repo/$AppConfig"
-    message="Version($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated"
+    if [ -n "$VerExtraInfo" ] ; then
+        _VerXInfo="($VerExtraInfo)"
+    fi
+    message="Version$_VerXInfo($OldVer=>$NewVer, $OldSVNRev=>$NewSVNRev) updated"
     echo "-m \"$message\""
     echo "commit $repo? (y/N)"
     read yN
