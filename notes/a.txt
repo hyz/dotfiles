@@ -1,3 +1,5 @@
+https://github.com/apolukhin/Boost-Cookbook-4880OS
+
 https://www.qcloud.com/community/article/161
 
 
@@ -20,4 +22,6 @@ http://www.ruanyifeng.com/blog/2012/08/blogging_with_jekyll.html
 http://blog.csdn.net/huyoo/article/details/22078565
 
 http://chloerei.com/2014/02/24/we-saved-github-twice/
+
+https://www.douban.com/note/71736009/
 

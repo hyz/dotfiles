@@ -1,3 +1,15 @@
 
+http://tools.android.com/download/studio/builds/2-2-2
+http://tools.android.com/download/studio/stable
 http://tools.android.com/tech-docs/external-c-builds
+
+http://tools.android-studio.org/
+
+http://blog.csdn.net/qq_35064774/article/details/52955242
+    # 查找cpp目录下的所有源文件, 并将名称保存到 DIR_LIB_SRCS 变量
+    aux_source_directory(src/main/cpp/ DIR_LIB_SRCS)
+    # 生成链接库
+    add_library (native-lib SHARED ${DIR_LIB_SRCS})
+    # 导入cpp目录下的所有头文件
+    include_directories(src/main/cpp/)
 

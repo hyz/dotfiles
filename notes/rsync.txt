@@ -25,12 +25,12 @@ find rapidjson/include |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 
 # #empty dir ignored
-find test \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync -v --files-from=- . /tmp/
+find test \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync -v --files-from=- . /tmp/
 
 find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
 find marksix |grep -vE '(.git|/.gradle|.idea|/bin\>)' |rsync -v --files-from=- . /mnt/hgfs/home/
 
-find svnchina \( -name ".svn" -o -name ".git*" \) -prune -o -type f -print | rsync --no-g --no-o -v --files-from=- . /mnt/hgfs/home
+find svnchina \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync --no-g --no-o -v --files-from=- . /mnt/hgfs/home
 find svnchina -name ".svn" -o -name ".git*" | rsync --no-g --no-o -v --exclude-from=- . /mnt/hgfs/home
 
 ###

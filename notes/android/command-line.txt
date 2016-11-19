@@ -40,3 +40,5 @@ android.bat update project --path . --target android-18
     adb -s 0123456789ABCDEF logcat |grep --line-buffered -E '^./(epoll|hgs|thread|ildec|buffer|Video)' |tee log.$(date +%d%H%M)
     adb -s 0123456789ABCDEF logcat |tee log.$(date +%d%H%M) |grep -E '^./(epoll|hgs|thread|ildec|buffer|Video)'
 
+export SDK=/cygdrive/d/Android/sdk PATH=$PATH:$SDK/platform-tools:$SDK/tools
+

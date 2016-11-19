@@ -23,3 +23,8 @@ cmake ../Release -DCMAKE_BUILD_TYPE=Release -DBoost_USE_STATIC_LIBS=ON -DBoost_U
 cmake ../Release -DCMAKE_BUILD_TYPE=Release -G Xcode
 
 
+https://cmake.org/cmake/help/v3.0/manual/cmake-toolchains.7.html
+    set(CMAKE_C_COMPILER clang)
+    set(CMAKE_CXX_COMPILER clang++)
+    https://cmake.org/cmake/help/v3.0/variable/CMAKE_CROSSCOMPILING.html#variable:CMAKE_CROSSCOMPILING
+
