@@ -28,11 +28,15 @@ vam install taglist
 ###
 :g/^\s*LOG.*\\n/s/\\n//
 
+https://github.com/Valloric/YouCompleteMe
 ### https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source
     sudo checkinstall
     dpkg -r vim
     ...
-    cd ~/.vim/bundle/YouCompleteMe ; ./install.py --clang-completer
+    cd ~/.vim/bundle/YouCompleteMe ; ./install.py --clang-completer --system-libclang
+https://aur.archlinux.org/packages/vim-youcompleteme-core-git/
+http://howiefh.github.io/2015/05/22/vim-install-youcompleteme-plugin/?utm_source=tuicool&utm_medium=referral
+http://www.cnblogs.com/linux-sir/p/4676647.html
 
 ### http://stackoverflow.com/questions/71323/how-to-replace-a-character-by-a-newline-in-vim?rq=1
     [1]

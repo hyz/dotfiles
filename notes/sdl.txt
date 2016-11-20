@@ -1,4 +1,6 @@
 
+sdl-config --cflags --libs
+
 http://adolfans.github.io/sdltutorialcn/blog/2013/04/23/set-up-sdl2-for-android-in-eclipse/
 http://adolfans.github.io/sdltutorialcn/blog/2013/04/23/set-up-sdl2-for-android-in-eclipse/
 https://github.com/alanwoolley/CorsixTH-Android

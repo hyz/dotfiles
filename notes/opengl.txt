@@ -1,3 +1,9 @@
+http://imgtec.eetrend.com/blog/1948
+    OpenGL ES 着色器(shader)介绍
+http://blog.csdn.net/grafx/article/details/35561487    
+    OpenGL ES 2.0 Shader相关介绍
+
+
 https://github.com/glfw/glfw
 
 http://stackoverflow.com/questions/12045488/any-gles-examples-in-c-on-x86-linux?noredirect=1&lq=1
@@ -63,14 +69,4 @@ https://github.com/SaschaWillems/glCapsViewer
 https://github.com/SaschaWillems/glEsCapsViewer
 https://github.com/SaschaWillems/openglcpp
 https://github.com/SaschaWillems/webgl
-
-https://github.com/google/angle
-https://github.com/Microsoft/angle
-https://github.com/mozilla/angle
-### https://github.com/google/angle/blob/master/doc/DevSetup.md
-[google angle]
-    python scripts/bootstrap.py
-    gclient sync
-    git checkout master
-    ninja -C out/Debug # ninja -C out/Release
 

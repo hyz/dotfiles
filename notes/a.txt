@@ -2,7 +2,6 @@ https://github.com/apolukhin/Boost-Cookbook-4880OS
 
 https://www.qcloud.com/community/article/161
 
-
 cat /proc/videograph/gs/stat ;sleep 10; cat /proc/videograph/gs/stat
 
 chown wood: /usr/src/arm-linux-3.3 /opt
