@@ -1,0 +1,12 @@
+
+http://pillow.readthedocs.io/en/latest/handbook/tutorial.html
+    https://github.com/python-pillow/Pillow/blob/master/docs/handbook/tutorial.rst
+http://www.cnblogs.com/wbin91/p/3971079.html
+    Python图像处理库：Pillow 初级教程
+    https://github.com/445141126/pillow_example
+
+http://oldj.net/article/text-to-image/
+    使用Python将文本转为图片, PIL,pyGame
+
+
+

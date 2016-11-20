@@ -55,8 +55,9 @@ def show(res):
 def main(lis):
     res = walk([], list(zip(lis,lis)))
     if res:
-        print('有些结果:')
+        print('有些算法:')
         show(res)
+        print('--- --- 共有算法数量:', len(res))
     else:
         print('没有[', ' '.join([ str(x) for x in lis ]), ']24点的算法')
 

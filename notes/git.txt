@@ -39,3 +39,6 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     如果只想fetch特定分支
         git clone xxx -b remote-branch --single-branch
 
+### http://stackoverflow.com/questions/2519933/git-clone-repo-across-local-file-system-in-windows
+    git clone file:////<host>/<share>/<path>
+

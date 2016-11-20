@@ -1,0 +1,14 @@
+
+https://www.zhihu.com/question/29372574
+    Python 的练手项目有哪些值得推荐？
+
+https://www.zhihu.com/question/28361295
+    你有哪些用计算机技能解决生活问题的经历？修改
+
+https://www.shiyanlou.com/courses/623/labs/2072/document
+    Python 实现火车票查询工具
+
+https://www.shiyanlou.com/courses/599/labs/1978/document
+    高德API+Python解决租房问题
+
+
