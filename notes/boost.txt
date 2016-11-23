@@ -1,4 +1,5 @@
 
+dist/bin/bcp singleton ref assert typeof scope_exit noncopyable range move /tmp/
 
 
 ### windows

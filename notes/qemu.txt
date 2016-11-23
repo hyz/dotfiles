@@ -45,3 +45,8 @@ http://blog.csdn.net/zoomdy/article/details/50954190
     (qemu) device_del my_usb_disk
 
 
+apt-get install qemu-kvm
+apt-get install bridge-utils user-mode-linux # tun/tap
+
+uml-utilities
+

@@ -6,9 +6,9 @@
 
 [ $# = 2 ] || exit 2
 
-if [ "$2" = - ] ; then
-    oar="$2"
-else
+oar='-'
+if [ -n "$2" -a "$2" != - ] ; then
+    oar=
     outdir="`cd $2 && pwd`" || exit 1
 fi
 

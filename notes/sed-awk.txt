@@ -3,3 +3,7 @@
 ### http://stackoverflow.com/questions/16414410/delete-empty-lines-using-sed
 sed '/^\s*$/d'
 
+### http://stackoverflow.com/questions/5410757/delete-lines-in-a-text-file-that-containing-a-specific-string
+# To directly modify the file (and create a backup):
+sed -i.bak '/pattern to match/d' ./infile
+
