@@ -158,10 +158,13 @@ Command: unit unit
 
 ---------------------
 $ python
->>> start, end = 23847136, 30869470   # START,END sectors
->>> int((start + 2047) / 2048) * 2048 # aligned START
+>>> G, M = 1024*1024*1024, 1024*1024
+>>> M / 512, G / 512                    # Sector size (logical/physical): 512B/4096B
+(2048, 2097152)
+>>> start, end = 23847136, 30869470     # START,END sectors
+>>> int((start + 2047) /2048) * 2048    # aligned START
 >>> 23848960
->>> int(end / 2048) * 2048            # aligned END
+>>> int(end / 2048) * 2048              # -1, aligned END
 >>> 30867456
 >>> 30867456 - 23848960
 ---------------------

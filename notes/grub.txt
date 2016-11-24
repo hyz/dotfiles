@@ -1,4 +1,5 @@
 
+### https://en.wikipedia.org/wiki/GNU_GRUB
 ### https://wiki.archlinux.org/index.php/GRUB
 
 grub-install --boot-directory=/mnt/boot --target=i386-pc --recheck --debug /dev/sdx

@@ -4,6 +4,10 @@
 > parted bootmgr.vhd unit B print free
 > mount -t vfat -o loop,offset=65536,uid=1000,gid=1000 /esp/windows/boot/bootmgr.vhd mnt
 > mount -t ntfs-3g -o loop,ro,offset=65536 bootmgr.vhd /mnt
+>
+> parted VM/vhd0 unit b print
+> ...
+> mount -o loop,offset=1048576 VM/vhd0 /mnt
 
 ### cygwin
 > mount --help

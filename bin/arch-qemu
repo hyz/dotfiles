@@ -7,6 +7,8 @@ hda=/dev/sda9 ### Windows7
 hdb=$HOME/qemu/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
+eth0=wlp3s0
+tapX=tap0
 
 export QEMU_AUDIO_DRV=alsa
 
@@ -16,11 +18,11 @@ init)
     [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
     #[ -r $SLIC ] || chmod g+r $SLIC || exit 1
     modprobe tun
-    ip tuntap add dev tap0 mode tap user wood
-    ip link set tap0 up promisc on
-    ip addr add 172.16.0.1/24 dev tap0
-    #tunctl -t tap0
-    # ifconfig tap0 192.168.0.1 netmask 255.255.255.0 up
+    ip tuntap add dev $tapX mode tap user wood
+    ip link set $tapX up promisc on
+    ip addr add 172.16.0.1/24 dev $tapX
+    #tunctl -t $tapX
+    # ifconfig $tapX 192.168.0.1 netmask 255.255.255.0 up
 
     # activate ip forwarding
     echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -30,11 +32,11 @@ init)
     # iptables --flush -t nat
     # iptables --flush
     ### Create forwarding rules, where
-    ### tap0 - virtual interface
+    ### $tapX - virtual interface
     ### eth0 - net connected interface
-    iptables -A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
-    iptables -A FORWARD -i wlp3s0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
+    iptables -A FORWARD -i $tapX -o $eth0 -j ACCEPT
+    iptables -A FORWARD -i $eth0 -o $tapX -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
     iptables -nvL -t nat
     exit ;;
 

@@ -50,3 +50,36 @@ apt-get install bridge-utils user-mode-linux # tun/tap
 
 uml-utilities
 
+### kvm -curses -serial stdio -m 2048M -hda /dev/sda5 -boot c -net nic -net user
+
+### kvm, archlinux guest, ubuntu12.04 host
+> cat /etc/issue
+Ubuntu 12.04.5 LTS \n \l
+>
+> qemu-system-x86_64 --version                                                            ~
+QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellard
+>
+> wget .../archlinux-2016.08-1-archboot-network.iso
+>
+> sudo chgrp kvm /dev/sda5
+> parted /dev/sda5
+>>> mklabel msdos
+>>> mkpart primary ext3 ... ...
+>>> mkpart primary linux-swap ... ...
+>
+
+### iPAX + msdos + syslinux + nomodeset
+
+### boot with archlinux-2016.08-1-archboot-network.iso
+> kvm -curses -serial stdio -m 2048M -hda /dev/sda5 \
+    -cdrom archlinux-2016.08-1-archboot-network.iso -boot d -net nic -net user
+Ctrl-B
+... exit
+... <Ctrl-N>
+... <Tab>
+... ... ... kernel ... nomodeset initrd....
+                       ^^^^^^^^^
+... <Enter>
+
+### bridged network
+
