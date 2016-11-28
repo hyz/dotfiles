@@ -68,7 +68,7 @@ QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellar
 >>> mkpart primary linux-swap ... ...
 >
 
-### iPAX + msdos + syslinux + nomodeset
+### iPAX + MBR/msdos + syslinux + arch/kernel-nomodeset
 
 ### boot with archlinux-2016.08-1-archboot-network.iso
 > kvm -curses -serial stdio -m 2048M -hda /dev/sda5 \
@@ -82,4 +82,22 @@ Ctrl-B
 ... <Enter>
 
 ### bridged network
+
+### syslinux nomodeset
+> cat /boot/syslinux/syslinux.cfg                                  ~
+PATH /boot/syslinux
+
+PROMPT 1
+TIMEOUT 100
+ONTIMEOUT arch
+
+LABEL arch
+  LINUX /boot/vmlinuz-linux
+  APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
+  INITRD /boot/intel-ucode.img,/boot/initramfs-linux.img
+
+LABEL arch-fallback
+  LINUX /boot/vmlinuz-linux
+  APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
+  INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
 

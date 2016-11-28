@@ -16,3 +16,17 @@ http://askubuntu.com/questions/610291/how-to-install-cmake-3-2-on-ubuntu-14-04
     sudo add-apt-repository ppa:george-edison55/cmake-3.x
     sudo apt-get update
 
+### https://help.ubuntu.com/community/NetworkConnectionBridge
+auto br0
+iface br0 inet static
+    address 192.168.2.115
+    network 192.168.2.0
+    netmask 255.255.255.0
+    broadcast 192.168.2.255
+    gateway 192.168.2.1
+    dns-nameservers 192.168.2.1
+    bridge_ports eth0
+    bridge_stp off
+    bridge_fd 0
+    bridge_maxage 0
+

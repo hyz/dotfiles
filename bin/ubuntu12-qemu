@@ -2,13 +2,14 @@
 ## QEMU emulator version 2.7.0, Copyright (c) 2003-2016 Fabrice Bellard and the QEMU Project developers
 
 ####
-hda=/dev/sda4 ### Windows10
-hda=/dev/sda9 ### Windows7
+#hda=/dev/sda9 ### Windows7
+hda=/dev/sda5 ### archv1
 hdb=$HOME/VM/vhd0
-SLIC=/sys/firmware/acpi/tables/SLIC
-#SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
+#SLIC=/sys/firmware/acpi/tables/SLIC
+####SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 eth0=eth0
 tapX=tap0
+#tapXa=192.168.2.234/24 
 
 export QEMU_AUDIO_DRV=alsa
 
@@ -21,27 +22,33 @@ init)
         SLIC=
     fi
     ###[ -r $SLIC ] || chmod g+r $SLIC || exit 1
-    modprobe tun
-    ip tuntap add dev $tapX mode tap user wood
-    ip link set $tapX up promisc on
-    ip addr add 172.16.0.1/24 dev $tapX
+    ip link set $eth0 promisc on
+    #modprobe tun
+    ip tuntap add dev $tapX mode tap user $USER
+    brctl addif br0 tap0
+    #ip link set $tapX up promisc on
+    ip link set $tapX up
+
+    ip addr ; brctl show
+
+    #ip addr add $tapXa dev $tapX
     #tunctl -t $tapX
     # ifconfig $tapX 192.168.0.1 netmask 255.255.255.0 up
 
-    # activate ip forwarding
-    echo 1 > /proc/sys/net/ipv4/ip_forward
-    ## sysctl
+    ##.# activate ip forwarding
+    ##.echo 1 > /proc/sys/net/ipv4/ip_forward
+    ##.## sysctl
 
-    ## iptables -nL -t nat
-    # iptables --flush -t nat
-    # iptables --flush
-    ### Create forwarding rules, where
-    ### tap0 - virtual interface
-    ### eth0 - net connected interface
-    iptables -A FORWARD -i $tapX -o $eth0 -j ACCEPT
-    iptables -A FORWARD -i $eth0 -o $tapX -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
-    iptables -nvL -t nat
+    ##.## iptables -nL -t nat
+    ##.# iptables --flush -t nat
+    ##.# iptables --flush
+    ##.### Create forwarding rules, where
+    ##.### tap0 - virtual interface
+    ##.### eth0 - net connected interface
+    ##.iptables -A FORWARD -i $tapX -o $eth0 -j ACCEPT
+    ##.iptables -A FORWARD -i $eth0 -o $tapX -m state --state ESTABLISHED,RELATED -j ACCEPT
+    ##.iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
+    ##.iptables -nvL -t nat
 
     exit ;;
 
@@ -53,7 +60,18 @@ init)
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-    qemu-system-x86_64 -name Winows -enable-kvm -machine type=pc,accel=kvm \
+    [ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda || exit 1
+    qemu-system-x86_64 -name Archv1 -enable-kvm -machine type=pc,accel=kvm \
+        -cpu host -smp cores=$(nproc) -m 1024M \
+        -rtc base=localtime,clock=host \
+        -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
+        -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
+        -hda $hda -boot c \
+        -curses -serial stdio \
+
+    ; exit
+
+    qemu-system-x86_64 -name Windows -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=2 -m 4096M \
         -acpitable sig=SLIC,file=$SLIC \
         -rtc base=localtime,clock=host \
