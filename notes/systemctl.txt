@@ -1,0 +1,5 @@
+
+systemctl list-unit-files |grep ssh
+sudo systemctl enable sshd 
+sudo systemctl start sshd
+

@@ -7,14 +7,15 @@ hda=/dev/sda5 ### archv1
 hdb=$HOME/VM/vhd0
 #SLIC=/sys/firmware/acpi/tables/SLIC
 ####SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
+br0=br0
 eth0=eth0
 tapX=tap0
 #tapXa=192.168.2.234/24 
 
 export QEMU_AUDIO_DRV=alsa
 
-case "$1" in
-init)
+if [[ "`id -ru`" = 0 ]] ; then
+    [ -n "$SUDO_USER" ] || exit 1
     [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || exit 1
     if [ -e "$SLIC" ] ; then
         [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
@@ -22,14 +23,16 @@ init)
         SLIC=
     fi
     ###[ -r $SLIC ] || chmod g+r $SLIC || exit 1
-    ip link set $eth0 promisc on
-    #modprobe tun
-    ip tuntap add dev $tapX mode tap user $USER
-    brctl addif br0 tap0
-    #ip link set $tapX up promisc on
-    ip link set $tapX up
 
-    ip addr ; brctl show
+    ip link set $eth0 up promisc on
+
+    modprobe tun
+    ip tuntap add dev $tapX mode tap user $SUDO_USER
+    ip link set $tapX master $br0 # brctl addif $br0 $tapX
+    ip link set $tapX up # promisc on
+    sleep 0.5s
+
+    ip addr ; ip tuntap list # brctl show
 
     #ip addr add $tapXa dev $tapX
     #tunctl -t $tapX
@@ -50,9 +53,8 @@ init)
     ##.iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
     ##.iptables -nvL -t nat
 
-    exit ;;
-
-*)
+    exit
+else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 ### lsusb
 ### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
 ### ... -usb -device usb-host,hostbus=2,hostaddr=6
@@ -60,16 +62,30 @@ init)
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-    [ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda || exit 1
+    if ! [ "`stat -c '%G' $hda`" = "kvm" ] ; then
+        /bin/ls -l $hda
+        sudo chgrp kvm $hda || exit 1
+    fi
+    Mac=52:54:00:12:32:64
+
     qemu-system-x86_64 -name Archv1 -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=$(nproc) -m 1024M \
         -rtc base=localtime,clock=host \
-        -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
         -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
         -hda $hda -boot c \
-        -curses -serial stdio \
+        -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
+        -nographic &
+    exit
+        -curses -serial stdio
 
-    ; exit
+    -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
+
+
+    ### http://www.linux-kvm.org/page/Networking
+    # -device rtl8139,netdev=net0,mac=$Mac -netdev tap,id=net0
+    # -device e1000,netdev=nwk1,mac=MACADDR
+    ## -netdev user,id=nwk1,ifname=tap0
+    ## -netdev user,id=nwk1,hostfwd=hostip:hostport-guestip:guestport 
 
     qemu-system-x86_64 -name Windows -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=2 -m 4096M \
@@ -82,8 +98,8 @@ init)
         -display sdl #-vga std #vmware #-daemonize
         -usb $*
     #
-    exit ;;
-esac
+    exit
+fi  # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
     -usb -usbdevice host:0781:5567
     -drive file=$HOME/qemu/Windows/10.iso,index=2,media=cdrom \
@@ -183,6 +199,14 @@ qemu-system-x86_64 -enable-kvm -cpu host -m 12288 -smp 2 -rtc base=localtime \
 # -drive file=/path/to/installer.iso,index=2,media=cdrom
 # -drive file=/path/to/virtio.iso,index=3,media=cdrom 
 #
+
+##http://www.cnblogs.com/shaohef/p/3803817.html
+# x86_64-softmmu/qemu-system-x86_64 -enable-kvm -m 1024 -smp 1,sockets=1,cores=1,threads=1 -device cstl-watchdog \
+    -device virtio-blk-pci,scsi=off,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=1 \
+    -drive file=/home/shhfeng/iso/image/ubuntu.12.04.img,if=none,id=drive-virtio-disk0,format=qcow2,cache=none \
+    -net bridge,br=virbr2,helper=/home/shhfeng/qemu/debug/qemu-bridge-helper \
+    -net nic,model=virtio \
+    -vnc 127.0.0.1:21 -vga cirrus -chardev stdio,id=mon0 -mon chardev=mon0,mode=readline
 
 ###
 # acpidump -o acpidata

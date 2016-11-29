@@ -1,5 +1,23 @@
-qemu-system-x86_64 -enable-kvm -hda /dev/sda9 -m 1024M -net user -net nic,model=rtl8139
 
+### http://www.linux-kvm.org/page/Networking
+#: # qemu-ifup script
+#: switch=br0
+#: # tunctl -u `whoami` -t $1 (use ip tuntap instead!)
+#: ip tuntap add $1 mode tap user `whoami`
+#: ip link set $1 up
+#: sleep 0.5s
+#: # brctl addif $switch $1 (use ip link instead!)
+#: ip link set $1 master $switch
+
+#: # generate a random mac address for the qemu nic
+#: #printf 'DE:AD:BE:EF:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256))
+
+### https://wiki.archlinux.org/index.php/QEMU#Tap_networking_with_QEMU
+### https://wiki.archlinux.org/index.php/Network_bridge
+ip link set tap0 nomaster
+ip tuntap del tap0 mode tap
+
+###
 -cdrom /mnt/WindowsXP.SP2.iso
 -soundhw ac97 -net nic,model=virtio -net user
 
@@ -100,4 +118,16 @@ LABEL arch-fallback
   LINUX /boot/vmlinuz-linux
   APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
   INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
+
+### network
+http://www.cnblogs.com/vimisky/p/5686876.html
+http://www.linux-kvm.org/page/10G_NIC_performance:_VFIO_vs_virtio
+
+-device virtio-net-pci,netdev=net0 -netdev tap,id=net0,script=/etc/qemu-ifup
+
+> qemu-kvm -kernel arch/x86/boot/bzImage -initrd initramfs \
+       -device e1000,netdev=network0,mac=52:55:00:d1:55:01 \
+       -netdev tap,id=network0,ifname=tap0,script=no,downscript=no \
+       -append "ip=dhcp rd.shell=1 console=ttyS0" \
+       -nographic
 
