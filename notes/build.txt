@@ -46,7 +46,19 @@ pkg-config --cflags --libs ortp
 https://github.com/Distrotech/oRTP
 gcc -D_REENTRANT -I/opt/include rtprecv.c -L/opt/lib -lortp -lpthread -lrt
 
-shadowsocks-libev
+### https://github.com/shadowsocks/shadowsocks-libev
     configure: error: Cannot find `asciidoc` in PATH.
-    ./configure --prefix=/opt --disable-documentation
+    ./configure --prefix=/usr --disable-documentation
+
+    apt-get install git build-essential \
+        libev-dev libsodium-dev libudns-dev libpcre3-dev zlib1g-dev libssl-dev
+    apt-get install dbus
+    systemctl list-unit-files
+
+    cp shadowsocks-libev/debian/shadowsocks-libev.default /etc/default/shadowsocks-libev
+    cp shadowsocks-libev/debian/shadowsocks-libev.service /lib/systemd/system/
+    mkdir /etc/shadowsocks-libev/
+    cp config.json /etc/shadowsocks-libev/
+    systemctl start shadowsocks-libev.service
+    systemctl enable shadowsocks-libev.service
 

@@ -42,3 +42,17 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
 ### http://stackoverflow.com/questions/2519933/git-clone-repo-across-local-file-system-in-windows
     git clone file:////<host>/<share>/<path>
 
+### http://stackoverflow.com/questions/1064499/how-to-get-a-list-of-all-git-tags
+### http://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
+    git tag -n
+    git show-ref --tags -d
+
+    git fetch origin refs/tags/3.4.2
+    git reset --hard FETCH_HEAD
+
+### http://stackoverflow.com/questions/7131703/how-to-know-which-branch-a-git-log-commit-belongs-to
+    How to know which branch a “git log” commit belongs to?
+
+    git log --all --source --pretty=oneline --graph
+
+

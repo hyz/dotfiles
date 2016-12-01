@@ -1,3 +1,12 @@
+### share folder
+http://wiki.qemu.org/Documentation/9psetup
+http://www.linux-kvm.org/page/9p_virtio
+
+# /usr/bin/qemu-kvm -m 1024 -name f15 -drive file=/images/f15.img,if=virtio
+    -fsdev local,security_model=passthrough,id=fsdev0,path=/tmp/share -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostshare
+## guest
+# mkdir /tmp/host_files
+# mount -t 9p -o trans=virtio,version=9p2000.L hostshare /tmp/host_files
 
 ### http://www.linux-kvm.org/page/Networking
 #: # qemu-ifup script
@@ -12,10 +21,13 @@
 #: # generate a random mac address for the qemu nic
 #: #printf 'DE:AD:BE:EF:%02X:%02X\n' $((RANDOM%256)) $((RANDOM%256))
 
+### http://fedoraproject.org/wiki/Networking/Bridging
 ### https://wiki.archlinux.org/index.php/QEMU#Tap_networking_with_QEMU
 ### https://wiki.archlinux.org/index.php/Network_bridge
 ip link set tap0 nomaster
 ip tuntap del tap0 mode tap
+
+https://wiki.archlinux.org/index.php/VLAN
 
 ###
 -cdrom /mnt/WindowsXP.SP2.iso
@@ -130,4 +142,6 @@ http://www.linux-kvm.org/page/10G_NIC_performance:_VFIO_vs_virtio
        -netdev tap,id=network0,ifname=tap0,script=no,downscript=no \
        -append "ip=dhcp rd.shell=1 console=ttyS0" \
        -nographic
+
+### http://www.crifan.com/tag/qemu/
 

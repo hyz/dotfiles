@@ -1,5 +1,5 @@
 set nocompatible
-filetype off " filetype plugin indent on
+"filetype off " filetype plugin indent on
 
 "" set rtp+=~/.vim/bundle/Vundle.vim
 "" call vundle#begin()
@@ -28,12 +28,8 @@ set t_Co=256
 set guifont=Monaco\ 14
 set guioptions=
 set ts=4 sw=4 expandtab ai nocp nowrap
-syntax on
-filetype plugin indent on
-""" To ignore plugin indent changes, instead use:
-"filetype plugin on
 "
-" Brief help
+" "Brief help
 " :PluginList       - lists configured plugins
 " :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
@@ -48,9 +44,10 @@ if &diff
     colorscheme jellybeans
 endif
 
-set hlsearch
+set hlsearch " incsearch
 " highlight Search ctermbg=Black ctermfg=Yellow
 highlight Search ctermbg=DarkGray ctermfg=Black
+
 set diffopt+=iwhite
 
 set dictionary=/usr/share/dict/words
@@ -72,7 +69,7 @@ set tags+=../tags,../../tags,~/.tags
 
 " set cscopeprg=mlcscope
 
-set makeprg=b2\ -j5
+" set makeprg=b2\ -j5
 
 "autocmd BufEnter * lcd %:p:h
 autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
@@ -95,7 +92,6 @@ cnoremap <C-L> <Up>
 
 "map K :! LANG="zh_CN.GB2312" man <cword><CR>
 "
-" so $HOME/.vim/a.vim
 
 "set makeprg=bjam\ --v2\ --toolset=gcc
 "set makeprg=bjam\ debug\ debug-symbols=on
@@ -103,10 +99,6 @@ cnoremap <C-L> <Up>
 "ctags --languages=c,c++ --c++-kinds=+p --langmap=c++:+. --fields=+aiS --extra=+q -R `pwd`
 "map Ctrl-p Ctrl-y
 "
-
-" set showmatch
-
-let loaded_matchparen = 1
 
 "au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal g'\"" | endif
 
@@ -125,28 +117,17 @@ let loaded_matchparen = 1
 "		set csverb
 "endif
 
-""" OmniCPP
-" let OmniCpp_DefaultNamespaces = ["std"]
-" let OmniCpp_NamespaceSearch = 1
-" let OmniCpp_MayCompleteDot = 1
-" let OmniCpp_MayCompleteArrow = 1
-" let OmniCpp_MayCompleteScope = 1
-" let OmniCpp_ShowScopeInAbbr = 1
-" let OmniCpp_ShowPrototypeInAbbr = 1
-
-"let Tlist_Sort_Type = "name" " order by
-"let Tlist_Use_Right_Window = 1 " split to the right side of the screen
-"let Tlist_Compart_Format = 1 " show small meny
-"let Tlist_Exist_OnlyWindow = 1 " if you are the last, kill yourself
-"let Tlist_File_Fold_Auto_Close = 0 " do not close tags for other files
-"let Tlist_Enable_Fold_Column = 0 " do not show folding tree
-
-"let g:SuperTabRetainCompletionType=2
-"let g:SuperTabDefaultCompletionType="<C-X><C-O>"
-
 " VimIM
 let g:vimim_tab_for_one_key=1
 "let g:vimim_one_key=0
 
 let g:EclimDisabled=1
+
+"""let loaded_matchparen = 1
+"hi MatchParen cterm=none ctermbg=green ctermfg=blue
+"hi MatchParen cterm=bold ctermbg=none ctermfg=magenta
+"set showmatch
+
+syntax on
+filetype plugin indent on
 

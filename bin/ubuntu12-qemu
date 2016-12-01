@@ -14,9 +14,15 @@ tapX=tap0
 
 export QEMU_AUDIO_DRV=alsa
 
+die() {
+    echo $* ; exit 1 ;
+}
+
 if [[ "`id -ru`" = 0 ]] ; then
-    [ -n "$SUDO_USER" ] || exit 1
-    [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || exit 1
+    [ "$1" = init ] || die "$0 init"
+    [ "`id -ru $SUDO_USER`" -gt 0 ] || die "$SUDO_USER"
+
+    [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || die "$hda"
     if [ -e "$SLIC" ] ; then
         [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
     else
@@ -62,6 +68,8 @@ else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
+    [ "`id -ru`" -gt 0 ] || exit 1
+
     if ! [ "`stat -c '%G' $hda`" = "kvm" ] ; then
         /bin/ls -l $hda
         sudo chgrp kvm $hda || exit 1

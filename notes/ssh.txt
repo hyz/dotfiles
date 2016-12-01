@@ -39,3 +39,16 @@ uid502@s6.sshwall.com
 sshfs -p 44331 root@192.168.1.55:/etc mnt
 sshfs 192.168.1.55:. mnt
 
+### https://www.cyberciti.biz/faq/force-ssh-client-to-use-given-private-key-identity-file/
+> git clone git@git.oschina.net:oopx/oopx.git
+... Access denied
+>
+> ssh -vT git@git.oschina.net
+> ssh-add -D
+> ssh-add .ssh/id_xxx
+>
+> git clone git@git.oschina.net:oopx/oopx.git
+>
+### https://baoz.net/ssh-session-establish/
+### https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process
+

@@ -1,3 +1,4 @@
+### https://wiki.archlinux.org/index.php/GnuPG
 
 ### http://www.gossamer-threads.com/lists/gnupg/users/57629
 
@@ -33,5 +34,15 @@ Thanks for the help!
 ###
 $ export GNUPGHOME=~/mnt/home/wood/.gnupg                         ~
 $ gpg2 --list-keys                                                ~
-$ gpg2 --list-private-keys                                                ~
+$ gpg2 --list-securet-keys                                                ~
+
+pkill gpg-agent
+gpg --allow-secret-key-import --import _gnupg/secring.gpg
+gpg --allow-secret-key-import --import _gnupg/pubring.gpg
+
+### http://stackoverflow.com/questions/9460140/gpg-encrypt-file-without-keyboard-interaction
+    gpg --edit-key <...>
+    trust
+    5
+    save
 
