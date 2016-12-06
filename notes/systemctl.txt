@@ -3,3 +3,13 @@ systemctl list-unit-files |grep ssh
 sudo systemctl enable sshd 
 sudo systemctl start sshd
 
+### https://wiki.archlinux.org/index.php/Systemd/User
+    Automatic start-up of systemd user instances
+
+    sudo loginctl enable-linger <username>
+
+    systemctl --user show-environment
+    systemctl --user list-dependencies rslsync
+    systemctl --user status rslsync
+    systemctl is-system-running
+

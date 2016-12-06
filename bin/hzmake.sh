@@ -110,8 +110,8 @@ version-commit)
     case "$yN" in
         [yY]|[yY]es|YES)
             svn commit $repo -m "$message" ;;
-        *) svn revert $repo/$AppConfig ;;
     esac
+    svn revert $repo/$AppConfig
     ;;
 
 rar)

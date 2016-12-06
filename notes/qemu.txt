@@ -1,6 +1,17 @@
 ### share folder
+https://vincent.bernat.im/en/blog/2012-network-lab-kvm.html
 http://wiki.qemu.org/Documentation/9psetup
 http://www.linux-kvm.org/page/9p_virtio
+http://unix.stackexchange.com/questions/90423/can-virtfs-9p-be-used-as-root-file-system
+http://blog.allenx.org/2015/07/03/virtio-9p-note
+http://openwares.net/linux/kvm_guest_access_host_dir.html
+    ## host
+    # kvm ...
+        -fsdev local,security_model=passthrough,id=fsdev0,path=/mnt/share
+        -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostshare
+
+    ## guest
+    # mount -t 9p -o trans=virtio[,version=9p2000.L] hostshare /mnt/point
 
 # /usr/bin/qemu-kvm -m 1024 -name f15 -drive file=/images/f15.img,if=virtio
     -fsdev local,security_model=passthrough,id=fsdev0,path=/tmp/share -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostshare

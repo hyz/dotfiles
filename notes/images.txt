@@ -6,6 +6,7 @@ http://www.howtogeek.com/109369/how-to-quickly-resize-convert-modify-images-from
 convert example.png -resize 28x38 example.png
 convert example.png -resize 28x38! example.png
 convert *.png *.gif +append output.png
+
 montage 1.png 2.png 3.png \
         1.png 2.png 3.png \
         1.png 2.png 3.png \
@@ -13,4 +14,6 @@ montage 1.png 2.png 3.png \
     -mode concatenate -tile 3x -geometry +1+1 -background none 3x3.png
 
 #28x38
+
+convert x.png -quality 100 -resize 640 PNG8:/tmp/x.png
 

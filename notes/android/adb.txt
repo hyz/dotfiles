@@ -3,10 +3,8 @@
 export PATH=$PATH:/cygdrive/d/Android/sdk/platform-tools
 
 ###
-
 adb push a.h264 /sdcard/
 adb shell ls /sdcard
-
 
 adb shell pm list permissions -s
 adb shell pm list permissions
@@ -25,8 +23,45 @@ xlog filter-set verbose
 http://www.jianshu.com/p/296faefe3226
     adb shell /system/bin/screencap -p /sdcard/screenshot.png
         adb pull /sdcard/screenshot.png .
-    adb shell am start -n com.example.hello/com.example.hello.MainActivity
-    adb -s 0123456789ABCDEF shell input text '192.168.2.115:8000'
+
+### pm
+    adb shell pm list packages com.example
+
+### am
+    adb shell am ## --help
+    adb shell am start -n com.example.hello/.MainActivity
+    adb shell monkey -p com.example.hello 1
+    adb shell am start -a android.intent.action.MAIN -n com.android.settings/.wifi.WifiSettings
+### broadcast
+    ## http://stackoverflow.com/questions/5171354/android-adb-shell-am-broadcast-bad-component-name
+    adb shell am broadcast android.net.conn.CONNECTIVITY_CHANGE
+        Broadcasting: Intent { act=android.intent.action.VIEW dat=android.net.conn.CONNECTIVITY_CHANGE }
+        Broadcast completed: result=0
+    adb shell am broadcast android.intent.action.BOOT_COMPLETED
+        Broadcasting: Intent { act=android.intent.action.VIEW dat=android.intent.action.BOOT_COMPLETED }
+        Broadcast completed: result=0
+    ## http://blog.csdn.net/sunrock/article/details/5675067
+    adb shell am start -a android.intent.action.VIEW -d http://g.cn
+        ##java
+        # Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://g.cn"));
+        # startActivity(browserIntent);
+    adb shell am start -a android.intent.action.CALL -d tel:10086
+    adb shell am start -a android.intent.action.VIEW -d 'geo:0,0?q=shanghai'
+
+### input
+    adb shell input text 'http://192.168.2.115:8000'
+    ## http://stackoverflow.com/questions/7789826/adb-shell-input-events
+    ## 4 -->  "KEYCODE_BACK" 
+    ## 3 -->  "KEYCODE_HOME" 
+    adb shell input keyevent 4
+### svc
+    adb shell svc wifi disable                                                 ~
+    adb shell svc wifi enable                                                  ~
+
+### http://stackoverflow.com/questions/4567904/how-to-start-an-application-using-android-adb-tools?rq=1
+### http://stackoverflow.com/questions/17829606/android-adb-stop-application-command-like-force-stop-for-non-rooted-device
+    #stop/kill
+    adb shell am force-stop com.example.hello
 
 adb.exe programming:
     让Adb.exe支持Monkey
@@ -34,4 +69,13 @@ adb.exe programming:
     http://osxr.org/android/source/system/core/adb/
     https://github.com/t-mat/my_adb
 
+### http://stackoverflow.com/questions/4032960/how-do-i-get-an-apk-file-from-an-android-device?rq=1
+    How do I get an apk file from an Android device?
+
+    adb shell pm list packages
+    adb shell pm path com.android.wallpaper 
+    adb pull /system/app/LiveWallpapers/LiveWallpapers.apk .
+
+    adb backup -apk com.twitter.android
+    dd if=backup.ab bs=24 skip=1 | openssl zlib -d > backup.tar
 
