@@ -2,7 +2,7 @@
 import sys
 from itertools import combinations
 
-_NP = 24
+_Result = 24
 
 add = lambda x,y: x+y ; add.__name__ = '+' #lambda x,y: '{}+{}'.format(x,y)
 sub = lambda x,y: x-y ; sub.__name__ = '-' #lambda x,y: '{}-{}'.format(x,y)
@@ -15,7 +15,7 @@ div.__name__ = '/' #lambda x,y: '{}/{}'.format(x,y)
 def walk(res, lis):
     if len(lis) == 1:
         z, e = lis[0]
-        if z == _NP:
+        if z == _Result:
             res.append( e )
         return res
     dups = set()
@@ -41,7 +41,7 @@ def walk(res, lis):
 
 # import fractions
 # print( fractions.Fraction(2,4) )
-def show(res):
+def print_results(res):
     def e_str(z,f,x,y):
         def _str(o):
             if type(o) == int:
@@ -56,7 +56,7 @@ def main(lis):
     res = walk([], list(zip(lis,lis)))
     if res:
         print('有些算法:')
-        show(res)
+        print_results(res)
         print('--- --- 共有算法数量:', len(res))
     else:
         print('没有[', ' '.join([ str(x) for x in lis ]), ']24点的算法')

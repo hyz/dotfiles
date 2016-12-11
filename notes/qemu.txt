@@ -1,7 +1,27 @@
+### http://chuansong.me/n/1271580847916
+    virtio-gps
+    x86_64-softmmu/qemu-system-x86_64 -m 4G --enable-kvm -cpu host -smp 2 \
+        -usb -usbdevice tablet \
+        -vga virtio \
+        -drive file=/home/test.img,if=virtio \
+        -spice gl=on,unix,addr=/home/spice.sock,disable-ticketing
+
 ### share folder
-https://vincent.bernat.im/en/blog/2012-network-lab-kvm.html
-http://wiki.qemu.org/Documentation/9psetup
+http://smilejay.com/2012/11/how-to-mount-a-qcow2-image/
+    qemu-nbd
+http://smilejay.com/2012/08/qemu-image-format/
+    qemu-img -h ... ndb vvfat qcow2 host_device vpc sheepdog ...
+    vpc
+        兼容Microsoft的Virtual PC的镜像文件格式（Virtual Hard Disk format）。
+    sheepdog
+        日本NTT实验室发起的，为QEMU/KVM做的一个开源的分布式存储系统，为KVM虚拟提供块存储
+        http://www.osrg.net/sheepdog/
+        http://sheepdog.taobao.org/
+
 http://www.linux-kvm.org/page/9p_virtio
+http://www.linux-kvm.org/page/9p_virtio
+http://wiki.qemu.org/Documentation/9psetup
+https://vincent.bernat.im/en/blog/2012-network-lab-kvm.html
 http://unix.stackexchange.com/questions/90423/can-virtfs-9p-be-used-as-root-file-system
 http://blog.allenx.org/2015/07/03/virtio-9p-note
 http://openwares.net/linux/kvm_guest_access_host_dir.html
@@ -12,6 +32,9 @@ http://openwares.net/linux/kvm_guest_access_host_dir.html
 
     ## guest
     # mount -t 9p -o trans=virtio[,version=9p2000.L] hostshare /mnt/point
+
+https://en.wikibooks.org/wiki/QEMU/Devices/Storage
+    qemu -drive file=fat:rw:some/directory ...
 
 # /usr/bin/qemu-kvm -m 1024 -name f15 -drive file=/images/f15.img,if=virtio
     -fsdev local,security_model=passthrough,id=fsdev0,path=/tmp/share -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostshare
@@ -35,10 +58,25 @@ http://openwares.net/linux/kvm_guest_access_host_dir.html
 ### http://fedoraproject.org/wiki/Networking/Bridging
 ### https://wiki.archlinux.org/index.php/QEMU#Tap_networking_with_QEMU
 ### https://wiki.archlinux.org/index.php/Network_bridge
+### https://wiki.archlinux.org/index.php/VLAN
+###
+
 ip link set tap0 nomaster
 ip tuntap del tap0 mode tap
 
-https://wiki.archlinux.org/index.php/VLAN
+###
+    http://www.cnblogs.com/vimisky/p/5686876.html
+    http://www.linux-kvm.org/page/10G_NIC_performance:_VFIO_vs_virtio
+
+    -device virtio-net-pci,netdev=net0 -netdev tap,id=net0,script=/etc/qemu-ifup
+
+> qemu-kvm -kernel arch/x86/boot/bzImage -initrd initramfs \
+       -device e1000,netdev=network0,mac=52:55:00:d1:55:01 \
+       -netdev tap,id=network0,ifname=tap0,script=no,downscript=no \
+       -append "ip=dhcp rd.shell=1 console=ttyS0" \
+       -nographic
+
+### http://www.crifan.com/tag/qemu/
 
 ###
 -cdrom /mnt/WindowsXP.SP2.iso
@@ -109,6 +147,14 @@ QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellar
 >>> mkpart primary linux-swap ... ...
 >
 
+### http://smilejay.com/2013/12/qemu-kvm-install-guest-in-text-mode/
+### http://smilejay.com/2012/08/kvm-no-graphics/
+    mount -o loop CentOS-6.4-x86_64-minimal.iso /mnt
+    qemu-system-x86_64 --enable-kvm -m 1G -smp 2 -bios /usr/local/share/qemu/bios.bin \
+        -hda vdisk-hda.img -cdrom CentOS-6.4-x86_64-minimal.iso \
+        -kernel /mnt/isolinux/vmlinuz -append console=ttyS0 -initrd /mnt/isolinux/initrd.img \
+        --nographic
+
 ### iPAX + MBR/msdos + syslinux + arch/kernel-nomodeset
 
 ### boot with archlinux-2016.08-1-archboot-network.iso
@@ -121,8 +167,6 @@ Ctrl-B
 ... ... ... kernel ... nomodeset initrd....
                        ^^^^^^^^^
 ... <Enter>
-
-### bridged network
 
 ### syslinux nomodeset
 > cat /boot/syslinux/syslinux.cfg                                  ~
@@ -142,17 +186,4 @@ LABEL arch-fallback
   APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
   INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
 
-### network
-http://www.cnblogs.com/vimisky/p/5686876.html
-http://www.linux-kvm.org/page/10G_NIC_performance:_VFIO_vs_virtio
-
--device virtio-net-pci,netdev=net0 -netdev tap,id=net0,script=/etc/qemu-ifup
-
-> qemu-kvm -kernel arch/x86/boot/bzImage -initrd initramfs \
-       -device e1000,netdev=network0,mac=52:55:00:d1:55:01 \
-       -netdev tap,id=network0,ifname=tap0,script=no,downscript=no \
-       -append "ip=dhcp rd.shell=1 console=ttyS0" \
-       -nographic
-
-### http://www.crifan.com/tag/qemu/
 

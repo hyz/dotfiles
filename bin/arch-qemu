@@ -4,7 +4,7 @@
 ####
 hda=/dev/sda4 ### Windows10
 hda=/dev/sda9 ### Windows7
-hdb=$HOME/qemu/u128
+hdb=$HOME/vm/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 eth0=wlp3s0
@@ -48,22 +48,32 @@ init)
 ### qemu-system-x86_64 -device help
 ### qemu-system-x86_64 -device usb-host,help
 ### qemu
-    qemu-system-x86_64 -name Winows -enable-kvm -machine type=pc,accel=kvm \
-        -cpu host -smp cores=2 -m 4096M \
+    Mac=52:54:00:12:32:64
+    qemu-system-x86_64 -name Windows -enable-kvm -machine type=pc,accel=kvm \
+        -cpu host -smp cores=$(nproc) -m 4G \
         -acpitable sig=SLIC,file=$SLIC \
         -rtc base=localtime,clock=host \
-        -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
+        -drive file=$hda,index=0,media=disk,format=host_device,if=virtio \
         -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
-        -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
-        -boot order=c \
-        -display sdl #-vga std #vmware #-daemonize
-        -usb $*
+        -drive file=fat:rw:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=virtio \
+        -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
+        -k en-us -boot order=c \
+        -display gtk #-vga std #vmware #-daemonize
     #
     exit ;;
 esac
+    # cdrom
+        -drive file=/dev/cdrom,index=4,media=cdrom,format=host_cdrom,if=virtio \
 
+    # vvfat
+        -drive file=fat:rw:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=fat:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=floppy,read-only=on \
+        -fda fat:floppy:rw:$HOME/vm/FAT \
+
+        #-usb $* \
+        #-net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
     -usb -usbdevice host:0781:5567
-    -drive file=$HOME/qemu/Windows/10.iso,index=2,media=cdrom \
+    -drive file=$HOME/vm/Windows/10.iso,index=2,media=cdrom \
 
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \
 spicy -h 127.0.0.1 -p 5900
@@ -71,8 +81,8 @@ spicy -h 127.0.0.1 -p 5900
 -vga qxl -full-screen \
 -vga qxl -global qxl.vram_size=128000 -spice port=5900,addr=127.0.0.1,disable-ticketing -chardev spicevmc,id=spicechannel0,name=vdagent
 -vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent
-    -drive file=$HOME/qemu/vmware-tools.iso,index=2,media=cdrom \
-    -drive file=$HOME/qemu/virtio-win-0.1.117.iso,index=2,media=cdrom \
+    -drive file=$HOME/vm/vmware-tools.iso,index=2,media=cdrom \
+    -drive file=$HOME/vm/virtio-win-0.1.117.iso,index=2,media=cdrom \
     -usbdevice tablet -soundhw ac97
 #http://www.spice-space.org/spice-user-manual.html#_gl_acceleration_virgl
 #-device virtio-vga,virgl=on -spice gl=on,unix,addr=/run/user/1000/spice.sock
@@ -128,8 +138,8 @@ iptables -A FORWARD -i tap0 -o enp0s25 -j ACCEPT
     #-acpitable sig=RSDT,oem_id=LENOVO,oem_table_id=TP-70\ \ \ \
     #-acpitable sig=SLIC,file=$SLIC \
     #-acpitable sig=RSDT,rev=1,oem_id=LENOVO,oem_table_id=TP-70\ \ \ ,oem_rev=00003240,asl_compiler_id=\ LTP,asl_compiler_rev=00000000,data=/tmp/slic.dat \
-    #-bios ~/qemu/bios.bin -acpitable sig=SLIC,file=$SLIC \
-    #-bios ~/qemu/bios.bin \
+    #-bios ~/vm/bios.bin -acpitable sig=SLIC,file=$SLIC \
+    #-bios ~/vm/bios.bin \
     #-bios "$rom" \
     #-boot menu=on,splash-time=5000 \
     #

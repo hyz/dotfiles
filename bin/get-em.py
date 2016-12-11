@@ -66,10 +66,15 @@ def parse_html_1(code,market, html):
     par.stacks, par.results = [], []
     par.feed(html)
 
-    print('%06d %d' % (code,market), '%5.1f %2d' % (par.results[13][1], int(100*par.results[4][1]/par.results[13][1])), end='')
-    for i in 4,6,8,9,10:
-        print('\t%s %.1f' % par.results[i], end='')
-    print()
+    if par.results[13][1] > 0:
+        print('%06d %d' % (code,market), '%2d %2d' % (
+            int(100*par.results[4][1]/par.results[13][1]) , int(100*par.results[6][1]/par.results[13][1])), end='')
+        print('\t%5.1f' % par.results[13][1], end='')
+        for i in 4,6,8,9,10:
+            print('\t%s %.1f' % par.results[i], end='')
+        print()
+    else:
+        print('%06d %d zero' % (code,market), file=sys.stderr)
 
     par.close()
     #first = re.compile('</span><span class="time-tip first-tip"><span class="tip-content">(.*?)</span>')
@@ -189,14 +194,15 @@ def make_query(code,market):
     #return requests.Request('GET', url, params={}, headers=headers, cookies=cookies)
 
 def download_lis(lis):
+    time0 = time.time()
     session = requests.Session()
     for i, (code,market) in enumerate(lis):
-        time0 = time.time()
+        t0 = time.time()
         url,headers = make_query(code,market)
         print('%06d'%code,market, '%d/%d'%(i+1,len(lis)), url, time.strftime("%T"), '', end='')
 
         rsp = session.get(url, headers=headers, verify=False, timeout=6)
-        print(int(time.time()-time0)) # print('%06d'%code,market, int(time.time()-time0))
+        print(int(time.time()-t0)) # print('%06d'%code,market, int(time.time()-time0))
 
         print(' ', rsp.status_code, rsp.url)
         if rsp.status_code == 200:
@@ -208,7 +214,9 @@ def download_lis(lis):
             with open('%06d.%d.html' % (code,market), 'w') as f:
                 f.write(rsp.text)
 
-        time.sleep( random.randint(1,5) )
+        if time.time() - time0 > 0.3:
+            time.sleep( random.randint(2,6) )
+            time0 = time.time()
         if _STOP:
             break
         if random.randint(1,100) >80:

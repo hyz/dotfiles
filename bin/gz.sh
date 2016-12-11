@@ -6,32 +6,33 @@
 
 [ $# = 2 ] || exit 2
 
-oar='-'
-if [ -n "$2" -a "$2" != - ] ; then
-    oar=
-    outdir="`cd $2 && pwd`" || exit 1
+if [ -z "$2" -o "$2" = - ] ; then
+    out=
+else
+    out="`cd $2 && pwd`" || exit 3
 fi
 
-cd $1 || exit 1
+cd $1 || exit 4
 
-zdir=`basename $PWD`
-[ -n "$oar" ] || oar="$outdir/$zdir.cpio.gz-`date +%m%d.%H`"
+src=`basename $PWD`
+[ -z "$out" ] || out="$out/$src.cpio.gz-`date +%m%d.%H`"
 
 cd ..
-##echo $PWD $zdir $oar ; exit
+##echo $PWD $src $out ; exit
 
-if [ "$oar" != - ] ; then
-    exec 3>&1 >$oar
+if [ -n "$out" ] ; then
+    exec 3>&1 >$out
 fi
 
-find -P $zdir -type f \( \
-    -name "*.h" -o -name "*.hpp" \
-    -o -name "*.c" -o -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \
+find -P $src -type f \( \
+    -name "*.h" -o -name "*.c" \
+    -o -name "*.hpp" -o -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" \
     -o -name "*.mk" -o -name "*.jam" -o -name "[Mm]akefile" \
-  \) |cpio -o |gzip -c # >$oar
+    -o -name "*.pro" -o -name "*.qrc" \
+  \) |cpio -o |gzip -c
 
-if [ "$oar" != - ] ; then
-    exec 1>&3
-    ls -hl $oar
+if [ -n "$out" ] ; then
+    exec 1>&3 3>&-
+    ls -hl $out
 fi
 

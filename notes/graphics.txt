@@ -1,0 +1,6 @@
+
+http://blog.csdn.net/fengbingchun/article/details/38492061
+    Skia简介以及在Windows下编译操作步骤
+
+
+
