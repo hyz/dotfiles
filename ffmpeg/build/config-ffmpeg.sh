@@ -52,7 +52,7 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-outdevs --enable-outdev=fbdev \
 --disable-indevs --enable-indev=fbdev \
 --disable-filters  --enable-filter=copy \
---disable-decoders --enable-decoder=h264_mediacodec \
+--disable-decoders --enable-decoder=h264 \
 --disable-muxers --enable-muxer=h264 \
 --disable-demuxers --enable-demuxer=h264 \
 --disable-bsfs --enable-bsf=h264_mp4toannexb \
@@ -60,7 +60,6 @@ EXTRA_LDFLAGS="-Wl,--fix-cortex-a8 -fPIE -pie"
 --disable-parsers --enable-parser=h264 \
 --disable-libfontconfig --disable-libfreetype \
 --disable-ffplay --disable-ffprobe --disable-ffserver --enable-ffmpeg \
---enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 --enable-logging \
 
 ####
@@ -71,8 +70,8 @@ exit
 
 --disable-decoders --enable-decoder=h264 \
 
---enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 --disable-decoders --enable-decoder=h264_mediacodec \
+--enable-jni --enable-mediacodec --enable-hwaccel=h264_mediacodec --enable-hwaccel=hevc_mediacodec \
 
 --enable-libx264 \
 

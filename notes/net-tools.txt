@@ -12,3 +12,9 @@ https://www.oschina.net/p/kcptun
 
 http://whatismyipaddress.com/
 
+https://github.com/Leask/Flora_Pac
+    python2 flora_pac -x 'SOCKS5 192.168.2.115:8787; SOCKS 192.168.2.115:8787; DIRECT' -p 8884
+
+kcptun-client -c kcptun-bin/kcptun.json
+ss-local -c kcptun-bin/ss.json
+

@@ -1,3 +1,6 @@
+http://linuxandfriends.com/vga-modes-used-linux/
+    Table of Linux Kernel Video Mode Numbers
+
 http://www.ffmpeg.org/ffmpeg-devices.html#fbdev
     ffmpeg -f fbdev -framerate 10 -i /dev/fb0 out.avi
 

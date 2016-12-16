@@ -1,4 +1,7 @@
 ###
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .
+
+###
 export CC=/opt/bin/gcc CXX=/opt/bin/g++ CXXFLAGS="-std=c++11 -stdlib=libc++"
 
 ###

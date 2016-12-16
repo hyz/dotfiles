@@ -24,3 +24,9 @@ http://chloerei.com/2014/02/24/we-saved-github-twice/
 
 https://www.douban.com/note/71736009/
 
+https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/end.html
+
+export SDK=/cygdrive/d/Android/sdk ; export PATH=$PATH:$SDK/platform-tools:$SDK/tools
+export SDK=/cygdrive/d/Android/sdk ; export PATH=$PATH:$SDK/platform-tools:$SDK/tools
+export QTDIR=/cygdrive/d/qt/5.7.0/5.7/msvc2015 ; export PATH=$PATH:"$QTDIR/bin"
+

@@ -1,0 +1,23 @@
+{
+    "localaddr": ":18989",
+    "remoteaddr": "206.214.70.37:18908",
+    "key": "",
+    "crypt": "none",
+    "mode": "fast2",
+    "conn": 1,
+    "autoexpire": 60,
+    "mtu": 1350,
+    "sndwnd": 256,
+    "rcvwnd": 1024,
+    "datashard": 70,
+    "parityshard": 30,
+    "dscp": 46,
+    "nocomp": true,
+    "acknodelay": false,
+    "nodelay": 0,
+    "interval": 40,
+    "resend": 0,
+    "nc": 0,
+    "sockbuf": 4194304,
+    "keepalive": 10
+}

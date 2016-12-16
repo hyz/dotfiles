@@ -25,3 +25,8 @@ cmd.exe
     git submodule update --init # Check out all the modules
     cd libs/accumalators
 
+### https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/index.html
+    Boost.Asio C++ 网络编程
+### http://www.boost.org/doc/libs/
+    coroutine2
+

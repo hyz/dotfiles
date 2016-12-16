@@ -3,3 +3,25 @@ sudo apt-get build-essential
 sudo apt-get install mesa-common-dev
 sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
 
+### http://stackoverflow.com/questions/15465932/using-qt-with-visual-studio-without-add-in
+    qmake -tp vc 
+
+### http://www.cnblogs.com/yunhaisoft/p/5341918.html
+    使用Visual Studio 2015开发Qt程序
+
+    #pragma execution_character_set("utf-8")
+
+### http://www.qtcn.org/bbs/simple/?t54151.html
+    Qt C++源码中使用中文所需了解的细节
+    http://blog.chinaunix.net/uid-28194872-id-3518897.html
+
+### http://stackoverflow.com/questions/4267854/creating-and-deallocating-a-qt-widget-object
+    How does Qt delete objects ?
+
+### http://stackoverflow.com/questions/17789878/qt-fitinview-and-resizing
+    resizeEvent, fitInView, KeepAspectRatio
+
+    fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
+
+    view->scale(frameWidth / sceneWidth, frameHeight / sceneHeight);
+
