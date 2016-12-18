@@ -55,7 +55,7 @@ init)
         -rtc base=localtime,clock=host \
         -drive file=$hda,index=0,media=disk,format=host_device,if=virtio \
         -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
-        -drive file=fat:rw:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
         -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
         -k en-us -boot order=c \
         -display gtk #-vga std #vmware #-daemonize
@@ -66,9 +66,9 @@ esac
         -drive file=/dev/cdrom,index=4,media=cdrom,format=host_cdrom,if=virtio \
 
     # vvfat
-        -drive file=fat:rw:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=virtio \
-        -drive file=fat:$HOME/vm/FAT,index=2,media=disk,format=vvfat,if=floppy,read-only=on \
-        -fda fat:floppy:rw:$HOME/vm/FAT \
+        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=fat:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=floppy,read-only=on \
+        -fda fat:floppy:rw:$HOME/vm/vvfat \
 
         #-usb $* \
         #-net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
