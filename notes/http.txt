@@ -26,3 +26,12 @@ RFC文档中的Chunked解码过程如下：
 ### servers:
 https://github.com/lpereira/lwan
 
+http://stackoverflow.com/questions/12555043/my-understanding-of-http-polling-long-polling-http-streaming-and-websockets
+    HTTP Polling, Long Polling, HTTP Streaming and WebSockets
+
+https://www.quora.com/Why-would-HTTP-long-polling-be-used-instead-of-HTTP-Streaming-to-achieve-real-time-push-notifications
+    Why would HTTP long-polling be used instead of HTTP Streaming to achieve real-time push notifications
+
+https://www.pubnub.com/blog/2014-12-01-http-long-polling/
+    What is HTTP Long Polling
+

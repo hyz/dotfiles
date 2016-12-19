@@ -1,3 +1,7 @@
+
+https://dl.google.com/earth/client/GE7/release_7_1_7/googleearth-win-bundle-7.1.7.2602.exe
+https://support.google.com/earth/answer/168344?hl=en
+
 https://github.com/apolukhin/Boost-Cookbook-4880OS
 
 https://www.qcloud.com/community/article/161
@@ -29,4 +33,5 @@ https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/en
 export SDK=/cygdrive/d/Android/sdk ; export PATH=$PATH:$SDK/platform-tools:$SDK/tools
 export SDK=/cygdrive/d/Android/sdk ; export PATH=$PATH:$SDK/platform-tools:$SDK/tools
 export QTDIR=/cygdrive/d/qt/5.7.0/5.7/msvc2015 ; export PATH=$PATH:"$QTDIR/bin"
+
 
