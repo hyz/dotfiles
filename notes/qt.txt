@@ -25,3 +25,8 @@ sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
 
     view->scale(frameWidth / sceneWidth, frameHeight / sceneHeight);
 
+### QMAKESPEC
+    ls /usr/lib/qt/mkspecs/linux-clang
+    ls /usr/lib/qt/mkspecs/
+    qmake -spec linux-clang
+

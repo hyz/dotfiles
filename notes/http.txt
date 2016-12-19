@@ -18,13 +18,33 @@ RFC文档中的Chunked解码过程如下：
 　　Content-Length := length
 　　Remove "chunked" from Transfer-Encoding
 
-
 === https://nghttp2.org/documentation/libnghttp2_asio.html
 === https://curl.haxx.se/docs/http2.html
 
-
 ### servers:
-https://github.com/lpereira/lwan
+    https://github.com/lpereira/lwan
+
+    http://www.th7.cn/Program/cp/201411/310603.shtml
+
+### http://www.williamlong.info/archives/3119.html
+    SPDY 是什么？如何部署 SPDY？
+    http://blog.csdn.net/hursing/article/details/22785475
+        SPDY、HTTP/2、QUIC协议 
+    http://www.oschina.net/news/77135/quic-google-protocol-web-platform-from-tcp-to-udp
+        Google QUIC 协议：从 TCP 到 UDP 的 Web 平台
+    http://www.geekpark.net/topics/158198
+
+### web/template
+    http://stackoverflow.com/questions/355650/c-html-template-framework-templatizing-library-html-generator-library
+    https://github.com/olafvdspek/ctemplate
+        It was originally called Google Templates
+
+### https://github.com/Microsoft/cpprestsdk/wiki
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=0 
+    g++ -std=c++11 a.cpp -o a -lboost_system -lcrypto -lssl -lcpprest
+### https://segmentfault.com/a/1190000000367388
+### http://www.cnblogs.com/highway-9/p/6021238.html
+    好用的http client库CPP REST SDK 
 
 http://stackoverflow.com/questions/12555043/my-understanding-of-http-polling-long-polling-http-streaming-and-websockets
     HTTP Polling, Long Polling, HTTP Streaming and WebSockets

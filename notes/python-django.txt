@@ -1,0 +1,7 @@
+
+http://www.machinalis.com/blog/introduction-to-django-channels/
+http://www.tuicool.com/articles/hit/FJJZRzn
+    Quick introduction to Django Channels
+https://www.djangoproject.com/weblog/2016/sep/09/channels-adopted-official-django-project/
+    Channels adopted as an official Django
+
