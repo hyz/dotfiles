@@ -19,3 +19,12 @@ curl -s4 -G --data-urlencode "foo=a b c" --data-urlencode "bar=16 02:30" http://
 --compressed
 -A "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0"
 
+curl -o/dev/null -s -w'%{time_namelookup}::%{time_connect}::%{time_starttransfer}::%{time_total}::%{speed_download}"\n"' http://localhost:8080/README.md
+    time_namelookup：DNS 解析域名[www.taobao.com]的时间 
+    time_commect：client和server端建立TCP 连接的时间
+    time_starttransfer：从client发出请求；到web的server 响应第一个字节的时间
+    time_total：client发出请求；到web的server发送会所有的相应数据的时间
+    speed_download：下周速度  单位 byte/s
+
+    http://www.51testing.com/html/14/175414-248200.html
+

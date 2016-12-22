@@ -3,6 +3,7 @@ echo "zlogin" >> /tmp/zsh.$USER
 
 if which keychain ; then
     eval `keychain --agents ssh --eval $(find .ssh/*id_[dr]sa)`
+    ## find .ssh/id_rsa* .ssh/*id_rsa ! -name "*pub"
     #for x in .ssh/*.id_[dr]sa ; do
     #    [ -r ".ssh/$x" ] && eval `keychain --eval $x`
     #done

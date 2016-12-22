@@ -132,5 +132,9 @@ syntax on
 filetype plugin indent on
 
 set completeopt-=preview
+"let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
+let g:ycm_confirm_extra_conf = 0
 let g:ycm_add_preview_to_completeopt=0
+let g:ycm_seed_identifiers_with_syntax = 1  "C/C++关键字自动补全
+"let g:ycm_collect_identifiers_from_tags_files = 1
 
