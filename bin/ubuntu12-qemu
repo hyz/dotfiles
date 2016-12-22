@@ -77,17 +77,15 @@ else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
     Mac=52:54:00:12:32:64
 
     qemu-system-x86_64 -name Archv1 -enable-kvm -machine type=pc,accel=kvm \
-        -cpu host -smp cores=$(nproc) -m 1024M \
-        -rtc base=localtime,clock=host \
+        -cpu host -smp cores=$(nproc) -m 4G \
         -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
         -hda $hda -boot c \
         -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
         -nographic &
     exit
         -curses -serial stdio
-
     -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
-
+        -rtc base=localtime,clock=host \
 
     ### http://www.linux-kvm.org/page/Networking
     # -device rtl8139,netdev=net0,mac=$Mac -netdev tap,id=net0
