@@ -55,3 +55,17 @@ https://www.quora.com/Why-would-HTTP-long-polling-be-used-instead-of-HTTP-Stream
 https://www.pubnub.com/blog/2014-12-01-http-long-polling/
     What is HTTP Long Polling
 
+### http://chuansong.me/n/2251367
+    https://medium.com/swlh/starting-a-tech-startup-with-c-6b5d5856e6de#.moqzsy7q5
+https://www.reddit.com/r/cpp/comments/4o5zdm/a_good_c_or_c_honestly_so_long_as_it_works_http/
+
+### https://www.reddit.com/r/cpp/comments/4xff3o/c_embedded_http_server_and_html5_video_streams/
+    http://lists.boost.org/Archives/boost/2016/04/229342.php
+    http://lists.boost.org/Archives/boost/2016/04/229214.php
+    
+
+    https://github.com/eidheim/Simple-WebSocket-Server
+    http://www.akadia.com/services/ssh_test_certificate.html
+        How to create a self-signed SSL Certificate ... 
+
+

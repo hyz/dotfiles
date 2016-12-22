@@ -35,3 +35,5 @@ export SDK=/cygdrive/d/Android/sdk ; export PATH=$PATH:$SDK/platform-tools:$SDK/
 export QTDIR=/cygdrive/d/qt/5.7.0/5.7/msvc2015 ; export PATH=$PATH:"$QTDIR/bin"
 
 
+kcptun-client -c ~/kcptun-bin/kcptun.json && ss-local -c ~/kcptun-bin/ss.json &
+

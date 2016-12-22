@@ -1,1 +1,47 @@
+
+http://security.stackexchange.com/questions/38782/ssl-tls-distinction-between-self-signed-cert-and-self-signed-ca-and-other-que?rq=1
+    SSL/TLS - Distinction between self-signed cert and self-signed CA, and other questions?
+
+    A CA certificate is a certificate which is owned by a CA and marked as being suitable for usage as a CA; namely, that it contains a Basic Constraints extension with the "cA" flag set to TRUE.
+    A self-signed certificate is a certificate which is signed with the private key corresponding to the public key which is in the certificate itself. This means that the certificate was issued by the certificate owner itself, not by somebody else.
+
+https://www.ibm.com/developerworks/library/l-openssl/
+
 https://sandilands.info/sgordon/https-and-certificates-with-apache-openssl-tcpdump
+
+http://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl?rq=1
+
+https://gist.github.com/kyledrake/d7457a46a03d7408da31
+    Creating a self-signed SSL certificate, and then verifying it on another Linux machine
+    # Procedure is for Ubuntu 14.04 LTS.
+
+    # Using these guides:
+    # http://datacenteroverlords.com/2012/03/01/creating-your-own-ssl-certificate-authority/
+    # https://turboflash.wordpress.com/2009/06/23/curl-adding-installing-trusting-new-self-signed-certificate/
+    # https://jamielinux.com/articles/2013/08/act-as-your-own-certificate-authority/
+
+    # Generate the root (GIVE IT A PASSWORD IF YOU'RE NOT AUTOMATING SIGNING!):
+    openssl genrsa -aes256 -out ca.key 2048
+    openssl req -new -x509 -days 7300 -key ca.key -sha256 -extensions v3_ca -out ca.crt
+
+    # Generate the domain key:
+    openssl genrsa -out yoursite.org.key 2048
+    # Generate the certificate signing request
+    openssl req -sha256 -new -key yoursite.org.key -out yoursite.org.csr
+
+    # Sign the request with your root key
+    openssl x509 -sha256 -req -in yoursite.org.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out yoursite.org.crt -days 7300
+
+    # Check your homework:
+    openssl verify -CAfile ca.crt yoursite.org.crt
+
+    # Add the trusted certificate to the system:
+    sudo cp neocities.ca.crt /usr/local/share/ca-certificates/
+    sudo update-ca-certificates
+
+    # That's it, add the certificate for your site to the SSL config or whatever and the machine you added the root certificate to will verify correctly.
+
+    # BUT I WANTED TO PAY $1500 FOR VERISIGN TO DO THE SAME FUCKING THING!
+    Cool, send it here instead: 1Q5gek6gZc4E8dREcTkctQNtcb8dmikX1p
+
+

@@ -1,3 +1,6 @@
+### https://www.digitalocean.com/community/tutorials/how-to-reset-your-mysql-or-mariadb-root-password
+    sudo mysqld_safe --skip-grant-tables --skip-networking &
+
 ### MySQL with utf8mb4
 # http://www.tuicool.com/articles/EVRjY3
 
