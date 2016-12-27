@@ -1,5 +1,5 @@
 
-REPO    ?= androidbarcode
+REPO    ?= BarcodeAndroid
 PLATS   ?= k400,cvk350c,cvk350t
 VARIANT ?= release
 
@@ -14,6 +14,7 @@ help:
 	@echo
 	@hzmake.sh info $(REPO) $(VARIANT)
 	@grep word howto.txt
+	@cp -vt /samba/release1/doc/ $(REPO)/doc/*.xls
 
 prepare:
 	svn up $(REPO)
@@ -21,11 +22,11 @@ prepare:
 	@grep word howto.txt
 
 release:
+	@cp -vt /samba/release1/doc/ $(REPO)/doc/*.xls
 	$(MAKE) sync-up
 	$(MAKE) rbuild
 	$(MAKE) sync-down
 	test -z "$(RARPWD)" || $(MAKE) rar
-	@cp -vt /samba/release1 $(REPO)/doc/*.xls
 
 sync-up:
 	hzmake.sh $@ $(REPO) $(VARIANT)

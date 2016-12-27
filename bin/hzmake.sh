@@ -68,7 +68,7 @@ datestr() {
 
 #VerF="$NewVer-$NewSVNRev$Vertag" #-$(date +%m%d) # local temp application dir
 VerF="$NewVer-r$NewSVNRev"  #; [[ -z "$Vertag" ]] || VerF="$NewVer-$Vertag"
-Apk="Game-$VerF-`datestr`.apk" #Apk="Game-newsvn$NewSVNRev-$(datestr)$Vertag1.apk"
+Apk="$prjname-$VerF-`datestr`.apk" #Apk="Game-newsvn$NewSVNRev-$(datestr)$Vertag1.apk"
 #RarTag="$NewVer-`datestr`"
 
 show-info() {
@@ -174,20 +174,23 @@ prepare|init)
         sed -i '/^\s*public.\+\<VERSION\s*=/{s/"v[0-9]\+\.[0-9]\+\.[0-9]\+"/"v'$NewVer-r$NewSVNRev'"/}' $builddir/$prjname/$AppConfig
         sed -i '/^\s*public.\+\<SVNVERSION\s*=/{s/"new-svn[0-9]\+"/"new-svn'$NewSVNRev'"/}' $builddir/$prjname/$AppConfig
     fi
+    # $prjname/.project ... <name>$prjname</name>
+    hzmake-utils.py replace_text $builddir/$prjname/.project './name' $prjname
 
     echo ": diff -r --brief $repo $builddir/$prjname"
     diff -r --brief $repo $builddir/$prjname |grep -v '.svn'
     echo
     diff $repo/$AppConfig $builddir/$prjname/$AppConfig
     diff $repo/jni/Utils/log.h $builddir/$prjname/jni/Utils/log.h
+    #diff -b $repo/.project $builddir/$prjname/.project
     #diff --brief $repo/../tools/CryptoRelease.bat $builddir/$prjname/tools/Crypto.bat
 
     #echo
     #find $builddir/$repo -name log.h -o -name AppConfig.java -o -name Crypto.bat
 
-    svn log -r$OldSVNRev:$NewSVNRev $repo > svn-log.$NewVer
-    echo "svn-log.$NewVer"
-    show-info |tee -a svn-log.$NewVer
+    svn log -r$OldSVNRev:$NewSVNRev $repo > svn-log.$prjname.$NewVer
+    echo "svn-log.$prjname.$NewVer"
+    show-info |tee -a svn-log.$prjname.$NewVer
     ;;
 
 esac

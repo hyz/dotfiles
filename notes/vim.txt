@@ -49,3 +49,9 @@ http://www.cnblogs.com/linux-sir/p/4676647.html
 ### 
 set makeprg=g++\ -g\ -pthread\ -std=c++0x\ -I/BOOST_ROOT\ -I.\ %\ -lrt
 
+
+### YCM/ycm
+### https://github.com/Valloric/YouCompleteMe/issues/538
+
+    ./install.sh --clang-completer --system-libclang
+
