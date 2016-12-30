@@ -1,0 +1,6 @@
+
+https://realpython.com/blog/python/comparing-python-command-line-parsing-libraries-argparse-docopt-click/
+
+http://stackoverflow.com/questions/12807539/how-do-you-convert-command-line-args-in-python-to-a-dictionary
+
+

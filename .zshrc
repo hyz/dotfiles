@@ -56,17 +56,19 @@ alias ll='ls -l'
 
 #
 #
-which wget >/dev/null || alias wget='curl -O'
+alias svndiff='svn diff --diff-cmd wsvndiff'
+
+if which curl 2>/dev/null ; then
+    which wget 2>/dev/null || alias wget='curl -O'
+fi
 
 ###########################################################
 ### git clone git://github.com/zsh-users/zsh-completions.git
 #fpath=($HOME/zsh-completions/src $fpath)
 
-alias todo='todo --database-loaders binary'
+while todo 2>/dev/null && alias todo='todo --database-loaders binary'
 
-alias svndiff='svn diff --diff-cmd wsvndiff'
-
-alias b2='b2 -j5'
+while b2 2>/dev/null && alias b2='b2 -sBOOST_ROOT=/BOOST_ROOT -j5'
 # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 
 [ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
