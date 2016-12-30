@@ -1,0 +1,4 @@
+
+http://stackoverflow.com/questions/7241993/is-it-smart-to-replace-boostthread-and-boostmutex-with-c11-equivalents?rq=1
+    boost::thread and boost::mutex with c++11 equivalents?
+

@@ -1,34 +1,36 @@
 #!/bin/bash
 
 die() {
-    echo $* ; exit 1 ;
+    echo >&2 $* ; exit 127 ;
 }
 
 [ "`id -u`" = 0 ] || die "id -u"
 
+# appdir=$1 ; out=$2 ; plat=$3 ; shift 3
 appdir=$1
 out=$2
 plat=$3
 builddir="/osca/$plat"
 
+[ -n "`basename $out`" ] || die "'basename $out'"
 [ -d "$appdir" ] || die "appdir: $appdir"
 [ -d "$builddir" ] || die "builddir: $builddir"
-
 dn=`dirname "$out"`
 [ -d "$dn" ] || mkdir -p "$dn" || die "mkdir: $dn"
 
-if [ "$plat" = "cvk350t" ] ; then
-    reldir1="/osca/release/$plat-iphone" # `date +%Y-%m-%d-%H-%M`
-else
-    reldir1="/osca/release/$plat"
-fi
-
-echo `pwd` $builddir $appdir $reldir1 $out
+echo `pwd` $builddir $appdir $out
 
 ( cd $appdir && find * -type f | /bin/cpio --verbose -pu $builddir/vendor/g368_noain_t300/application ) || die "cpio"
-( cd $builddir && ./mk -o=TARGET_BUILD_VARIANT=user systemimage && ./autocopy ) || die "mk & autocopy"
+( cd $builddir && ./mk -o=TARGET_BUILD_VARIANT=user systemimage ) || die "mk"
+# mtkbuild-copyout.sh $plat $out || die "copy"
 
-/bin/ln -snf "$reldir1-`date +%Y-%m-%d-%H-%M`" "$out" 
-#/bin/mv "/osca/release/$Ot-`date +%Y-%m-%d-%H-%M`" "$plat-$ver-`date +%Y%m%d`"
-echo "$out [OK]"
+out1="/osca/release/`basename $out`"
+[ ! -e "$out1" ] || rm -rf "$out1"
+mkdir -p $out1
+
+project=g368_nyx
+srcprj=out/target/product/$project
+( cd /osca/$plat && /bin/bash copyResult "$out1" $srcprj $project ) || die "copy"
+ln -vsnf "$out1" "$out" 
+echo "[OK]"
 
