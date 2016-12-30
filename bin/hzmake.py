@@ -5,6 +5,7 @@ import subprocess, shutil, glob, tempfile
 from pprint import pprint
 
 HOME = os.environ['HOME']
+_rhost = '192.168.2.113'
 # setattr(sys.modules[__name__], x, os.environ.get(x, None))
 
 class Project(object):
@@ -13,7 +14,7 @@ class Project(object):
     def __init__(self, src, plts, *args, **kvargs):
         if not os.path.exists(src):
             die(src, 'Not exists')
-        if FUNC in ('prepare','init'):
+        if _FUNC in ('prepare','init'):
             subprocess.check_call(command('cd {} && svn up', src), shell=True, executable='/bin/bash')
 
         self.name = os.path.basename(src)
@@ -75,6 +76,8 @@ class Main(object):
             if not (x.startswith('_') or callable(y)):
                 setattr(self, x, kvargs.get(x, os.environ.get(x, getattr(self,x,None))))
                 #print('===',x,y)
+        if self.VARIANT not in ('release','test'):
+            die(self.VARIANT)
         if type(self.PLATS) == str: # and ',' in self.PLATS:
             self.PLATS = self.PLATS.split(',')
         prjs = {}
@@ -84,9 +87,9 @@ class Main(object):
                     prjs.setdefault(prjname,[]).append(plt)
                     break
             else:
-                die(plt, 'Unknown')
+                die(plt, 'unknown')
         for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
-            v = kvargs.get(x, os.environ.get(x, getattr(self,x,None)))
+            v = kvargs.get(x, os.environ.get(x, getattr(Project,x,None)))
             if v and type(v) == str:
                 v = tuple(map(int,v.split('.')))
             setattr(Project, x, v)
@@ -149,7 +152,7 @@ class Main(object):
         for prj in self.projects:
             impl(self, prj)
         print()
-        self.info(*args, **kvargs)
+        self.show_info(*args, **kvargs)
 
     def version_set(self, appconfig, ver, svnrev):
         lines = []
@@ -173,7 +176,7 @@ class Main(object):
                     print('ed:', appconfig, re.search('(\w+)\s*=\s*"([^"]+)', lin).groups())
                 outf.write(lin)
 
-    def make(self, *args, RARPWD=None, **kvargs):
+    def build(self, *args, RARPWD=None, **kvargs):
         if self.VARIANT != 'release':
             return
 
@@ -220,6 +223,16 @@ class Main(object):
             for plt in prj.plats:
                 self._make_archive(plt, prj, RARPWD)
 
+    def sync_down(self, *args, **kvargs):
+        assert RARPWD
+        for plt in self.PLATS:
+            for prj in self.projects:
+                if plt in prj.plats:
+                    rel = '{}/{}-{}-{}'.format(self.VARIANT, plt, prj.ver(), prj.datestr)
+                    plt,prj
+        #rel="$plat-$NewVer-`datestr`"
+        #rsync -vrL $rhost:$variant/$rel $outdir/ || die "$rhost $rel"
+
     def version_commit(self, *args, **kvargs):
         pass
 
@@ -227,24 +240,27 @@ class Main(object):
         print('''\
 Usages:
     {0} prepare PLATS={sPLATS} VARIANT=[release|test]
-    {0} make    PLATS={sPLATS} VARIANT=[release|test] RARPWD=XXX
+    {0} build   PLATS={sPLATS} VARIANT=[release|test] RARPWD=XXX
     {0} version_commit
 '''.format(sys.argv[0], sPLATS=','.join(Main.PLATS), **vars(self)))
-        self.info(*args, **kvargs)
+        self.show_info(*args, **kvargs)
 
-    def info(self, *args, **kvargs):
+    def show_info(self, *args, **kvargs):
         pprint(vars(self))
         if args: pprint(args)
         if kvargs: pprint(kvargs)
         print()
         for prj in self.projects:
-            print(prj.fullver(), '{}\\{}.apk'.format(self.VARIANT, prj.fullver()))
+            print(prj.svnrev(old=1), '=>', prj.svnrev()
+                    , prj.fullver(), '{}\\{}.apk'.format(self.VARIANT, prj.fullver()))
             #pprint(vars(self)) #pprint(globals())
-        grep('word', 'howto.txt')
+        grep('Key.*word', 'howto.txt')
 
 def main(args, kvargs):
+    t0 = time.time()
     m = Main(*args, **kvargs);
-    getattr(m, FUNC, m.help)(*args, **kvargs)
+    getattr(m, _FUNC, m.help)(*args, **kvargs)
+    print(_FUNC, '{:2}:{:02}'.format(*divmod(time.time() - t0, 60)) )
 
 def command(s, *args, **kv):
     cmd = s.format(*args, **kv)
@@ -315,7 +331,7 @@ if __name__ == '__main__':
     try:
         import signal
         signal.signal(signal.SIGINT, _sig_handler)
-        FUNC = sys.argv[1]
+        _FUNC = sys.argv[1]
         main(*_args_lis_dic(sys.argv[2:]))
     except Exception as e:
         print(e, file=sys.stderr)
