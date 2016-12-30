@@ -11,11 +11,10 @@ class Project(object):
     _AppConfig='src/com/huazhen/barcode/app/AppConfig.java'
 
     def __init__(self, src, plts, *a, **d):
-        for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
-            v = d.get(x, os.environ.get(x, getattr(self,x,None)))
-            if v and type(v) == str:
-                v = tuple(map(int,v.split('.')))
-            setattr(self, x, v)
+        if not os.path.exists(src):
+            die(src, 'Not exists')
+        subprocess.check_call(command('cd {} && svn up', src), shell=True, executable='/bin/bash')
+
         self.name = os.path.basename(src)
         self.plats = plts
         self.datestr = time.strftime('%Y%m%d')
@@ -40,12 +39,18 @@ class Project(object):
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
-    def ver(self):
+    def ver(self, old=0):
+        if old:
+            return '.'.join(map(str,self.OldVer))
         return '.'.join(map(str,self.NewVer))
-    def svnrev(self):
+    def svnrev(self, old=0):
+        if old:
+            return '.'.join(map(str,self.OldSVNRev))
         return '.'.join(map(str,self.NewSVNRev))
     def fullver(self):
         return '{}-{}-r{}-{}'.format(self.name, self.ver(), self.svnrev(), self.datestr)
+    def platver(prj, plt):
+        return '{}-{}-{}'.format(plt, prj.ver(), prj.datestr)
 
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
@@ -64,10 +69,10 @@ class Main(object):
     _AppConfig          = 'src/com/huazhen/barcode/app/AppConfig.java'
     _Crypto0, _Crypto1  = '../tools/CryptoRelease.bat', 'tools/Crypto.bat'
 
-    def __init__(self, *a, **d):
+    def __init__(self, *a, **usrdic):
         for x,y in vars(Main).items(): #'BUILD_DIR', 'REPO' , 'VARIANT', 'PLATS' :
             if not (x.startswith('_') or callable(y)):
-                setattr(self, x, d.get(x, os.environ.get(x, getattr(self,x,None))))
+                setattr(self, x, usrdic.get(x, os.environ.get(x, getattr(self,x,None))))
                 #print('===',x,y)
         if type(self.PLATS) == str: # and ',' in self.PLATS:
             self.PLATS = self.PLATS.split(',')
@@ -76,7 +81,12 @@ class Main(object):
             for prjname,plats in self._PROJECTS.items():
                 if plt in plats:
                     prjs.setdefault(prjname,[]).append(plt)
-        self.projects = [ Project(os.path.join(self.REPO,x), plts, *a, **d) for x,plts in prjs.items() ]
+        for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
+            v = usrdic.get(x, os.environ.get(x, getattr(self,x,None)))
+            if v and type(v) == str:
+                v = tuple(map(int,v.split('.')))
+            setattr(Project, x, v)
+        self.projects = [ Project(os.path.join(self.REPO,x), plts, *a, **usrdic) for x,plts in prjs.items() ]
         ver = max( prj.NewVer for prj in self.projects )
         for prj in self.projects:
             prj.NewVer = ver
@@ -91,7 +101,6 @@ class Main(object):
                 die(src, 'Not exists')
             if not out.startswith( Main.BUILD_DIR ):
                 die(out, 'should startswith', Main.BUILD_DIR)
-            subprocess.check_call(command('cd {} && svn up', src), shell=True, executable='/bin/bash')
 
             if not os.path.exists(out):
                 os.makedirs(out, exist_ok=True)
@@ -120,15 +129,22 @@ class Main(object):
                 ed('\sandroid:versionName="(\d+\.\d+)"\s'
                         , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
                         , fp, count=1)
+                subprocess.check_call(command('cd mt6580 && git pull'), shell=True, executable='/bin/bash')
+
+            if prj.name == 'Game14':
+                for fp in glob.glob(os.path.join(out, 'doc/*.xls')):
+                    print('copy:', fp)
+                    shutil.copy(fp, '/samba/release1/doc/')
+                with open('svn.log.{}-{}'.format(prj.ver(),prj.svnrev()), 'w') as f:
+                    subprocess.check_call(command('svn log -r{}:HEAD {}', prj.svnrev(old=1), src)
+                            , stdout=f, shell=True, executable='/bin/bash')
+                    print(prj.fullver(), '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
 
             self.version_set(os.path.join(out,self._AppConfig), prj.ver(), prj.svnrev())
 
-            for fp in glob.glob(os.path.join(out, 'doc/*.xls')):
-                print('copy:', fp)
-                shutil.copy(fp, '/samba/release1/doc/')
-
         for prj in self.projects:
             impl(self, prj)
+        print()
         self.info(*a, **d)
 
     def version_set(self, appconfig, ver, svnrev):
@@ -156,8 +172,6 @@ class Main(object):
     def make(self, *a, RARPWD=None, **d):
         if self.VARIANT != 'release':
             return
-        def platver(plt, prj):
-            return '{}-{}-{}'.format(plt, prj.ver(), prj.datestr)
 
         prj2 = None
         for prj in self.projects:
@@ -175,22 +189,31 @@ class Main(object):
                     cmd = command('cd {0}/mt6580/alps'
                             ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user && make -j8'
                             ' && mt6580-copyout.sh /samba/release1/{1}'
-                            , self.BUILD_DIR, platver(plt,prj))
+                            , self.BUILD_DIR, prj.platver(plt))
                     subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+                    if RARPWD:
+                        self._make_archive(plt, prj, RARPWD)
                 else:
                     prj2 = prj
         if prj2 and prj2.plats:
             cmd = command('cd {} && make -f Game14.mk PLATS={} release'
                     , self.BUILD_DIR, ','.join(prj2.plats))
             subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+            if RARPWD:
+                for plt in prj2.plats:
+                    self._make_archive(plt, prj, RARPWD)
 
-        if RARPWD:
-            for prj in self.projects:
-                for plt in prj.plats:
-                    cmd = command('cd /samba/release1'
-                            ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
-                            , platver(plt,prj), RARPWD)
-                    subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+    def _make_archive(self, plt, prj, rarpwd):
+        cmd = command('cd /samba/release1'
+                ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
+                , prj.platver(plt), rarpwd)
+        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+
+    def rar(*a, RARPWD=None, **d):
+        assert RARPWD
+        for prj in self.projects:
+            for plt in prj.plats:
+                _make_archive(plt, prj, RARPWD)
 
     def version_commit(self, *a, **d):
         pass
