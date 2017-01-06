@@ -1,3 +1,19 @@
+### https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial
+### https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+### http://stackoverflow.com/questions/8484722/access-denied-for-user-rootlocalhost-while-attempting-to-grant-privileges
+
+    SET PASSWORD FOR root@localhost=PASSWORD('');
+
+### https://wiki.archlinux.org/index.php/MySQL
+    # mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+    # systemctl start mariadb
+    # mysql_secure_installation
+    $ mysql -u root -p
+    MariaDB> CREATE USER 'monty'@'localhost' IDENTIFIED BY 'some_pass';
+    MariaDB> GRANT ALL PRIVILEGES ON mydb.* TO 'monty'@'localhost';
+    MariaDB> FLUSH PRIVILEGES;
+    MariaDB> quit
+
 ### https://www.digitalocean.com/community/tutorials/how-to-reset-your-mysql-or-mariadb-root-password
     sudo mysqld_safe --skip-grant-tables --skip-networking &
 

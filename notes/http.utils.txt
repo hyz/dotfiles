@@ -1,3 +1,7 @@
+### https://curl.haxx.se/docs/faq.html#How_do_I_tell_curl_to_follow_HTT
+    curl faq
+### http://stackoverflow.com/questions/3074288/get-url-after-redirect
+    curl -Ls -o /dev/null -w %{url_effective} http://google.com
 
 thttpd -D -p 8000 -c "**.cgi"
 

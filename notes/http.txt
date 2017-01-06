@@ -1,3 +1,11 @@
+### http://stackoverflow.com/questions/2617515/recommendation-for-a-http-parsing-library-in-c-c
+
+### Proxygen, Facebook's C++ HTTP Framework (facebook.com)
+    https://news.ycombinator.com/item?id=8563199
+    https://www.quora.com/What-are-the-use-cases-for-Proxygen
+
+### http://stackoverflow.com/questions/5195452/websockets-vs-server-sent-events-eventsource?rq=1
+    Websockets and SSE (Server Sent Events) 
 
 === Transfer-Encoding: chunked #http://www.zeali.net/entry/129
 
@@ -68,4 +76,7 @@ https://www.reddit.com/r/cpp/comments/4o5zdm/a_good_c_or_c_honestly_so_long_as_i
     http://www.akadia.com/services/ssh_test_certificate.html
         How to create a self-signed SSL Certificate ... 
 
+### http://stackoverflow.com/questions/477816/what-is-the-correct-json-content-type
+    application/json
+    application/javascript
 
