@@ -26,3 +26,6 @@ svn log -r 1:BASE
      svn revert FILE // 单个文件回滚
      svn revert DIR --depth=infinity // 整个目录进行递归回滚
 
+###
+    svn diff --summarize -r780:HEAD
+

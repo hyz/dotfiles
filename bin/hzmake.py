@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, time, os, re, types
+import sys, time, os, re, types, contextlib
 import subprocess, shutil, glob, tempfile
 from pprint import pprint
 
@@ -11,21 +11,21 @@ _rhost = '192.168.2.113'
 class Project(object):
     _AppConfig='src/com/huazhen/barcode/app/AppConfig.java'
 
-    def __init__(self, src, plts, *args, **kvargs):
-        if not os.path.exists(src):
-            die(src, 'Not exists')
+    def __init__(self, repo, plts, *args, **kvargs):
+        if not os.path.exists(repo):
+            die(repo, 'Not exists')
         if _FUNC in ('prepare','init'):
-            subprocess.check_call(command('cd {} && svn up', src), shell=True, executable='/bin/bash')
+            subprocess.check_call(command('cd {} && svn up', repo), shell=True, executable='/bin/bash')
 
-        self.name = os.path.basename(src)
+        self.repo = repo;
+        self.name = os.path.basename(repo)
         self.plats = plts
         self.datestr = time.strftime('%Y%m%d')
 
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v(\d+)\.(\d+)\.(\d+)(-r\d+)?"')
         re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+)"')
-        src = os.path.join(src,self._AppConfig)
-        with open(src) as sf:
-            for line in sf:
+        with open(os.path.join(self.repo,self._AppConfig)) as cf:
+            for line in cf:
                 if not self.OldVer:
                     r = re.search(re_ver, line)
                     if r:
@@ -37,7 +37,7 @@ class Project(object):
         if not self.NewVer:
             self.NewVer = ( self.OldVer[0], self.OldVer[1], self.OldVer[2]+1 )
         if not self.NewSVNRev:
-            self.NewSVNRev = subprocess.check_output('svn info "{}" |grep -Po "^Revision:\s+\K\d+"'.format(src), shell=True)
+            self.NewSVNRev = subprocess.check_output('svn info "{}" |grep -Po "^Revision:\s+\K\d+"'.format(self.repo), shell=True)
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
@@ -53,6 +53,12 @@ class Project(object):
         return '{}-{}-r{}-{}'.format(self.name, self.ver(), self.svnrev(), self.datestr)
     def platver(prj, plt):
         return '{}-{}-{}'.format(plt, prj.ver(), prj.datestr)
+    def vars(self, **kvargs):
+        d = vars(self).copy()
+        d.update(OldSVNRev=self.svnrev(old=1)
+                , NewSVNRev=self.svnrev(), OldVer=self.ver(old=1), NewVer=self.ver())
+        d.update(**kvargs)
+        return d
 
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
@@ -68,7 +74,7 @@ class Main(object):
     }
     _Log_h              = 'jni/Utils/log.h'
     _AndroidManifest    = 'AndroidManifest.xml'
-    _AppConfig          = 'src/com/huazhen/barcode/app/AppConfig.java'
+    #_AppConfig          = 'src/com/huazhen/barcode/app/AppConfig.java'
     _Crypto0, _Crypto1  = '../tools/CryptoRelease.bat', 'tools/Crypto.bat'
 
     def __init__(self, *args, **kvargs):
@@ -93,14 +99,16 @@ class Main(object):
             if v and type(v) == str:
                 v = tuple(map(int,v.split('.')))
             setattr(Project, x, v)
-        self.projects = [ Project(os.path.join(self.REPO,x), plts, *args, **kvargs) for x,plts in prjs.items() ]
+        path = lambda prjname: os.path.join(self.REPO,prjname)
+        self.projects = [ Project(path(prjname), plts, *args, **kvargs)
+                                            for prjname,plts in prjs.items() ]
         ver = max( prj.NewVer for prj in self.projects )
         for prj in self.projects:
             prj.NewVer = ver
 
     def prepare(self, *args, **kvargs):
         def impl(self, prj):
-            src = os.path.abspath( os.path.join(     self.REPO, prj.name) )
+            src = prj.repo #os.path.abspath( os.path.join(     self.REPO, prj.name) )
             out = os.path.abspath( os.path.join(self.BUILD_DIR, prj.name) )
             print('>>> prepare:', src, out)
 
@@ -147,7 +155,7 @@ class Main(object):
                             , stdout=f, shell=True, executable='/bin/bash')
                     print(prj.fullver(), '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
 
-            self.version_set(os.path.join(out,self._AppConfig), prj.ver(), prj.svnrev())
+            self.version_set(os.path.join(out,prj._AppConfig), prj.ver(), prj.svnrev())
 
         for prj in self.projects:
             impl(self, prj)
@@ -234,7 +242,37 @@ class Main(object):
         #rsync -vrL $rhost:$variant/$rel $outdir/ || die "$rhost $rel"
 
     def version_commit(self, *args, **kvargs):
-        pass
+        #@contextlib.contextmanager
+        #def commit(self, **kvargs):
+        #    yield
+        #    for prj in self.projects:
+        #        message="Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**kvargs)
+        #        subprocess.check_call(command('cd {} && svn commit -m"{}"', src, message)
+        #                , shell=True, executable='/bin/bash')
+        prjs = []
+        def revert(self):
+            for prj,msg in prjs:
+                subprocess.check_call(command('cd {} && svn revert {}', prj.repo, prj._AppConfig)
+                        , shell=True, executable='/bin/bash')
+        try:
+            kvargs.setdefault('ExtraVersionInfo','')
+            for prj in self.projects:
+                d = prj.vars(**kvargs)
+                msg = "Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**d)
+                print(msg)
+                yN = input('commit %s? (y/N): ' % prj.repo)
+                if yN.lower() not in ('y','yes'):
+                    raise EOFError
+                prjs.append( (prj,msg) )
+            for prj,msg in prjs:
+                self.version_set(os.path.join(prj.repo,prj._AppConfig), prj.ver(), prj.svnrev())
+                subprocess.check_call(command('cd {} && svn commit -m"{}"', prj.repo, msg)
+                        , shell=True, executable='/bin/bash')
+        except (KeyboardInterrupt,EOFError):
+            revert(self)
+        except Exception:
+            revert(self)
+            raise
 
     def help(self, *args, **kvargs):
         print('''\
@@ -260,7 +298,7 @@ def main(args, kvargs):
     t0 = time.time()
     m = Main(*args, **kvargs);
     getattr(m, _FUNC, m.help)(*args, **kvargs)
-    print(_FUNC, '{:2}:{:02}'.format(*divmod(time.time() - t0, 60)) )
+    print('time({}): {}"{}'.format(_FUNC, *map(int, divmod(time.time() - t0, 60))) )
 
 def command(s, *args, **kv):
     cmd = s.format(*args, **kv)

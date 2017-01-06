@@ -12,3 +12,5 @@
 #[push]
 #	default = simple
 
+#[http]
+#	proxy = socks5://localhost:8787

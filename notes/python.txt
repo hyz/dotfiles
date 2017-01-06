@@ -43,3 +43,14 @@ http://python.jobbole.com/85086/
     from decimal import Decimal
     from fractions import Fraction
 
+http://stackoverflow.com/questions/28336431/retrieve-the-command-line-arguments-of-the-python-interpreter?rq=1
+    >>> import ctypes
+    >>> argv = ctypes.POINTER(ctypes.c_char_p)()
+    >>> argc = ctypes.c_int()
+    >>> ctypes.pythonapi.Py_GetArgcArgv(ctypes.byref(argc), ctypes.byref(argv))
+    1227013240
+    >>> argc.value
+    4
+    >>> argv[0]
+    ...
+

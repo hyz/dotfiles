@@ -1,3 +1,5 @@
+### https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
+
 ### http://chuansong.me/n/1271580847916
     virtio-gps
     x86_64-softmmu/qemu-system-x86_64 -m 4G --enable-kvm -cpu host -smp 2 \
