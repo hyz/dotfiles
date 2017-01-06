@@ -58,19 +58,21 @@ alias ll='ls -l'
 #
 alias svndiff='svn diff --diff-cmd wsvndiff'
 
-if which curl 2>/dev/null ; then
-    which wget 2>/dev/null || alias wget='curl -O'
-fi
+#if which curl 2>/dev/null ; then
+#    which wget 2>/dev/null || alias wget='curl -O'
+#fi
 
 ###########################################################
 ### git clone git://github.com/zsh-users/zsh-completions.git
 #fpath=($HOME/zsh-completions/src $fpath)
 
-while todo 2>/dev/null && alias todo='todo --database-loaders binary'
+#which todo 2>/dev/null && alias todo='todo --database-loaders binary'
 
-while b2 2>/dev/null && alias b2='b2 -sBOOST_ROOT=/BOOST_ROOT -j5'
-# export BOOST_BUILD_PATH=/usr/share/boost/build/v2
-
+if x=`which b2 2>/dev/null` ; then
+    alias b2="$x -sBOOST_ROOT=/BOOST_ROOT -j5"
+fi
+# # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
+# 
 [ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
 
 case "`uname -s`" in
@@ -118,6 +120,11 @@ esac
 
 ###########################################################
 
+for x in /opt/bin /opt/local/bin ; do
+    [ -d "$x" ] || continue
+    PATH=$PATH:$x
+done
+
 #alias dict='sdcv -0'
 dict() {
     echo $* >> $HOME/.dict_history
@@ -143,37 +150,32 @@ google() {
     xdg-open "http://$h/search?q=$q"
 }
 
-PYTHONSTARTUP=$HOME/.pythonstartup
-if [ -f "$PYTHONSTARTUP" ] ; then export PYTHONSTARTUP ; fi
+[ ! -f "$HOME/.pythonstartup" ] || export PYTHONSTARTUP=$HOME/.pythonstartup
 
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_ROOT=/usr/bin
 
-SDK_ROOT=/opt/android/sdk
-if [[ -d "$SDK_ROOT" ]] ; then
-    ANDROID_SDK_ROOT=$SDK_ROOT
-    ANDROID_HOME=$SDK_ROOT
-    export SDK_ROOT ANDROID_SDK_ROOT ANDROID_HOME
+ANDROID_SDK=/opt/android/sdk
+if [[ -d "$ANDROID_SDK" ]] ; then
+    ANDROID_SDK_ROOT=$ANDROID_SDK
+    ANDROID_HOME=$ANDROID_SDK
+    export ANDROID_SDK ANDROID_SDK_ROOT ANDROID_HOME
 
-    PATH=$PATH:$SDK_ROOT/tools:$SDK_ROOT/platform-tools
+    PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
 fi
 
-NDK_ROOT=/opt/android/ndk
-if [ -d "$NDK_ROOT" ]; then
-    ANDROID_NDK_ROOT=$NDK_ROOT
-    export NDK_ROOT ANDROID_NDK_ROOT
+ANDROID_NDK=/opt/android/ndk
+if [ -d "$ANDROID_NDK" ]; then
+    ANDROID_NDK_ROOT=$ANDROID_NDK
+    export ANDROID_NDK ANDROID_NDK_ROOT
 
-    PATH=$PATH:$NDK_ROOT #:$NDK_ROOT/standalone/toolchain/android-12/bin
+    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi
+
 # build/tools/make_standalone_toolchain.py -v --arch=arm --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
-if x=`/bin/ls -1d /opt/android/[0-9][0-9]-*-gcc-[0-9].[0-9]/bin |head -1` ; then
-    PATH=$PATH:$x
-fi
-
-if [ -d "/opt/local/bin" ]; then
-    PATH=$PATH:/opt/local/bin #:/opt/local/sbin
-fi
-# limit coredumpsize 0
+#if x=`/bin/ls -1d /opt/android/[0-9][0-9]-*-gcc-[0-9].[0-9]/bin |head -1` ; then
+#    PATH=$PATH:$x
+#fi
 
 # Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
 #COCOS2DX_ROOT=$HOME/cocos2d
@@ -181,31 +183,30 @@ fi
 #    export COCOS2DX_ROOT
 #fi
 
-COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
-if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
-    PATH=$PATH:$COCOS_CONSOLE_ROOT
-    export COCOS_CONSOLE_ROOT
-fi
+#COCOS_CONSOLE_ROOT=$HOME/cocos2d-x/cocos2d-x-3.2/tools/cocos2d-console/bin
+#if [ -d "$COCOS_CONSOLE_ROOT" ] ; then
+#    PATH=$PATH:$COCOS_CONSOLE_ROOT
+#    export COCOS_CONSOLE_ROOT
+#fi
 
-if [ -d "/opt/android/studio/bin" ]; then
-    PATH=$PATH:/opt/android/studio/bin
-fi
-if [ -d "/opt/gradle-2.12/bin" ]; then
-    export GRADLE_HOME=/opt/gradle-2.12
-    PATH=$PATH:/opt/gradle-2.12/bin
-fi
+#if [ -d "/opt/android/studio/bin" ]; then
+#    PATH=$PATH:/opt/android/studio/bin
+#fi
+#if [ -d "/opt/gradle-2.12/bin" ]; then
+#    export GRADLE_HOME=/opt/gradle-2.12
+#    PATH=$PATH:/opt/gradle-2.12/bin
+#fi
 
 # Add environment variable ANT_ROOT for cocos2d-x
-export ANT_HOME=/usr/share/apache-ant
-export ANT_ROOT=/bin
-
+#export ANT_HOME=/usr/share/apache-ant
+#export ANT_ROOT=/bin
 export PATH
+
+##alias for cnpm
+#alias cnpm="npm --registry=https://registry.npm.taobao.org \
+#  --cache=$HOME/.npm/.cache/cnpm \
+#  --disturl=https://npm.taobao.org/dist \
+#  --userconfig=$HOME/.cnpmrc"
+
+# limit coredumpsize 0
 date
-
-
-#alias for cnpm
-alias cnpm="npm --registry=https://registry.npm.taobao.org \
-  --cache=$HOME/.npm/.cache/cnpm \
-  --disturl=https://npm.taobao.org/dist \
-  --userconfig=$HOME/.cnpmrc"
-

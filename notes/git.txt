@@ -1,3 +1,10 @@
+### http://cms-sw.github.io/tutorial-proxy.html
+### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy?rq=1
+    git config --global http.proxy socks5://localhost:1080
+    git config --global core.gitproxy "git-proxy"
+    git config --global socks.proxy "localhost:1080"
+    git-proxy --help
+    view ~/.gitconfig
 
 ### http://stackoverflow.com/questions/610208/how-to-retrieve-a-single-file-from-specific-revision-in-git
     git show bde7984f89:mediatek/platform/mt6572/kernel/drivers/keypad/rckey.c > /tmp/rckey.c.bde7984f89
