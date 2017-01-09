@@ -1,16 +1,8 @@
 import os ;
 import feature ;
-import boost ;
+#import boost ;
 
 #boost.use-project ;
-
-# -std=gnu++14
-# -Wno-missing-field-initializers -Wno-deprecated -W -Wall -Wextra -Wno-unused-parameter
-# -fno-strict-aliasing
-# -MT EchoHandler.o -MD -MP -MF $depbase.Tpo -c -o EchoHandler.o EchoHandler.cpp
-# g++ -std=gnu++14 -DHAVE_CONFIG_H   -I../../../.. -I../../../lib/test/googletest-release-1.8.0/googlemock/include -I../../../lib/test/googletest-release-1.8.0/googletest/include  -I/usr/include   -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -MT EchoServer.o -MD -MP -MF $depbase.Tpo -c -o EchoServer.o EchoServer.cpp &&\
-# /bin/bash ../../../libtool  --tag=CXX   --mode=link g++ -std=gnu++14  -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2   -o echo_server EchoHandler.o EchoServer.o ../../libproxygenhttpserver.la -lwangle -lfolly -lz -lssl -lcrypto -lcap -levent -lgflags -lglog  -L/usr/lib64 -lpthread -pthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread
-# libtool: link: g++ -std=gnu++14 -DLIBMC_FBTRACE_DISABLE -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -o .libs/echo_server EchoHandler.o EchoServer.o -pthread  ../../.libs/libproxygenhttpserver.so -lwangle -lz -lssl -lcrypto -lcap -levent -lgflags -L/usr/lib64 -lpthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread -pthread
 
 project test
   : requirements
@@ -59,6 +51,8 @@ project test
 
   : build-dir bin
   ;
+
+# build-project : proxygen : proxygen ;
 
 #lib z ssl crypto cap event gflags folly glog double-conversion ;
 #alias deplibs : z ssl crypto cap event gflags folly glog double-conversion ;

@@ -1,70 +1,10 @@
-import os ;
-import feature ;
-import boost ;
-
-#boost.use-project ;
-
-# -std=gnu++14
-# -Wno-missing-field-initializers -Wno-deprecated -W -Wall -Wextra -Wno-unused-parameter
-# -fno-strict-aliasing
-# -MT EchoHandler.o -MD -MP -MF $depbase.Tpo -c -o EchoHandler.o EchoHandler.cpp
-# g++ -std=gnu++14 -DHAVE_CONFIG_H   -I../../../.. -I../../../lib/test/googletest-release-1.8.0/googlemock/include -I../../../lib/test/googletest-release-1.8.0/googletest/include  -I/usr/include   -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -MT EchoServer.o -MD -MP -MF $depbase.Tpo -c -o EchoServer.o EchoServer.cpp &&\
-# /bin/bash ../../../libtool  --tag=CXX   --mode=link g++ -std=gnu++14  -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2   -o echo_server EchoHandler.o EchoServer.o ../../libproxygenhttpserver.la -lwangle -lfolly -lz -lssl -lcrypto -lcap -levent -lgflags -lglog  -L/usr/lib64 -lpthread -pthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread
-# libtool: link: g++ -std=gnu++14 -DLIBMC_FBTRACE_DISABLE -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -o .libs/echo_server EchoHandler.o EchoServer.o -pthread  ../../.libs/libproxygenhttpserver.so -lwangle -lz -lssl -lcrypto -lcap -levent -lgflags -L/usr/lib64 -lpthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread -pthread
-
 project
   : requirements
-    <threading>multi
-    #<library>/boost/system//boost_system
-    #<library>/boost/coroutine//boost_coroutine
-    #<library>/boost/filesystem//boost_filesystem
-    #<library>/boost/system//boost_thread
-    #<library>/boost/program_options//boost_program_options
-    <define>BOOST_ALL_NO_LIB=1
-    <define>HAVE_CONFIG_H
-    <define>LIBMC_FBTRACE_DISABLE
-    #<link>shared:<define>BOOST_ALL_DYN_LINK
-    <toolset>gcc:<cxxflags>-std=c++1y
-    <toolset>gcc:<cxxflags>-Wno-unused-parameter
-    <toolset>clang:<cxxflags>-std=c++1y
-    <toolset>clang:<cxxflags>-Wno-unused-parameter
-    <toolset>gcc:<cxxflags>-Wno-unused-variable   # Temporary until we can figure out -isystem
-    <toolset>clang:<cxxflags>-Wno-unused-variable # Temporary until we can figure out -isystem
-    <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
-    <toolset>msvc:<cxxflags>"/wd4100 /bigobj"
-    <toolset>msvc,<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
-    <os>LINUX:<define>_XOPEN_SOURCE=600
-    <os>LINUX:<define>_GNU_SOURCE=1
-    <os>SOLARIS:<define>_XOPEN_SOURCE=500
-    <os>SOLARIS:<define>__EXTENSIONS__
-    <os>SOLARIS:<library>socket
-    <os>SOLARIS:<library>nsl
-    <os>NT:<define>_WIN32_WINNT=0x0601
-    <os>NT,<toolset>cw:<library>ws2_32
-    <os>NT,<toolset>cw:<library>mswsock
-    <os>NT,<toolset>gcc:<library>ws2_32
-    <os>NT,<toolset>gcc:<library>mswsock
-    <os>NT,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
-    <variant>debug:<debug-symbols>on
-    <variant>release:<debug-symbols>off
-    <variant>release:<optimization>speed
-    <include>..
-    <include>lib/test/googletest-release-1.8.0/googlemock/include
-    <include>lib/test/googletest-release-1.8.0/googletest/include
-    <include>/usr/include
-    <runtime-link>shared
-
   : usage-requirements
-
   ;
 
 lib z ssl crypto cap event gflags folly glog double-conversion ;
 alias deplibs : z ssl crypto cap event gflags folly glog double-conversion ;
-
-# -MT EchoHandler.o -MD -MP -MF $depbase.Tpo -c -o EchoHandler.o EchoHandler.cpp
-# -lwangle -lz -lssl -lcrypto -lcap -levent -lgflags
-# -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread
 
 lib boost_system boost_coroutine boost_filesystem boost_thread ;
 
@@ -83,4 +23,16 @@ exe push
         boost_system boost_thread
         deplibs
     ;
+
+# -std=gnu++14
+# -Wno-missing-field-initializers -Wno-deprecated -W -Wall -Wextra -Wno-unused-parameter
+# -fno-strict-aliasing
+# -MT EchoHandler.o -MD -MP -MF $depbase.Tpo -c -o EchoHandler.o EchoHandler.cpp
+# g++ -std=gnu++14 -DHAVE_CONFIG_H   -I../../../.. -I../../../lib/test/googletest-release-1.8.0/googlemock/include -I../../../lib/test/googletest-release-1.8.0/googletest/include  -I/usr/include   -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -MT EchoServer.o -MD -MP -MF $depbase.Tpo -c -o EchoServer.o EchoServer.cpp &&\
+# /bin/bash ../../../libtool  --tag=CXX   --mode=link g++ -std=gnu++14  -DLIBMC_FBTRACE_DISABLE  -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2   -o echo_server EchoHandler.o EchoServer.o ../../libproxygenhttpserver.la -lwangle -lfolly -lz -lssl -lcrypto -lcap -levent -lgflags -lglog  -L/usr/lib64 -lpthread -pthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread
+# libtool: link: g++ -std=gnu++14 -DLIBMC_FBTRACE_DISABLE -Wno-missing-field-initializers -Wno-deprecated -O3 -g -W -Wall -Wextra -Wno-unused-parameter -fno-strict-aliasing -g -O2 -o .libs/echo_server EchoHandler.o EchoServer.o -pthread  ../../.libs/libproxygenhttpserver.so -lwangle -lz -lssl -lcrypto -lcap -levent -lgflags -L/usr/lib64 -lpthread -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread -pthread
+
+# -MT EchoHandler.o -MD -MP -MF $depbase.Tpo -c -o EchoHandler.o EchoHandler.cpp
+# -lwangle -lz -lssl -lcrypto -lcap -levent -lgflags
+# -lfolly -lglog -ldouble-conversion -lboost_system -lboost_thread
 
