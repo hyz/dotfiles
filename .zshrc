@@ -74,6 +74,7 @@ fi
 # # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 # 
 [ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
+[ -d "/tmp/$USER" ] || mkdir "/tmp/$USER"
 
 case "`uname -s`" in
 Darwin)

@@ -3,25 +3,28 @@ project
   : usage-requirements
   ;
 
-lib z ssl crypto cap event gflags folly glog double-conversion ;
-alias deplibs : z ssl crypto cap event gflags folly glog double-conversion ;
+lib dl z ssl crypto cap event gflags glog double-conversion ;
+alias deplibs : dl z ssl crypto cap event ;
+alias googlelibs : gflags glog double-conversion ;
 
-lib boost_system boost_coroutine boost_filesystem boost_thread ;
+lib boost_system boost_coroutine boost_filesystem boost_thread boost_context ;
+alias boostlibs : boost_system boost_coroutine boost_filesystem boost_thread boost_context ;
 
-lib libproxygenhttpserver : : <file>httpserver/.libs/libproxygenhttpserver.so ;
+lib libfollyinit : : <file>/usr/local/lib/libfollyinit.a ;
+lib libfolly :  : <file>/usr/local/lib/libfolly.a ;
+lib libproxygenhttpserver : : <file>/usr/local/lib/libproxygenhttpserver.a ;
+lib libproxygenlib : : <file>/usr/local/lib/libproxygenlib.a ;
+lib libwangle : : <file>/usr/local/lib/libwangle.a ;
+alias facebooklibs : libfollyinit libfolly libproxygenhttpserver libproxygenlib libwangle ;
 
 exe s
     : httpserver/samples/s/EchoHandler.cpp httpserver/samples/s/EchoServer.cpp
-        libproxygenhttpserver
-        boost_system boost_thread
-        deplibs
+        facebooklibs googlelibs boostlibs deplibs
     ;
 
 exe push
     : httpserver/samples/push/PushRequestHandler.cpp httpserver/samples/push/PushServer.cpp
-        libproxygenhttpserver
-        boost_system boost_thread
-        deplibs
+        facebooklibs googlelibs boostlibs deplibs
     ;
 
 # -std=gnu++14
