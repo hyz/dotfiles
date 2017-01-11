@@ -1,0 +1,8 @@
+
+http://stackoverflow.com/questions/37263147/how-do-i-split-an-audio-file-at-the-end-of-a-silence-without-deleting-silence
+https://github.com/jiaaro/pydub/blob/master/pydub/silence.py#L6
+
+    You might find the pydub.silence.detect_silence() function useful. It returns a list of ranges where silence was detected (it’s used inside the split on silence function)
+
+    there is also pydub.silence.detect_nonsilent() in case that is more helpful
+

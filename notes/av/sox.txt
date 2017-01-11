@@ -1,0 +1,12 @@
+
+http://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
+    The SoX of Silence
+
+    Example 8: Splitting audio based on silence
+        sox in.wav out.wav silence 1 0.5 1% 1 5.0 1% : newfile : restart
+    Example 1: Trimming silence at the beginning
+        sox in.wav out1.wav silence 1 0.1 1%
+    Example 4: Trimming all silence
+        sox in.wav out4.wav silence 1 0.1 1% -1 0.1 1%
+
+
