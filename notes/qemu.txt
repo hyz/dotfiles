@@ -189,3 +189,7 @@ LABEL arch-fallback
   INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
 
 
+### vnc + TigerVNC
+### https://github.com/TigerVNC/tigervnc/releases
+    kvm -enable-kvm -vnc :0 -m 2G -hda /dev/sda6 -cdrom u.iso -boot d -net nic -net user
+

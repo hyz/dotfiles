@@ -1,0 +1,5 @@
+
+blog.dornea.nu/2012/04/01/howto-split-mp3s-by-silence-detection-using-mp3splt/
+    mp3splt -s -p th=-40,min=6,rm
+    mpgjoin *.mp3 -o JOINED.mp3 # http://stream-recorder.com/forum/mp3-splitting-based-silence-detection-command-line-t5510.html?s=738b478830234bd0dd03fa03f0b17e56&amp;s=738b478830234bd0dd03fa03f0b17e56&amp;
+

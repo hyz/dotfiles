@@ -30,9 +30,9 @@ if [[ "`id -ru`" = 0 ]] ; then
     fi
     ###[ -r $SLIC ] || chmod g+r $SLIC || exit 1
 
-    ip link set $eth0 up promisc on
+    #ip link set $eth0 up promisc on
 
-    modprobe tun
+    #modprobe tun
     ip tuntap add dev $tapX mode tap user $SUDO_USER
     ip link set $tapX master $br0 # brctl addif $br0 $tapX
     ip link set $tapX up # promisc on
@@ -76,7 +76,7 @@ else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
     fi
     Mac=52:54:00:12:32:66
 
-    qemu-system-x86_64 -name Archv1 -enable-kvm -machine type=pc,accel=kvm \
+    qemu-system-x86_64 -name UbuntuV1 -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=$(nproc) -m 4G \
         -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
         -hda $hda -boot c \

@@ -150,7 +150,7 @@ class Main(object):
                 for fp in glob.glob(os.path.join(out, 'doc/*.xls')):
                     print('copy:', fp)
                     shutil.copy(fp, '/samba/release1/doc/')
-                with open('svn.log.{}.{}.{}'.format(prj.name,prj.ver(),prj.svnrev(old=1)), 'w') as f:
+                with open('svn.log.{}.{}'.format(prj.name,prj.ver()), 'w') as f:
                     subprocess.check_call(command('svn log -r{}:HEAD {}', prj.svnrev(old=1), src)
                             , stdout=f, shell=True, executable='/bin/bash')
                     print(prj.fullver()

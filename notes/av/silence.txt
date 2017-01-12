@@ -1,0 +1,8 @@
+
+$ ffmpeg -i in.wav -af silencedetect=noise=-40dB:d=0.6 -f null -
+
+    [silencedetect @ 0x1f32bc0] silence_start: 0.424
+    [silencedetect @ 0x1f32bc0] silence_end: 1.536 | silence_duration: 1.112
+    [silencedetect @ 0x1f32bc0] silence_start: 1.704
+    [silencedetect @ 0x1f32bc0] silence_end: 2.688 | silence_duration: 0.984
+
