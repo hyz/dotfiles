@@ -36,7 +36,7 @@ def _complete_parts(words, total_len=0):
     return parts
 
 class Main(object):
-    def __init__(self, *args, c_inc='Korean.h', wav='tts_ko.data.wav', **kvargs):
+    def __init__(self, *args, c_inc='korean.h', wav='ko.wav', **kvargs):
         self.segment = AudioSegment.from_wav(wav)
         self.words = _parse_c_inc_file(c_inc)
         self.parts = _complete_parts(self.words, len(self.segment))
@@ -84,22 +84,16 @@ class Main(object):
             print( "exporting", out_file )
             chunk.export(out_file, format="wav")
 
-#def main():
-#    segment = AudioSegment.from_wav('tts_ko.data.wav')
-#    words = _parse_c_inc_file('Korean.h')
-#    parts = _complete_parts(words, len(segment))
-#    #split(parts, segment, 'out')
-#    join(parts, 'out', 'out/tts_ko.data.wav', 'out/tts_ko.data.h')
 def help(*args, **kvargs):
     print('Usages:'
-            '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> split /tmp\n'
-            '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> join /tmp /tmp/ts_ko.wav /tmp/Korean.h\n'
+            '\t{0} c_inc=<korean.h> wav=<ko.wav> split /tmp\n'
+            '\t{0} c_inc=<korean.h> wav=<ko.wav> join  /tmp /tmp/ts_ko.wav /tmp/Korean.h\n'
             .format(sys.argv[0]))
 def main(fn, args, kvargs):
     t0 = time.time()
     m = Main(*args, **kvargs);
     getattr(m, fn, help)(*args, **kvargs)
-    print('time({}): {}"{}'.format(fn, *map(int, divmod(time.time() - t0, 60))) )
+    print('\ntime({}): {}"{}'.format(fn, *map(int, divmod(time.time() - t0, 60))) )
 
 if __name__ == '__main__':
     def _fn_lis_dic(args):
@@ -126,7 +120,6 @@ if __name__ == '__main__':
         global _STOP
         _STOP = 1
     try:
-        # main()
         import signal
         signal.signal(signal.SIGINT, _sig_handler)
         main(*_fn_lis_dic(sys.argv[1:]))

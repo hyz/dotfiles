@@ -1,14 +1,17 @@
 
 ### http://stackoverflow.com/questions/4881129/how-do-you-see-recent-svn-log-entries
-svn log --limit 3
-svn log -r 1:HEAD
-svn log -r HEAD:1
-svn log -r 1:BASE
+    svn log --limit 3
+    svn log -r 1:HEAD
+    svn log -r HEAD:1
+    svn log -r 1:BASE
 
 ### http://svnbook.red-bean.com/en/1.7/svn.branchmerge.using.html
 ### http://blog.csdn.net/feliciafay/article/details/8962515
     svn diff -r94239
     svn diff -r94239:94127  
+
+    svn diff --summarize -r780:HEAD
+
 ### svn diff & patch
     生成patch文件:
      svn diff > patchFile // 整个工程的变动生成patch
@@ -27,5 +30,5 @@ svn log -r 1:BASE
      svn revert DIR --depth=infinity // 整个目录进行递归回滚
 
 ###
-    svn diff --summarize -r780:HEAD
+    svn checkout svn://x.x.x.x/a@r123 r123
 
