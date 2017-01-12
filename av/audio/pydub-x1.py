@@ -41,8 +41,8 @@ class Main(object):
         self.words = _parse_c_inc_file(c_inc)
         self.parts = _complete_parts(self.words, len(self.segment))
 
-    def split(self, work_dir='/tmp'):
-        if not os.path.exist(work_dir):
+    def split(self, work_dir, *args, **kvargs):
+        if not os.path.exists(work_dir):
             os.makedirs(work_dir)
         for b,e,f in self.parts:
             wavfp = os.path.join(work_dir,f+'.wav')
@@ -52,7 +52,7 @@ class Main(object):
                 print('split:', wavfp, b, e-b, len(seg))
                 seg.export(wavf, format='wav')
 
-    def join(self, work_dir, out_fp, out_inc_h):
+    def join(self, work_dir, out_fp, out_inc_h, *args, **kvargs):
         out_inc_h = open(out_inc_h, 'w')
         segment = AudioSegment.empty() # segment = AudioSegment()
         for _,_,f in self.parts:
@@ -68,12 +68,6 @@ class Main(object):
                 segment += seg
             #print('join', wavfp, slen)
         segment.export(out_fp, format='wav')
-
-    def help(self, *args, **kvargs):
-        print('Usages:'
-                '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> split /tmp'
-                '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> join /tmp /tmp/ts_ko.wav /tmp/Korean.h'
-                .format(sys.argv[0]))
 
     def silence_a(self):
         sound_file = AudioSegment.from_wav("a-z.wav")
@@ -96,10 +90,15 @@ class Main(object):
 #    parts = _complete_parts(words, len(segment))
 #    #split(parts, segment, 'out')
 #    join(parts, 'out', 'out/tts_ko.data.wav', 'out/tts_ko.data.h')
+def help(*args, **kvargs):
+    print('Usages:'
+            '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> split /tmp\n'
+            '\t{0} c_inc=<Korean.h> wav=<tts_ko.wav> join /tmp /tmp/ts_ko.wav /tmp/Korean.h\n'
+            .format(sys.argv[0]))
 def main(fn, args, kvargs):
     t0 = time.time()
     m = Main(*args, **kvargs);
-    getattr(m, fn, m.help)(*args, **kvargs)
+    getattr(m, fn, help)(*args, **kvargs)
     print('time({}): {}"{}'.format(fn, *map(int, divmod(time.time() - t0, 60))) )
 
 if __name__ == '__main__':
@@ -132,6 +131,6 @@ if __name__ == '__main__':
         signal.signal(signal.SIGINT, _sig_handler)
         main(*_fn_lis_dic(sys.argv[1:]))
     except Exception as e:
-        #print(e, file=sys.stderr)
+        help() #print(e, file=sys.stderr)
         raise
 
