@@ -1,0 +1,19 @@
+
+http://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
+    The SoX of Silence
+
+    Example 8: Splitting audio based on silence
+        sox in.wav out.wav silence 1 0.5 1% 1 5.0 1% : newfile : restart
+    Example 1: Trimming silence at the beginning
+        sox in.wav out1.wav silence 1 0.1 1%
+    Example 4: Trimming all silence
+        sox in.wav out4.wav silence 1 0.1 1% -1 0.1 1%
+
+http://www.mymusictools.com/articles/how-do-i-split-mp3-file-using-silence-detection.htm
+    How do I split MP3 file using silence detection?
+    http://www.maniactools.com/cgi-bin/download/mp3-splitter-joiner-mmt.exe
+
+http://stackoverflow.com/questions/11834297/how-can-i-remove-silence-from-an-mp3-programmatically
+    sox inputfile.mp3 outputfile.mp3 silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse
+    sox inputfile.mp3 outputfile.mp3 reverse silence 1 0.1 0.1% reverse
+
