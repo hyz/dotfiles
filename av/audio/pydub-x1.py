@@ -30,7 +30,7 @@ def get_pcm_words(infp):
                 b,e,f = ( int(r.group(1)),int(r.group(2)), r.group(3) )
                 if b < e:
                     if b < max_p:
-                        raise TabError(f)
+                        raise TabError(line.strip())
                     max_p = e
                     words.append( (b,e,f) )
                     idx += 1
@@ -40,7 +40,7 @@ def get_pcm_words(infp):
 def complete_parts(words, total_len=0):
     parts = []
     pos = 0
-    for b,e,f in sorted(words, key=lambda t:t[0]):
+    for b,e,f in words: # sorted(words, key=lambda t:t[0]):
         if pos < b:
             parts.append( (pos,b, '.%d'%pos) )
         parts.append( (b,e,f) )
