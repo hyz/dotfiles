@@ -345,7 +345,7 @@ def die(*args):
     print(*args, file=sys.stderr)
     sys.exit(127)
 
-def _args_lis_dic(args):
+def _fn_lis_dic(args):
     lis, dic = [], {} # defaultdict(list)
     for a in args:
         if a.startswith('-'):
@@ -372,7 +372,7 @@ if __name__ == '__main__':
         import signal
         signal.signal(signal.SIGINT, _sig_handler)
         _FUNC = sys.argv[1]
-        main(*_args_lis_dic(sys.argv[2:]))
+        main(*_fn_lis_dic(sys.argv[2:]))
     except Exception as e:
         print(e, file=sys.stderr)
         raise
