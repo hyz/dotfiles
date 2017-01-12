@@ -17,16 +17,12 @@ lib libproxygenlib : : <file>/usr/local/lib/libproxygenlib.a ;
 lib libwangle : : <file>/usr/local/lib/libwangle.a ;
 alias facebooklibs : libfollyinit libfolly libproxygenhttpserver libproxygenlib libwangle ;
 
-exe s
-    : httpserver/samples/s/EchoHandler.cpp httpserver/samples/s/EchoServer.cpp
-        facebooklibs googlelibs boostlibs deplibs
-    ;
-
 exe push
-    : httpserver/samples/push/PushRequestHandler.cpp httpserver/samples/push/PushServer.cpp
+    : PushRequestHandler.cpp PushServer.cpp
         facebooklibs googlelibs boostlibs deplibs
     ;
 
+# exe s : httpserver/samples/s/EchoHandler.cpp httpserver/samples/s/EchoServer.cpp facebooklibs googlelibs boostlibs deplibs ;
 # -std=gnu++14
 # -Wno-missing-field-initializers -Wno-deprecated -W -Wall -Wextra -Wno-unused-parameter
 # -fno-strict-aliasing
