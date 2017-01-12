@@ -1,0 +1,28 @@
+
+### http://stackoverflow.com/questions/2018026/what-are-the-differences-between-the-urllib-urllib2-and-requests-module?rq=1I
+    import requests
+    resp = requests.get('http://www.mywebsite.com/user')
+    resp = requests.post('http://www.mywebsite.com/user')
+    resp = requests.put('http://www.mywebsite.com/user/put')
+    resp = requests.delete('http://www.mywebsite.com/user/delete')
+
+    userdata = {"firstname": "John", "lastname": "Doe", "password": "jdoe123"}
+    resp = requests.post('http://www.mywebsite.com/user', data=userdata)
+    resp.json()
+
+    ...
+    International Domains and URLs
+    Keep-Alive & Connection Pooling
+    Sessions with Cookie Persistence
+    Browser-style SSL Verification
+    Basic/Digest Authentication
+    Elegant Key/Value Cookies
+    Automatic Decompression
+    Unicode Response Bodies
+    Multipart File Uploads
+    Connection Timeouts
+    .netrc support
+    List item
+    Python 2.6—3.4
+    Thread-safe.
+

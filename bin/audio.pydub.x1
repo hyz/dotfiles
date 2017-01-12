@@ -84,6 +84,10 @@ class Main(object):
             print( "exporting", out_file )
             chunk.export(out_file, format="wav")
 
+def stat(wav_fp, *args, **kvargs):
+    seg = AudioSegment.from_wav(wav_fp)
+    print('millis:', len(seg))
+
 def help(*args, **kvargs):
     print('Usages:'
             '\t{0} c_inc=<korean.h> wav=<ko.wav> split /tmp\n'
@@ -91,8 +95,10 @@ def help(*args, **kvargs):
             .format(sys.argv[0]))
 def main(fn, args, kvargs):
     t0 = time.time()
-    m = Main(*args, **kvargs);
-    getattr(m, fn, help)(*args, **kvargs)
+    f = getattr(sys.modules[__name__], fn, None)
+    if not f:
+        f = getattr(Main(*args, **kvargs), fn, help)
+    f(*args, **kvargs)
     print('\ntime({}): {}"{}'.format(fn, *map(int, divmod(time.time() - t0, 60))) )
 
 if __name__ == '__main__':
@@ -126,4 +132,7 @@ if __name__ == '__main__':
     except Exception as e:
         help() #print(e, file=sys.stderr)
         raise
+
+# audio.pydub.x1 c_inc=Korean.h wav=tts_ko.data.wav split out
+# audio.pydub.x1 c_inc=Korean.h wav=tts_ko.data.wav join out out/tts_ko.data.wav out/Korean.h
 
