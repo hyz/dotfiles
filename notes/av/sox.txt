@@ -1,4 +1,6 @@
 
+http://sox.sourceforge.net/sox.html
+
 http://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
     The SoX of Silence
 
@@ -9,4 +11,7 @@ http://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
     Example 4: Trimming all silence
         sox in.wav out4.wav silence 1 0.1 1% -1 0.1 1%
 
+
+http://stackoverflow.com/questions/20127095/using-sox-to-change-the-volume-level-of-a-range-of-time-in-an-audio-file?rq=1
+    sox -m -t wav "|sox -V1 inputfile.wav -t wav - fade t 0 2.2 0.4" -t wav "|sox -V1 inputfile.wav -t wav - trim 1.8 fade t 0.4 3.4 0.4 gain -6 pad 1.8" -t wav "|sox -V1 inputfile.wav -t wav - trim 4.8 fade t 0.4 0 0 pad 4.8" outputfile.wav gain 9.542
 
