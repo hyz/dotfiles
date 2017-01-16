@@ -1,0 +1,11 @@
+
+http://spflashtool.com/
+
+https://github.com/neo-technologies/rkflashtool/
+
+https://forum.xda-developers.com/general/rooting-roms/tutorial-how-to-setup-spflashtoollinux-t3160802
+    How to setup SP_Flash_Tool_Linux (MTK/MediaTek Soc) 
+
+### http://www.cnblogs.com/cute/p/4835656.html
+介绍一种android的裸刷机方法（fastboot刷机实质）
+
