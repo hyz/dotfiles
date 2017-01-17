@@ -156,6 +156,7 @@ class Main(object):
                     print(prj.fullver()
                             , '%s => %s' % (prj.svnrev(old=1),prj.svnrev())
                             , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
+                    print('$ vim', '~/release/Game14/doc/版本发布记录.txt', f.name)
 
             self.version_set(os.path.join(out,prj._AppConfig), prj.ver(), prj.svnrev())
 
@@ -296,12 +297,6 @@ Usages:
             #pprint(vars(self)) #pprint(globals())
         grep('Key.*word', 'howto.txt')
 
-def main(args, kvargs):
-    t0 = time.time()
-    m = Main(*args, **kvargs);
-    getattr(m, _FUNC, m.help)(*args, **kvargs)
-    print('time({}): {}"{}'.format(_FUNC, *map(int, divmod(time.time() - t0, 60))) )
-
 def command(s, *args, **kv):
     cmd = s.format(*args, **kv)
     print(cmd)
@@ -342,27 +337,49 @@ def grep(expr, *files, filt=None):
         print(textf, e)
 
 def die(*args):
-    print(*args, file=sys.stderr)
+    #print(*args, file=sys.stderr)
+    raise SystemExit(*args)
     sys.exit(127)
 
-def _fn_lis_dic(args):
-    lis, dic = [], {} # defaultdict(list)
-    for a in args:
-        if a.startswith('-'):
-            assert ( '=' in a )
-        a = a.strip('-')
-        if '=' in a:
-            k,v = a.split('=',1)
-            v0 = dic.setdefault(k,v)
-            if v0 is not v:
-                if type(v0) == list:
-                    v0.append(v)
+def _main_():
+    def _fn_lis_dic(args):
+        fn, lis, dic = '', [], {} # defaultdict(list)
+        for a in args:
+            if a.startswith('-'):
+                assert ( '=' in a )
+                a = a.strip('-')
+            if '=' in a:
+                k,v = a.split('=',1)
+                v0 = dic.setdefault(k,v)
+                if v0 is not v:
+                    if type(v0) == list:
+                        v0.append(v)
+                    else:
+                        dic[k] = [v0, v]
+            else:
+                if not fn:
+                    fn = a
                 else:
-                    dic[k] = [v0, v]
-        else:
-            lis.append(a)
-    #for k,v in defs.items(): dic.setdefault(k, v)
-    return lis, dic
+                    lis.append(a)
+        global _FUNC
+        _FUNC = fn
+        return fn, lis, dic
+    def _fn(fn):
+        mod = sys.modules[__name__]
+        f = getattr(mod, fn, None)
+        if not f:
+            cls = getattr(mod, 'Main', lambda *x,**y: None)
+            f = getattr(cls(*args, **kvargs), fn, None)
+        if not f:
+            f = getattr(mod, 'help', None)
+        if not f:
+            raise RuntimeError(fn, 'not found')
+        return f
+    t0 = time.time()
+    fn, args, kvargs = _fn_lis_dic(sys.argv[1:])
+    _fn(fn)(*args, **kvargs)
+    sys.stdout.flush()
+    print('time({}): {}m{}s'.format(fn, *map(int, divmod(time.time() - t0, 60))), file=sys.stderr)
 
 if __name__ == '__main__':
     def _sig_handler(signal, frame):
@@ -371,8 +388,7 @@ if __name__ == '__main__':
     try:
         import signal
         signal.signal(signal.SIGINT, _sig_handler)
-        _FUNC = sys.argv[1]
-        main(*_fn_lis_dic(sys.argv[2:]))
+        _main_() #(*_fn_lis_dic(sys.argv[2:]))
     except Exception as e:
         print(e, file=sys.stderr)
         raise
