@@ -1,3 +1,4 @@
+https://github.com/xiada/mtk-linux/blob/master/mtktool.py
 
 ====== ====== ====== ====== ====== ====== ====== ======
 selinux
