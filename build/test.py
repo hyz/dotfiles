@@ -36,9 +36,10 @@ class Main(object):
     def __init__(self, *args, **kvargs):
         self.session = requests.Session()
         #self.cookies = requests.cookies.RequestsCookieJar()
-    def GET(self, url, **kvargs):
+
+    def _GET(self, url, **kvargs):
         return self.session.get(url, **kvargs)
-    def POST(self, url, **kvargs):
+    def _POST(self, url, **kvargs):
         return self.session.post(url, **kvargs)
 
     def test1(self, *args, times=1, **kvargs):
@@ -46,8 +47,13 @@ class Main(object):
         while times > 0:
             times -= 1
             js = {"firstname": "John", "lastname": "Doe", "password": "jdoe123"}
-            r = self.POST('http://localhost:11000/pusheen', data=json.dumps(js))
-            print(r.json())
+            headers={'X-PushIt':'Yes'}
+            with debug_requests():
+                r = self._POST('http://localhost:11000/pusheen'
+                        , data=json.dumps(js)
+                        , headers=headers)
+                print(r.text) # print(r.json())
+            # 
 
     def test2(self, *args, **kvargs):
         pass
@@ -57,17 +63,10 @@ def help(*args, **kvargs):
             '\t{0} X=<XValue> Y=<YValue> test1 yarg\n'
             '\t{0} X=<XValue> Y=<YValue> test2 xarg yarg\n'
             .format(sys.argv[0]))
-def main(fn, args, kvargs):
-    logging.basicConfig(level=logging.DEBUG)
-    #logging.getLogger().setLevel()
-    t0 = time.time()
-    m = Main(*args, **kvargs);
-    getattr(m, fn, help)(*args, **kvargs)
-    print('\ntime({}): {}"{}'.format(fn, *map(int, divmod(time.time() - t0, 60))) )
 
-if __name__ == '__main__':
+def _main_():
     def _fn_lis_dic(args):
-        fn, lis, dic = None, [], {} # defaultdict(list)
+        fn, lis, dic = '', [], {} # defaultdict(list)
         for a in args:
             if a.startswith('-'):
                 assert ( '=' in a )
@@ -81,18 +80,36 @@ if __name__ == '__main__':
                     else:
                         dic[k] = [v0, v]
             else:
-                if fn == None:
+                if not fn:
                     fn = a
                 else:
                     lis.append(a)
         return fn, lis, dic
+    def _fn(fn):
+        mod = sys.modules[__name__]
+        f = getattr(mod, fn, None)
+        if not f:
+            cls = getattr(mod, 'Main', lambda *x,**y: None)
+            f = getattr(cls(*args, **kvargs), fn, None)
+        if not f:
+            f = getattr(mod, 'help', None)
+        if not f:
+            raise RuntimeError(fn, 'not found')
+        return f
+    t0 = time.time()
+    fn, args, kvargs = _fn_lis_dic(sys.argv[1:])
+    _fn(fn)(*args, **kvargs)
+    sys.stdout.flush()
+    print('time({}): {}m{}s'.format(fn, *map(int, divmod(time.time() - t0, 60))), file=sys.stderr)
+
+if __name__ == '__main__':
     def _sig_handler(signal, frame):
         global _STOP
         _STOP = 1
     try:
         import signal
         signal.signal(signal.SIGINT, _sig_handler)
-        main(*_fn_lis_dic(sys.argv[1:]))
+        _main_()
     except Exception as e:
         help() #print(e, file=sys.stderr)
         raise
