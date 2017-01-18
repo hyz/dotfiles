@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import sys, time, os, re, types, contextlib
-import subprocess, shutil, glob, tempfile
+import sys, time, os, re, subprocess, types, contextlib
+import fnmatch, shutil, glob, tempfile
 from pprint import pprint
 
 HOME = os.environ['HOME']
@@ -121,13 +121,18 @@ class Main(object):
                 os.makedirs(out, exist_ok=True)
             print('rmtree:', out)
             shutil.rmtree(out, ignore_errors=True )
+            for x,y in walk('workspace', prj.name):
+                if not x.endswith('.projects'):
+                    y = os.path.join(x,y)
+                    print('rmtree:', y)
+                    shutil.rmtree(y, ignore_errors=True )
 
             print('copytree:', src, out)
             ignore = lambda d,names: [ '.svn','.git' ]
             shutil.copytree(src, out, ignore=ignore)
 
             fp = os.path.join(out,'.project')
-            print('ed:', fp, '<name>', prj.name)
+            print('edit:', fp, '<name>', prj.name)
             etree_replace_text(fp, './name', prj.name)
 
             if self.VARIANT == 'release':
@@ -135,13 +140,13 @@ class Main(object):
                 print('copyfile:', sf, df)
                 shutil.copyfile(sf, df)
                 log_h = os.path.join(out,self._Log_h)
-                print('ed:', log_h, 'BUILD_RELEASE')
-                ed('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
+                print('edit:', log_h, 'BUILD_RELEASE')
+                edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
 
             if prj.name == 'Game16':
                 fp = os.path.join(out, self._AndroidManifest)
-                print('ed:', fp, 'android.uid.system')
-                ed('\sandroid:versionName="(\d+\.\d+)"\s'
+                print('edit:', fp, 'android.uid.system')
+                edit('\sandroid:versionName="(\d+\.\d+)"\s'
                         , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
                         , fp, count=1)
                 #subprocess.check_call(command('cd mt6580 && git pull'), shell=True, executable='/bin/bash')
@@ -184,7 +189,7 @@ class Main(object):
                 if lin is line:
                     lin = re.sub(re_svnrev, repf, line)
                 if not (lin is line):
-                    print('ed:', appconfig, re.search('(\w+)\s*=\s*"([^"]+)', lin).groups())
+                    print('edit:', appconfig, re.search('(\w+)\s*=\s*"([^"]+)', lin).groups())
                 outf.write(lin)
 
     def build(self, *args, RARPWD=None, **kvargs):
@@ -295,7 +300,8 @@ Usages:
             print(prj.svnrev(old=1), '=>', prj.svnrev()
                     , prj.fullver(), '{}\\{}.apk'.format(self.VARIANT, prj.fullver()))
             #pprint(vars(self)) #pprint(globals())
-        grep('Key.*word', 'howto.txt')
+        for s in grep('Key.*word', 'howto.txt'):
+            print(s.strip())
 
 def command(s, *args, **kv):
     cmd = s.format(*args, **kv)
@@ -310,7 +316,15 @@ def etree_replace_text(filename, path, text):
         node.text = text
         tree.write(filename, encoding='UTF-8', xml_declaration=True) #(, short_empty_elements=False)
 
-def ed(expr, ss, *files, count=-1):
+def walk(top, name):
+    for basedir, dirs, files in os.walk(top):
+        for x in fnmatch.filter(dirs, name):
+            dirs.remove(x)
+            yield (basedir,x)
+        for x in fnmatch.filter(files, name):
+            yield (basedir,x)
+
+def edit(expr, ss, *files, count=-1):
     for textf in files:
         lines = []
         with open(textf) as sf:
@@ -332,7 +346,7 @@ def grep(expr, *files, filt=None):
                     if res:
                         if filt: line = filt(line, res)
                         if line:
-                            print(line.strip())
+                            yield line
     except IOError as e:
         print(textf, e)
 
