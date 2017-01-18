@@ -1,11 +1,21 @@
+### pip
+python3 -m pip install --upgrade pip
+python3 -m pip install aubio
+
+pip2 install -U requests
+
+### http://packages.python.org/distribute
+        This package is a simple compatibility layer that installs Setuptools 0.7+.
+
+###
 PYTHON=python2 python2 v2.py
 
-http://stackoverflow.com/questions/2850893/reading-binary-data-from-stdin
+### http://stackoverflow.com/questions/2850893/reading-binary-data-from-stdin
     treat stdin, stdout and stderr as binary unbuffered streams.
     PYTHONUNBUFFERED environment variable
     sys.stdin = os.fdopen(sys.stdin.fileno(), 'rb', 0)
 
-python3 setuptools
+### python3 setuptools
     http://www.coder4.com/archives/2926
     https://pythonhosted.org/distribute/
 
@@ -25,25 +35,19 @@ response = ...
 > response.json()
 > response.raw.read(10) # stream=True
 
-pip2 install -U requests
+### https://github.com/PyMySQL/PyMySQL.git
 
-
-https://github.com/PyMySQL/PyMySQL.git
-
-http://packages.python.org/distribute
-        This package is a simple compatibility layer that installs Setuptools 0.7+.
-
-
+### excel
 [pythonexcels]: http://www.pythonexcels.com
 [python-excel]: http://www.python-excel.org
 
 
-http://python.jobbole.com/85086/
+### http://python.jobbole.com/85086/
     浮点，小数，分数 (float, Decimal, Fraction)
     from decimal import Decimal
     from fractions import Fraction
 
-http://stackoverflow.com/questions/28336431/retrieve-the-command-line-arguments-of-the-python-interpreter?rq=1
+### http://stackoverflow.com/questions/28336431/retrieve-the-command-line-arguments-of-the-python-interpreter
     >>> import ctypes
     >>> argv = ctypes.POINTER(ctypes.c_char_p)()
     >>> argc = ctypes.c_int()

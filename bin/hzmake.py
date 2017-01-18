@@ -342,6 +342,12 @@ def die(*args):
     sys.exit(127)
 
 def _main_():
+    import signal
+    def _sig_handler(signal, frame):
+        global _STOP
+        _STOP = 1
+    signal.signal(signal.SIGINT, _sig_handler)
+
     def _fn_lis_dic(args):
         fn, lis, dic = '', [], {} # defaultdict(list)
         for a in args:
@@ -361,8 +367,6 @@ def _main_():
                     fn = a
                 else:
                     lis.append(a)
-        global _FUNC
-        _FUNC = fn
         return fn, lis, dic
     def _fn(fn):
         mod = sys.modules[__name__]
@@ -375,20 +379,18 @@ def _main_():
         if not f:
             raise RuntimeError(fn, 'not found')
         return f
+
     t0 = time.time()
     fn, args, kvargs = _fn_lis_dic(sys.argv[1:])
+    global _FUNC
+    _FUNC = fn
     _fn(fn)(*args, **kvargs)
     sys.stdout.flush()
     print('time({}): {}m{}s'.format(fn, *map(int, divmod(time.time() - t0, 60))), file=sys.stderr)
 
 if __name__ == '__main__':
-    def _sig_handler(signal, frame):
-        global _STOP
-        _STOP = 1
     try:
-        import signal
-        signal.signal(signal.SIGINT, _sig_handler)
-        _main_() #(*_fn_lis_dic(sys.argv[2:]))
+        _main_()
     except Exception as e:
         print(e, file=sys.stderr)
         raise

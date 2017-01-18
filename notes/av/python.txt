@@ -2,3 +2,13 @@
 ### https://github.com/jiaaro/pydub
     Pydub lets you do stuff to audio in a way that isn't stupid.
 
+### http://stackoverflow.com/questions/310765/python-library-to-modify-mp3-audio-without-transcoding?rq=1
+
+### https://aubio.org/
+    python3 -m pip install aubio
+
+### http://pymedia.org/
+
+
+### apt-cache search -n python |grep audio
+

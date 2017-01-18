@@ -1,3 +1,17 @@
+
+### .ssh/config
+Host git-oopx
+    HostName git.oschina.net
+    User git
+    IdentityFile ~/.ssh/id_rsa-XXX
+$ ssh -vT git-oopx
+$ git clone git-oopx:oopx/test.git
+
+### http://gitpython.readthedocs.io/en/stable/tutorial.html#handling-remotes
+    ssh_cmd = 'ssh -i id_deployment_key'
+    with repo.git.custom_environment(GIT_SSH_COMMAND=ssh_cmd):
+        repo.remotes.origin.fetch()
+
 ### http://cms-sw.github.io/tutorial-proxy.html
 ### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy?rq=1
     git config --global http.proxy socks5://localhost:1080
