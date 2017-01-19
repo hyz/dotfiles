@@ -1,0 +1,14 @@
+
+https://webrtchacks.com/webrtc-hybrid-applications/
+
+https://en.wikipedia.org/wiki/Crosswalk_Project
+https://crosswalk-project.org
+
+https://en.wikipedia.org/wiki/Apache_Cordova
+
+https://bitbucket.org/chromiumembedded
+
+http://electron.atom.io/
+https://github.com/electron/electron
+https://npm.taobao.org/mirrors/electron
+
