@@ -212,7 +212,7 @@ class Main(object):
             print('copyfile:', fp0, fp1)
             shutil.copyfile(fp0, fp1)
             for fp0 in 'libs/armeabi-v7a/libBarcode.so', 'libmtkhw.so':
-                fp0 = os.path.join(prj.name,fp0)
+                fp0 = os.path.join(self.BUILD,prj.name,fp0)
                 print('copy2:', fp0, out)
                 shutil.copy(fp0, out)
 
