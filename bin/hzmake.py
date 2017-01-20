@@ -205,9 +205,9 @@ class Main(object):
             return
 
         for prj in self.projects:
-            out = mkdirs('out',prj.name,prj.ver2(), renew=1)
+            out = mkdirs('out',prj.fullver(), renew=1)
 
-            fp0 = os.path.join(prj.name,prj.fullver()+'.apk')
+            fp0 = os.path.join(self.BUILD,prj.name,prj.fullver()+'.apk')
             fp1 = os.path.join(out,'Game.apk')
             print('copyfile:', fp0, fp1)
             shutil.copyfile(fp0, fp1)
@@ -222,7 +222,7 @@ class Main(object):
         self.postbuild_apk(*args, **kvargs)
 
         for prj in self.projects:
-            src = os.path.join('out',prj.name,prj.ver2())
+            src = os.path.join('out',prj.fullver())
             assert os.path.exists(src)
             out0 = os.path.join('/tmp', prj.ver2())
             shutil.rmtree(out0, ignore_errors=True )
@@ -254,10 +254,11 @@ class Main(object):
             for plt in prj.plats:
                 print('>>>', plt, prj)
                 if plt == 'g500':
-                    bash_command('cd {0}/mt6580/alps'
-                            ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user && make -j8'
-                            ' && mt6580-copyout.sh /samba/release1/{1}'
-                            .format(self.BUILD, prj.platver(plt)))
+                    bash_command('cd mt6580/alps'
+                            ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user'
+                            ' && make -j8'
+                            ' && mt6580-copyout.sh /samba/release1/{}'
+                            .format(prj.platver(plt)))
                     if RARPWD:
                         self._make_archive(plt, prj, RARPWD)
                 else:
@@ -340,7 +341,7 @@ Usages:
         for prj in self.projects:
             apk = 'test\\{}.apk'.format(prj.fullver())
             if self.VARIANT == 'release':
-                apk = '{}\\{}.apk'.format(prj.name, prj.fullver())
+                apk = '{}\\{}\\{}.apk'.format(self.BUILD,prj.name, prj.fullver())
             print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
             #pprint(vars(self)) #pprint(globals())
 
