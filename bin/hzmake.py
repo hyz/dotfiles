@@ -11,20 +11,20 @@ _rhost = '192.168.2.113'
 class Project(object):
     _AppConfig='src/com/huazhen/barcode/app/AppConfig.java'
 
-    def __init__(self, repo, plts, *args, **kvargs):
-        if not os.path.exists(repo):
-            die(repo, 'Not exists')
-        if _FUNC in ('prebuild_apk','init'):
-            bash_command('cd {} && svn up'.format(repo))
+    def __init__(self, src, plts, *args, **kvargs):
+        assert os.path.exists(src)
 
-        self.repo = repo;
-        self.name = os.path.basename(repo)
+        if _FUNC in ('prebuild_apk','init'):
+            bash_command('cd {} && svn up'.format(src))
+
+        self.src = src;
+        self.name = os.path.basename(src)
         self.plats = plts
         self.datestr = time.strftime('%Y%m%d')
 
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v(\d+)\.(\d+)\.(\d+)(-r\d+)?"')
         re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+)"')
-        with open(os.path.join(self.repo,self._AppConfig)) as cf:
+        with open(os.path.join(self.src,self._AppConfig)) as cf:
             for line in cf:
                 if not self.OldVer:
                     r = re.search(re_ver, line)
@@ -37,7 +37,7 @@ class Project(object):
         if not self.NewVer:
             self.NewVer = ( self.OldVer[0], self.OldVer[1], self.OldVer[2]+1 )
         if not self.NewSVNRev:
-            self.NewSVNRev = subprocess.check_output('svn info "{}" |grep -Po "^Revision:\s+\K\d+"'.format(self.repo), shell=True)
+            self.NewSVNRev = subprocess.check_output('svn info "{}" |grep -Po "^Revision:\s+\K\d+"'.format(self.src), shell=True)
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
@@ -78,8 +78,7 @@ def platform(name):
 class Main(object):
     PLATS   = ['g500','k400','cvk350c','cvk350t']
     VARIANT = 'release'
-    BUILD_DIR = os.getcwd() # os.path.join(HOME,'build')
-    REPO      = os.path.normpath( os.path.join(BUILD_DIR, '../release') ) #'../release' #
+    BUILD,SRC = 'build', 'src'
 
     _PROJECTS = {
         'Game14': [ 'k400', 'cvk350c', 'cvk350t' ]
@@ -88,15 +87,14 @@ class Main(object):
     _Log_h              = 'jni/Utils/log.h'
     _AndroidManifest    = 'AndroidManifest.xml'
     #_AppConfig          = ''
-    _Crypto0, _Crypto1  = '../release/tools/CryptoRelease.bat', 'tools/Crypto.bat'
+    _Crypto0, _Crypto1  = 'src/tools/CryptoRelease.bat', 'tools/Crypto.bat'
 
     def __init__(self, *args, **kvargs):
-        for x,y in vars(Main).items(): #'BUILD_DIR', 'REPO' , 'VARIANT', 'PLATS' :
+        for x,y in vars(Main).items(): #'BUILD', 'SRC' , 'VARIANT', 'PLATS' :
             if not (x.startswith('_') or callable(y)):
                 setattr(self, x, kvargs.get(x, os.environ.get(x, getattr(self,x,None))))
-                #print('===',x,y)
-        if self.VARIANT not in ('release','test'):
-            die(self.VARIANT)
+        assert self.VARIANT in ('release','test')
+
         if type(self.PLATS) == str: # and ',' in self.PLATS:
             self.PLATS = self.PLATS.split(',')
         prjs = {}
@@ -106,13 +104,13 @@ class Main(object):
                     prjs.setdefault(prjname,[]).append(plt)
                     break
             else:
-                die(plt, 'unknown')
+                assert False, plt
         for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
             v = kvargs.get(x, os.environ.get(x, getattr(Project,x,None)))
             if v and type(v) == str:
                 v = tuple(map(int,v.split('.')))
             setattr(Project, x, v)
-        path = lambda prjname: os.path.join(self.REPO,prjname)
+        path = lambda prjname: os.path.join(self.SRC,prjname)
         self.projects = [ Project(path(prjname), plts, *args, **kvargs)
                                             for prjname,plts in prjs.items() ]
         ver = max( prj.NewVer for prj in self.projects )
@@ -121,20 +119,18 @@ class Main(object):
 
     def prebuild_apk(self, *args, **kvargs):
         def impl(self, prj):
-            src = prj.repo #os.path.abspath( os.path.join(     self.REPO, prj.name) )
-            out = os.path.abspath( os.path.join(self.BUILD_DIR, prj.name) )
+            src = prj.src #os.path.abspath( os.path.join(     self.SRC, prj.name) )
+            out = os.path.join(self.BUILD, prj.name)
             print('>>> prebuild_apk:', src, out)
 
-            if not os.path.exists(src):
-                die(src, 'Not exists')
-            if not out.startswith( Main.BUILD_DIR ):
-                die(out, 'should startswith', Main.BUILD_DIR)
+            assert os.path.exists(src)
+            assert 'build' in out #.startswith( Main.BUILD )
 
             if not os.path.exists(out):
                 os.makedirs(out, exist_ok=True)
             print('rmtree:', out)
             shutil.rmtree(out, ignore_errors=True )
-            for x,y in walk('workspace', prj.name):
+            for x,y in walk('eclipse', prj.name):
                 if not x.endswith('.projects'):
                     y = os.path.join(x,y)
                     print('rmtree:', y)
@@ -173,7 +169,7 @@ class Main(object):
                     print(prj.fullver()
                             , '%s => %s' % (prj.svnrev(old=1),prj.svnrev())
                             , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
-                    print('$ vim', os.path.join(self.REPO,'Game14/doc/版本发布记录.txt'), f.name)
+                    print('$ vim', os.path.join(self.SRC,'Game14/doc/版本发布记录.txt'), f.name)
 
             self.version_set(os.path.join(out,prj._AppConfig), prj.ver(), prj.svnrev())
 
@@ -209,7 +205,7 @@ class Main(object):
             return
 
         for prj in self.projects:
-            out = mkdirs('out',prj.ver2(), renew=1)
+            out = mkdirs('out',prj.name,prj.ver2(), renew=1)
 
             fp0 = os.path.join(prj.name,prj.fullver()+'.apk')
             fp1 = os.path.join(out,'Game.apk')
@@ -223,11 +219,10 @@ class Main(object):
     def prebuild(self, *args, RARPWD=None, **kvargs):
         assert self.VARIANT == 'release'
 
-        ###
         self.postbuild_apk(*args, **kvargs)
 
         for prj in self.projects:
-            src = os.path.join('out',prj.ver2())
+            src = os.path.join('out',prj.name,prj.ver2())
             assert os.path.exists(src)
             out0 = os.path.join('/tmp', prj.ver2())
             shutil.rmtree(out0, ignore_errors=True )
@@ -262,14 +257,14 @@ class Main(object):
                     bash_command('cd {0}/mt6580/alps'
                             ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user && make -j8'
                             ' && mt6580-copyout.sh /samba/release1/{1}'
-                            .format(self.BUILD_DIR, prj.platver(plt)))
+                            .format(self.BUILD, prj.platver(plt)))
                     if RARPWD:
                         self._make_archive(plt, prj, RARPWD)
                 else:
                     prj2 = prj
         if prj2 and prj2.plats:
             bash_command('cd {} && make -f Game14.mk PLATS={} release'
-                .format(self.BUILD_DIR, ','.join(prj2.plats)))
+                .format(self.BUILD, ','.join(prj2.plats)))
             if RARPWD:
                 for plt in prj2.plats:
                     self._make_archive(plt, prj, RARPWD)
@@ -306,20 +301,20 @@ class Main(object):
         prjs = []
         def revert(self):
             for prj,msg in prjs:
-                bash_command('cd {} && svn revert {}'.format(prj.repo, prj._AppConfig))
+                bash_command('cd {} && svn revert {}'.format(prj.src, prj._AppConfig))
         try:
             kvargs.setdefault('ExtraVersionInfo','')
             for prj in self.projects:
                 d = prj.vars(**kvargs)
                 msg = "Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**d)
                 print(msg)
-                yN = input('commit %s? (y/N): ' % prj.repo)
+                yN = input('commit %s? (y/N): ' % prj.src)
                 if yN.lower() not in ('y','yes'):
                     raise EOFError
                 prjs.append( (prj,msg) )
             for prj,msg in prjs:
-                self.version_set(os.path.join(prj.repo,prj._AppConfig), prj.ver(), prj.svnrev())
-                bash_command('cd {} && svn commit -m"{}"'.format(prj.repo, msg))
+                self.version_set(os.path.join(prj.src,prj._AppConfig), prj.ver(), prj.svnrev())
+                bash_command('cd {} && svn commit -m"{}"'.format(prj.src, msg))
         except (KeyboardInterrupt,EOFError):
             revert(self)
         except Exception:
@@ -340,7 +335,7 @@ Usages:
         if args: pprint(args)
         if kvargs: pprint(kvargs)
         print()
-        for s in grep('Key.*word', 'howto.txt'):
+        for s in grep('Key.*word', 'src/howto.txt'):
             print(s.strip())
         for prj in self.projects:
             apk = 'test\\{}.apk'.format(prj.fullver())
@@ -407,11 +402,6 @@ def grep(expr, *files, filt=None):
     except IOError as e:
         print(textf, e, file=sys.stderr)
         raise
-
-def die(*args):
-    #raise SystemExit(*args)
-    print(*args, file=sys.stderr)
-    sys.exit(127)
 
 def _main_():
     import signal
