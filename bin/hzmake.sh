@@ -147,7 +147,8 @@ sync-up)
 
     cp -v $builddir/$prjname/libmtkhw.so /tmp/$VerF/lib/ || die "libmtkhw.so"
     cp -v $builddir/$prjname/libs/armeabi-v7a/libBarcode.so /tmp/$VerF/lib/ || die "libBarcode.so"
-    cp -v $builddir/$variant/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
+    #cp -v $builddir/$variant/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
+    cp -v $builddir/$prjname/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
 
     find /tmp/$VerF -type f -exec chmod 0644 '{}' \;
     ( cd /tmp && rsync -vr $VerF $rhost:$variant/application/ ) || die "rsync $rhost"

@@ -19,7 +19,8 @@ $ git clone git-oopx:oopx/test.git
         repo.remotes.origin.fetch()
 
 ### http://cms-sw.github.io/tutorial-proxy.html
-### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy?rq=1
+### http://stackoverflow.com/questions/783811/getting-git-to-work-with-a-proxy-server
+### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy
     git config --global http.proxy socks5://localhost:1080
     git config --global core.gitproxy "git-proxy"
     git config --global socks.proxy "localhost:1080"
@@ -37,8 +38,10 @@ $ git clone git-oopx:oopx/test.git
 git config --global core.autocrlf input
 git config --global core.autocrlf true # Windows
 
-git submodule update --init
+### submodule
+### http://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule
 
+git submodule update --init
 git pull --recurse-submodules
 git submodule foreach git merge --ff-only
 

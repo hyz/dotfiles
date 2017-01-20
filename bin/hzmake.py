@@ -14,8 +14,8 @@ class Project(object):
     def __init__(self, repo, plts, *args, **kvargs):
         if not os.path.exists(repo):
             die(repo, 'Not exists')
-        if _FUNC in ('prepare','init'):
-            subprocess.check_call(command('cd {} && svn up', repo), shell=True, executable='/bin/bash')
+        if _FUNC in ('prebuild_apk','init'):
+            bash_command('cd {} && svn up'.format(repo))
 
         self.repo = repo;
         self.name = os.path.basename(repo)
@@ -41,6 +41,8 @@ class Project(object):
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
+    def ver2(self):
+        return '{}-r{}'.format(self.ver(), self.svnrev())
     def ver(self, old=0):
         if old:
             return '.'.join(map(str,self.OldVer))
@@ -62,11 +64,22 @@ class Project(object):
 
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
+def platform(name):
+    if name == 'g500':
+        basedir = 'packages/apps/Game/'
+        files = [ os.path.join(basedir,x) for x in ('libBarcode.so', 'libmtkhw.so', 'Game.apk') ]
+        return type('Plat'+name, (object,), {'files':files,'name':name,'root':'mt6580/alps'})
+    elif name in ('k400','cvk350c','cvk350t'):
+        basedir = 'vendor/g368_noain_t300/application'
+        files = [ os.path.join(basedir,x) for x in ('lib/libBarcode.so', 'lib/libmtkhw.so', 'internal/Game.apk') ]
+        return type('Plat'+name, (object,), {'files':files,'name':name,'root':os.path.join('/tmp',name)})
+    assert False, name
+
 class Main(object):
     PLATS   = ['g500','k400','cvk350c','cvk350t']
     VARIANT = 'release'
-    REPO  = os.path.join(HOME,'release')
-    BUILD_DIR = os.path.join(HOME,'build')
+    BUILD_DIR = os.getcwd() # os.path.join(HOME,'build')
+    REPO      = os.path.normpath( os.path.join(BUILD_DIR, '../release') ) #'../release' #
 
     _PROJECTS = {
         'Game14': [ 'k400', 'cvk350c', 'cvk350t' ]
@@ -74,8 +87,8 @@ class Main(object):
     }
     _Log_h              = 'jni/Utils/log.h'
     _AndroidManifest    = 'AndroidManifest.xml'
-    #_AppConfig          = 'src/com/huazhen/barcode/app/AppConfig.java'
-    _Crypto0, _Crypto1  = '../tools/CryptoRelease.bat', 'tools/Crypto.bat'
+    #_AppConfig          = ''
+    _Crypto0, _Crypto1  = '../release/tools/CryptoRelease.bat', 'tools/Crypto.bat'
 
     def __init__(self, *args, **kvargs):
         for x,y in vars(Main).items(): #'BUILD_DIR', 'REPO' , 'VARIANT', 'PLATS' :
@@ -106,11 +119,11 @@ class Main(object):
         for prj in self.projects:
             prj.NewVer = ver
 
-    def prepare(self, *args, **kvargs):
+    def prebuild_apk(self, *args, **kvargs):
         def impl(self, prj):
             src = prj.repo #os.path.abspath( os.path.join(     self.REPO, prj.name) )
             out = os.path.abspath( os.path.join(self.BUILD_DIR, prj.name) )
-            print('>>> prepare:', src, out)
+            print('>>> prebuild_apk:', src, out)
 
             if not os.path.exists(src):
                 die(src, 'Not exists')
@@ -136,7 +149,7 @@ class Main(object):
             etree_replace_text(fp, './name', prj.name)
 
             if self.VARIANT == 'release':
-                sf, df = os.path.join(src,self._Crypto0), os.path.join(out,self._Crypto1)
+                sf, df = self._Crypto0, os.path.join(out,self._Crypto1)
                 print('copyfile:', sf, df)
                 shutil.copyfile(sf, df)
                 log_h = os.path.join(out,self._Log_h)
@@ -156,12 +169,11 @@ class Main(object):
                     print('copy:', fp)
                     shutil.copy(fp, '/samba/release1/doc/')
                 with open('svn.log.{}.{}'.format(prj.name,prj.ver()), 'w') as f:
-                    subprocess.check_call(command('svn log -r{}:HEAD {}', prj.svnrev(old=1), src)
-                            , stdout=f, shell=True, executable='/bin/bash')
+                    bash_command('svn log -r{}:HEAD {}'.format(prj.svnrev(old=1), src), stdout=f)
                     print(prj.fullver()
                             , '%s => %s' % (prj.svnrev(old=1),prj.svnrev())
                             , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
-                    print('$ vim', '~/release/Game14/doc/版本发布记录.txt', f.name)
+                    print('$ vim', os.path.join(self.REPO,'Game14/doc/版本发布记录.txt'), f.name)
 
             self.version_set(os.path.join(out,prj._AppConfig), prj.ver(), prj.svnrev())
 
@@ -192,46 +204,80 @@ class Main(object):
                     print('edit:', appconfig, re.search('(\w+)\s*=\s*"([^"]+)', lin).groups())
                 outf.write(lin)
 
-    def build(self, *args, RARPWD=None, **kvargs):
-        if self.VARIANT != 'release':
+    def postbuild_apk(self, *args, RARPWD=None, **kvargs):
+        if self.VARIANT == 'test':
             return
+
+        for prj in self.projects:
+            out = mkdirs('out',prj.ver2(), renew=1)
+
+            fp0 = os.path.join(prj.name,prj.fullver()+'.apk')
+            fp1 = os.path.join(out,'Game.apk')
+            print('copyfile:', fp0, fp1)
+            shutil.copyfile(fp0, fp1)
+            for fp0 in 'libs/armeabi-v7a/libBarcode.so', 'libmtkhw.so':
+                fp0 = os.path.join(prj.name,fp0)
+                print('copy2:', fp0, out)
+                shutil.copy(fp0, out)
+
+    def prebuild(self, *args, RARPWD=None, **kvargs):
+        assert self.VARIANT == 'release'
+
+        ###
+        self.postbuild_apk(*args, **kvargs)
+
+        for prj in self.projects:
+            src = os.path.join('out',prj.ver2())
+            assert os.path.exists(src)
+            out0 = os.path.join('/tmp', prj.ver2())
+            shutil.rmtree(out0, ignore_errors=True )
+            for plt in prj.plats:
+                if plt == 'g500':
+                    bash_command('cd mt6580 && git pull')
+                    out = 'mt6580/alps/packages/apps/Game/'
+                    for fp0 in 'libBarcode.so', 'libmtkhw.so', 'Game.apk':
+                        fp0 = os.path.join(src,fp0)
+                        print('copy2:', fp0, out)
+                        shutil.copy(fp0, out)
+                else:
+                    out = mkdirs(out0, plt, 'vendor/g368_noain_t300/application','lib', renew=1)
+                    for fp0 in 'libBarcode.so', 'libmtkhw.so':
+                        fp0 = os.path.join(src,fp0)
+                        print('copy2:', fp0, '\t', out)
+                        shutil.copy(fp0, out)
+                    out = mkdirs(out0, plt, 'vendor/g368_noain_t300/application','internal', renew=1)
+                    fp0 = os.path.join(src,'Game.apk')
+                    print('copy2:', fp0, '\t', out)
+                    shutil.copy(fp0, out)
+
+    def build(self, *args, RARPWD=None, **kvargs):
+        assert self.VARIANT == 'release'
+        self.prebuild(*args, **kvargs)
 
         prj2 = None
         for prj in self.projects:
             for plt in prj.plats:
                 print('>>>', plt, prj)
                 if plt == 'g500':
-                    subprocess.check_call(command('cd mt6580 && git pull'), shell=True, executable='/bin/bash')
-                    sd, td = os.path.join(self.BUILD_DIR,prj.name), os.path.join(self.BUILD_DIR,'mt6580/alps/packages/apps/Game/')
-                    for fp in 'libs/armeabi-v7a/libBarcode.so', 'libmtkhw.so':
-                        fp = os.path.join(sd,fp)
-                        print('copy:', fp)
-                        shutil.copy(fp, td)
-                    fp = os.path.join(self.BUILD_DIR,'release/{}.apk'.format(prj.fullver()))
-                    print('copy:', fp)
-                    shutil.copyfile(fp, os.path.join(td,'Game.apk'))
-                    cmd = command('cd {0}/mt6580/alps'
+                    bash_command('cd {0}/mt6580/alps'
                             ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user && make -j8'
                             ' && mt6580-copyout.sh /samba/release1/{1}'
-                            , self.BUILD_DIR, prj.platver(plt))
-                    subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+                            .format(self.BUILD_DIR, prj.platver(plt)))
                     if RARPWD:
                         self._make_archive(plt, prj, RARPWD)
                 else:
                     prj2 = prj
         if prj2 and prj2.plats:
-            cmd = command('cd {} && make -f Game14.mk PLATS={} release'
-                    , self.BUILD_DIR, ','.join(prj2.plats))
-            subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+            bash_command('cd {} && make -f Game14.mk PLATS={} release'
+                .format(self.BUILD_DIR, ','.join(prj2.plats)))
             if RARPWD:
                 for plt in prj2.plats:
                     self._make_archive(plt, prj, RARPWD)
 
     def _make_archive(self, plt, prj, rarpwd):
-        cmd = command('cd /samba/release1'
+        bash_command('cd /samba/release1'
                 ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
-                , prj.platver(plt), rarpwd)
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
+                .format(prj.platver(plt), rarpwd))
 
     def rar(self, *args, RARPWD=None, **kvargs):
         assert RARPWD
@@ -260,8 +306,7 @@ class Main(object):
         prjs = []
         def revert(self):
             for prj,msg in prjs:
-                subprocess.check_call(command('cd {} && svn revert {}', prj.repo, prj._AppConfig)
-                        , shell=True, executable='/bin/bash')
+                bash_command('cd {} && svn revert {}'.format(prj.repo, prj._AppConfig))
         try:
             kvargs.setdefault('ExtraVersionInfo','')
             for prj in self.projects:
@@ -274,8 +319,7 @@ class Main(object):
                 prjs.append( (prj,msg) )
             for prj,msg in prjs:
                 self.version_set(os.path.join(prj.repo,prj._AppConfig), prj.ver(), prj.svnrev())
-                subprocess.check_call(command('cd {} && svn commit -m"{}"', prj.repo, msg)
-                        , shell=True, executable='/bin/bash')
+                bash_command('cd {} && svn commit -m"{}"'.format(prj.repo, msg))
         except (KeyboardInterrupt,EOFError):
             revert(self)
         except Exception:
@@ -285,7 +329,7 @@ class Main(object):
     def help(self, *args, **kvargs):
         print('''\
 Usages:
-    {0} prepare PLATS={sPLATS} VARIANT=[release|test]
+    {0} prebuild_apk PLATS={sPLATS} VARIANT=[release|test]
     {0} build   PLATS={sPLATS} VARIANT=[release|test] RARPWD=XXX
     {0} version_commit
 '''.format(sys.argv[0], sPLATS=','.join(Main.PLATS), **vars(self)))
@@ -296,17 +340,30 @@ Usages:
         if args: pprint(args)
         if kvargs: pprint(kvargs)
         print()
-        for prj in self.projects:
-            print(prj.svnrev(old=1), '=>', prj.svnrev()
-                    , prj.fullver(), '{}\\{}.apk'.format(self.VARIANT, prj.fullver()))
-            #pprint(vars(self)) #pprint(globals())
         for s in grep('Key.*word', 'howto.txt'):
             print(s.strip())
+        for prj in self.projects:
+            apk = 'test\\{}.apk'.format(prj.fullver())
+            if self.VARIANT == 'release':
+                apk = '{}\\{}.apk'.format(prj.name, prj.fullver())
+            print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
+            #pprint(vars(self)) #pprint(globals())
 
-def command(s, *args, **kv):
-    cmd = s.format(*args, **kv)
+def mkdirs(*d, renew=False):
+    di = os.path.join(*d)
+    if renew and os.path.exists(di):
+        print('rmtree:', di)
+        shutil.rmtree(di, ignore_errors=True ) # os.removedirs(di)
+    os.makedirs(di)
+    return di
+
+#def command(s, *args, **kv):
+#    cmd = s.format(*args, **kv)
+#    #print(cmd)
+#    return cmd
+def bash_command(cmd, shell=True,executable='/bin/bash',**kv):
     print(cmd)
-    return cmd
+    return subprocess.check_call(cmd, shell=shell, executable=executable, **kv)
 
 def etree_replace_text(filename, path, text):
     from xml.etree.ElementTree import ElementTree
@@ -348,11 +405,12 @@ def grep(expr, *files, filt=None):
                         if line:
                             yield line
     except IOError as e:
-        print(textf, e)
+        print(textf, e, file=sys.stderr)
+        raise
 
 def die(*args):
-    #print(*args, file=sys.stderr)
-    raise SystemExit(*args)
+    #raise SystemExit(*args)
+    print(*args, file=sys.stderr)
     sys.exit(127)
 
 def _main_():
@@ -384,15 +442,15 @@ def _main_():
         return fn, lis, dic
     def _fn(fn):
         mod = sys.modules[__name__]
-        f = getattr(mod, fn, None)
-        if not f:
+        fx = getattr(mod, fn, None)
+        if not fx:
             cls = getattr(mod, 'Main', lambda *x,**y: None)
-            f = getattr(cls(*args, **kvargs), fn, None)
-        if not f:
-            f = getattr(mod, 'help', None)
-        if not f:
+            fx = getattr(cls(*args, **kvargs), fn, None)
+        if not fx:
+            fx = getattr(mod, 'help', None)
+        if not fx:
             raise RuntimeError(fn, 'not found')
-        return f
+        return fx
 
     t0 = time.time()
     fn, args, kvargs = _fn_lis_dic(sys.argv[1:])
