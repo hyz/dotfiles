@@ -14,7 +14,7 @@ class Project(object):
     def __init__(self, src, plts, *args, **kvargs):
         assert os.path.exists(src)
 
-        if _FUNC in ('prebuild_apk','init'):
+        if _FUNC == 'prebuild_apk':
             bash_command('cd {} && svn up'.format(src))
 
         self.src = src;
@@ -344,6 +344,10 @@ Usages:
                 apk = '{}\\{}\\{}.apk'.format(self.BUILD,prj.name, prj.fullver())
             print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
             #pprint(vars(self)) #pprint(globals())
+
+def init(*args, **kvargs):
+    for x in 'Game14', 'Game16', 'Game14.mk', 'tools/CryptoRelease.bat', 'howto.txt' :
+        assert os.path.exists(os.path.join('src',x))
 
 def mkdirs(*d, renew=False):
     di = os.path.join(*d)
