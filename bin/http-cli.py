@@ -52,6 +52,8 @@ def _query(numb, qf, url, quiet=0, timeout=15, headers={}, **kvargs):
     return None
 
 class Main(object):
+    Length_DevUUID = 16
+
     def __init__(self, *args, **kvargs):
         self.session = requests.Session()
         self.get_numb = 0
@@ -75,7 +77,7 @@ class Main(object):
             times -= 1
             # with debug_requests():
             headers={'X-Tag':str(xtag), 'Connection':'Keep-Alive'}
-            r = self._GET('http://192.168.2.229:11001/2/' + '0'*32
+            r = self._GET('http://192.168.2.229:9022/2/' + '0'*self.Length_DevUUID
                     , timeout=timeout
                     , headers=headers)
             if not r:
@@ -83,16 +85,22 @@ class Main(object):
             print(r.text) # print(r.json())
             xtag = int( r.headers.get('X-Tag',xtag) )
 
+    a_listdata = ( [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                 + [13,14,15,16,17,18,19,20,21,22]
+                 + [26,27,28,29,30,31,32,33,34,35]
+                 + [39,40,41,42,43,44,45,46,47,48] ) * 2
+    # = [ int(x)+1 for x in range(20) ] * 4 #+ [0,0]
+
     def a1(self, *args, times=1, **kvargs):
         times = int(times)
         while times > 0 and not getattr(module,'STOP',None):
             times -= 1
-            # js = {"firstname": "John", "lastname": "Doe", "password": "jdoe123"}
-            js = [ int(x)+1 for x in range(13) ] * 4 + [0,0]
+            js = list(self.a_listdata);
+            random.shuffle( js )
             headers={'Connection':'Keep-Alive'}
             #with debug_requests():
             #print('{0.filename}@{0.lineno}:'.format(inspect.getframeinfo(inspect.currentframe())))
-            r = self._POST('http://192.168.2.229:11000/1/' + '0'*32
+            r = self._POST('http://192.168.2.229:9021/1/' + '0'*self.Length_DevUUID
                     , headers=headers
                     , data=json.dumps(js))
             #print(dir(r))
@@ -103,9 +111,10 @@ class Main(object):
         times = int(times)
         while times > 0 and not getattr(module,'STOP',None):
             times -= 1
-            js = [ int(x)+1 for x in range(13) ] * 4 + [0,0]
+            js = list(self.a_listdata);
+            random.shuffle( js )
             headers={'Connection':'Keep-Alive'}
-            r = self._POST('http://192.168.2.229:11000/1/' + str(random.randint(0,9))*32
+            r = self._POST('http://192.168.2.229:9021/1/' + str(random.randint(0,9))*self.Length_DevUUID
                     , data=json.dumps(js)
                     , headers=headers
                     , quiet=1)
