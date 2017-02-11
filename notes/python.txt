@@ -1,3 +1,9 @@
+### http://stackoverflow.com/questions/3056048/filename-and-line-number-of-python-script
+    from inspect import currentframe, getframeinfo
+    frameinfo = getframeinfo(currentframe())
+    # print frameinfo.filename, frameinfo.lineno
+    # '{0.filename}@{0.lineno}:'.format(inspect.getframeinfo(inspect.currentframe()))
+
 ### pip
 python3 -m pip install --upgrade pip
 python3 -m pip install aubio

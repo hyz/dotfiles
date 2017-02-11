@@ -1,4 +1,5 @@
 
+### http://stackoverflow.com/questions/7378959/how-to-check-for-dll-dependency
 ### Visual Studio /dependents
 '/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/dumpbin.exe' /DEPENDENTS bin/a.exe
 
