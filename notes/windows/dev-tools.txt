@@ -1,12 +1,13 @@
 
-### depends
+
+### depends Visual Studio /dependents
 ### http://stackoverflow.com/questions/352951/command-line-tool-to-find-dll-dependencies
 ### http://www.dependencywalker.com/
 
     Try the /oc:FILENAME option to depends
 
-### Visual Studio /dependents
-'/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/dumpbin.exe' /DEPENDENTS bin/a.exe
+### http://stackoverflow.com/questions/7378959/how-to-check-for-dll-dependency
+    '/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/dumpbin.exe' /DEPENDENTS bin/a.exe
 
 http://superuser.com/questions/310681/inverting-direction-of-mouse-scroll-wheel
 

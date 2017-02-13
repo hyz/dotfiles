@@ -38,12 +38,12 @@ done
 
 repo=${1%/} #`echo "$1" | sed -e 's/^[./]\+//g' -e 's/[./]\+$//g'`
 [ -d "$repo/.svn" ] || die "repo: $repo"
+prjname=`basename $repo`
 variant="${2:-release}"
 [ "$variant" = test -o "$variant" = release ] || die "variant: $variant"
 [ -d "$builddir/$variant" ] || mkdir -p $builddir/$variant || die "mkdir $builddir/$variant"
 #[ `stat -c\%i $builddir` = `stat -c\%i $2` ] || die "destination-dir: $2"
 
-prjname=`basename $repo`
 AppConfig=src/com/huazhen/barcode/app/AppConfig.java
 #if [ "$what" = prepare -o "$what" = init ] ; then
 #    svn revert $repo/$AppConfig
@@ -145,10 +145,10 @@ sync-up)
     rm -rf /tmp/$VerF #$variant/$VerF
     mkdir -p /tmp/$VerF/lib && mkdir -p /tmp/$VerF/internal || die "mkdir"
 
-    cp -v $builddir/$prjname/libmtkhw.so /tmp/$VerF/lib/ || die "libmtkhw.so"
-    cp -v $builddir/$prjname/libs/armeabi-v7a/libBarcode.so /tmp/$VerF/lib/ || die "libBarcode.so"
-    #cp -v $builddir/$variant/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
-    cp -v $builddir/$prjname/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
+    cp -v $prjname/libmtkhw.so /tmp/$VerF/lib/ || die "libmtkhw.so"
+    cp -v $prjname/libs/armeabi-v7a/libBarcode.so /tmp/$VerF/lib/ || die "libBarcode.so"
+    #cp -v $variant/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
+    cp -v $prjname/$Apk /tmp/$VerF/internal/Game.apk || die "$Apk"
 
     find /tmp/$VerF -type f -exec chmod 0644 '{}' \;
     ( cd /tmp && rsync -vr $VerF $rhost:$variant/application/ ) || die "rsync $rhost"

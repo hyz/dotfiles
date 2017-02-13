@@ -1,23 +1,27 @@
-https://www.v2ex.com/t/217354
+### https://github.com/cyfdecyf/cow
+    HTTP proxy written in Go. COW can automatically identify blocked sites and use parent proxies to access.
+
+
+### https://www.v2ex.com/t/217354
 dtunnel_lite ngrok 
 
-http://blog.csdn.net/zshq280017423/article/details/8928616
+### http://blog.csdn.net/zshq280017423/article/details/8928616
     Android手机 Fiddler HTTP代理抓包 
     http://www.telerik.com/fiddler
 
-https://github.com/xtaci/kcptun
-https://www.oschina.net/p/kcptun
+### https://github.com/xtaci/kcptun
+### https://www.oschina.net/p/kcptun
     服务器: ./server_linux_amd64 -t "127.0.0.1:1080" -l ":554" -mode fast2 // 转发到本地1080端口
     客户端: ./client_darwin_amd64 -r "IP地址:554" -l ":1080" -mode fast2 // 监听本地1080端口 
 
-http://whatismyipaddress.com/
+### http://whatismyipaddress.com/
 
-https://github.com/Leask/Flora_Pac
+### https://github.com/Leask/Flora_Pac
     python2 flora_pac -x 'SOCKS5 192.168.2.115:8787; SOCKS 192.168.2.115:8787; DIRECT' -p 8884
 
 kcptun-client -c kcptun-bin/kcptun.json
 ss-local -c kcptun-bin/ss.json
 
-http://www.oschina.net/p/dog-tunnel
+### http://www.oschina.net/p/dog-tunnel
     可访问远程局域网的服务，例如HTTP，VNC远程控制，SSH等
 
