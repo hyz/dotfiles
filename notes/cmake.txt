@@ -1,3 +1,6 @@
+
+cmake .. --help-property-list |grep FLAGS
+
 ###
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .
 
