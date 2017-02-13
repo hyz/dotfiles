@@ -1,0 +1,20 @@
+
+http://blogs.atlassian.com/2013/03/git-submodules-workflows-tips/
+    ## How to swap a git submodule with your own fork
+    $ vim .gitmodules
+    $ git submodule sync
+
+http://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule
+    How do I remove a submodule?
+        vim .gitmodules # Delete the relevant section from the .gitmodules file.
+        git add .gitmodules
+        git submodule sync
+        git rm --cached path_to_submodule # (no trailing slash).
+        rm -rf .git/modules/path_to_submodule
+        git commit -m "Removed submodule <name>"
+        rm -rf path_to_submodule
+
+http://stackoverflow.com/questions/1030169/easy-way-pull-latest-of-all-submodules
+    Easy way pull latest of all submodules
+        git submodule update --recursive --remote
+
