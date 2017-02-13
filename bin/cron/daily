@@ -5,5 +5,5 @@ export PATH=$PATH:$HOME/bin
 exec >>/tmp/.wood/cron.daily
 date
 
-httpbin.org hostname=`hostname` ip
+net-helper.py hostname=`hostname` ns1_dnspod_net_6666
 

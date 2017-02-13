@@ -29,10 +29,8 @@ def _query(numb, qf, url, quiet=0, timeout=15, headers={}, **kvargs):
 
 class Main(object):
     count_get = count_post = 0
+    session = requests.Session()
 
-    def __init__(self, *args, **kvargs):
-        self.session = requests.Session()
-        #self.cookies = requests.cookies.RequestsCookieJar()
     def _GET(self, url, **kvargs):
         numb = self.count_get
         self.count_get += 1
@@ -43,23 +41,41 @@ class Main(object):
         self.count_post += 1
         return _query(numb, self.session.post, url, **kvargs)
 
-    # httpbin.org/ip
-    def ip(self, *args, times=1, hostname='-', **kvargs):
-        times = int(times)
-        pth = os.path.join(HOME,'Sync/Main/ip.json')
-        if not os.path.exists(pth):
-            with open(pth,'w') as f:
+    def __init__(self, *args, **kvargs):
+        self.json_file = os.path.join(HOME,'Sync/Main/ip.json')
+        if not os.path.exists(self.json_file):
+            with open(self.json_file,'w') as f:
                 f.write('{}')
-        dic = json.load( open(pth) )
-        rsp = self._GET('http://httpbin.org/ip')
-        ips = set( dic.setdefault(hostname,[]) )
-        for k,x in rsp.json().items():
-            ips.add(x)
-        dic[hostname] = list(ips)
-        json.dump(dic, open(pth,'w'))
+        #self.cookies = requests.cookies.RequestsCookieJar()
 
+    ### https://segmentfault.com/a/1190000000302955
+    # #ifconfig.me #httpbin.org/ip
+    #   curl -s http://ns1.dnspod.net:6666
+    #   curl -s -I http://www.alibaba.com | grep ali_apache_id
+    def httpbin_org(self, *args, hostname='-', **kvargs):
+        rsp = self._GET('http://httpbin.org/ip')
+        for _,x in rsp.json().items():
+            self._add_ip(x, hostname)
+
+        #times = int(times)
         #while times > 0 and not getattr(module,'STOP',None):
         #    times -= 1
+    ### echo -e "GET / HTTP/1.0\r\n\r\n" |nc ns1.dnspod.net 6666 2>/dev/null
+    def ns1_dnspod_net_6666(self, *args, hostname='-', **kvargs):
+        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sk.connect(('ns1.dnspod.net', 6666))
+        sk.send(b'GET / HTTP/1.0\r\n\r\n')
+        data = sk.recv(512)
+        sk.close()
+        self._add_ip(data.decode(), hostname)
+
+    def _add_ip(self,ip,hostname):
+        print(ip)
+        dic = json.load( open(self.json_file) )
+        ips = set( dic.setdefault(hostname,[]) )
+        ips.add( ip )
+        dic[hostname] = list(ips)
+        json.dump(dic, open(self.json_file,'w'))
 
 def help(*args, **kvargs):
     print('Usages:'
