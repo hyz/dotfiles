@@ -43,16 +43,23 @@ class Main(object):
         self.count_post += 1
         return _query(numb, self.session.post, url, **kvargs)
 
-    def ip(self, *args, times=1, **kvargs):
+    # httpbin.org/ip
+    def ip(self, *args, times=1, hostname='-', **kvargs):
         times = int(times)
-        while times > 0 and not getattr(module,'STOP',None):
-            times -= 1
-            #print('{0.filename}@{0.lineno}:'.format(inspect.getframeinfo(inspect.currentframe())))
-            fp = os.path.join(HOME,'Sync/Main/vars.json')
-            fj = json.load( open(fp) )
-            r = self._GET('http://httpbin.org/ip')
-            fj.setdefault('httpbin.org',{})['ip'] = r.json()
-            json.dump(fj, open(fp,'w'))
+        pth = os.path.join(HOME,'Sync/Main/ip.json')
+        if not os.path.exists(pth):
+            with open(pth,'w') as f:
+                f.write('{}')
+        dic = json.load( open(pth) )
+        rsp = self._GET('http://httpbin.org/ip')
+        ips = set( dic.setdefault(hostname,[]) )
+        for k,x in rsp.json().items():
+            ips.add(x)
+        dic[hostname] = list(ips)
+        json.dump(dic, open(pth,'w'))
+
+        #while times > 0 and not getattr(module,'STOP',None):
+        #    times -= 1
 
 def help(*args, **kvargs):
     print('Usages:'
@@ -60,6 +67,7 @@ def help(*args, **kvargs):
             '\t{0} X=<XValue> Y=<YValue> b1 xarg yarg\n'
             .format(sys.argv[0]))
 
+#print('{0.filename}@{0.lineno}:'.format(inspect.getframeinfo(inspect.currentframe())))
 def _main_():
     def _fn_lis_dic(args):
         fn, lis, dic = '', [], {} # defaultdict(list)

@@ -2,8 +2,8 @@
 
 export PATH=$PATH:$HOME/bin
 
-exec >/tmp/.wood/cron.daily
+exec >>/tmp/.wood/cron.daily
 date
 
-httpbin.org ip
+httpbin.org hostname=`hostname` ip
 
