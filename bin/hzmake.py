@@ -201,11 +201,15 @@ class Main(object):
                 outf.write(lin)
 
     def postbuild_apk(self, *args, RARPWD=None, **kvargs):
+        def wait_for_cold_down(fp):
+            if int(time.time() - os.stat(fp).st_ctime) < 5:
+                print(fp, ' ... wait for cold down')
+                time.sleep(5)
         if self.VARIANT == 'test':
             return
 
         for prj in self.projects:
-            out = mkdirs('out',prj.fullver(), renew=1)
+            out = dangerous_mkdirs('out',prj.fullver(), renew=1)
 
             fp0 = os.path.join(self.BUILD,prj.name,prj.fullver()+'.apk')
             fp1 = os.path.join(out,'Game.apk')
@@ -224,8 +228,8 @@ class Main(object):
         for prj in self.projects:
             src = os.path.join('out',prj.fullver())
             assert os.path.exists(src)
-            out0 = os.path.join('/tmp', prj.ver2())
-            shutil.rmtree(out0, ignore_errors=True )
+            tmpdir = os.path.join('/tmp', prj.ver2())
+            shutil.rmtree(tmpdir, ignore_errors=True )
             for plt in prj.plats:
                 if plt == 'g500':
                     bash_command('cd mt6580 && git pull')
@@ -235,12 +239,12 @@ class Main(object):
                         print('copy2:', fp0, out)
                         shutil.copy(fp0, out)
                 else:
-                    out = mkdirs(out0, plt, 'vendor/g368_noain_t300/application','lib', renew=1)
+                    out = dangerous_mkdirs(tmpdir, plt, 'vendor/g368_noain_t300/application','lib', renew=1)
                     for fp0 in 'libBarcode.so', 'libmtkhw.so':
                         fp0 = os.path.join(src,fp0)
                         print('copy2:', fp0, '\t', out)
                         shutil.copy(fp0, out)
-                    out = mkdirs(out0, plt, 'vendor/g368_noain_t300/application','internal', renew=1)
+                    out = dangerous_mkdirs(tmpdir, plt, 'vendor/g368_noain_t300/application','internal', renew=1)
                     fp0 = os.path.join(src,'Game.apk')
                     print('copy2:', fp0, '\t', out)
                     shutil.copy(fp0, out)
@@ -345,11 +349,14 @@ Usages:
             print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
             #pprint(vars(self)) #pprint(globals())
 
-def init(*args, **kvargs):
-    for x in 'Game14', 'Game16', 'Game14.mk', 'tools/CryptoRelease.bat', 'howto.txt' :
-        assert os.path.exists(os.path.join('src',x))
+def check(*args, **kvargs):
+    for x in ('src/Game14/.svn', 'src/Game16/.svn'
+            , 'src/tools/CryptoRelease.bat' , 'src/howto.txt'
+            , 'build/Game14.mk'
+            , 'mt6580'):
+        assert os.path.exists(x), x + ' not exist'
 
-def mkdirs(*d, renew=False):
+def dangerous_mkdirs(*d, renew=False):
     di = os.path.join(*d)
     if renew and os.path.exists(di):
         print('rmtree:', di)

@@ -11,4 +11,8 @@ https://www.shiyanlou.com/courses/623/labs/2072/document
 https://www.shiyanlou.com/courses/599/labs/1978/document
     高德API+Python解决租房问题
 
+http://stackoverflow.com/questions/3586106/perform-commands-over-ssh-with-python
+    paramiko
+    pexpect
+    subprocess
 
