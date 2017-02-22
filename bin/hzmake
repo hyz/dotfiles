@@ -8,58 +8,45 @@ import timeit
 HOME = os.environ['HOME']
 _rhost = '192.168.2.113'
 _rhome = '/home/wood'
+_ruser = 'wood'
+_this_module = sys.modules[__name__]
 # setattr(sys.modules[__name__], x, os.environ.get(x, None))
 
 ### http://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
-class Singleton(type):
-    _instances = {}
+
+class GlobalSingleton(type):
+    #_instances = {}
     def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+        T = super(GlobalSingleton, cls)
+        o = getattr(_this_module, cls.__name__, None)
+        if isinstance(o, T):
+            #print('exists', T.__name__, type(o).__name__, cls.__name__)
+            assert type(o) == cls
+        else:
+            #print('create', T.__name__, type(o).__name__, cls.__name__)
+            o = T.__call__(*args, **kwargs)
+            setattr(_this_module, cls.__name__, o)
+        return o
+        #if cls not in cls._instances:
+        #    cls._instances[cls] = super(GlobalSingleton, cls).__call__(*args, **kwargs)
+        #return cls._instances[cls]
 
-class Android(object, metaclass=Singleton):
-    #if name == 'g500':
-    #    basedir = 'packages/apps/Game/'
-    #    files = [ os.path.join(basedir,x) for x in ('libBarcode.so', 'libmtkhw.so', 'Game.apk') ]
-    #    return type('Android'+name, (object,), {'files':files,'name':name,'root':'mt6580/alps'})
-    #elif name in ('k400','cvk350c','cvk350t'):
-    #    basedir = 'vendor/g368_noain_t300/application'
-    #    files = [ os.path.join(basedir,x) for x in ('lib/libBarcode.so', 'lib/libmtkhw.so', 'internal/Game.apk') ]
-    #    return type('Android'+name, (object,), {'files':files,'name':name,'root':os.path.join('/tmp',name)})
-    #assert False, name
-
-    _Release_Dir = '/samba/release1'
-
-    def __init__(self, arg_lis, arg_dic):
-        self.plat = arg_list.pop(0)
-        self.ver = arg_list.pop(0)
-        # print(arg_dic, *arg_lis)
-
-    def _make_archive(self, plt, prj, rarpwd):
-        bash_command('cd /samba/release1'
-                ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
-                .format(prj.platver(plt), rarpwd))
-
-    def rar(self, *args, RARPWD=None, **kvargs):
-        assert RARPWD
-        for prj in self.projects:
-            for plt in prj.plats:
-                self._make_archive(plt, prj, RARPWD)
-
-class Apk(object, metaclass=Singleton):
+class Apk(object):
     _AppConfig          = 'src/com/huazhen/barcode/app/AppConfig.java'
     _Log_h              = 'jni/Utils/log.h'
     _AndroidManifest    = 'AndroidManifest.xml'
     _Crypto             = 'tools/Crypto.bat'
     _CryptoRelease      = 'tools/CryptoRelease.bat'
 
+    def __call__(self, *args, **kwargs):
+        return self
+
     def __init__(self, arg_lis, arg_dic):
-        # print(arg_dic, *arg_lis)
+        self.prjname = type(self).__name__ # arg_lis.pop(0)
+        # print('Apk:prjname', self.prjname) # print(arg_dic, *arg_lis)
         for x,y in ('SRC','src'),('BUILD','build'):
             setattr(self, x, arg_dic.pop(x, os.environ.get(x, y)))
 
-        self.prjname = arg_lis.pop(0)
         self.src = os.path.join(self.SRC,self.prjname)
         self.build = os.path.join(self.BUILD,self.prjname)
         self.datestr = time.strftime('%Y%m%d')
@@ -67,27 +54,31 @@ class Apk(object, metaclass=Singleton):
         self._Crypto = os.path.join(self.build, self._Crypto)
         assert os.path.exists(self.src)
 
-        self.__init_vers_from_src(arg_dic)
+        self.__load_vers_info(self.prefix_src, arg_dic)
 
         self.outdir = self.prefix_build(self.ver2())
-        self.export_filename = self.prefix_build(self.ver2(),'Game.apk')
-        self.depfiles = [ self.prefix_build(x) for x in ('libs/armeabi-v7a/libBarcode.so','libmtkhw.so') ]
+        self.apkfile = self.prefix_build(self.ver2(),'Game.apk')
+        self.libfiles = [ self.prefix_build(x) for x in ('libs/armeabi-v7a/libBarcode.so','libmtkhw.so') ]
+        self.depfiles = [ self.apkfile ] + self.libfiles
+        self.export_filename = self.apkfile
+        self.outfiles = [ os.path.join(self.outdir,os.path.basename(x)) for x in self.depfiles ]
 
+        print(self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename)
         #self.outfiles = []
         #if env.VARIANT == 'g500':
         #    #d = 'mt6580/alps/' 'packages/apps/Game/'
-        #    libdir = appdir = os.path.joini(self.outdir,'packages/apps/Game')
+        #    libdir = apkdir = os.path.join(self.outdir,'packages/apps/Game')
         #else:
         #    libdir = os.path.join(self.outdir,'vendor/g368_noain_t300/application/lib')
-        #    appdir = os.path.join(self.outdir,'vendor/g368_noain_t300/application/internal')
+        #    apkdir = os.path.join(self.outdir,'vendor/g368_noain_t300/application/internal')
         #for sf in self.depfiles:
         #    if sf.endswith('.apk'):
-        #        self.outfiles.append( os.path.join(appdir, 'Game.apk') )
+        #        self.outfiles.append( os.path.join(apkdir, 'Game.apk') )
         #    else:
         #        assert sf.endswith('.so'):
         #        self.outfiles.append( os.path.join(libdir, os.path.basename(sf)) )
 
-    def __init_vers_from_src(self, arg_dic):
+    def __load_vers_info(self, prefix, arg_dic):
         for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
             y = arg_dic.pop(x, None)
             if y:
@@ -95,7 +86,7 @@ class Apk(object, metaclass=Singleton):
             setattr(self, x, y)
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v(\d+)\.(\d+)\.(\d+)(-r\d+)?"')
         re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+)"')
-        with open( self.prefix_src(self._AppConfig),'r') as cf:
+        with open( prefix(self._AppConfig), 'r') as cf:
             for line in cf:
                 if not self.OldVer:
                     r = re.search(re_ver, line)
@@ -116,43 +107,54 @@ class Apk(object, metaclass=Singleton):
         self.generate_makefile(open('Makefile','w'), *args, **kwargs)
 
     def generate_makefile(self, mkfile, *args, **kwargs):
-        def mk(x,y,*oths):
+        def Mk(x,y,*oths):
             print(x,y,' ', sep='', file=mkfile, end='')
             print(*oths, file=mkfile)
-        sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() ]
+        sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
 
-        mk(self.build, ':', self.src)
-        mk('\t', 'cd {} && svn up'.format(self.src))
-        #mk('\t', '[ -e "{0}" ] || mkdir -p {0}'.format(self.build))
-        #mk('\t', 'cd {}\\'.format(self.SRC))
-        #mk('\t', '&&', 'find {} -mindepth 1 -maxdepth 1 ! -name ".svn*"\\'.format(self.prjname))
-        #mk('\t',  '|', 'rsync -Rr --files-from=- . {}'.format(self.BUILD))
-        mk('\t', sys.argv[0], 'Apk.copytree2', self.prjname, self.src, self.build)
-        mk('\t', sys.argv[0], 'Apk.edit_build_tree', *_arg_lis, *sl_arg_dic)
+        Mk(self.build, ':', self.src)
+        #Mk('\t', '&&', 'find {} -mindepth 1 -maxdepth 1 ! -name ".svn*"\\'.format(self.prjname))
+        Mk('\t', sys.argv[0], self.prjname+'.copytree2', self.src, self.build)
+        Mk('\t', sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
         print(file=mkfile)
 
-        mk(self.outdir, ':', self.build)
-        mk('\t', 'mkdir -p $@')
+        Mk(self.outdir, ':', self.build)
+        Mk('\t', 'mkdir -p $@')
         print(file=mkfile)
 
         shutil.rmtree(self.outdir, ignore_errors=True) # os.removedirs(di)
 
-        mk(self.export_filename, ':', self.outdir) #(, *self.depfiles)
-        mk('\t', sys.argv[0], 'waitfiles', self.export_filename, *self.depfiles)
-        mk('\t', sys.argv[0], 'copyfiles2', self.outdir, *self.depfiles)
+        Mk(self.export_filename, ':', 'info_'+self.prjname, self.outdir)
+        Mk('\t@', sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
+        Mk('\t', sys.argv[0], 'copyfiles2', self.outdir, *self.libfiles)
         if self.prjname == 'Game14':
-            mk('\t', 'rsync -vRr', self.outdir, 'root@'+_rhost+_rhome)
-            mk('\t', 'rsync -v', mkfile.name, 'root@'+_rhost+_rhome)
-        #mk('\t', sys.argv[0], 'Apk.copyoutfiles', self.prjname)
+            Mk('\t', 'rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
+            Mk('\t', 'rsync -v', mkfile.name, _ruser+'@'+_rhost+':'+_rhome)
+        #Mk('\t', sys.argv[0], '.copyoutfiles', self.prjname)
+        print(file=mkfile)
+
+        Mk(self.prjname, ':', self.export_filename)
+        print(file=mkfile)
+
+        Mk('update_'+self.prjname, ':')
+        Mk('\t', 'cd', self.src, '&& svn up')
+        print(file=mkfile)
+        Mk('clean_'+self.prjname, ':')
+        Mk('\t', 'rm -rf', self.build)
+        print(file=mkfile)
+
+        Mk('info_'+self.prjname, ':')
+        Mk('\t', '#', *[ s.strip() for s in grep('Keyalias', 'src/howto.txt') ] )
+        Mk('\t', '#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename)
         print(file=mkfile)
 
         #r_version_commit = 'version_commit_'+self.prjname
-        #mk(r_version_commit, ':', self.src)
-        #mk('\t', sys.argv[0], 'Apk.version_commit', *_arg_lis, *sl_arg_dic)
+        #Mk(r_version_commit, ':', self.src)
+        #Mk('\t', sys.argv[0], '.version_commit', *_arg_lis, *sl_arg_dic)
 
         # r_clean = 'clean_' + self.prjname
-        # mk(r_clean, ':') #(, *self.depfiles)
-        # mk('\t', sys.argv[0], 'Apk.clean', self.prjname)
+        # Mk(r_clean, ':') #(, *self.libfiles)
+        # Mk('\t', sys.argv[0], '.clean', self.prjname)
         # print(file=mkfile)
 
         return [ self.export_filename ] #, [ r_version_commit ], [ r_clean ]
@@ -233,18 +235,19 @@ class Apk(object, metaclass=Singleton):
         copytree(src, dst, remove=1, ignore=['.svn','.git'])
 
     def clean(self):
-        shutil.rmtree(self.build, ignore_errors=True)
+        if os.path.exists(self.build):
+            shutil.rmtree(self.build, ignore_errors=True)
 
     def prefix_src(self, *p):
         return os.path.join(self.src, *p)
     def prefix_build(self, *p):
         return os.path.join(self.build,*p)
 
-    def copyoutfiles(self):
-        for sf in self.depfiles:
-            if sf.startswith(self.outdir):
-                continue
-            copyfiles2(self.outdir, sf, makedirs=1)
+    #def copyoutfiles(self):
+    #    for sf in self.depfiles:
+    #        if sf.startswith(self.outdir):
+    #            continue
+    #        copyfiles2(self.outdir, sf, makedirs=1)
 
     def ver2(self):
         return '{}-r{}'.format(self.ver(), self.svnrev())
@@ -268,418 +271,268 @@ class Apk(object, metaclass=Singleton):
         return d
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
-class Main(object, metaclass=Singleton):
-    PLATS   = ['g500','k400','cvk350c','cvk350t']
-    VARIANT = 'release'
-    BUILD,SRC = 'build', 'src'
+class Game14(Apk,metaclass=GlobalSingleton):
+    pass
+class Game16(Apk,metaclass=GlobalSingleton):
+    pass
 
-    _PROJECTS = {
-        'Game14': [ 'k400', 'cvk350c', 'cvk350t' ]
-      , 'Game16': [ 'g500' ]
-    }
-    _Log_h              = 'jni/Utils/log.h'
-    _AndroidManifest    = 'AndroidManifest.xml'
-    #_AppConfig          = ''
-    _Crypto0, _Crypto1  = 'src/tools/CryptoRelease.bat', 'tools/Crypto.bat'
+class Android(object):
+    def __call__(self, *args, **kwargs):
+        return self
 
-    def __init__(self, *args, **kvargs):
-        for x,y in vars(Main).items(): #'BUILD', 'SRC' , 'VARIANT', 'PLATS' :
-            if not (x.startswith('_') or callable(y)):
-                setattr(self, x, kvargs.get(x, os.environ.get(x, getattr(self,x,None))))
-        assert self.VARIANT in ('release','test')
+    def __init__(self, arg_lis, arg_dic):
+        # print('Android:',self.prjname, self.apk.prjname, self.apk.fullver())
+        self.outname = '{}-{}-{}'.format(self.prjname, self.apk.ver(), time.strftime('%Y%m%d'))
+        self.outdir = os.path.join('release1', self.outname)
+        self.outrar = self.outdir + '.rar'
+        #super().__init__(arg_lis, arg_dic)
 
-        if type(self.PLATS) == str: # and ',' in self.PLATS:
-            self.PLATS = self.PLATS.split(',')
-        prjs = {}
-        for plt in self.PLATS:
-            for prjname,plats in self._PROJECTS.items():
-                if plt in plats:
-                    prjs.setdefault(prjname,[]).append(plt)
+    def generate_makefile_common(self, mkfile, *args, RARPWD=None, **kwargs):
+        def Mk(x,y,*oths):
+            print(x,y,' ', sep='', file=mkfile, end='')
+            print(*oths, file=mkfile)
+        #sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() ]
+        assert RARPWD
+
+        Mk(self.prjname, ':', self.apk.prjname, self.outrar)
+        print(file=mkfile)
+
+        for t in self.depfiles:
+            b = os.path.basename(t)
+            for x in self.apk.outfiles:
+                if x.endswith(b):
+                    Mk(t, ':', x)
+                    Mk('\t', '/bin/cp -f', x, t)
+                    print(file=mkfile)
                     break
             else:
-                assert False, plt
-        for x,y in ('OldSVNRev','1'), ('NewSVNRev','1'), ('OldVer','1.0.0'), ('NewVer','1.0.0'):
-            v = kvargs.get(x, os.environ.get(x, y))
-            if v and type(v) == str:
-                v = tuple(map(int,v.split('.')))
-            setattr(Apk, x, v)
-        self.projects = [ Apk(self, prjname, plts, *args, **kvargs)
-                            for prjname,plts in prjs.items() ]
-        ver = max( prj.NewVer for prj in self.projects )
-        for prj in self.projects:
-            prj.NewVer = ver
+                assert False
 
-        #self.plats = set()
+        Mk(self.outrar, ':', self.outdir)
+        Mk('\t', 'cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
+        print(file=mkfile)
+
+        Mk('clean_'+self.prjname, ':')
+        Mk('\t', 'rm -rf {}'.format(self.outdir))
+        Mk('\t', 'rm -f  {}'.format(self.outrar))
+        print(file=mkfile)
+
+class AndClassic(Android):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.apk = Game14(arg_lis, arg_dic)
+        self.src = '/osca/' + self.prjname
+        self.build = self.src
+        apkdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'internal')
+        libdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        super().__init__(arg_lis, arg_dic)
+
+    def generate_makefile(self, mkfile, *args, **kwargs):
+        def Mk(x,y,*oths):
+            print(x,y,' ', sep='', file=mkfile, end='')
+            print(*oths, file=mkfile)
+
+        self.generate_makefile_common(mkfile, *args, **kwargs)
+        Mk('update_'+self.prjname, ':')
+        print(file=mkfile)
+
+        Mk(self.outdir, ':')
+        Mk('\t',  'cd', self.build
+                , '&& source build/envsetup.sh'
+                , '&& lunch full_ckt6580_we_l-user && make -j8'
+                , '&& mt6580-copyout.sh', self.outdir)
+        print(file=mkfile)
+
+        return [ self.outrar ] #, [ r_version_commit ], [ r_clean ]
+
+class k400(AndClassic, metaclass=GlobalSingleton):
+    pass
+class cvk350c(AndClassic, metaclass=GlobalSingleton):
+    pass
+class cvk350t(AndClassic, metaclass=GlobalSingleton):
+    pass
+
+class g500(Android, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.apk = Game16(arg_lis, arg_dic)
+        self.src = 'mt6580'
+        self.build = 'mt6580/alps'
+        apkdir = os.path.join(self.build,'packages/apps/Game')
+        libdir = apkdir
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        super().__init__(arg_lis, arg_dic)
+
+    def generate_makefile(self, mkfile, *args, **kwargs):
+        def Mk(x,y,*oths):
+            print(x,y,' ', sep='', file=mkfile, end='')
+            print(*oths, file=mkfile)
+
+        self.generate_makefile_common(mkfile, *args, **kwargs)
+        Mk('update_'+self.prjname, ':')
+        Mk('\t',  'cd', self.src, '&& git pull')
+        print(file=mkfile)
+
+        Mk(self.outdir, ':', *self.depfiles)
+        Mk('\t' , 'cd', self.build
+                , '&& source build/envsetup.sh'
+                , '&& lunch full_ckt6580_we_l-user && make -j8'
+                , '&& mt6580-copyout.sh', os.path.abspath(self.outdir))
+        print(file=mkfile)
+
+    def test(self, *args, **kwargs):
+        self.generate_makefile(open('Makefile','w'), *args, **kwargs)
+
+class Main(object, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        with open('Makefile','w') as mkfile:
+            alls, defaults = {}, {}
+            for a in set(arg_lis):
+                T = getattr(_this_module, a)
+                argl, argd = arg_lis[:], arg_dic.copy()
+                o = T(argl, argd)
+                alls.setdefault(o.apk, (argl,argd))
+                alls.setdefault(o, (argl,argd))
+                defaults.setdefault(o, (argl,argd))
+
+            print('### Auto-generated', file=mkfile)
+            print(file=mkfile)
+            print('export SHELL=/bin/bash', file=mkfile)
+            print('export PATH:=$(PATH):/home/wood/bin', file=mkfile)
+            print(file=mkfile)
+            def Mk(x,y,*oths):
+                print(x,y,' ', sep='', end='', file=mkfile)
+                print(*oths, file=mkfile)
+
+            names = [ x.prjname for x in defaults.keys() ]
+
+            Mk('all',':',*names)
+            print(file=mkfile)
+
+            names = [ x.prjname for x in alls.keys() ]
+
+            Mk('clean',':', *map(lambda x:'clean'+'_'+x, names))
+            print(file=mkfile)
+            Mk('update',':', *map(lambda x:'update'+'_'+x, names))
+            print(file=mkfile)
+            Mk('info',':', *map(lambda x:'info'+'_'+x, names))
+            print(file=mkfile)
+
+            for o,(a,d) in alls.items():
+                o.generate_makefile(mkfile, *a, **d)
+
+            print('.PHONY:', 'all', 'clean', 'update', *names, end=' ', file=mkfile)
+            print(      *map(lambda x:'clean_'+x, names), end=' ', file=mkfile)
+            print(      *map(lambda x:'update_'+x, names), end=' ', file=mkfile)
+            print(      *map(lambda x:'info_'+x, names), end=' ', file=mkfile)
+            print(file=mkfile)
+
+    def default(self, *args, **kwargs):
+        pass
+        #for x,y in ('OldSVNRev','1'), ('NewSVNRev','1'), ('OldVer','1.0.0'), ('NewVer','1.0.0'):
+        #    v = kvargs.get(x, os.environ.get(x, y))
+        #    if v and type(v) == str:
+        #        v = tuple(map(int,v.split('.')))
+        #    setattr(Apk, x, v)
+        #ver = max( prj.NewVer for prj in self.projects )
         #for prj in self.projects:
-        #    for plt in prj.plats:
-        #        self.plats.add(plt)
+        #    prj.NewVer = ver
 
-    def prebuild_apk(self, *args, **kvargs):
-        def prebuild_apk_(self, prj):
-            print('>>> prebuild_apk:', prj.src, prj.build)
+    #def prebuild_apk(self, *args, **kvargs):
+    #        print('>>> prebuild_apk:', prj.src, prj.build)
 
-            assert os.path.exists(prj.src)
-            assert prj.build.startswith( Main.BUILD )
+    #        for x,y in walk('eclipse', prj.name):
+    #            if not x.endswith('.projects'):
+    #                y = os.path.join(x,y)
+    #                print('rmtree:', y)
+    #                shutil.rmtree(y, ignore_errors=True )
+    #        fp = os.path.join(prj.build,'.project')
+    #        print('edit:', fp, '<name>', prj.name)
+    #        etree_replace_text(fp, './name', prj.name)
 
-            for x,y in walk('eclipse', prj.name):
-                if not x.endswith('.projects'):
-                    y = os.path.join(x,y)
-                    print('rmtree:', y)
-                    shutil.rmtree(y, ignore_errors=True )
+    #        if self.VARIANT == 'release':
+    #            sf, df = self._Crypto0, os.path.join(prj.build,self._Crypto1)
+    #            print('copyfile:', sf, df)
+    #            shutil.copyfile(sf, df)
+    #            log_h = os.path.join(prj.build,self._Log_h)
+    #            print('edit:', log_h, 'BUILD_RELEASE')
+    #            edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
 
-            if os.path.exists(prj.build):
-                print('rmtree:', prj.build)
-                shutil.rmtree(prj.build, ignore_errors=True )
-            #os.makedirs(prj.build)
+    #        if prj.name == 'Game16':
+    #            fp = os.path.join(prj.build, self._AndroidManifest)
+    #            print('edit:', fp, 'android.uid.system')
+    #            edit('\sandroid:versionName="(\d+\.\d+)"\s'
+    #                    , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
+    #                    , fp, count=1)
+    #            #subprocess.check_call(command('cd mt6580 && git pull'), shell=True, executable='/bin/bash')
 
-            copytree(prj.src, prj.build, ignore=[ '.svn','.git' ])
-            if not os.path.exists(prj.outdir):
-                os.makedirs(prj.outdir, exist_ok=True)
+    #        if prj.name == 'Game14':
+    #            for fp in glob.glob(os.path.join(prj.build, 'doc/*.xls')):
+    #                print('copy:', fp)
+    #                shutil.copy(fp, '/samba/release1/doc/')
+    #            with open('svn.log.{}.{}'.format(prj.name,prj.ver()), 'w') as f:
+    #                bash_command('svn log -r{}:HEAD {}'.format(prj.svnrev(old=1), prj.src), stdout=f)
+    #                print(prj.fullver()
+    #                        , '%s => %s' % (prj.svnrev(old=1),prj.svnrev())
+    #                        , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
+    #                print('$ vim', os.path.join(self.SRC,'Game14/doc/版本发布记录.txt'), f.name)
 
-            fp = os.path.join(prj.build,'.project')
-            print('edit:', fp, '<name>', prj.name)
-            etree_replace_text(fp, './name', prj.name)
+    #def prebuild(self, *args, RARPWD=None, **kvargs):
+    #                for sf in prj.outfiles: #'libBarcode.so', 'libmtkhw.so', 'Game.apk':
+    #                    pf = sf.replace(prj.outdir, '').strip('/')
+    #                    df = os.path.join(out, pf)
+    #                    copyfile(sf, df, makedirs=1)
+    #    bash_command('cd {} && make -f Game14.mk PLATS={} release'
+    #        .format(self.BUILD, ','.join(prj2.plats)))
 
-            if self.VARIANT == 'release':
-                sf, df = self._Crypto0, os.path.join(prj.build,self._Crypto1)
-                print('copyfile:', sf, df)
-                shutil.copyfile(sf, df)
-                log_h = os.path.join(prj.build,self._Log_h)
-                print('edit:', log_h, 'BUILD_RELEASE')
-                edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
-
-            if prj.name == 'Game16':
-                fp = os.path.join(prj.build, self._AndroidManifest)
-                print('edit:', fp, 'android.uid.system')
-                edit('\sandroid:versionName="(\d+\.\d+)"\s'
-                        , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
-                        , fp, count=1)
-                #subprocess.check_call(command('cd mt6580 && git pull'), shell=True, executable='/bin/bash')
-
-            if prj.name == 'Game14':
-                for fp in glob.glob(os.path.join(prj.build, 'doc/*.xls')):
-                    print('copy:', fp)
-                    shutil.copy(fp, '/samba/release1/doc/')
-                with open('svn.log.{}.{}'.format(prj.name,prj.ver()), 'w') as f:
-                    bash_command('svn log -r{}:HEAD {}'.format(prj.svnrev(old=1), prj.src), stdout=f)
-                    print(prj.fullver()
-                            , '%s => %s' % (prj.svnrev(old=1),prj.svnrev())
-                            , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
-                    print('$ vim', os.path.join(self.SRC,'Game14/doc/版本发布记录.txt'), f.name)
-
-            self.version_set(os.path.join(prj.build,prj._AppConfig), prj.ver(), prj.svnrev())
-
-        for prj in self.projects:
-            prebuild_apk_(self, prj)
-        print()
-        self.show_info(*args, **kvargs)
-
-    def version_set(self, appconfig, ver, svnrev):
-        lines = []
-        with open(appconfig) as sf:
-            lines = sf.readlines()
-
-        re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v\d+\.\d+\.\d+(-r\d+)?"')
-        re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn\d+"')
-        with open(appconfig, 'w') as outf:
-            def repf(r):
-                if 'SVNVERSION' in r.group(0):
-                    return re.sub('=\s*"new-svn\d+"', '= "new-svn{}"'.format(svnrev), r.group(0))
-                if self.VARIANT == 'release':
-                    return re.sub('=\s*"v[^"]+"', '= "v{}"'.format(ver), r.group(0))
-                return re.sub('=\s*"v[^"]+"', '= "v{}-{}"'.format(ver, svnrev), r.group(0))
-            for line in lines:
-                lin = re.sub(re_ver, repf, line)
-                if lin is line:
-                    lin = re.sub(re_svnrev, repf, line)
-                if not (lin is line):
-                    print('edit:', appconfig, re.search('(\w+)\s*=\s*"([^"]+)', lin).groups())
-                outf.write(lin)
-
-    def postbuild_apk(self, *args, RARPWD=None, **kvargs):
-        if self.VARIANT == 'test':
-            return
-
-        depfiles = []
-        for prj in self.projects:
-            depfiles += prj.depfiles
-        print('wait:', *depfiles)
-        while True:
-            if sum(os.path.exists(x) for x in depfiles) == len(depfiles):
-                break
-            time.sleep(3)
-        time.sleep(4)
-
-        plts_excl_g500 = []
-
-        for prj in self.projects:
-            prj.make_outdir_tree()
-
-            plts_excl_g500 += [ x for x in prj.plats if x != 'g500' ]
-
-        if plts_excl_g500:
-            pass #TODO: sync-up
-
-        #for prj in self.projects:
-        #    out = makedirs('out',prj.fullver(), remove=1)
-
-        #    fp0 = os.path.join(self.BUILD,prj.name,prj.fullver()+'.apk')
-        #    fp1 = os.path.join(out,'Game.apk')
-        #    print('copyfile:', fp0, fp1)
-        #    shutil.copyfile(fp0, fp1)
-        #    for fp0 in 'libs/armeabi-v7a/libBarcode.so', 'libmtkhw.so':
-        #        fp0 = os.path.join(self.BUILD,prj.name,fp0)
-        #        print('copy2:', fp0, out)
-        #        shutil.copy(fp0, out)
-
-    def prebuild(self, *args, RARPWD=None, **kvargs):
-        assert self.VARIANT == 'release'
-
-        #self.postbuild_apk(*args, **kvargs)
-
-        for prj in self.projects:
-            #src = os.path.join('out',prj.fullver())
-            #assert os.path.exists(src)
-            #tmpdir = os.path.join('/tmp', prj.ver2())
-            #shutil.rmtree(tmpdir, ignore_errors=True )
-            for plt in prj.plats:
-                if plt == 'g500':
-                    bash_command('cd mt6580 && git pull')
-                    out = 'mt6580/alps' #'/packages/apps/Game/'
-                    for sf in prj.outfiles: #'libBarcode.so', 'libmtkhw.so', 'Game.apk':
-                        pf = sf.replace(prj.outdir, '').strip('/')
-                        df = os.path.join(out, pf)
-                        copyfile(sf, df, makedirs=1)
-                else:
-                    pass
-                    #libdir = makedirs(tmpdir, plt, 'vendor/g368_noain_t300/application','lib', remove=1)
-                    #appdir = makedirs(tmpdir, plt, 'vendor/g368_noain_t300/application','internal', remove=1)
-                    #for fp0 in prj.outfiles: #'libBarcode.so', 'libmtkhw.so':
-                    #    out = libdir
-                    #    if fp0.endswith('.apk'):
-                    #        out = appdir
-                    #    print('copy2:', fp0, '\t', out)
-                    #    shutil.copy(fp0, out)
-                    ##out = makedirs(tmpdir, plt, 'vendor/g368_noain_t300/application','internal', remove=1)
-                    ##fp0 = os.path.join(src,'Game.apk')
-                    ##print('copy2:', fp0, '\t', out)
-                    ##shutil.copy(fp0, out)
-
-    def build(self, *args, **kvargs):
-        assert self.VARIANT == 'release'
-        #self.prebuild(*args, **kvargs)
-
-        prj2 = None
-        for prj in self.projects:
-            for plt in prj.plats:
-                print('>>>', plt, prj)
-                if plt == 'g500':
-                    bash_command('cd mt6580/alps'
-                            ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user'
-                            ' && make -j8'
-                            ' && mt6580-copyout.sh /samba/release1/{}'
-                            .format(prj.platver(plt)))
-                    #if RARPWD:
-                    #    self._make_archive(plt, prj, RARPWD)
-                else:
-                    prj2 = prj
-        if prj2 and prj2.plats:
-            bash_command('cd {} && make -f Game14.mk PLATS={} release'
-                .format(self.BUILD, ','.join(prj2.plats)))
-            #if RARPWD:
-            #    for plt in prj2.plats:
-            #        self._make_archive(plt, prj, RARPWD)
-
-    def postbuild(self, *args, RARPWD=None, **kvargs):
-        # TODO: sync-down
-        if RARPWD:
-            for prj in self.projects:
-                for plt in prj.plats:
-                    self._make_archive(plt, prj, RARPWD)
-
-    def _make_archive(self, plt, prj, rarpwd):
-        bash_command('cd /samba/release1'
-                ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
-                .format(prj.platver(plt), rarpwd))
-
-    def rar(self, *args, RARPWD=None, **kvargs):
-        assert RARPWD
-        for prj in self.projects:
-            for plt in prj.plats:
-                self._make_archive(plt, prj, RARPWD)
-
-    def sync_down(self, *args, **kvargs):
-        for plt in self.PLATS:
-            for prj in self.projects:
-                if plt in prj.plats:
-                    rel = '{}/{}-{}-{}'.format(self.VARIANT, plt, prj.ver(), prj.datestr)
-                    plt,prj
-        #rel="$plat-$NewVer-`datestr`"
-        #rsync -vrL $rhost:$variant/$rel $outdir/ || die "$rhost $rel"
-
-    def version_commit(self, *args, **kvargs):
-        #@contextlib.contextmanager
-        #def commit(self, **kvargs):
-        #    yield
-        #    for prj in self.projects:
-        #        message="Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**kvargs)
-        #        subprocess.check_call(command('cd {} && svn commit -m"{}"', src, message)
-        #                , shell=True, executable='/bin/bash')
-        prjs = []
-        def revert(self):
-            for prj,msg in prjs:
-                bash_command('cd {} && svn revert {}'.format(prj.src, prj._AppConfig))
-        try:
-            kvargs.setdefault('ExtraVersionInfo','')
-            for prj in self.projects:
-                d = prj.vars(**kvargs)
-                bash_command('cd {} && svn diff --summarize'.format(prj.src))
-                msg = "Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**d)
-                print(msg)
-                yN = input('commit %s? (y/N): ' % prj.src)
-                if yN.lower() not in ('y','yes'):
-                    raise EOFError
-                prjs.append( (prj,msg) )
-            for prj,msg in prjs:
-                self.version_set(os.path.join(prj.src,prj._AppConfig), prj.ver(), prj.svnrev())
-                bash_command('cd {} && svn commit -m"{}"'.format(prj.src, msg))
-        except (KeyboardInterrupt,EOFError):
-            revert(self)
-        except Exception:
-            revert(self)
-            raise
+    #def version_commit(self, *args, **kvargs):
+    #    prjs = []
+    #    def revert(self):
+    #        for prj,msg in prjs:
+    #            bash_command('cd {} && svn revert {}'.format(prj.src, prj._AppConfig))
+    #    try:
+    #        kvargs.setdefault('ExtraVersionInfo','')
+    #        for prj in self.projects:
+    #            d = prj.vars(**kvargs)
+    #            bash_command('cd {} && svn diff --summarize'.format(prj.src))
+    #            msg = "Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**d)
+    #            print(msg)
+    #            yN = input('commit %s? (y/N): ' % prj.src)
+    #            if yN.lower() not in ('y','yes'):
+    #                raise EOFError
+    #            prjs.append( (prj,msg) )
+    #        for prj,msg in prjs:
+    #            self.version_set(os.path.join(prj.src,prj._AppConfig), prj.ver(), prj.svnrev())
+    #            bash_command('cd {} && svn commit -m"{}"'.format(prj.src, msg))
+    #    except (KeyboardInterrupt,EOFError):
+    #        revert(self)
+    #    except Exception:
+    #        revert(self)
+    #        raise
 
     def help(self, *args, **kvargs):
         print('''\
 Usages:
-    {0} prebuild_apk PLATS={sPLATS} VARIANT=[release|test]
-    {0} build   PLATS={sPLATS} VARIANT=[release|test] RARPWD=XXX
-    {0} version_commit
-'''.format(sys.argv[0], sPLATS=','.join(Main.PLATS), **vars(self)))
-        self.show_info(*args, **kvargs)
+    {} Makefile PLATS={} RARPWD=XXX
+    make clean
+    make
+'''.format(sys.argv[0], ','.join(args)))
+        #self.show_info(*args, **kvargs)
 
     def show_info(self, *args, **kvargs):
-        pprint(vars(self))
-        if args: pprint(args)
-        if kvargs: pprint(kvargs)
-        print()
+        #pprint(vars(self))
+        #if args: pprint(args)
+        #if kvargs: pprint(kvargs)
+        #print()
         for s in grep('Key.*word', 'src/howto.txt'):
             print(s.strip())
-        for prj in self.projects:
-            apk = prj.export_filename.replace('/','\\')
-            print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
-            #pprint(vars(self)) #pprint(globals())
-
-    def prepare_make(self, *args, RARPWD=None, **kvargs):
-        assert self.VARIANT=='test' or RARPWD
-
-        with open('Makefile','w') as mkfile:
-            def simple_rule(target, deps, *cmds):
-                args = sys.argv[:]
-                print(target, ': ', ' '.join(deps), sep='', file=mkfile)
-                for cmd in cmds:
-                    args[1] = cmd
-                    print('\t', ' '.join(args), sep='', file=mkfile)
-                print(file=mkfile)
-            print('###', *sys.argv, file=mkfile)
-            print(file=mkfile)
-            simple_rule('help', [], 'help')
-            simple_rule('prebuild_apk', [], 'prebuild_apk')
-
-            if self.VARIANT == 'test':
-                return
-
-            for prj in self.projects:
-                out = makedirs('out',prj.fullver(), remove=1)
-                outfs = [ os.path.join(out,fp) for fp in ('Game.apk', 'libBarcode.so', 'libmtkhw.so') ]
-            simple_rule('apk_and_libs', outfs, 'postbuild_apk')
-
-            apks = []
-            for prj in self.projects:
-                if self.VARIANT == 'release':
-                    apk = '{}/{}/{}.apk'.format(self.BUILD,prj.name, prj.fullver())
-                else:
-                    apk = 'test/{}.apk'.format(prj.fullver())
-                apks.append( apk )
-
-            simple_rule('postbuild_apk', apks , 'sleep V=5' , 'postbuild_apk')
-
-            simple_rule('prebuild', ['postbuild_apk'], 'prebuild')
-            simple_rule('build', ['prebuild'], 'build')
-            simple_rule('postbuild', ['build'], 'postbuild')
-            simple_rule('version_commit', [], 'version_commit')
-            for apk in apks:
-                print(apk, ':', sep='', file=mkfile)
-                print('\t', '@while ! /bin/ls -hl $@ 2>/dev/null; do sleep 3; done', sep='', file=mkfile)
-                print(file=mkfile)
-            print('.PHONY:', 'default', 'all', 'help', 'prebuild_apk', 'postbuild_apk', 'prebuild', 'build', 'postbuild', file=mkfile)
-            print(file=mkfile)
-
-            #rels = []
-            #for prj in self.projects:
-            #    for plt in prj.plats:
-            #        rels.append('/samba/release1/{0}'.format(prj.platver(plt)))
-            #        simple_rule(rel, ['postbuild'], rels)
-            #        print(rel, ':', sep='', file=mkfile)
-            #        print('\t', '@while ! /bin/ls -hl $@ 2>/dev/null; do sleep 3; done', sep='', file=mkfile)
-            #        print(file=mkfile)
-            #simple_rule('all', rels)
-
-        bash_command('make help')
-        #bash_command('make prebuild_apk && make postbuild')
-
-    def prepare_make2(self, *args, RARPWD=None, **kvargs):
-        assert self.VARIANT=='test' or RARPWD
-
-        with open('Makefile','w') as mkfile:
-            def simple_rule(target, deps, *cmds):
-                args = sys.argv[:]
-                print(target, ': ', ' '.join(deps), sep='', file=mkfile)
-                for cmd in cmds:
-                    args[1] = cmd
-                    print('\t', ' '.join(args), sep='', file=mkfile)
-                print(file=mkfile)
-            print('###', *sys.argv, file=mkfile)
-            print(file=mkfile)
-
-            apks = []
-            for prj in self.projects:
-                if self.VARIANT == 'release':
-                    apk = '{}/{}/{}.apk'.format(self.BUILD,prj.name, prj.fullver())
-                else:
-                    apk = 'test/{}.apk'.format(prj.fullver())
-                apks.append( apk )
-
-            simple_rule('help', [], 'help')
-            simple_rule('prebuild_apk', [], 'prebuild_apk')
-            simple_rule('postbuild_apk', apks , 'sleep V=5' , 'postbuild_apk')
-
-            simple_rule('prebuild', ['postbuild_apk'], 'prebuild')
-            simple_rule('build', ['prebuild'], 'build')
-            simple_rule('postbuild', ['build'], 'postbuild')
-            simple_rule('version_commit', [], 'version_commit')
-            for apk in apks:
-                print(apk, ':', sep='', file=mkfile)
-                print('\t', '@while ! /bin/ls -hl $@ 2>/dev/null; do sleep 3; done', sep='', file=mkfile)
-                print(file=mkfile)
-            print('.PHONY:', 'default', 'all', 'help', 'prebuild_apk', 'postbuild_apk', 'prebuild', 'build', 'postbuild', file=mkfile)
-            print(file=mkfile)
-
-            #rels = []
-            #for prj in self.projects:
-            #    for plt in prj.plats:
-            #        rels.append('/samba/release1/{0}'.format(prj.platver(plt)))
-            #        simple_rule(rel, ['postbuild'], rels)
-            #        print(rel, ':', sep='', file=mkfile)
-            #        print('\t', '@while ! /bin/ls -hl $@ 2>/dev/null; do sleep 3; done', sep='', file=mkfile)
-            #        print(file=mkfile)
-            #simple_rule('all', rels)
-
-        bash_command('make help')
-        #bash_command('make prebuild_apk && make postbuild')
-
-    def sleep(self, *args, V=4, **kvargs):
-        time.sleep(int(V))
+        #for prj in self.projects:
+        #    apk = prj.export_filename.replace('/','\\')
+        #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
+        #    #pprint(vars(self)) #pprint(globals())
 
 def check(*args, **kvargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
@@ -724,10 +577,16 @@ def copytree(src, dst, remove=False, ignore=[], **kwargs):
     #    os.makedirs(outdir, exist_ok=True)
 
 def waitfiles(*files, **kwargs):
+    for s in grep('Key.*word', 'src/howto.txt'):
+        print(s.strip())
+    #for prj in self.projects:
+    #    apk = prj.export_filename.replace('/','\\')
+    #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
+    #    #pprint(vars(self)) #pprint(globals())
     def sizes():
         return ( os.stat(f).st_size for f in files )
     while not _Stopped:
-        print('waiting', *files)
+        print('...', *files)
         while not _Stopped:
             if sum(os.path.exists(x) for x in files) == len(files):
                 break
@@ -804,7 +663,6 @@ def bootstrap(*xfs):
         global _Stopped
         _Stopped = 1
     signal.signal(signal.SIGINT, _sig_handler)
-    _this_module = sys.modules[__name__]
 
     def _fn_lis_dic(args):
         fn, lis, dic = '', [], {} # defaultdict(list)
@@ -837,7 +695,7 @@ def bootstrap(*xfs):
     a_lis, a_dic = _arg_lis[:], _arg_dic.copy()
     #print(a_dic, *a_lis)
 
-    def _getattr(scope, sym):
+    def _geta(scope, sym):
         obj = getattr(scope, sym, None)
         if not obj and scope == _this_module:
             Main = getattr(scope,'Main',None)
@@ -845,13 +703,13 @@ def bootstrap(*xfs):
                 return getattr(Main(a_lis,a_dic), sym, None)
         return obj
 
-    def _fn(Cobj, sym, *symbs):
-        Cobj = _getattr(Cobj, sym)
+    def _fn(obj, sym, *symbs):
+        X = _geta(obj, sym)
         if symbs:
-            #print(sym, type(Cobj), Cobj is Apk)
+            #print(sym, type(X), X is Apk)
             #print(*symbs)
-            return _fn(Cobj(a_lis, a_dic), *symbs)
-        return Cobj
+            return _fn(X(a_lis, a_dic), *symbs)
+        return X
 
     t = timeit.default_timer()
     _fn(_this_module, *syms)(*a_lis, **a_dic)
@@ -869,10 +727,10 @@ if __name__ == '__main__':
         raise
 
     #import argparse
-
+    #
     #parser = argparse.ArgumentParser()
     #subparsers = parser.add_subparsers()
-
+    #
     #hello_parser = subparsers.add_parser('hello')
     #hello_parser.add_argument('name')
     ## add greeting option w/ default
@@ -880,6 +738,6 @@ if __name__ == '__main__':
     ## add a flag (default=False)
     #hello_parser.add_argument('--caps', action='store_true')
     #hello_parser.set_defaults(func=greet)
-
+    #
     #goodbye_parser = subparsers.add_parser('goodbye')
 
