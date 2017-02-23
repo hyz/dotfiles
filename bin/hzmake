@@ -126,10 +126,11 @@ class Apk(object):
 
         Mk(self.export_filename, ':', 'info_'+self.prjname, self.outdir)
         Mk('\t@', sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
-        Mk('\t', sys.argv[0], 'copyfiles2', self.outdir, *self.libfiles)
+        Mk('\t', '/bin/cp -vrt', self.outdir, *self.libfiles)
         if self.prjname == 'Game14':
             Mk('\t', 'rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
-            Mk('\t', 'rsync -v', mkfile.name, _ruser+'@'+_rhost+':'+_rhome)
+            Mk('\t', 'rsync -vRL', 'bin/hzrbuild', mkfile.name, _ruser+'@'+_rhost+':'+_rhome)
+            #Mk('\t', 'rsync -vR', self.prefix_src(self._AndroidManifest), _ruser+'@'+_rhost+':'+_rhome)
         #Mk('\t', sys.argv[0], '.copyoutfiles', self.prjname)
         print(file=mkfile)
 
@@ -297,24 +298,24 @@ class Android(object):
         Mk(self.prjname, ':', self.apk.prjname, self.outrar)
         print(file=mkfile)
 
+        dd = dict( (os.path.basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
-            b = os.path.basename(t)
-            for x in self.apk.outfiles:
-                if x.endswith(b):
-                    Mk(t, ':', x)
-                    Mk('\t', '/bin/cp -f', x, t)
-                    print(file=mkfile)
-                    break
-            else:
-                assert False
+            x = dd[ os.path.basename(t) ]
+            Mk(t, ':', x)
+            Mk('\t', '/bin/cp -vf', x, t)
+            print(file=mkfile)
 
         Mk(self.outrar, ':', self.outdir)
         Mk('\t', 'cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
         print(file=mkfile)
 
+        Mk('update_'+self.prjname, ':')
+        Mk('\t',  'cd', self.src, '&& git pull')
+        print(file=mkfile)
         Mk('clean_'+self.prjname, ':')
-        Mk('\t', 'rm -rf {}'.format(self.outdir))
-        Mk('\t', 'rm -f  {}'.format(self.outrar))
+        Mk('\t', 'rm -rf', self.outdir)
+        Mk('\t', 'rm -f' , self.outrar)
+        Mk('\t', 'rm -f' , *self.depfiles)
         print(file=mkfile)
 
 class AndClassic(Android):
@@ -323,10 +324,12 @@ class AndClassic(Android):
         self.apk = Game14(arg_lis, arg_dic)
         self.src = '/osca/' + self.prjname
         self.build = self.src
-        apkdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'internal')
-        libdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'lib')
+        self.apkdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'internal')
+        self.libdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'lib')
         apkfile = os.path.basename(self.apk.apkfile)
-        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        self.depfiles = [ os.path.join(self.apkdir,apkfile) ] + [ os.path.join(self.libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        for x in self.depfiles:
+            assert x.endswith('.apk') or x.endswith('.so')
         super().__init__(arg_lis, arg_dic)
 
     def generate_makefile(self, mkfile, *args, **kwargs):
@@ -335,14 +338,19 @@ class AndClassic(Android):
             print(*oths, file=mkfile)
 
         self.generate_makefile_common(mkfile, *args, **kwargs)
-        Mk('update_'+self.prjname, ':')
-        print(file=mkfile)
 
-        Mk(self.outdir, ':')
-        Mk('\t',  'cd', self.build
-                , '&& source build/envsetup.sh'
-                , '&& lunch full_ckt6580_we_l-user && make -j8'
-                , '&& mt6580-copyout.sh', self.outdir)
+        #Mk('clean_'+self.prjname+'_deps', ':')
+        #Mk('\t', 'rm -f' , *self.depfiles)
+
+        Mk(self.outdir, ':', 'clean_'+self.prjname, *self.depfiles)
+        rout = '/osca/release/'+self.outname
+        isremote = '[ -d "{}" ]'.format(self.build)
+        #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
+        Mk('\t', isremote, '&& bin/hzrbuild', self.build, rout)
+        Mk('\t', isremote, '&& mkdir -p', os.path.dirname(self.outdir))
+        Mk('\t', isremote, '&& ln -vsnf', rout, self.outdir)
+        Mk('\t', isremote, '|| ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,self.outdir))
+        Mk('\t', isremote, '|| rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
         print(file=mkfile)
 
         return [ self.outrar ] #, [ r_version_commit ], [ r_clean ]
@@ -372,9 +380,6 @@ class g500(Android, metaclass=GlobalSingleton):
             print(*oths, file=mkfile)
 
         self.generate_makefile_common(mkfile, *args, **kwargs)
-        Mk('update_'+self.prjname, ':')
-        Mk('\t',  'cd', self.src, '&& git pull')
-        print(file=mkfile)
 
         Mk(self.outdir, ':', *self.depfiles)
         Mk('\t' , 'cd', self.build
