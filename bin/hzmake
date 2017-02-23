@@ -394,14 +394,15 @@ class g500(Android, metaclass=GlobalSingleton):
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
         with open('Makefile','w') as mkfile:
-            alls, defaults = {}, {}
+            alls, ands, apks = {}, {}, {}
             for a in set(arg_lis):
                 T = getattr(_this_module, a)
                 argl, argd = arg_lis[:], arg_dic.copy()
                 o = T(argl, argd)
                 alls.setdefault(o.apk, (argl,argd))
                 alls.setdefault(o, (argl,argd))
-                defaults.setdefault(o, (argl,argd))
+                ands.setdefault(o, (argl,argd))
+                apks.setdefault(o.apk, (argl,argd))
 
             print('### Auto-generated', file=mkfile)
             print(file=mkfile)
@@ -412,9 +413,13 @@ class Main(object, metaclass=GlobalSingleton):
                 print(x,y,' ', sep='', end='', file=mkfile)
                 print(*oths, file=mkfile)
 
-            names = [ x.prjname for x in defaults.keys() ]
+            names = [ x.prjname for x in ands.keys() ]
 
             Mk('all',':',*names)
+            print(file=mkfile)
+
+            names = [ x.prjname for x in apks.keys() ]
+            Mk('games',':',*names)
             print(file=mkfile)
 
             names = [ x.prjname for x in alls.keys() ]
@@ -429,7 +434,7 @@ class Main(object, metaclass=GlobalSingleton):
             for o,(a,d) in alls.items():
                 o.generate_makefile(mkfile, *a, **d)
 
-            print('.PHONY:', 'all', 'clean', 'update', *names, end=' ', file=mkfile)
+            print('.PHONY:', 'all', 'games', 'clean', 'update', *names, end=' ', file=mkfile)
             print(      *map(lambda x:'clean_'+x, names), end=' ', file=mkfile)
             print(      *map(lambda x:'update_'+x, names), end=' ', file=mkfile)
             print(      *map(lambda x:'info_'+x, names), end=' ', file=mkfile)
