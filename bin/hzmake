@@ -544,6 +544,39 @@ Usages:
         #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
         #    #pprint(vars(self)) #pprint(globals())
 
+class Makefile(object):
+    class Mkblock(object):
+        def __init__(self, mkfile, x, *a):
+            self.file = mkfile
+            print(x, ': ', sep='',end='', file=self.file)
+            print(*a, file=self.file)
+        def cmd(self, *a):
+            print('\t', end='', file=self.file)
+            print(*a, file=self.file)
+            return self
+        def __enter__(self):
+            return self
+        def __exit__(self, x,y,z):
+            print(file=self.file)
+
+    def __init__(self, mkfile, mode='w'):
+        if type(mkfile) == str:
+            self.file = open(mkfile, mode)
+            self.need_close = 1
+        else:
+            self.file = mkfile
+            self.need_close = 0
+
+    def __call__(self, x, *a):
+        return self.Mkblock(self.file, x, *a)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, x,y,z):
+        if self.need_close:
+            self.file.close()
+
 def check(*args, **kvargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
             , 'src/tools/CryptoRelease.bat' , 'src/howto.txt'
