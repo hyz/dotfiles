@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys, time, os, re, subprocess, types, contextlib
-import fnmatch, shutil, glob, tempfile
+import fnmatch, shutil, glob, tempfile, itertools
 from pprint import pprint
 import timeit
 
@@ -104,61 +104,47 @@ class Apk(object):
             self.NewSVNRev = (int(self.NewSVNRev),)
 
     def test(self, *args, **kwargs):
-        self.generate_makefile(open('Makefile','w'), *args, **kwargs)
+        self.generate_makefile(Makefile(), *args, **kwargs)
 
-    def generate_makefile(self, mkfile, *args, **kwargs):
-        def Mk(x,y,*oths):
-            print(x,y,' ', sep='', file=mkfile, end='')
-            print(*oths, file=mkfile)
+    def generate_makefile(self, Make, *args, **kwargs):
         sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
 
-        Mk(self.build, ':', self.src)
-        #Mk('\t', '&&', 'find {} -mindepth 1 -maxdepth 1 ! -name ".svn*"\\'.format(self.prjname))
-        Mk('\t', sys.argv[0], self.prjname+'.copytree2', self.src, self.build)
-        Mk('\t', sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
-        print(file=mkfile)
+        with Make(self.build, self.src) as cmd:
+            #Mk('\t', '&&', 'find {} -mindepth 1 -maxdepth 1 ! -name ".svn*"\\'.format(self.prjname))
+            cmd(sys.argv[0], self.prjname+'.copytree2', self.src, self.build)
+            cmd(sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
 
-        Mk(self.outdir, ':', self.build)
-        Mk('\t', 'mkdir -p $@')
-        print(file=mkfile)
+        with Make(self.outdir, self.build) as cmd:
+            cmd('mkdir -p $@')
 
         shutil.rmtree(self.outdir, ignore_errors=True) # os.removedirs(di)
 
-        Mk(self.export_filename, ':', 'info_'+self.prjname, self.outdir)
-        Mk('\t@', sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
-        Mk('\t', '/bin/cp -vrt', self.outdir, *self.libfiles)
-        if self.prjname == 'Game14':
-            Mk('\t', 'rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
-            Mk('\t', 'rsync -vRL', 'bin/hzrbuild', mkfile.name, _ruser+'@'+_rhost+':'+_rhome)
+        with Make(self.export_filename, self.outdir, 'info_'+self.prjname) as cmd:
+            cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
+            cmd('/bin/cp -vrt', self.outdir, *self.libfiles)
+            if self.prjname == 'Game14':
+                cmd('rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
+                cmd('rsync -vRL', 'bin/hzrbuild', Make.file.name, _ruser+'@'+_rhost+':'+_rhome)
             #Mk('\t', 'rsync -vR', self.prefix_src(self._AndroidManifest), _ruser+'@'+_rhost+':'+_rhome)
-        #Mk('\t', sys.argv[0], '.copyoutfiles', self.prjname)
-        print(file=mkfile)
 
-        Mk(self.prjname, ':', self.export_filename)
-        print(file=mkfile)
+        with Make(self.prjname, self.export_filename) as cmd:
+            pass
 
-        Mk('update_'+self.prjname, ':')
-        Mk('\t', 'cd', self.src, '&& svn up')
-        print(file=mkfile)
-        Mk('clean_'+self.prjname, ':')
-        Mk('\t', 'rm -rf', self.build)
-        print(file=mkfile)
+        with Make('update_'+self.prjname) as cmd:
+            cmd('cd', self.src, '&& svn up')
 
-        Mk('info_'+self.prjname, ':')
-        Mk('\t', '#', *[ s.strip() for s in grep('Keyalias', 'src/howto.txt') ] )
-        Mk('\t', '#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename)
-        print(file=mkfile)
+        with Make('clean_'+self.prjname) as cmd:
+            cmd('rm -rf', self.build)
+
+        with Make('info_'+self.prjname) as cmd:
+            cmd('#')
+            cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
+            cmd('#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename.replace('/','\\'))
+            cmd('#')
 
         #r_version_commit = 'version_commit_'+self.prjname
         #Mk(r_version_commit, ':', self.src)
         #Mk('\t', sys.argv[0], '.version_commit', *_arg_lis, *sl_arg_dic)
-
-        # r_clean = 'clean_' + self.prjname
-        # Mk(r_clean, ':') #(, *self.libfiles)
-        # Mk('\t', sys.argv[0], '.clean', self.prjname)
-        # print(file=mkfile)
-
-        return [ self.export_filename ] #, [ r_version_commit ], [ r_clean ]
 
     def svn_commit_confirm(self, *args, **kvargs):
         d = self.vars(**kvargs)
@@ -288,35 +274,33 @@ class Android(object):
         self.outrar = self.outdir + '.rar'
         #super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile_common(self, mkfile, *args, RARPWD=None, **kwargs):
-        def Mk(x,y,*oths):
-            print(x,y,' ', sep='', file=mkfile, end='')
-            print(*oths, file=mkfile)
+    def generate_makefile_common(self, Make, *args, RARPWD=None, **kwargs):
         #sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() ]
         assert RARPWD
 
-        Mk(self.prjname, ':', self.apk.prjname, self.outrar)
-        print(file=mkfile)
+        with Make(self.prjname, self.outrar): #(self.prjname, self.apk.prjname, self.outrar):
+            pass
 
         dd = dict( (os.path.basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ os.path.basename(t) ]
-            Mk(t, ':', x)
-            Mk('\t', '/bin/cp -vf', x, t)
-            print(file=mkfile)
+            with Make(t, x) as cmd:
+                if self.prjname in ("k400","cvk350t","cvk350c"):
+                    cmd('[ ! -d "{}" ]'.format(self.build), '|| /bin/cp -vf', x, t)
+                else:
+                    cmd('/bin/cp -vf', x, t)
 
-        Mk(self.outrar, ':', self.outdir)
-        Mk('\t', 'cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
-        print(file=mkfile)
+        with Make(self.outrar, self.outdir) as cmd:
+            cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
 
-        Mk('update_'+self.prjname, ':')
-        Mk('\t',  'cd', self.src, '&& git pull')
-        print(file=mkfile)
-        Mk('clean_'+self.prjname, ':')
-        Mk('\t', 'rm -rf', self.outdir)
-        Mk('\t', 'rm -f' , self.outrar)
-        Mk('\t', 'rm -f' , *self.depfiles)
-        print(file=mkfile)
+        with Make('clean_'+self.prjname) as cmd:
+            cmd('rm -rf', self.outdir)
+            cmd('rm -f' , self.outrar)
+            cmd('rm -f' , *self.depfiles)
+
+        with Make('update_'+self.prjname) as cmd:
+            if self.prjname == 'g500':
+                cmd('cd', self.src, '&& git pull')
 
 class AndClassic(Android):
     def __init__(self, arg_lis, arg_dic):
@@ -332,26 +316,21 @@ class AndClassic(Android):
             assert x.endswith('.apk') or x.endswith('.so')
         super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile(self, mkfile, *args, **kwargs):
-        def Mk(x,y,*oths):
-            print(x,y,' ', sep='', file=mkfile, end='')
-            print(*oths, file=mkfile)
-
-        self.generate_makefile_common(mkfile, *args, **kwargs)
+    def generate_makefile(self, Make, *args, **kwargs):
+        self.generate_makefile_common(Make, *args, **kwargs)
 
         #Mk('clean_'+self.prjname+'_deps', ':')
         #Mk('\t', 'rm -f' , *self.depfiles)
 
-        Mk(self.outdir, ':', 'clean_'+self.prjname, *self.depfiles)
-        rout = '/osca/release/'+self.outname
-        isremote = '[ -d "{}" ]'.format(self.build)
-        #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
-        Mk('\t', isremote, '&& bin/hzrbuild', self.build, rout)
-        Mk('\t', isremote, '&& mkdir -p', os.path.dirname(self.outdir))
-        Mk('\t', isremote, '&& ln -vsnf', rout, self.outdir)
-        Mk('\t', isremote, '|| ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,self.outdir))
-        Mk('\t', isremote, '|| rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
-        print(file=mkfile)
+        with Make(self.outdir, 'clean_'+self.prjname, *self.depfiles) as cmd:
+            rout = '/osca/release/'+self.outname
+            isremote, notremote = '[ -d "{}" ]'.format(self.build), '[ ! -d "{}" ]'.format(self.build)
+            #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
+            cmd(notremote, '|| bin/hzrbuild', self.build, rout)
+            cmd(notremote, '|| mkdir -p', os.path.dirname(self.outdir))
+            cmd(notremote, '|| ln -vsnf', rout, self.outdir)
+            cmd(isremote , '|| ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,self.outdir))
+            cmd(isremote , '|| rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
 
         return [ self.outrar ] #, [ r_version_commit ], [ r_clean ]
 
@@ -374,26 +353,21 @@ class g500(Android, metaclass=GlobalSingleton):
         self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
         super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile(self, mkfile, *args, **kwargs):
-        def Mk(x,y,*oths):
-            print(x,y,' ', sep='', file=mkfile, end='')
-            print(*oths, file=mkfile)
+    def generate_makefile(self, Make, *args, **kwargs):
+        self.generate_makefile_common(Make, *args, **kwargs)
 
-        self.generate_makefile_common(mkfile, *args, **kwargs)
-
-        Mk(self.outdir, ':', *self.depfiles)
-        Mk('\t' , 'cd', self.build
+        with Make(self.outdir, *self.depfiles) as cmd:
+            cmd('cd', self.build
                 , '&& source build/envsetup.sh'
                 , '&& lunch full_ckt6580_we_l-user && make -j8'
                 , '&& mt6580-copyout.sh', os.path.abspath(self.outdir))
-        print(file=mkfile)
 
     def test(self, *args, **kwargs):
-        self.generate_makefile(open('Makefile','w'), *args, **kwargs)
+        self.generate_makefile(Makefile(), *args, **kwargs)
 
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
-        with open('Makefile','w') as mkfile:
+        with Makefile() as Make:
             alls, ands, apks = {}, {}, {}
             for a in set(arg_lis):
                 T = getattr(_this_module, a)
@@ -404,41 +378,44 @@ class Main(object, metaclass=GlobalSingleton):
                 ands.setdefault(o, (argl,argd))
                 apks.setdefault(o.apk, (argl,argd))
 
-            print('### Auto-generated', file=mkfile)
-            print(file=mkfile)
-            print('export SHELL=/bin/bash', file=mkfile)
-            print('export PATH:=$(PATH):/home/wood/bin', file=mkfile)
-            print(file=mkfile)
-            def Mk(x,y,*oths):
-                print(x,y,' ', sep='', end='', file=mkfile)
-                print(*oths, file=mkfile)
+            Make.line('### Auto-generated')
+            Make.line('')
+            Make.line('export SHELL=/bin/bash')
+            Make.line('export PATH:=$(PATH):/home/wood/bin')
+            Make.line('')
 
             names = [ x.prjname for x in ands.keys() ]
-
-            Mk('all',':',*names)
-            print(file=mkfile)
-
+            with Make('all',*names):
+                pass
             names = [ x.prjname for x in apks.keys() ]
-            Mk('games',':',*names)
-            print(file=mkfile)
-
-            names = [ x.prjname for x in alls.keys() ]
-
-            Mk('clean',':', *map(lambda x:'clean'+'_'+x, names))
-            print(file=mkfile)
-            Mk('update',':', *map(lambda x:'update'+'_'+x, names))
-            print(file=mkfile)
-            Mk('info',':', *map(lambda x:'info'+'_'+x, names))
-            print(file=mkfile)
+            with Make('games',*names):
+                pass
+            names   = [ x.prjname for x in alls.keys() ]
+            clean_  = map(lambda x:'clean'+'_'+x, names)
+            update_ = map(lambda x:'update'+'_'+x, names)
+            info_   = map(lambda x:'info'+'_'+x, names)
+            with Make('clean', *clean_):
+                pass
+            with Make('update', *update_):
+                pass
+            with Make('info', *info_):
+                pass
 
             for o,(a,d) in alls.items():
-                o.generate_makefile(mkfile, *a, **d)
+                o.generate_makefile(Make, *a, **d)
 
-            print('.PHONY:', 'all', 'games', 'clean', 'update', *names, end=' ', file=mkfile)
-            print(      *map(lambda x:'clean_'+x, names), end=' ', file=mkfile)
-            print(      *map(lambda x:'update_'+x, names), end=' ', file=mkfile)
-            print(      *map(lambda x:'info_'+x, names), end=' ', file=mkfile)
-            print(file=mkfile)
+            ns = itertools.chain(names, clean_, update_, info_)
+            with Make('.PHONY', 'all', 'games', 'clean', 'update', *ns):
+                pass
+
+    def help(self, *args, **kvargs):
+        print('''\
+Usages:
+    {} Makefile cvk350c g500 RARPWD=XXX
+    make clean update games all
+
+'''.format(sys.argv[0], ','.join(args)))
+        #self.show_info(*args, **kvargs)
 
     def default(self, *args, **kwargs):
         pass
@@ -490,11 +467,6 @@ class Main(object, metaclass=GlobalSingleton):
     #                        , '%s => %s' % (prj.ver(old=1),prj.ver()), file=f)
     #                print('$ vim', os.path.join(self.SRC,'Game14/doc/版本发布记录.txt'), f.name)
 
-    #def prebuild(self, *args, RARPWD=None, **kvargs):
-    #                for sf in prj.outfiles: #'libBarcode.so', 'libmtkhw.so', 'Game.apk':
-    #                    pf = sf.replace(prj.outdir, '').strip('/')
-    #                    df = os.path.join(out, pf)
-    #                    copyfile(sf, df, makedirs=1)
     #    bash_command('cd {} && make -f Game14.mk PLATS={} release'
     #        .format(self.BUILD, ','.join(prj2.plats)))
 
@@ -523,59 +495,51 @@ class Main(object, metaclass=GlobalSingleton):
     #        revert(self)
     #        raise
 
-    def help(self, *args, **kvargs):
-        print('''\
-Usages:
-    {} Makefile PLATS={} RARPWD=XXX
-    make clean
-    make
-'''.format(sys.argv[0], ','.join(args)))
-        #self.show_info(*args, **kvargs)
-
-    def show_info(self, *args, **kvargs):
-        #pprint(vars(self))
-        #if args: pprint(args)
-        #if kvargs: pprint(kvargs)
-        #print()
-        for s in grep('Key.*word', 'src/howto.txt'):
-            print(s.strip())
-        #for prj in self.projects:
-        #    apk = prj.export_filename.replace('/','\\')
-        #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
-        #    #pprint(vars(self)) #pprint(globals())
+    #def show_info(self, *args, **kvargs):
+    #    #pprint(vars(self))
+    #    #if args: pprint(args)
+    #    #if kvargs: pprint(kvargs)
+    #    #print()
+    #    for s in grep('Key.*word', 'src/howto.txt'):
+    #        print(s.strip())
+    #    #for prj in self.projects:
+    #    #    apk = prj.export_filename.replace('/','\\')
+    #    #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
+    #    #    #pprint(vars(self)) #pprint(globals())
 
 class Makefile(object):
-    class Mkblock(object):
-        def __init__(self, mkfile, x, *a):
-            self.file = mkfile
+    class Makerule(object):
+        def __init__(self, mfile, x, *a):
+            self.file = mfile
             print(x, ': ', sep='',end='', file=self.file)
             print(*a, file=self.file)
-        def cmd(self, *a):
+        def __call__(self, *a):
             print('\t', end='', file=self.file)
             print(*a, file=self.file)
             return self
-        def __enter__(self):
-            return self
         def __exit__(self, x,y,z):
             print(file=self.file)
+        def __enter__(self):
+            return self
+        def line(self, *a):
+            print(*a, file=self.file)
 
-    def __init__(self, mkfile, mode='w'):
-        if type(mkfile) == str:
-            self.file = open(mkfile, mode)
+    def __init__(self, mfile='Makefile', mode='w'):
+        if type(mfile) == str:
+            self.file = open(mfile, mode)
             self.need_close = 1
         else:
-            self.file = mkfile
+            self.file = mfile
             self.need_close = 0
-
-    def __call__(self, x, *a):
-        return self.Mkblock(self.file, x, *a)
-
-    def __enter__(self):
-        return self
-
     def __exit__(self, x,y,z):
         if self.need_close:
             self.file.close()
+    def __enter__(self):
+        return self
+    def __call__(self, x, *a):
+        return self.Makerule(self.file, x, *a)
+    def line(self, *a):
+        print(*a, file=self.file)
 
 def check(*args, **kvargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
@@ -620,27 +584,26 @@ def copytree(src, dst, remove=False, ignore=[], **kwargs):
     #    os.makedirs(outdir, exist_ok=True)
 
 def waitfiles(*files, **kwargs):
-    for s in grep('Key.*word', 'src/howto.txt'):
-        print(s.strip())
+    #for s in grep('Key.*word', 'src/howto.txt'): print(s.strip())
     #for prj in self.projects:
     #    apk = prj.export_filename.replace('/','\\')
     #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
     #    #pprint(vars(self)) #pprint(globals())
     def sizes():
-        return ( os.stat(f).st_size for f in files )
+        sz = sum( os.stat(f).st_size for f in files )
+        print(sz, end='..')
+        return sz
+    #print('...', *files)
     while not _Stopped:
-        print('...', *files)
         while not _Stopped:
             if sum(os.path.exists(x) for x in files) == len(files):
                 break
-            time.sleep(2)
+            time.sleep(1.5)
         else: break
-        ss = sizes()
-        time.sleep(6)
-        ss2 = sizes()
-        if ss2 == ss:
+        s1 = sizes() ; time.sleep(3) ; s2 = sizes()
+        if s2 == s1:
             break
-        ss = ss2
+        time.sleep(3)
 
 def walk(top, name):
     for basedir, dirs, files in os.walk(top):
