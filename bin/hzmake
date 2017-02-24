@@ -269,26 +269,26 @@ class Android(object):
 
     def __init__(self, arg_lis, arg_dic):
         # print('Android:',self.prjname, self.apk.prjname, self.apk.fullver())
+        if self.prjname.startswith('cvk'):
+            prjname = self.prjname.replace('cvk','')
+            #TODO
         self.outname = '{}-{}-{}'.format(self.prjname, self.apk.ver(), time.strftime('%Y%m%d'))
         self.outdir = os.path.join('release1', self.outname)
         self.outrar = self.outdir + '.rar'
         #super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile_common(self, Make, *args, RARPWD=None, **kwargs):
+    def android_generate_makefile(self, Make, *args, RARPWD=None, **kwargs):
         #sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() ]
         assert RARPWD
 
-        with Make(self.prjname, self.outrar): #(self.prjname, self.apk.prjname, self.outrar):
+        with Make(self.prjname, self.apk.prjname, self.outrar):
             pass
 
         dd = dict( (os.path.basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ os.path.basename(t) ]
-            with Make(t, x) as cmd:
-                if self.prjname in ("k400","cvk350t","cvk350c"):
-                    cmd('[ ! -d "{}" ]'.format(self.build), '|| /bin/cp -vf', x, t)
-                else:
-                    cmd('/bin/cp -vf', x, t)
+            with Make(t) as cmd: # (t,x)
+                cmd('/bin/cp -vf', x, '$@')
 
         with Make(self.outrar, self.outdir) as cmd:
             cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
@@ -317,22 +317,23 @@ class AndClassic(Android):
         super().__init__(arg_lis, arg_dic)
 
     def generate_makefile(self, Make, *args, **kwargs):
-        self.generate_makefile_common(Make, *args, **kwargs)
+        self.android_generate_makefile(Make, *args, **kwargs)
 
         #Mk('clean_'+self.prjname+'_deps', ':')
         #Mk('\t', 'rm -f' , *self.depfiles)
 
-        with Make(self.outdir, 'clean_'+self.prjname, *self.depfiles) as cmd:
+        _remote = os.basename(self.outdir)+'.remote'
+        with Make(_remote, 'clean_'+self.prjname, *self.depfiles) as cmd: # , *self.depfiles
             rout = '/osca/release/'+self.outname
-            isremote, notremote = '[ -d "{}" ]'.format(self.build), '[ ! -d "{}" ]'.format(self.build)
-            #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
-            cmd(notremote, '|| bin/hzrbuild', self.build, rout)
-            cmd(notremote, '|| mkdir -p', os.path.dirname(self.outdir))
-            cmd(notremote, '|| ln -vsnf', rout, self.outdir)
-            cmd(isremote , '|| ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,self.outdir))
-            cmd(isremote , '|| rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
+            cmd('bin/hzrbuild', self.build, rout)
+            cmd('mkdir -p', os.path.dirname(self.outdir))
+            cmd('ln -vsnf', rout, self.outdir)
+        #with Make('.PHONY', _remote): pass
 
-        return [ self.outrar ] #, [ r_version_commit ], [ r_clean ]
+        with Make(self.outdir) as cmd: # , *self.depfiles
+            cmd('ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,_remote))
+            cmd('rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
+            #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
 
 class k400(AndClassic, metaclass=GlobalSingleton):
     pass
@@ -354,13 +355,13 @@ class g500(Android, metaclass=GlobalSingleton):
         super().__init__(arg_lis, arg_dic)
 
     def generate_makefile(self, Make, *args, **kwargs):
-        self.generate_makefile_common(Make, *args, **kwargs)
+        self.android_generate_makefile(Make, *args, **kwargs)
 
         with Make(self.outdir, *self.depfiles) as cmd:
             cmd('cd', self.build
                 , '&& source build/envsetup.sh'
                 , '&& lunch full_ckt6580_we_l-user && make -j8'
-                , '&& mt6580-copyout.sh', os.path.abspath(self.outdir))
+                , '&& bin/mt6580-copyout.sh', os.path.abspath(self.outdir))
 
     def test(self, *args, **kwargs):
         self.generate_makefile(Makefile(), *args, **kwargs)
@@ -391,9 +392,9 @@ class Main(object, metaclass=GlobalSingleton):
             with Make('games',*names):
                 pass
             names   = [ x.prjname for x in alls.keys() ]
-            clean_  = map(lambda x:'clean'+'_'+x, names)
-            update_ = map(lambda x:'update'+'_'+x, names)
-            info_   = map(lambda x:'info'+'_'+x, names)
+            clean_  = list(map(lambda x:'clean_'+x, names))
+            update_ = list(map(lambda x:'update_'+x, names))
+            info_   = list(map(lambda x:'info_'+x, names))
             with Make('clean', *clean_):
                 pass
             with Make('update', *update_):
@@ -404,8 +405,8 @@ class Main(object, metaclass=GlobalSingleton):
             for o,(a,d) in alls.items():
                 o.generate_makefile(Make, *a, **d)
 
-            ns = itertools.chain(names, clean_, update_, info_)
-            with Make('.PHONY', 'all', 'games', 'clean', 'update', *ns):
+            deps = itertools.chain(names, clean_, update_, info_)
+            with Make('.PHONY', 'all', 'games', 'clean', 'update', *deps):
                 pass
 
     def help(self, *args, **kvargs):
@@ -509,8 +510,9 @@ Usages:
 
 class Makefile(object):
     class Makerule(object):
-        def __init__(self, mfile, x, *a):
-            self.file = mfile
+        # TODO StringIO
+        def __init__(self, file_, x, *a):
+            self.file = file_
             print(x, ': ', sep='',end='', file=self.file)
             print(*a, file=self.file)
         def __call__(self, *a):
@@ -524,12 +526,12 @@ class Makefile(object):
         def line(self, *a):
             print(*a, file=self.file)
 
-    def __init__(self, mfile='Makefile', mode='w'):
-        if type(mfile) == str:
-            self.file = open(mfile, mode)
+    def __init__(self, name='Makefile', mode='w'):
+        if type(name) == str:
+            self.file = open(name, mode)
             self.need_close = 1
         else:
-            self.file = mfile
+            self.file = name
             self.need_close = 0
     def __exit__(self, x,y,z):
         if self.need_close:
@@ -597,13 +599,14 @@ def waitfiles(*files, **kwargs):
     while not _Stopped:
         while not _Stopped:
             if sum(os.path.exists(x) for x in files) == len(files):
+                sz0 = sizes()
                 break
             time.sleep(1.5)
         else: break
-        s1 = sizes() ; time.sleep(3) ; s2 = sizes()
-        if s2 == s1:
+        time.sleep(4)
+        sz0, sz1 = sizes(), sz0
+        if sz0 == sz1:
             break
-        time.sleep(3)
 
 def walk(top, name):
     for basedir, dirs, files in os.walk(top):
