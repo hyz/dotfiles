@@ -114,12 +114,10 @@ class Apk(object):
             cmd(sys.argv[0], self.prjname+'.copytree2', self.src, self.build)
             cmd(sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
 
-        with Make(self.outdir, self.build, self._Crypto) as cmd:
+        with Make(self.outdir, self.build) as cmd:
             cmd('mkdir -p $@')
 
-        #shutil.rmtree(self.outdir, ignore_errors=True) # os.removedirs(di)
-        with Make(self._Crypto, self._CryptoRelease) as cmd:
-            cmd('cp -vf $< $@')
+        shutil.rmtree(self.outdir, ignore_errors=True) # os.removedirs(di)
 
         with Make(self.export_filename, self.outdir, 'info_'+self.prjname) as cmd:
             cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
@@ -173,7 +171,7 @@ class Apk(object):
         print('edit:', fp, '<name>', self.prjname)
         etree_replace_text(fp, './name', self.prjname)
 
-        #copyfile(self._CryptoRelease, self._Crypto)
+        copyfile(self._CryptoRelease, self._Crypto)
 
         log_h = self.prefix_build(self._Log_h)
         print('edit:', log_h, 'BUILD_RELEASE')
@@ -324,7 +322,7 @@ class AndClassic(Android):
         #Mk('clean_'+self.prjname+'_deps', ':')
         #Mk('\t', 'rm -f' , *self.depfiles)
 
-        _remote = os.path.basename(self.outdir)+'.remote'
+        _remote = os.basename(self.outdir)+'.remote'
         with Make(_remote, 'clean_'+self.prjname, *self.depfiles) as cmd: # , *self.depfiles
             rout = '/osca/release/'+self.outname
             cmd('bin/hzrbuild', self.build, rout)

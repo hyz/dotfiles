@@ -1,0 +1,3 @@
+
+LANG=zh_CN.utf8 wine Frozen\ Throne.exe -opengl
+

@@ -74,6 +74,7 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
         git branch -a
     如果只想fetch特定分支
         git clone xxx -b remote-branch --single-branch
+        git clone --depth 1 -b server2 --single-branch file:///$HOME/repo/xxx.git
 
 ### http://stackoverflow.com/questions/2519933/git-clone-repo-across-local-file-system-in-windows
     git clone file:////<host>/<share>/<path>
