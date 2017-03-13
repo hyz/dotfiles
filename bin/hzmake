@@ -6,9 +6,9 @@ from pprint import pprint
 import timeit
 
 HOME = os.environ['HOME']
-_rhost = '192.168.2.113'
-_rhome = '/home/wood'
-_ruser = 'wood'
+_rhost = '192.168.2.115'
+_ruser = 'build'
+_rhome = _ruser + '@' + _rhost + ':.' #_rhome = '/home/build'
 _this_module = sys.modules[__name__]
 # setattr(sys.modules[__name__], x, os.environ.get(x, None))
 
@@ -124,10 +124,15 @@ class Apk(object):
         with Make(self.export_filename, self.outdir, 'info_'+self.prjname) as cmd:
             cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
             cmd('/bin/cp -vrt', self.outdir, *self.libfiles)
+            #cmd('rsync -vRL', 'bin/hzrbuild', Make.file.name, _ruser+'@'+_rhost+':'+_rhome)
+            cmd('rsync -RrL', 'bin/hzrbuild', Make.file.name, self.outdir, _rhome)
             if self.prjname == 'Game14':
-                cmd('rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
-                cmd('rsync -vRL', 'bin/hzrbuild', Make.file.name, _ruser+'@'+_rhost+':'+_rhome)
-            #Mk('\t', 'rsync -vR', self.prefix_src(self._AndroidManifest), _ruser+'@'+_rhost+':'+_rhome)
+                rrsync_up = 'rsync -vRrL {} {} {}'.format(Make.file.name, self.outdir, AndClassic.rhome)
+                cmd('ssh {}@{} "{}"'.format(_ruser,_rhost, rrsync_up))
+            #if self.prjname == 'Game14':
+            #    cmd('rsync -vRr', self.outdir, _ruser+'@'+_rhost+':'+_rhome)
+            #    cmd('rsync -vRL', 'bin/hzrbuild', Make.file.name, _ruser+'@'+_rhost+':'+_rhome)
+            ##Mk('\t', 'rsync -vR', self.prefix_src(self._AndroidManifest), _ruser+'@'+_rhost+':'+_rhome)
 
         with Make(self.prjname, self.export_filename) as cmd:
             pass
@@ -187,9 +192,9 @@ class Apk(object):
                     , fp, count=1)
 
         if self.prjname == 'Game14':
-            for fp in glob.glob(os.path.join(self.build, 'doc/*.xls')):
-                print('copy:', fp)
-                shutil.copy(fp, '/samba/release1/doc/')
+            #for fp in glob.glob(os.path.join(self.build, 'doc/*.xls')):
+            #    print('copy:', fp)
+            #    shutil.copy(fp, '/samba/release1/doc/')
             with open('svn.log.{}.{}'.format(self.prjname,self.ver()), 'w') as f:
                 bash_command('svn log -r{}:HEAD {}'.format(self.svnrev(old=1), self.src), stdout=f)
                 print(self.fullver()
@@ -271,9 +276,8 @@ class Android(object):
 
     def __init__(self, arg_lis, arg_dic):
         # print('Android:',self.prjname, self.apk.prjname, self.apk.fullver())
-        if self.prjname.startswith('cvk'):
-            prjname = self.prjname.replace('cvk','')
-            #TODO
+        #if self.prjname.startswith('cvk'):
+        #    self.prjname = self.prjname.replace('cvk','k')
         self.outname = '{}-{}-{}'.format(self.prjname, self.apk.ver(), time.strftime('%Y%m%d'))
         self.outdir = os.path.join('release1', self.outname)
         self.outrar = self.outdir + '.rar'
@@ -293,7 +297,9 @@ class Android(object):
                 cmd('/bin/cp -vf', x, '$@')
 
         with Make(self.outrar, self.outdir) as cmd:
-            cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
+            #cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
+            rar = 'cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname)
+            cmd('ssh {}@{} "{}"'.format(_ruser,_rhost, rar))
 
         with Make('clean_'+self.prjname) as cmd:
             cmd('rm -rf', self.outdir)
@@ -305,10 +311,14 @@ class Android(object):
                 cmd('cd', self.src, '&& git pull')
 
 class AndClassic(Android):
+    host = '192.168.2.113'
+    user = 'build'
+    rhome = 'build@192.168.2.113:.' # home = '/home/build'
+
     def __init__(self, arg_lis, arg_dic):
         self.prjname = type(self).__name__
         self.apk = Game14(arg_lis, arg_dic)
-        self.src = '/osca/' + self.prjname
+        self.src = os.path.join('android',self.prjname) #'/osca/' + self.prjname
         self.build = self.src
         self.apkdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'internal')
         self.libdir = os.path.join(self.build, 'vendor/g368_noain_t300/application', 'lib')
@@ -324,24 +334,29 @@ class AndClassic(Android):
         #Mk('clean_'+self.prjname+'_deps', ':')
         #Mk('\t', 'rm -f' , *self.depfiles)
 
-        _remote = os.path.basename(self.outdir)+'.remote'
-        with Make(_remote, 'clean_'+self.prjname, *self.depfiles) as cmd: # , *self.depfiles
-            rout = '/osca/release/'+self.outname
-            cmd('bin/hzrbuild', self.build, rout)
-            cmd('mkdir -p', os.path.dirname(self.outdir))
-            cmd('ln -vsnf', rout, self.outdir)
-        #with Make('.PHONY', _remote): pass
+        _rbuild = os.path.basename(self.outdir)+'.remote'
+        with Make(_rbuild, 'clean_'+self.prjname, *self.depfiles) as cmd: # , *self.depfiles
+            cmd('bin/hzrbuild', self.build, '/osca/release/'+self.outname)
+            #cmd('mkdir -p', os.path.dirname(self.outdir), '&& ln -vsnf', rout, self.outdir)
+            cmd('[ -e "release1/{}" ]'.format(self.outname))
+        #with Make('.PHONY', _rbuild): pass
 
         with Make(self.outdir) as cmd: # , *self.depfiles
-            cmd('ssh root@{} "cd {} && make {}"'.format(_rhost,_rhome,_remote))
-            cmd('rsync -vrL {}:{} {}'.format(_rhost,rout,os.path.dirname(self.outdir)))
+            #cmd('rsync -vRr', self.apk.outdir, _rhome)
+            #cmd('rsync -vRL', 'bin/hzrbuild', Make.file.name, self.rhome)
+            #cmd('ssh {}@{} "make {}"'.format(self.user,self.host, _rbuild))
+            rrmake = 'ssh {}@{} \'make {}\''.format(self.user,self.host, _rbuild)
+            cmd('ssh {}@{} "{}"'.format(_ruser,_rhost, rrmake))
+            rrsync_down = 'rsync -vrL {} {}'.format(os.path.join(self.rhome,self.outdir), os.path.dirname(self.outdir))
+            cmd('ssh {}@{} "{}"'.format(_ruser,_rhost, rrsync_down))
+            #cmd('rsync -vrL {} {}'.format(os.path.join(self.rhome,self.outdir), os.path.dirname(self.outdir)))
             #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
 
 class k400(AndClassic, metaclass=GlobalSingleton):
     pass
-class cvk350c(AndClassic, metaclass=GlobalSingleton):
+class k350c(AndClassic, metaclass=GlobalSingleton):
     pass
-class cvk350t(AndClassic, metaclass=GlobalSingleton):
+class k350t(AndClassic, metaclass=GlobalSingleton):
     pass
 
 class g500(Android, metaclass=GlobalSingleton):
@@ -384,7 +399,7 @@ class Main(object, metaclass=GlobalSingleton):
             Make.line('### Auto-generated')
             Make.line('')
             Make.line('export SHELL=/bin/bash')
-            Make.line('export PATH:=$(PATH):/home/wood/bin')
+            Make.line('export PATH:=$(PATH):{}/bin'.format(HOME))
             Make.line('')
 
             names = [ x.prjname for x in ands.keys() ]
