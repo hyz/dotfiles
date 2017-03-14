@@ -1,3 +1,23 @@
+
+### https://wiki.qt.io/Building_a_static_Qt_for_Windows_using_MinGW
+### https://wiki.qt.io/Build_Standalone_Qt_Application_for_Windows
+### https://wiki.qt.io/How_to_build_a_static_Qt_version_for_Windows_with_gcc
+    http://download.qt.io/official_releases/qt/5.8/5.8.0/qt-opensource-windows-x86-mingw530-5.8.0.exe
+    http://download.qt.io/official_releases/qt/5.8/5.8.0/single/qt-everywhere-opensource-src-5.8.0.zip
+### http://stackoverflow.com/questions/1011197/qt-static-linking-and-deployment
+
+### http://blog.csdn.net/liuyez123/article/details/50462637
+### http://doc.qt.io/qt-5/windows-requirements.html
+    windeployqt a.exe
+
+### https://wiki.qt.io/Build_Standalone_Qt_Application_for_Windows
+    Using Microsoft Tools
+    To build the Qt project as a standalone executable file run qmake and nmake. After that you should execute mt.exe to embed a manifest inside the application to avoid error such as missing MSVCP90.dll when the application is started on other computers.
+    > qmake Hello.pro
+    > nmake release
+    > cd release
+    > mt.exe -manifest Hello.exe.manifest -outputresource: Hello.exe
+
 ### http://blog.csdn.net/u011012932/article/category/1447841
     qt
 
@@ -32,4 +52,7 @@ sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
     ls /usr/lib/qt/mkspecs/linux-clang
     ls /usr/lib/qt/mkspecs/
     qmake -spec linux-clang
+
+### qt4
+### http://www.formortals.com/how-to-statically-link-qt-4/
 

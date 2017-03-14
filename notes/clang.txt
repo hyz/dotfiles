@@ -1,4 +1,6 @@
 
+### http://stackoverflow.com/questions/9427356/how-to-compile-clang-on-windows?rq=1
+
 # build boost
 b2 -j5 toolset=clang link=static cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" threading=multi release
 

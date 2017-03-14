@@ -153,6 +153,9 @@ class Main(object):
                 edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
 
             if prj.name == 'Game16':
+                sf, df = self._Crypto0, os.path.join(out,self._Crypto1)
+                print('copyfile:', sf, df)
+                shutil.copyfile(sf, df)
                 fp = os.path.join(out, self._AndroidManifest)
                 print('edit:', fp, 'android.uid.system')
                 edit('\sandroid:versionName="(\d+\.\d+)"\s'
@@ -232,7 +235,7 @@ class Main(object):
             shutil.rmtree(tmpdir, ignore_errors=True )
             for plt in prj.plats:
                 if plt == 'g500':
-                    bash_command('cd mt6580 && git pull')
+                    #bash_command('cd mt6580 && git pull')
                     out = 'mt6580/alps/packages/apps/Game/'
                     for fp0 in 'libBarcode.so', 'libmtkhw.so', 'Game.apk':
                         fp0 = os.path.join(src,fp0)
@@ -261,7 +264,7 @@ class Main(object):
                     bash_command('cd mt6580/alps'
                             ' && source build/envsetup.sh && lunch full_ckt6580_we_l-user'
                             ' && make -j8'
-                            ' && mt6580-copyout.sh /samba/release1/{}'
+                            ' && ~/bin/mt6580-copyout.sh /samba/release1/{}'
                             .format(prj.platver(plt)))
                     if RARPWD:
                         self._make_archive(plt, prj, RARPWD)
@@ -276,7 +279,7 @@ class Main(object):
 
     def _make_archive(self, plt, prj, rarpwd):
         bash_command('cd /samba/release1'
-                ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar /samba/release1/{0} )'
+                ' && ( rm -f {0}.rar ; rar a -hp{1} {0}.rar {0} )'
                 .format(prj.platver(plt), rarpwd))
 
     def rar(self, *args, RARPWD=None, **kvargs):
@@ -340,7 +343,7 @@ Usages:
         if args: pprint(args)
         if kvargs: pprint(kvargs)
         print()
-        for s in grep('Key.*word', 'src/howto.txt'):
+        for s in grep('Key', 'src/howto.txt'):
             print(s.strip())
         for prj in self.projects:
             apk = 'test\\{}.apk'.format(prj.fullver())
