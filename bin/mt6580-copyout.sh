@@ -1,7 +1,8 @@
 #!/bin/bash
 
-out="$1"
-outdb="$1/database"
+src="$1"
+out="$2"
+outdb="$out/database"
 
 [ ! -z "$out" ] || exit 1
 [ ! -d "$out" ] || rm -rf "$out"
@@ -9,7 +10,7 @@ mkdir -p "$outdb" || exit 2
 
 BPLGUInf=BPLGUInfoCustomAppSrcP_MT6580*
 
-lunch=out/target/product/ckt6580_we_l
+lunch=$src/out/target/product/ckt6580_we_l
 objCGEN=$lunch/obj/CGEN/APDB_MT6580*
 objETC=$lunch/obj/ETC/$BPLGUInf/$BPLGUInf
 
