@@ -134,6 +134,7 @@ class Apk(object):
             pass #cmd('cd', self.src, '&& svn up')
 
         with Make1('clean_'+self.prjname) as cmd:
+            cmd('rm -rf', *self.libfiles)
             cmd('rm -rf', self.outdir)
 
         with Make1('info_'+self.prjname) as cmd:
