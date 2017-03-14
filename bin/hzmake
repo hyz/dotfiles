@@ -109,7 +109,7 @@ class Apk(object):
         with Make1(self.build, self.src) as cmd:
             #Mk('\t', '&&', 'find {} -mindepth 1 -maxdepth 1 ! -name ".svn*"\\'.format(self.prjname))
             #cmd(sys.argv[0], self.prjname+'.copytree2', self.src, self.build)
-            cmd('/bin/cp -a', self.src, self.build)
+            cmd('/bin/cp -a', self.src, os.path.dirname(self.build))
             cmd(sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
 
         with Make1(self.outdir, self.build, self._Crypto) as cmd:
