@@ -119,11 +119,11 @@ class Apk(object):
             cmd('test -f "{}"'.format(self.export_filename))
             #cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
             cmd('cp -vrt', self.outdir, *self.libfiles)
+            cmd('rsync -RrL', self.outdir, _rhome) #, 'bin/hzrbuild'
             if self.prjname == 'Game14':
                 cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, 'rrsync_up'+self.prjname)
         if self.prjname == 'Game14':
             with Make2('rrsync_up'+self.prjname) as cmd:
-                #cmd('rsync -RrL', 'bin/hzrbuild', self.outdir, AndClassic.rhome)
                 cmd('rsync -vRrL', self.outdir, AndClassic.rhome)
             Make2.phony('rrsync_up'+self.prjname)
 
