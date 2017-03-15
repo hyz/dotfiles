@@ -11,5 +11,6 @@ find * \( -name .repo -o -name .git -o -name out \) -prune -o -type f \( -name '
 ### http://stackoverflow.com/questions/762348/how-can-i-exclude-all-permission-denied-messages-from-find?noredirect=1&lq=1
     find . ! -readable -prune -o -print
 
-find out/ ! -type l -user 1000 -exec chown build '{}' \;
+sudo find out/ ! -type l -user 1000 -exec chown build '{}' \;
+sudo find mt6580 -type l -user 1000 -exec chown -h build: '{}' \;
 
