@@ -143,8 +143,8 @@ class Apk(object):
             cmd('#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename.replace('/','\\'))
             cmd('# ===============================================')
 
-    def svn_commit_confirm(self, *args, **kvargs):
-        d = self.vars(**kvargs)
+    def svn_commit_confirm(self, *args, **kwargs):
+        d = self.vars(**kwargs)
         d.setdefault('ExtraVersionInfo','')
 
         bash_command('cd {} && svn diff --summarize'.format(self.src))
@@ -156,14 +156,14 @@ class Apk(object):
             return True
         return False
 
-    def svn_revert(self, *args, **kvargs):
+    def svn_revert(self, *args, **kwargs):
         bash_command('cd {} && svn revert {}'.format(self.src, self._AppConfig))
 
-    def svn_commit(self, *args, **kvargs):
+    def svn_commit(self, *args, **kwargs):
         self.version_set(self.prefix_src(self._AppConfig), self.ver(), self.svnrev())
         bash_command('cd {} && svn commit -m"{}"'.format(self.src, msg))
 
-    def edit_build_tree(self, *args, **kvargs):
+    def edit_build_tree(self, *args, **kwargs):
         fp = os.path.join(self.src,'.project')
         print('edit:', fp, '<name>', self.prjname)
         etree_replace_text(fp, './name', self.prjname)
@@ -188,7 +188,9 @@ class Apk(object):
             #for fp in glob.glob(os.path.join(self.src, 'doc/*.xls')):
             #    shutil.copy(fp, '/samba/release1/doc/')
             with open('svn.log.{}.{}'.format(self.prjname,self.ver()), 'w') as f:
-                bash_command('svn log -r{}:HEAD {}'.format(self.svnrev(old=1), self.src), stdout=f)
+                try:
+                    bash_command('svn log -r{}:HEAD {}'.format(self.svnrev(old=1), self.src), stdout=f)
+                except: pass
                 print(self.fullver()
                         , '%s => %s' % (self.svnrev(old=1),self.svnrev())
                         , '%s => %s' % (self.ver(old=1),self.ver()), file=f)
@@ -249,11 +251,11 @@ class Apk(object):
         return '{}-{}-r{}-{}'.format(self.prjname, self.ver(), self.svnrev(), self.datestr)
     def platver(self, plt):
         return '{}-{}-{}'.format(plt, self.ver(), self.datestr)
-    def vars(self, **kvargs):
+    def vars(self, **kwargs):
         d = vars(self).copy()
         d.update(OldSVNRev=self.svnrev(old=1)
                 , NewSVNRev=self.svnrev(), OldVer=self.ver(old=1), NewVer=self.ver())
-        d.update(**kvargs)
+        d.update(**kwargs)
         return d
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
@@ -291,6 +293,7 @@ class AndClassic(Android):
         self.depfiles = [ os.path.join(self.apkdir,apkfile) ] + [ os.path.join(self.libdir,os.path.basename(x)) for x in self.apk.libfiles ]
         for x in self.depfiles:
             assert x.endswith('.apk') or x.endswith('.so')
+        Makes().Make2().Make3() #Makefile1().Makefile2().Makefile3()
         super().__init__(arg_lis, arg_dic)
 
     def generate_makefile(self, Make1,Make2,Make3, *args, RARPWD=None, **kwargs):
@@ -364,6 +367,7 @@ class g500(Android, metaclass=GlobalSingleton):
         libdir = apkdir
         apkfile = os.path.basename(self.apk.apkfile)
         self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        Makes().Make2() # Makefile1().Makefile2()
         super().__init__(arg_lis, arg_dic)
 
     def generate_makefile(self, Make1,Make2,Make3_, *args, RARPWD=None, **kwargs):
@@ -407,16 +411,6 @@ class g500(Android, metaclass=GlobalSingleton):
 
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
-        Make1 = Makefile()
-        Make2 = Makefile('Makefile2')
-        Make3 = Makefile('Makefile3')
-        for mk in Make1,Make2,Make3:
-            mk.line('### Auto-generated')
-            mk.line('')
-            mk.line('export SHELL=/bin/bash')
-            mk.line('export PATH:=$(PATH):$(HOME)/bin')
-            mk.line('')
-
         alls, ands, apks = {}, {}, {}
         for a in set(arg_lis):
             T = getattr(_this_module, a)
@@ -426,6 +420,7 @@ class Main(object, metaclass=GlobalSingleton):
             alls.setdefault(o, (argl,argd))
             ands.setdefault(o, (argl,argd))
             apks.setdefault(o.apk, (argl,argd))
+        Make1,Make2,Make3 = Makes() #Make1,Make2,Make3 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
 
         names = [ x.prjname for x in ands.keys() ]
         with Make1('all',*names):
@@ -437,8 +432,8 @@ class Main(object, metaclass=GlobalSingleton):
         clean_  = list(map(lambda x:'clean_'+x, names))
         update_ = list(map(lambda x:'update_'+x, names))
         info_   = list(map(lambda x:'info_'+x, names))
-        with Make1('clean', *clean_):
-            pass
+        with Make1('clean', *clean_) as cmd:
+            pass #cmd('rm -f Makefile?')
         with Make1('update', *update_):
             pass
         with Make1('info', *info_):
@@ -452,37 +447,32 @@ class Main(object, metaclass=GlobalSingleton):
         for syms in (names, clean_, update_, info_):
             Make1.phony(*syms)
 
-        with Make1('sync_makefile', Make2.file.name, Make3.file.name) as cmd:
-            cmd('rsync', Make2.file.name, Make3.file.name, _rhome)
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, 'sync_makefile')
-        with Make2('sync_makefile', Make2.file.name, Make3.file.name) as cmd:
-            cmd('rsync', Make3.file.name, AndClassic.rhome)
+        with Make1('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
+            cmd('rsync $^', _rhome)
+            if Make3:
+                cmd('ssh {0}@{1} make -f {2} sync_makefile'.format(_ruser,_rhost,Make2.file.name))
         Make1.phony('sync_makefile')
+        if Make3:
+            with Make2('sync_makefile', Make3.file.name) as cmd:
+                cmd('rsync', Make3.file.name, AndClassic.rhome)
+            Make2.phony('sync_makefile')
 
-        for mk in Make1,Make2,Make3:
-            mk.__exit__(None,None,None)
+        for mk in Makes(): # Make1,Make2,Make3:
+            if mk:
+                mk.__exit__(None,None,None)
         bash_command('make sync_makefile')
 
-    def help(self, *args, **kvargs):
+    def help(self, *args, **kwargs):
         print('''\
 Usages:
-    make clean update all
-
+    make clean update games all
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 '''.format(sys.argv[0], ','.join(args)))
-        #self.show_info(*args, **kvargs)
+        #self.show_info(*args, **kwargs)
 
     def default(self, *args, **kwargs):
         pass
-        #for x,y in ('OldSVNRev','1'), ('NewSVNRev','1'), ('OldVer','1.0.0'), ('NewVer','1.0.0'):
-        #    v = kvargs.get(x, os.environ.get(x, y))
-        #    if v and type(v) == str:
-        #        v = tuple(map(int,v.split('.')))
-        #    setattr(Apk, x, v)
-        #ver = max( prj.NewVer for prj in self.projects )
-        #for prj in self.projects:
-        #    prj.NewVer = ver
-
-    #def prebuild_apk(self, *args, **kvargs):
+    #def prebuild_apk(self, *args, **kwargs):
     #        print('>>> prebuild_apk:', prj.src, prj.build)
 
     #        for x,y in walk('eclipse', prj.name):
@@ -524,15 +514,15 @@ Usages:
     #    bash_command('cd {} && make -f Game14.mk PLATS={} release'
     #        .format(self.BUILD, ','.join(prj2.plats)))
 
-    #def version_commit(self, *args, **kvargs):
+    #def version_commit(self, *args, **kwargs):
     #    prjs = []
     #    def revert(self):
     #        for prj,msg in prjs:
     #            bash_command('cd {} && svn revert {}'.format(prj.src, prj._AppConfig))
     #    try:
-    #        kvargs.setdefault('ExtraVersionInfo','')
+    #        kwargs.setdefault('ExtraVersionInfo','')
     #        for prj in self.projects:
-    #            d = prj.vars(**kvargs)
+    #            d = prj.vars(**kwargs)
     #            bash_command('cd {} && svn diff --summarize'.format(prj.src))
     #            msg = "Version{ExtraVersionInfo}({OldVer}=>{NewVer}, {OldSVNRev}=>{NewSVNRev}) updated".format(**d)
     #            print(msg)
@@ -549,10 +539,10 @@ Usages:
     #        revert(self)
     #        raise
 
-    #def show_info(self, *args, **kvargs):
+    #def show_info(self, *args, **kwargs):
     #    #pprint(vars(self))
     #    #if args: pprint(args)
-    #    #if kvargs: pprint(kvargs)
+    #    #if kwargs: pprint(kwargs)
     #    #print()
     #    for s in grep('Key.*word', 'src/howto.txt'):
     #        print(s.strip())
@@ -599,7 +589,28 @@ class Makefile(object):
         print('.PHONY:', *a, file=self.file)
         print(file=self.file)
 
-def check(*args, **kvargs):
+class Makes(list, metaclass=GlobalSingleton):
+    def __init__(self):
+        super().__init__( (Makefile(), None, None) )
+        self.gen_headers(self[0])
+    def Make2(self):
+        self[1] = Makefile('Makefile2')
+        self.gen_headers(self[1])
+        return self
+    def Make3(self):
+        self[2] = Makefile('Makefile3')
+        self.gen_headers(self[2])
+        return self
+    def gen_headers(self, mk):
+        mk.line('### Auto-generated')
+        mk.line('')
+        mk.line('export SHELL=/bin/bash')
+        mk.line('export PATH:=$(PATH):$(HOME)/bin')
+        mk.line('')
+    def __call__(self):
+        return self
+
+def check(*args, **kwargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
             , 'src/tools/CryptoRelease.bat' , 'src/howto.txt'
             , 'build/Game14.mk'
