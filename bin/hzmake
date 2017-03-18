@@ -103,45 +103,62 @@ class Apk(object):
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
-    def generate_makefile(self, Make1,Make2,Make3, *args, **kwargs):
-        sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
+    def generate_makefile(self, Make0,Make1,Make2, *args, **kwargs):
+        slis_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
 
-        libBarcode = self.prefix_src('libs/armeabi-v7a/libBarcode.so')
-        with Make1(libBarcode) as cmd:
+        appcfg = self.prefix_src(self._AppConfig) #_dep0 = os.path.join(self.src,'initialized.txt')
+        log_h  = self.prefix_src(self._Log_h)
+        manifest = self.prefix_src(self._AndroidManifest)
+
+        with Make0('clean_'+self.prjname) as cmd:
+            cmd('rm -rf', *self.libfiles)
+            cmd('rm -rf', self.outdir)
+            cmd('svn revert', manifest)
+            cmd('svn revert', appcfg)
+            cmd('touch', appcfg)
+
+        with Make0(manifest) as cmd:
+            pass
+        with Make0(log_h) as cmd:
+            pass
+        with Make0(appcfg) as cmd:
             cmd('test -d "{}"'.format(self.src))
-            cmd(sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
-            cmd('cp -vf', self._CryptoRelease, self._Crypto)
+            cmd('rm -f', *self.libfiles)
+            cmd('rm -rf', self.outdir)
             cmd('mkdir -p', self.outdir)
-            cmd('$(MAKE)', 'info_'+self.prjname)
-            cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
 
-        with Make1(self.export_filename, libBarcode) as cmd:
+            cmd('cp -vf', self._CryptoRelease, self._Crypto)
+            cmd(sys.argv[0], self.prjname+'.edit_build_tree', *slis_arg_dic)
+            cmd('$(MAKE)', 'info_'+self.prjname)
+
+        for lib in self.libfiles:
+            with Make0(lib, appcfg, manifest, log_h) as cmd:
+                cmd('while ! file "{}" ; do sleep 1; done'.format(lib))
+
+        with Make0(self.export_filename, *self.libfiles) as cmd:
+            cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
             cmd('test -f "{}"'.format(self.export_filename))
-            #cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
             cmd('cp -vrt', self.outdir, *self.libfiles)
             cmd('rsync -RrL', self.outdir, _rhome) #, 'bin/hzrbuild'
             if self.prjname == 'Game14':
-                cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, 'rrsync_up'+self.prjname)
+                cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, 'rrsync_up'+self.prjname)
         if self.prjname == 'Game14':
-            with Make2('rrsync_up'+self.prjname) as cmd:
+            with Make1('rrsync_up'+self.prjname) as cmd:
                 cmd('rsync -vRrL', self.outdir, AndClassic.rhome)
-            Make2.phony('rrsync_up'+self.prjname)
+            Make1.phony('rrsync_up'+self.prjname)
 
-        with Make1(self.prjname, self.export_filename) as cmd:
+        with Make0(self.prjname, self.export_filename) as cmd:
             pass
 
-        with Make1('update_'+self.prjname) as cmd:
+        with Make0('update_'+self.prjname) as cmd:
             pass #cmd('cd', self.src, '&& svn up')
 
-        with Make1('clean_'+self.prjname) as cmd:
-            cmd('rm -rf', *self.libfiles)
-            cmd('rm -rf', self.outdir)
-
-        with Make1('info_'+self.prjname) as cmd:
+        with Make0('info_'+self.prjname) as cmd:
             cmd('#')
-            cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
+            if self.prjname != 'g500':
+                cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
             cmd('#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename.replace('/','\\'))
-            cmd('# ===============================================')
+            cmd('#', '===============================================')
 
     def svn_commit_confirm(self, *args, **kwargs):
         d = self.vars(**kwargs)
@@ -284,69 +301,84 @@ class AndClassic(Android):
     rhome = 'build@192.168.2.113:.' # home = '/home/build'
 
     def __init__(self, arg_lis, arg_dic):
+        from os.path import join,basename,dirname
         self.prjname = type(self).__name__
         self.apk = Game14(arg_lis, arg_dic)
-        self.src = os.path.join('android',self.prjname) #'/osca/' + self.prjname
-        self.apkdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'internal')
-        self.libdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
-        apkfile = os.path.basename(self.apk.apkfile)
-        self.depfiles = [ os.path.join(self.apkdir,apkfile) ] + [ os.path.join(self.libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        self.src = join('android',self.prjname) #'/osca/' + self.prjname
+        self.apkdir = join(self.src, 'vendor/g368_noain_t300/application', 'internal')
+        self.libdir = join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = basename(self.apk.apkfile)
+        self.depfiles = [ join(self.apkdir,apkfile) ] + [ join(self.libdir,basename(x)) for x in self.apk.libfiles ]
         for x in self.depfiles:
             assert x.endswith('.apk') or x.endswith('.so')
-        Makes().Make2().Make3() #Makefile1().Makefile2().Makefile3()
+        Makes().Make1().Make2()
         super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile(self, Make1,Make2,Make3, *args, RARPWD=None, **kwargs):
+    def generate_makefile(self, Make0,Make1,Make2, *args, RARPWD=None, **kwargs):
         from os.path import join,basename,dirname
         assert RARPWD
+        _ssh1_make = 'ssh {}@{} make -f {}'.format(_ruser,_rhost,Make1.file.name)
+        _ssh2_make = 'ssh {}@{} make -f {}'.format(self.user,self.host,Make2.file.name)
 
-        with Make1(self.prjname, self.apk.prjname) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.prjname)
-        #with Make1(self.outdir) as cmd:
-        #    cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.outdir)
-        with Make2(self.prjname, self.outrar) as cmd:
-            pass #cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, self.prjname)
-        with Make2(self.outrar, self.outdir) as cmd:
+        _clean = 'clean_'+self.prjname
+        with Make0(_clean) as cmd:
+            cmd(_ssh1_make, _clean)
+        with Make1(_clean) as cmd:
+            cmd(_ssh2_make, _clean)
+            cmd('rm -rf', self.outdir)
+            cmd('rm -f' , self.outrar)
+        with Make2(_clean) as cmd:
+            cmd('rm -rf', self.outdir)
+            cmd('rm -f' , self.outrar)
+            cmd('rm -f' , *self.depfiles)
+
+        with Make0(self.prjname, self.apk.prjname) as cmd:
+            cmd(_ssh1_make, self.prjname)
+        #with Make0(self.outdir) as cmd:
+        #    cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, self.outdir)
+        with Make1(self.prjname, self.outrar) as cmd:
+            pass #cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make2.file.name, self.prjname)
+        with Make1(self.outrar, self.outdir) as cmd:
             cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, basename(self.outdir)))
-        with Make2(self.outdir) as cmd:
-            cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, self.outdir)
+        with Make1(self.outdir) as cmd:
+            cmd(_ssh2_make, self.outdir)
             cmd('rsync -vrL', join(self.rhome,self.outdir), dirname(self.outdir))
-        #with Make3(self.prjname, self.outdir) as cmd:
+        #with Make2(self.prjname, self.outdir) as cmd:
         #    pass
-        with Make3(self.outdir, *self.depfiles) as cmd:
+        with Make2(self.outdir, *self.depfiles) as cmd:
             cmd('bin/hzrbuild', self.src, '/osca/release/'+self.outname)
             #cmd('mkdir -p', dirname(self.outdir), '&& ln -vsnf', rout, self.outdir)
             cmd('[ -d "release1/{}" ]'.format(self.outname))
-        #with Make2(self.outdir) as cmd: # , *self.depfiles
-        #    #cmd('rsync -vRL', 'bin/hzrbuild', Make2.file.name, self.rhome)
+        #with Make1(self.outdir) as cmd: # , *self.depfiles
+        #    #cmd('rsync -vRL', 'bin/hzrbuild', Make1.file.name, self.rhome)
         #    #cmd('rsync -vrL {} {}'.format(join(self.rhome,self.outdir), dirname(self.outdir)))
         #    #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
 
         dd = dict( (basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ basename(t) ]
-            with Make3(t) as cmd: # (t,x)
+            with Make2(t) as cmd: # (t,x)
                 cmd('/bin/cp -vf', x, '$@')
 
-        _clean = 'clean_'+self.prjname
-        with Make1(_clean) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _clean)
-        with Make2(_clean) as cmd:
-            cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, _clean)
-            cmd('rm -rf', self.outdir)
-            cmd('rm -f' , self.outrar)
-        with Make3(_clean) as cmd:
-            cmd('rm -rf', self.outdir)
-            cmd('rm -f' , self.outrar)
-            cmd('rm -f' , *self.depfiles)
-
         _update = 'update_'+self.prjname
+        with Make0(_update) as cmd:
+            cmd(_ssh1_make, _update)
         with Make1(_update) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _update)
+            cmd(_ssh2_make, _update)
         with Make2(_update) as cmd:
-            pass
-        with Make3(_update) as cmd:
-            pass
+            cmd('cd', join('android',self.prjname), '&& git pull')
+
+        _git_push = 'git_push_' + self.prjname
+        with Make0(_git_push) as cmd:
+            cmd(_ssh1_make, _git_push)
+        with Make1(_git_push) as cmd:
+            cmd(_ssh2_make, _git_push)
+        with Make2(_git_push) as cmd:
+            for fp in self.depfiles:
+                cmd('cd', join('android',self.prjname), '&& git add', fp) # TODO
+            cmd('cd', join('android',self.prjname)
+                    , '&& git commit -m "Game.apk({}) updated"'.format(self.apk.ver2()), *self.depfiles)
+            cmd('cd', join('android',self.prjname), '&& git push')
 
 class k400(AndClassic, metaclass=GlobalSingleton):
     pass
@@ -367,47 +399,62 @@ class g500(Android, metaclass=GlobalSingleton):
         libdir = apkdir
         apkfile = os.path.basename(self.apk.apkfile)
         self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
-        Makes().Make2() # Makefile1().Makefile2()
+        Makes().Make1()
         super().__init__(arg_lis, arg_dic)
 
-    def generate_makefile(self, Make1,Make2,Make3_, *args, RARPWD=None, **kwargs):
+    def generate_makefile(self, Make0,Make1,Make3_, *args, RARPWD=None, **kwargs):
+        from os.path import join,basename,dirname
         assert RARPWD
+        _ssh1_make = 'ssh {}@{} make -f {}'.format(_ruser,_rhost,Make1.file.name)
+        _ssh2_make = 'ssh {}@{} make -f {}'.format(self.user,self.host,Make2.file.name)
 
-        with Make1(self.prjname, self.apk.prjname) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.prjname)
-        with Make2(self.prjname, self.outrar) as cmd:
+        with Make0(self.prjname, self.apk.prjname) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, self.prjname)
+        with Make1(self.prjname, self.outrar) as cmd:
             pass
 
         dd = dict( (os.path.basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ os.path.basename(t) ]
-            with Make2(t) as cmd: # (t,x)
+            with Make1(t) as cmd: # (t,x)
                 cmd('/bin/cp -vf', x, '$@')
 
-        with Make2(self.outrar, self.outdir) as cmd:
+        with Make1(self.outrar, self.outdir) as cmd:
             cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
 
-        with Make1(self.outdir) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.outdir)
-        with Make2(self.outdir, *self.depfiles) as cmd: # , *self.depfiles
+        with Make0(self.outdir) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, self.outdir)
+        with Make1(self.outdir, *self.depfiles) as cmd: # , *self.depfiles
             cmd('cd', self.src
                 , '&& source build/envsetup.sh'
                 , '&& lunch full_ckt6580_we_l-user && make -j8')
             cmd('mt6580-copyout.sh', self.src, self.outdir)
 
         _clean = 'clean_'+self.prjname
+        with Make0(_clean) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, _clean)
         with Make1(_clean) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _clean)
-        with Make2(_clean) as cmd:
             cmd('rm -rf', self.outdir)
             cmd('rm -f' , self.outrar)
             cmd('rm -f' , *self.depfiles)
 
         _update = 'update_'+self.prjname
+        with Make0(_update) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, _update)
         with Make1(_update) as cmd:
-            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _update)
-        with Make2(_update) as cmd:
             cmd('cd', self.src, '&& git pull')
+        with Make2(_update) as cmd:
+            pass #cmd('cd', self.src, '&& git pull')
+
+        _git_push = 'git_push_' + self.prjname
+        with Make0(_git_push) as cmd:
+            cmd(_ssh1_make, _git_push)
+        with Make1(_git_push) as cmd:
+            for fp in self.depfiles:
+                cmd('cd', join('android',self.prjname), '&& git add', fp)
+            cmd('cd', join('android',self.prjname)
+                    , '&& git commit -m "Game.apk({}) updated"'.format(self.apk.ver2()), *self.depfiles)
+            cmd('cd', join('android',self.prjname), '&& git push')
 
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
@@ -420,44 +467,44 @@ class Main(object, metaclass=GlobalSingleton):
             alls.setdefault(o, (argl,argd))
             ands.setdefault(o, (argl,argd))
             apks.setdefault(o.apk, (argl,argd))
-        Make1,Make2,Make3 = Makes() #Make1,Make2,Make3 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
+        Make0,Make1,Make2 = Makes() #Make0,Make1,Make2 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
 
         names = [ x.prjname for x in ands.keys() ]
-        with Make1('all',*names):
+        with Make0('all',*names):
             pass
         names = [ x.prjname for x in apks.keys() ]
-        with Make1('games',*names):
+        with Make0('games',*names):
             pass
         names   = [ x.prjname for x in alls.keys() ]
         clean_  = list(map(lambda x:'clean_'+x, names))
         update_ = list(map(lambda x:'update_'+x, names))
         info_   = list(map(lambda x:'info_'+x, names))
-        with Make1('clean', *clean_) as cmd:
+        with Make0('clean', *clean_) as cmd:
             pass #cmd('rm -f Makefile?')
-        with Make1('update', *update_):
+        with Make0('update', *update_):
             pass
-        with Make1('info', *info_):
+        with Make0('info', *info_):
             pass
 
         for o,(a,d) in alls.items():
-            o.generate_makefile(Make1,Make2,Make3, *a, **d)
+            o.generate_makefile(Make0,Make1,Make2, *a, **d)
 
         #deps = itertools.chain(names, clean_, update_, info_)
-        Make1.phony('all', 'games', 'clean', 'update')
+        Make0.phony('all', 'games', 'clean', 'update')
         for syms in (names, clean_, update_, info_):
-            Make1.phony(*syms)
+            Make0.phony(*syms)
 
-        with Make1('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
+        with Make0('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
             cmd('rsync $^', _rhome)
-            if Make3:
-                cmd('ssh {0}@{1} make -f {2} sync_makefile'.format(_ruser,_rhost,Make2.file.name))
-        Make1.phony('sync_makefile')
-        if Make3:
-            with Make2('sync_makefile', Make3.file.name) as cmd:
-                cmd('rsync', Make3.file.name, AndClassic.rhome)
-            Make2.phony('sync_makefile')
+            if Make2:
+                cmd('ssh {0}@{1} make -f {2} sync_makefile'.format(_ruser,_rhost,Make1.file.name))
+        Make0.phony('sync_makefile')
+        if Make2:
+            with Make1('sync_makefile', Make2.file.name) as cmd:
+                cmd('rsync', Make2.file.name, AndClassic.rhome)
+            Make1.phony('sync_makefile')
 
-        for mk in Makes(): # Make1,Make2,Make3:
+        for mk in Makes(): # Make0,Make1,Make2:
             if mk:
                 mk.__exit__(None,None,None)
         bash_command('make sync_makefile')
@@ -593,12 +640,12 @@ class Makes(list, metaclass=GlobalSingleton):
     def __init__(self):
         super().__init__( (Makefile(), None, None) )
         self.gen_headers(self[0])
-    def Make2(self):
-        self[1] = Makefile('Makefile2')
+    def Make1(self):
+        self[1] = Makefile('Makefile1')
         self.gen_headers(self[1])
         return self
-    def Make3(self):
-        self[2] = Makefile('Makefile3')
+    def Make2(self):
+        self[2] = Makefile('Makefile2')
         self.gen_headers(self[2])
         return self
     def gen_headers(self, mk):
