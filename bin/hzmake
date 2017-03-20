@@ -1,22 +1,14 @@
 #!/usr/bin/env python3
 
-import sys, time, os, re, subprocess, types, contextlib
+import sys, time, os, re, io, subprocess, types, contextlib
 import fnmatch, shutil, glob, tempfile, itertools
 from pprint import pprint
 import timeit
+dictobj = lambda **d: type('_',(object,), d)
 
 HOME = os.environ['HOME']
-_rhost = '192.168.2.115'
-_ruser = 'build'
-_rhome = _ruser + '@' + _rhost + ':.' #_rhome = '/home/build'
-
-def host1_conf():
-    return _ruser,_rhost,_rhome
-def host2_conf():
-    host = '192.168.2.113'
-    user = 'build'
-    rhome = 'build@192.168.2.113:.' # home = '/home/build'
-    return user,host,rhome
+host1_ = dictobj(user='build', host='192.168.2.115', rhome='build@192.168.2.115:.')
+host2_ = dictobj(user='build', host='192.168.2.113', rhome='build@192.168.2.113:.')
 
 _this_module = sys.modules[__name__]
 # setattr(sys.modules[__name__], x, os.environ.get(x, None))
@@ -91,7 +83,7 @@ class Apk(object):
         for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
             y = arg_dic.pop(x, None)
             if y:
-                y = tuple(map(int,y))
+                y = tuple(map(int, y.split('.')))
             setattr(self, x, y)
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v(\d+)\.(\d+)\.(\d+)(-r\d+)?"')
         re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+)"')
@@ -114,9 +106,9 @@ class Apk(object):
 
     def generate_makefile(self, Make0,Make1,Make2, *args, **kwargs):
         from os.path import join,basename,dirname
-        host1, host2 = host1_conf(), host2_conf()
-        _ssh1_make = 'ssh {}@{} make -f {}'.format(host1[0], host1[1], Make1.file.name)
-        _ssh2_make = 'ssh {}@{} make -f {}'.format(host2[0], host2[1], Make2.file.name)
+        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
+        if Make2:
+            _ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
         slis_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
 
         appcfg = self.prefix_src(self._AppConfig) #_dep0 = os.path.join(self.src,'initialized.txt')
@@ -152,12 +144,12 @@ class Apk(object):
             cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
             cmd('test -f "{}"'.format(self.export_filename))
             cmd('cp -vrt', self.outdir, *self.libfiles)
-            cmd('rsync -RrL', self.outdir, _rhome) #, 'bin/hzrbuild'
-            if self.prjname == 'Game14':
-                cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, 'rrsync_up'+self.prjname)
-        if self.prjname == 'Game14':
+            cmd('rsync -RrL', self.outdir, host1_.rhome) #, 'bin/hzrbuild'
+            if Make2:
+                cmd(_ssh1_make, 'rrsync_up'+self.prjname)
+        if Make2: #self.prjname == 'Game14':
             with Make1('rrsync_up'+self.prjname) as cmd:
-                cmd('rsync -vRrL', self.outdir, host2[2])
+                cmd('rsync -vRrL', self.outdir, host2_.rhome)
             Make1.phony('rrsync_up'+self.prjname)
 
         with Make0(self.prjname, self.export_filename) as cmd:
@@ -168,7 +160,7 @@ class Apk(object):
 
         with Make0('info_'+self.prjname) as cmd:
             cmd('#')
-            if self.prjname != 'g500':
+            if self.prjname == 'Game14':
                 cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
             cmd('#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename.replace('/','\\'))
             cmd('#', '===============================================')
@@ -297,7 +289,6 @@ class Game16K550(Apk,metaclass=GlobalSingleton):
     pass
 
 class Android(object):
-    #def __call__(self, *args, **kwargs): return self
     def __init__(self, arg_lis, arg_dic):
         # print('Android:',self.prjname, self.apk.prjname, self.apk.fullver())
         #if self.prjname.startswith('cvk'):
@@ -307,10 +298,9 @@ class Android(object):
         self.out = self.outdir
         self.outrar = self.outdir + '.rar'
         #super().__init__(arg_lis, arg_dic)
+    #def __call__(self, *args, **kwargs): return self
 
 class AndClassic(Android):
-    #host, user, rhome = host2_conf()
-
     def __init__(self, arg_lis, arg_dic):
         from os.path import join,basename,dirname
         self.prjname = type(self).__name__
@@ -327,10 +317,9 @@ class AndClassic(Android):
 
     def generate_makefile(self, Make0,Make1,Make2, *args, RARPWD=None, **kwargs):
         assert RARPWD
-        from os.path import join,basename,dirname
-        host1, host2 = host1_conf(), host2_conf()
-        _ssh1_make = 'ssh {}@{} make -f {}'.format(host1[0], host1[1], Make1.file.name)
-        _ssh2_make = 'ssh {}@{} make -f {}'.format(host2[0], host2[1], Make2.file.name)
+        from os.path import join, basename, dirname
+        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
+        _ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
 
         _clean = 'clean_'+self.prjname
         with Make0(_clean) as cmd:
@@ -347,14 +336,14 @@ class AndClassic(Android):
         with Make0(self.prjname, self.apk.prjname) as cmd:
             cmd(_ssh1_make, self.prjname)
         #with Make0(self.outdir) as cmd:
-        #    cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make1.file.name, self.outdir)
+        #    cmd(_ssh1_make, self.outdir)
         with Make1(self.prjname, self.outrar) as cmd:
-            pass #cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make2.file.name, self.prjname)
+            pass #cmd(_ssh2_make, self.prjname)
         with Make1(self.outrar, self.outdir) as cmd:
             cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, basename(self.outdir)))
         with Make1(self.outdir) as cmd:
             cmd(_ssh2_make, self.outdir)
-            cmd('rsync -vrL', join(host2[2],self.outdir), dirname(self.outdir))
+            cmd('rsync -vrL', join(host2_.rhome,self.outdir), dirname(self.outdir))
         #with Make2(self.prjname, self.outdir) as cmd:
         #    pass
         with Make2(self.outdir, *self.depfiles) as cmd:
@@ -369,8 +358,8 @@ class AndClassic(Android):
         dd = dict( (basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ basename(t) ]
-            with Make2(t) as cmd: # (t,x)
-                cmd('/bin/cp -vf', x, '$@')
+            with Make2(t, x) as cmd:
+                cmd('/bin/cp -vf $< $@')
 
         _update = 'update_'+self.prjname
         with Make0(_update) as cmd:
@@ -414,17 +403,11 @@ class g500(Android, metaclass=GlobalSingleton):
     def generate_makefile(self, Make0,Make1,Make2_, *args, RARPWD=None, **kwargs):
         assert RARPWD
         from os.path import join,basename,dirname
-        host1, host2 = host1_conf(), host2_conf()
-        _ssh1_make = 'ssh {}@{} make -f {}'.format(host1[0],host1[1],Make1.file.name)
-        #_ssh2_make = 'ssh {}@{} make -f {}'.format(host2[0],host2[1],Make2.file.name)
+        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
+        #_ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
 
         outdir, _ = os.path.splitext(self.outrar)
         _, dname  = os.path.split(outdir)
-
-        #cmd = Make0('all', self.prjname)
-        #cmd('#')
-        #cmd = Make1('all', self.prjname)
-        #cmd('#')
 
         with Make0(self.prjname, self.apk.prjname) as cmd:
             cmd(_ssh1_make, self.prjname)
@@ -473,6 +456,7 @@ class g500(Android, metaclass=GlobalSingleton):
 
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
+        # {} help k400 g500 RARPWD=huaguanjiye k400=dict(NewSVNRev=111) #TODO
         alls, ands, apks = {}, {}, {}
         for a in set(arg_lis):
             T = getattr(_this_module, a)
@@ -485,9 +469,14 @@ class Main(object, metaclass=GlobalSingleton):
         Make0,Make1,Make2 = Makes() #Make0,Make1,Make2 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
 
         from os.path import join,basename,dirname
-        host1, host2 = host1_conf(), host2_conf()
-        _ssh1_make = 'ssh {}@{} make -f {}'.format(host1[0], host1[1], Make1.file.name)
-        _ssh2_make = 'ssh {}@{} make -f {}'.format(host2[0], host2[1], Make2.file.name)
+        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
+        #_ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
+
+        ## TODO
+        #cmd = Make0('all', self.prjname)
+        #cmd(...)
+        #cmd = Make1('all', self.prjname)
+        #cmd(...)
 
         #// ands prjname // === === ===
         names = [ x.prjname for x in ands.keys() ]
@@ -531,13 +520,13 @@ class Main(object, metaclass=GlobalSingleton):
             Make0.phony(*symbs)
 
         with Make0('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
-            cmd('rsync $^', _rhome)
+            cmd('rsync $^', host1_.rhome)
             if Make2:
-                cmd('ssh {0}@{1} make -f {2} sync_makefile'.format(_ruser,_rhost,Make1.file.name))
+                cmd(_ssh1_make, 'sync_makefile')
         Make0.phony('sync_makefile')
         if Make2:
             with Make1('sync_makefile', Make2.file.name) as cmd:
-                cmd('rsync', Make2.file.name, host2[2])
+                cmd('rsync', Make2.file.name, host2_.rhome)
             Make1.phony('sync_makefile')
 
         for mk in Makes(): # Make0,Make1,Make2:
@@ -636,7 +625,7 @@ Usages:
 
 class Makefile(object):
     class Makerule(object):
-        # TODO StringIO
+        # TODO io.StringIO
         def __init__(self, file_, x, *a):
             self.file = file_
             print(x, ': ', sep='',end='', file=self.file)
@@ -679,13 +668,12 @@ class Makes(list, metaclass=GlobalSingleton):
     def __init__(self):
         super().__init__( (Makefile(), None, None) )
         self.gen_headers(self[0])
-    def Make1(self):
-        self[1] = Makefile('Makefile1')
-        self.gen_headers(self[1])
-        return self
-    def Make2(self):
-        self[2] = Makefile('Makefile2')
-        self.gen_headers(self[2])
+    def Make1(self): return self.Make(1)
+    def Make2(self): return self.Make(2)
+    def Make(self, ix):
+        prev, self[ix] = self[ix], Makefile('Makefile'+str(ix))
+        if not (prev is self[ix]):
+            self.gen_headers(self[ix])
         return self
     def gen_headers(self, mk):
         mk.line('### Auto-generated')
@@ -695,6 +683,11 @@ class Makes(list, metaclass=GlobalSingleton):
         mk.line('')
     def __call__(self):
         return self
+
+def sprint(*args, **kwargs):
+    with io.StringIO() as out:
+        print(*args, file=out, **kwargs)
+        return out.getvalue()
 
 def check(*args, **kwargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
@@ -812,12 +805,14 @@ def grep(expr, *files, filt=None):
         print(textf, e, file=sys.stderr)
         raise
 
-def _object(attr):
+def _2object(attr):
     if isinstance(attr, dict):
-        return type('_', (object,), dict( (x,_object(y)) for x,y in attr.items()))
+        return type('_', (object,), dict( (x,_2object(y)) for x,y in attr.items()))
     if isinstance(attr, (tuple, list, set, frozenset)):
-        return type(attr)(_object(x) for x in attr)
+        return type(attr)(_2object(x) for x in attr)
     return attr
+def simple_object(**d):
+    return type('_', (object,), dict( (x,_2object(y)) for x,y in d.items()))
 
 def bootstrap(*xfs):
     import signal
