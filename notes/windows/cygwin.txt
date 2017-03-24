@@ -1,2 +1,13 @@
 
 cygcheck -c cygwin
+
+mkpasswd -c -p "$(cygpath -H)"
+mkpasswd -c -p "$(cygpath -H)" > /etc/passwd
+
+### http://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation
+
+Starting with Cygwin 1.7.34, the recommended way to do this is to add a custom db_home setting to /etc/nsswitch.conf. A common wish when doing this is to make your Cygwin home directory equal to your Windows user profile directory. This setting will do that:
+db_home: windows
+Or, equivalently:
+db_home: /%H
+

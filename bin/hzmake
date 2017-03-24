@@ -172,23 +172,20 @@ class Apk(object):
         bash_command('cd {} && svn commit -m"{}"'.format(self.src, msg))
 
     def edit_build_tree(self, *args, **kwargs):
-        fp = os.path.join(self.src,'.project')
-        print('edit:', fp, '<name>', self.prjname)
-        etree_replace_text(fp, './name', self.prjname)
-
-        #copyfile(self._CryptoRelease, self._Crypto)
+        # fp = os.path.join(self.src,'.project')
+        # print('edit:', fp, '<name>', self.prjname)
+        # etree_replace_text(fp, './name', self.prjname)
+        ##copyfile(self._CryptoRelease, self._Crypto)
 
         log_h = self.prefix_src(self._Log_h)
-        print('edit:', log_h, 'BUILD_RELEASE')
-        edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
+        regex_sub('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
 
         if self.prjname == 'Game16k550':
             pass
 
         if self.prjname == 'Game16':
             fp = self.prefix_src(self._AndroidManifest)
-            print('edit:', fp, 'android.uid.system')
-            edit('\sandroid:versionName="(\d+\.\d+)"\s'
+            regex_sub('\sandroid:versionName="(\d+\.\d+)"\s'
                     , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
                     , fp, count=1)
 
@@ -217,7 +214,6 @@ class Apk(object):
             def repf(r):
                 if 'SVNVERSION' in r.group(0):
                     return re.sub('=\s*"new-svn\d+"', '= "new-svn{}"'.format(svnrev), r.group(0))
-                #if self.VARIANT == 'test': #return re.sub('=\s*"v[^"]+"', '= "v{}-{}"'.format(ver, svnrev), r.group(0))
                 return re.sub('=\s*"v[^"]+"', '= "v{}"'.format(ver), r.group(0))
             for line in lines:
                 lin = re.sub(re_ver, repf, line)
@@ -764,7 +760,7 @@ def etree_replace_text(filename, path, text):
         node.text = text
         tree.write(filename, encoding='UTF-8', xml_declaration=True) #(, short_empty_elements=False)
 
-def edit(expr, ss, *files, count=-1):
+def regex_sub(expr, ss, *files, count=-1):
     for textf in files:
         lines = []
         with open(textf) as sf:
@@ -775,6 +771,7 @@ def edit(expr, ss, *files, count=-1):
                     l, line = line, re.sub(expr, ss, line)
                     if not (l is line):
                         count -= 1
+                        print('edit:', textf.split()[-1], ':', line.strip())
                 outf.write( line )
 
 def grep(expr, *files, filt=None):

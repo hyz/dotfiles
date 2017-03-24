@@ -12,6 +12,9 @@ find trunk -name ".svn" -prune -o -print
 find trunk \( -name ".svn" -o -name ".git" \) -prune -o -print 
 find * -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) -print0 > cxx.files
 
+find * ! -writable |xargs chmod u+w
+find * ! -readable
+
 ### tcpdump ###
 tcpdump -nn -w pcap -i eth0 \(port 9001 or port 9000\) and host 127.0.0.1
 tcpdump -nn -X -r pcap
@@ -127,6 +130,9 @@ export T=~/isdk/alpha/i51EMU/WIN32FS/DRIVE_E ; export K=$T/i51/i51KIT
 
 find etc -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
 find usr -type f |while read f ; do diff "$f" "/$f"; echo "$? $f"; done
+
+diff -r --brief dir1 dir2 |grep -v '^Only' |sed -e 's/^Files /cp /' -e 's/ and / /' -e 's/ differ//'
+diff -r --brief dir1 dir2 |grep -v '^Only' |sed -e 's/^Files //' -e 's/ and / /' -e 's/ differ//' |while read l; do vimdiff $l; done
 
 $ find . -depth -print | cpio -o > /path/archive.cpio
 $ cpio -i -t < archive.cpio
