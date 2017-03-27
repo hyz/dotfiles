@@ -1,4 +1,7 @@
 
+### http://effbot.org/imagingbook/
+    The Python Imaging Library Handbook
+
 http://pillow.readthedocs.io/en/latest/handbook/tutorial.html
     https://github.com/python-pillow/Pillow/blob/master/docs/handbook/tutorial.rst
 http://www.cnblogs.com/wbin91/p/3971079.html
@@ -8,5 +11,34 @@ http://www.cnblogs.com/wbin91/p/3971079.html
 http://oldj.net/article/text-to-image/
     使用Python将文本转为图片, PIL,pyGame
 
+
+### Cropping an image with Python Pillow
+    http://stackoverflow.com/questions/20361444/cropping-an-image-with-python-pillow
+    http://stackoverflow.com/questions/273946/how-do-i-resize-an-image-using-pil-and-maintain-its-aspect-ratio?rq=1
+
+### Auto-cropping Transparent Images in Python Imaging Library
+### http://odyniec.net/blog/2012/08/auto-cropping-transparent-images-in-python-imaging-library/
+    def autocrop_image(image, border = 0):
+        # Get the bounding box
+        bbox = image.getbbox()
+     
+        # Crop the image to the contents of the bounding box
+        image = image.crop(bbox)
+     
+        # Determine the width and height of the cropped image
+        (width, height) = image.size
+     
+        # Add border
+        width += border * 2
+        height += border * 2
+     
+        # Create a new image object for the output image
+        cropped_image = Image.new("RGBA", (width, height), (0,0,0,0))
+     
+        # Paste the cropped image onto the new image
+        cropped_image.paste(image, (border, border))
+     
+        # Done!
+        return cropped_image
 
 

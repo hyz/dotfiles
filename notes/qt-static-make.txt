@@ -1,4 +1,7 @@
+### http://blog.csdn.net/caoshangpa/article/details/53738393
+    VS2015编译Qt5.7.0生成支持XP的静态库 
 
+###
 -release -opensource -static
 -no-qml-debug 
 -platform README
@@ -16,9 +19,6 @@
 -L
 
 -no-openssl
-
-
-
 
 ### http://www.pcduino.com/quick-start-guide-on-setup-qt5-for-android-on-pcduino/
 $ ./configure
