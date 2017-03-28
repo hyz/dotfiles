@@ -16,3 +16,7 @@ http://stackoverflow.com/questions/3586106/perform-commands-over-ssh-with-python
     pexpect
     subprocess
 
+[ssh]
+https://github.com/paramiko/paramiko
+https://github.com/ronf/asyncssh
+

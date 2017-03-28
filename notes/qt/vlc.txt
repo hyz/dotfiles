@@ -1,0 +1,20 @@
+
+### http://www.wangshupeng.com/blog/Build-a-stream-video-player-with-Qt/
+
+    ffmpeg -i UNIQLO_MIXPLAY.flv -v 0 -vcodec mpeg4 -f mpegts udp:147.8.179.120:6666
+
+    MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),_media(0),_videowidget(0)
+    {
+      _instance = new VlcInstance(VlcCommon::args(), parent); //构造vlcinstance
+      QString url = "udp/h264://@147.8.179.120:6666";
+      _media = new VlcMedia(url, _instance);    //构造播放媒体
+      _player = new VlcMediaPlayer(_instance);  // 构造播放器
+      _videowidget = new VlcWidgetVideo(_player,this);  //构造显示widget
+      _player->setVideoWidget(_videowidget);
+      _videowidget->show();
+      _player->open(_media);
+      _player->play();
+      setCentralWidget(_videowidget);
+      setSizeIncrement(500,500);
+    }
+
