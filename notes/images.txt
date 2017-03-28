@@ -17,3 +17,6 @@ montage 1.png 2.png 3.png \
 
 convert x.png -quality 100 -resize 640 PNG8:/tmp/x.png
 
+### http://stackoverflow.com/questions/2336522/png-vs-gif-vs-jpeg-vs-svg-when-best-to-use?rq=1
+    png gif jpeg svg
+
