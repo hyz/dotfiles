@@ -1,0 +1,3 @@
+
+adb -d logcat -s main ildec |tee $(date +log.%H%M%d)
+

@@ -1,0 +1,11 @@
+>>> import socket, struct
+
+>>> socket.inet_aton('104.224.159.76')
+b'h\xe0\x9fL'
+>>> struct.unpack('!I', socket.inet_aton('104.224.159.76'))
+(1759551308,)
+>>> hex(1759551308)
+'0x68e09f4c'
+>>> hex( socket.ntohl(0x68e09f4c) )
+'0x4c9fe068'
+

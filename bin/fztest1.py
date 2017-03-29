@@ -88,8 +88,14 @@ class Main(object):
                  + [26,27,28,29,30,31,32,33,34,35]
                  + [39,40,41,42,43,44,45,46,47,48] ) * 2
     # = [ int(x)+1 for x in range(20) ] * 4 #+ [0,0]
+    defa_devuuid = '0'*Length_DevUUID
+    defa_ipaddress = '104.224.159.76'
 
-    def url(DevUUID = '0'*self.Length_DevUUID, IPAddress='104.224.159.76'):
+    def url(self, DevUUID=None, IPAddress=None):
+        if not DevUUID:
+            DevUUID = self.defa_devuuid
+        if not IPAddress:
+            IPAddress = self.defa_ipaddress
         return 'http://{}:9022/2/{}'.format(IPAddress, DevUUID)
 
     def a1(self, *args, times=1, **kvargs):
