@@ -22,8 +22,11 @@ tcpdump -nn -A -r pcap
 
 ### pgrep ###
 pgrep -lf yxim
-grep -Hl -R boost_locale .
-grep -l 'foo' tmp/* |xargs rm -f
+
+top -p $(echo `pgrep -f yxim` |tr ' ' ',')
+top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
+# top, hit 'H' to toggle thread listing
+
 
 ### ps ###
 ps -lF
@@ -36,11 +39,6 @@ ps -mL -p $(pidof yxim-server)
 # 10 basic examples of Linux ps command
 http://www.binarytides.com/linux-ps-command/
 
-### ### ###
-top -p $(echo `pgrep -f yxim` |tr ' ' ',')
-top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
-# top, hit 'H' to toggle thread listing
-
 ### python dd ###
 echo '{"cmd":71}' |yxim-pack |nc 127.0.0.1 8443 |dd bs=4 skip=1 2>/dev/null |python -mjson.tool
 echo '{"cmd":71}' |yxim-nc 127.0.0.1 8443 |python -mjson.tool
@@ -48,13 +46,6 @@ echo '{"cmd":71}' |yxim-nc 127.0.0.1 8443 |python -mjson.tool
 ### sort ###
 # http://stackoverflow.com/questions/4562341/stable-sort-in-linux
 sort -k1,1 -s t.txt
-
-### grep ###
-echo "foo=123 bar=432" |/bin/grep -Po '\d+'
-echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
-grep -E '((交易|操作).*买.*[0-9]{6}|日期:2015)' 704179.txt
-
-ls -1 ???.* |grep -Po '\-\K\d+.\d+.\d+.\d+' |sort |uniq
 
 ### awk ###
 $ cat 3 |awk 'NF==5 && $NF=="ONLS" && $1==0 {print $0"\t"($2-$3)}' |sort -nk 6 -r
@@ -118,10 +109,6 @@ hello
 find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
 find 0nodes -maxdepth 1 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
-
-### cygwin
-tail -f $K/../i51.log |grep --line-buffered -vE '(^kitpay 0 00000000|^wapfe notify|^app-boot|^ADE - OS|^i51|^KEL : Kit Path|^if do|^$)' |sed '/error/s/error/***error***/'
-tail -f $K/../i51.log |grep -i --line-buffered 'pay'
 
 export T=~/isdk/alpha/i51EMU/WIN32FS/DRIVE_E ; export K=$T/i51/i51KIT
 
