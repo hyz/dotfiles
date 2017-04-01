@@ -1,0 +1,19 @@
+
+echo 'D/MtkOmxVdec(17259): [0xaf89c000] ION allocate Size (3136320), u4VA(0x9B1D2000), share_fd(83), VA(0x9B1D2000), PA(0x05800000)' \
+    | grep -Po 'u4VA.\K0x\w+'
+
+grep -lH -R boost_locale .
+grep -ln 'foo' tmp/* |xargs rm -f
+grep -lZ
+
+### grep ###
+echo "foo=123 bar=432" |/bin/grep -Po '\d+'
+echo "foo=123 bar=432" |/bin/grep -Po 'foo=\K\d+'
+grep -E '((交易|操作).*买.*[0-9]{6}|日期:2015)' 704179.txt
+
+ls -1 ???.* |grep -Po '\-\K\d+\.\d+\.\d+\.\d+' |sort |uniq
+
+### cygwin
+tail -f $K/../i51.log |grep --line-buffered -vE '(^kitpay 0 00000000|^wapfe notify|^app-boot|^ADE - OS|^i51|^KEL : Kit Path|^if do|^$)' |sed '/error/s/error/***error***/'
+tail -f $K/../i51.log |grep -i --line-buffered 'pay'
+

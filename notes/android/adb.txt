@@ -13,6 +13,8 @@ adb shell dumpsys package com.foo.bar |egrep -A99999 "grantedPermissions:"
 
 adb logcat -s '<TAG>'
 
+adb -d shell kill -9 `adb -d shell ps |grep com.example.a |awk '{print $2}'`
+
 ###
 adb -s HU9SP7ZLSO5DNNEA push bin/bw /data
 adb -s HU9SP7ZLSO5DNNEA shell
@@ -26,6 +28,7 @@ http://www.jianshu.com/p/296faefe3226
 
 ### pm
     adb shell pm list packages com.example
+    adb shell pm list packages |grep -v com.and |grep -v com.media
 
 ### am
     adb shell am ## --help
