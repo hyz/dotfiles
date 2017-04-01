@@ -22,3 +22,18 @@ This information is useful only if you are able to distinguish lvalues from rval
 
 ### http://stackoverflow.com/questions/257288/is-it-possible-to-write-a-c-template-to-check-for-a-functions-existence?noredirect=1&lq=1
 
+### https://en.wikipedia.org/wiki/Passive_data_structure#In_C.2B.2B
+### https://en.wikipedia.org/wiki/Passive_data_structure
+### https://en.wikipedia.org/wiki/Plain_Old_C%2B%2B_Object
+### http://stackoverflow.com/questions/146452/what-are-pod-types-in-c
+### http://stackoverflow.com/questions/4178175/what-are-aggregates-and-pods-and-how-why-are-they-special/7189821#7189821
+    POD(Plain Old C++ Object)(Passive data structure)
+
+    A Plain Old Data Structure in C++ is an aggregate class that contains only PODS as members, has no user-defined destructor, no user-defined copy assignment operator, and no nonstatic members of pointer-to-member type.
+
+### https://herbsutter.com/elements-of-modern-c-style/
+    Elements of Modern C++ Style
+    c++11 , Uniform Initialization and Initializer Lists
+### https://isocpp.org/std/status
+
+
