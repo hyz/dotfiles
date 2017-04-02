@@ -1,6 +1,6 @@
 [user]
 	name = hyz
-	email = jiyong.wu@gmail.com
+	email = 0xefef@gmail.com
 [color]
 	status = auto
 	branch = auto
@@ -12,6 +12,10 @@
 #[push]
 #	default = simple
 
-#[http]
-# proxy = socks5://127.0.0.1:8787
+[http]
+    proxy = socks5://127.0.0.1:8787
+[socks]
+	proxy = 127.0.0.1:8787
+[core]
+	gitproxy = git-proxy
 
