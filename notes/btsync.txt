@@ -1,26 +1,38 @@
 
-https://www.resilio.com/
+### https://www.resilio.com/
+    [1]
+    cp /etc/btsync.conf ~/.config/btsync/btsync.conf
+     
+    [2]
+    Replace user-specific references with the appropriate information, including the following settings:
+          - storage_path
+          - pid_file
+          - webui.listen
+          - webui.login
+          - webui.password
 
-[1]
-cp /etc/btsync.conf ~/.config/btsync/btsync.conf
- 
-[2]
-Replace user-specific references with the appropriate information, including the following settings:
+    [3]
+    systemctl --user daemon-reload
+    systemctl --user start btsync
+    systemctl --user enable btsync
+    systemctl --user status btsync.service
+
+    http://127.0.0.1:8888/
+###
+    mkdir -p ~/.config/rslsync
+    cp /etc/rslsync.conf ~/.config/rslsync/rslsync.conf
       - storage_path
       - pid_file
       - webui.listen
       - webui.login
       - webui.password
 
-[3]
-systemctl --user daemon-reload
-systemctl --user start btsync
-systemctl --user enable btsync
-systemctl --user status btsync.service
+    to reload user systemd modules:       systemctl --user daemon-reload
+    to start rslsync manually:             systemctl --user start rslsync
+    to autostart rslsync on user login:    systemctl --user enable rslsync
 
-http://127.0.0.1:8888/
 
-[ubuntu 12.04]
+### [ubuntu 12.04]
 add-apt-repository ppa:tuxpoldo/btsync
 apt-get update
 apt-get install btsync
