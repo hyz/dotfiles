@@ -25,3 +25,6 @@ ss-local -c kcptun-bin/ss.json
 ### http://www.oschina.net/p/dog-tunnel
     可访问远程局域网的服务，例如HTTP，VNC远程控制，SSH等
 
+### curl & cookies
+    curl -v --cookie /tmp/cj --cookie-jar /tmp/cj http://127.0.0.1:9999/show
+
