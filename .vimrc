@@ -117,13 +117,15 @@ cnoremap <C-L> <Up>
 "		set csverb
 "endif
 
-" VimIM
+""" VimIM
 let g:vimim_tab_for_one_key=1
 "let g:vimim_one_key=0
 
+"""
 let g:EclimDisabled=1
 
-"""let loaded_matchparen = 1
+"""
+"let loaded_matchparen = 1
 "hi MatchParen cterm=none ctermbg=green ctermfg=blue
 "hi MatchParen cterm=bold ctermbg=none ctermfg=magenta
 "set showmatch
@@ -131,8 +133,10 @@ let g:EclimDisabled=1
 syntax on
 filetype plugin indent on
 
+""" clang_complete
 set completeopt-=preview
 
+""" YouCompleteMe
 "let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
 "let g:ycm_confirm_extra_conf = 0
 "let g:ycm_add_preview_to_completeopt=0
@@ -141,5 +145,6 @@ set completeopt-=preview
 "let g:enable_ycm_at_startup = 0
 "let g:loaded_youcompleteme = 1
 
+""" pathogen
 execute pathogen#infect()
 
