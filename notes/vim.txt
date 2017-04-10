@@ -55,3 +55,8 @@ set makeprg=g++\ -g\ -pthread\ -std=c++0x\ -I/BOOST_ROOT\ -I.\ %\ -lrt
 
     ./install.sh --clang-completer --system-libclang
 
+### golang
+    https://github.com/fatih/vim-go  ~/.vim/bundle/vim-go
+    mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+    https://github.com/nsf/gocode
+

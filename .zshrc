@@ -201,6 +201,13 @@ fi
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_HOME=/usr/share/apache-ant
 #export ANT_ROOT=/bin
+
+###
+if [ -d "$HOME/go" ]; then
+    export GOPATH=$HOME/go
+    PATH=$PATH:$GOPATH/bin
+fi
+
 export PATH
 
 ##alias for cnpm

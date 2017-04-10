@@ -1,6 +1,6 @@
 [user]
-	name = hyz
-	email = 0xefef@gmail.com
+	name = oops
+	email = cooloops@qq.com
 [color]
 	status = auto
 	branch = auto
@@ -12,8 +12,8 @@
 #[push]
 #	default = simple
 
-[http]
-    proxy = socks5://192.168.2.115:8787
+#[http]
+#    proxy = socks5://192.168.2.115:8787
 #[socks]
 #	proxy = 127.0.0.1:8787
 #[core]

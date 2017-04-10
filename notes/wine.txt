@@ -1,3 +1,11 @@
 
-LANG=zh_CN.utf8 wine Frozen\ Throne.exe -opengl
+LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
+
+### http://askubuntu.com/questions/177192/how-do-i-create-a-32-bit-wine-prefix
+
+    WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 wine wineboot
+
+    WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 winetricks vcrun2010
+    WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 winetricks vcrun2012
+
 
