@@ -1,3 +1,7 @@
+### http://stackoverflow.com/questions/18715694/cmake-doesnt-find-boost-libraries-while-using-android-cmake-toolchain-file?noredirect=1&lq=1
+    CMake boost/c++
+### http://stackoverflow.com/questions/3808775/cmake-doesnt-find-boost?rq=1
+
 ### https://github.com/googlesamples/android-ndk/tree/master-cmake
 
 

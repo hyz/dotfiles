@@ -131,12 +131,34 @@ let g:EclimDisabled=1
 syntax on
 filetype plugin indent on
 
-set completeopt-=preview
-"let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
-let g:ycm_confirm_extra_conf = 0
-let g:ycm_add_preview_to_completeopt=0
-let g:ycm_seed_identifiers_with_syntax = 1  "C/C++关键字自动补全
-"let g:ycm_collect_identifiers_from_tags_files = 1
-"let g:enable_ycm_at_startup = 0
-"let g:loaded_youcompleteme = 1
+"let g:clang_library_path='/usr/lib'
+"set completeopt-=preview
+
+" YouCompleteMe
+let g:ycm_global_ycm_extra_conf='~/.ycm_extra_conf.py'
+"let g:ycm_extra_conf_globlist=['~/.vim/*']
+let g:ycm_always_populate_location_list = 0
+let g:ycm_auto_trigger=1
+let g:ycm_enable_diagnostic_highlighting=1
+let g:ycm_enable_diagnostic_signs=1
+let g:ycm_max_diagnostics_to_display=10000
+let g:ycm_min_num_identifier_candidate_chars=0
+let g:ycm_min_num_of_chars_for_completion=2
+let g:ycm_open_loclist_on_ycm_diags=1
+let g:ycm_show_diagnostics_ui=1
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_filetype_blacklist={
+            \ 'vim' : 1,
+            \ 'tagbar' : 1,
+            \ 'qf' : 1,
+            \ 'notes' : 1,
+            \ 'markdown' : 1,
+            \ 'md' : 1,
+            \ 'unite' : 1,
+            \ 'text' : 1,
+            \ 'vimwiki' : 1,
+            \ 'pandoc' : 1,
+            \ 'infolog' : 1,
+            \ 'mail' : 1
+\}
 
