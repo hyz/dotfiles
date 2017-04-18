@@ -73,7 +73,7 @@ if x=`which b2 2>/dev/null` ; then
 fi
 # # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
 # 
-[ -d "/tmp/.home/$USER" ] || mkdir "/tmp/.home/$USER"
+[ -d "/tmp/.home/$USER" ] || mkdir -p "/tmp/.home/$USER"
 [ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
 
 case "`uname -s`" in
