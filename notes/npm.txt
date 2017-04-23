@@ -1,3 +1,8 @@
+### http://stackoverflow.com/questions/16073603/how-do-i-update-each-dependency-in-package-json-to-the-latest-version
+    npm i -g npm-check-updates
+    npm-check-updates -u
+    npm install
+
 ### https://www.v2ex.com/t/353110
     proxychain4 npm install 
 
@@ -30,4 +35,8 @@ https://github.com/sindresorhus/awesome-electron
 npm i -g mirror-config-china --registry=http://registry.npm.taobao.org && exit
 # linux
 $ sudo npm i -g mirror-config-china --registry=http://registry.npm.taobao.org && exit
+
+### http://stackoverflow.com/questions/10972176/find-the-version-of-an-installed-npm-package?rq=1
+    npm list -g for
+    npm list grunt
 
