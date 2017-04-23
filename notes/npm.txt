@@ -1,3 +1,6 @@
+### https://www.v2ex.com/t/353110
+    proxychain4 npm install 
+
 ### https://cnodejs.org/topic/5338c5db7cbade005b023c98
     npm config set proxy=http://127.0.0.1:8087
     npm config set registry=http://registry.npmjs.org

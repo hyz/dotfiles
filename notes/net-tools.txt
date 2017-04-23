@@ -28,3 +28,14 @@ ss-local -c kcptun-bin/ss.json
 ### curl & cookies
     curl -v --cookie /tmp/cj --cookie-jar /tmp/cj http://127.0.0.1:9999/show
 
+### http://stackoverflow.com/questions/21228995/how-to-clear-https-proxy-setting-of-npm
+    npm config rm proxy
+    npm config rm https-proxy
+    npm config delete proxy
+    npm config delete https-proxy
+
+### https://github.com/rofl0r/proxychains-ng
+### http://shawnelee88.github.io/2015/07/10/proxychains-shadowsocks%E7%A5%9E%E5%99%A8/
+### https://zhuanlan.zhihu.com/p/24358104
+    proxychain4 npm install
+
