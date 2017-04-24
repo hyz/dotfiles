@@ -1,0 +1,5 @@
+
+https://developer.android.com/studio/publish/app-signing.html
+https://www.airpair.com/android/posts/adding-tampering-detection-to-your-android-app
+https://www.xda-developers.com/application-signature-verification-how-it-works-how-to-disable-it-with-xposed-and-why-you-shouldnt/
+

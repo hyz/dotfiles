@@ -1,3 +1,4 @@
+### https://github.com/gianarb/awesome-angularjs
 
 ### https://hackernoon.com/top-8-resources-to-explore-angular-4-ff2c1b42020a
 ### http://blog.angular-university.io/new-in-angular-4-better-reactive-programming-support/

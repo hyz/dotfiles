@@ -1,0 +1,6 @@
+
+http://stackoverflow.com/questions/339923/set-cellpadding-and-cellspacing-in-css
+http://stackoverflow.com/questions/83073/why-not-use-tables-for-layout-in-html
+http://stackoverflow.com/questions/1575141/make-div-100-height-of-browser-window
+http://stackoverflow.com/questions/114543/how-to-horizontally-center-a-div-in-another-div
+
