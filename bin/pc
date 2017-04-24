@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if nc -z -V >/dev/null 2>&1 ; then
+    h=192.168.2.115 ; p=8787 ; f=$HOME/.proxychains/$h.$p.conf
+    if nc -z -w1 $h $p && test -f $f ; then
+        export PROXYCHAINS_CONF_FILE=$f
+    fi
+fi
+
+exec proxychains4 $*
+
