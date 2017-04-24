@@ -62,3 +62,7 @@ SELECT @@autocommit;
 
 SELECT msgid,COUNT(msgid) cnt FROM message_rx GROUP BY msgid ORDER BY cnt
 
+###
+> sudo mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql                       ~
+> mysql_secure_installation
+

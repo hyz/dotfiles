@@ -14,3 +14,5 @@ find * \( -name .repo -o -name .git -o -name out \) -prune -o -type f \( -name '
 sudo find out/ ! -type l -user 1000 -exec chown build '{}' \;
 sudo find mt6580 -type l -user 1000 -exec chown -h build: '{}' \;
 
+sudo find . ! -user 1007 -exec chown -h build: '{}' \;
+

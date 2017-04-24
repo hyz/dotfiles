@@ -1,7 +1,9 @@
 
+### http://stackoverflow.com/questions/924729/mysql-select-many-fields-how-best-to-display-in-terminal
+    $ mysql -t -u root -p321 <<< 'SELECT * FROM db1.User'
+    $ mysql -u root -p321 <<< 'SELECT * FROM db1.User \G'
 
-$ mysql -u root -p
-
+### 
 > CREATE USER 'lindu'@'120.197.129.20' IDENTIFIED BY 'lindu12345' ;
 > GRANT ALL PRIVILEGES ON moon.* TO 'lindu'@'120.197.129.20';
 > flush privileges;
