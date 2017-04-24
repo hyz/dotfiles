@@ -4,6 +4,14 @@
 
     SET PASSWORD FOR root@localhost=PASSWORD('');
 
+### http://www.cnblogs.com/leolztang/p/5094930.html
+
+    # 密码登陆的plugin是mysql_native_password
+    mysql> select user, plugin from mysql.user;
+    mysql>
+    mysql> UPDATE mysql.user SET authentication_string=PASSWORD('321'), plugin='mysql_native_password' WHERE user='root';
+    mysql> FLUSH PRIVILEGES;
+
 ### https://wiki.archlinux.org/index.php/MySQL
     # mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
     # systemctl start mariadb

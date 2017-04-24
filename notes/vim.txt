@@ -60,3 +60,5 @@ set makeprg=g++\ -g\ -pthread\ -std=c++0x\ -I/BOOST_ROOT\ -I.\ %\ -lrt
     mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
     https://github.com/nsf/gocode
 
+### http://coderoncode.com/tools/2017/04/16/vim-the-perfect-ide.html
+

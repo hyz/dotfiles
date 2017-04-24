@@ -1,0 +1,34 @@
+
+### https://hackernoon.com/top-8-resources-to-explore-angular-4-ff2c1b42020a
+### http://blog.angular-university.io/new-in-angular-4-better-reactive-programming-support/
+### https://coryrylan.com/tags#angular
+### http://blog.csdn.net/catwindboy/article/details/70210290
+
+### https://github.com/angular/angular-cli
+
+    npm install -g typescript
+    npm install -g @angular/cli
+        ng help
+        ng -v
+        ng new PROJECT_NAME
+        cd PROJECT_NAME
+        ng serve
+        ng serve --host 0.0.0.0 --port 4201
+        ng generate component my-new-component
+        ng g component my-new-component # using the alias
+
+    npm uninstall -g @angular/cli
+    npm cache clean
+    npm install -g @angular/cli@latest
+
+### https://github.com/addyosmani/todomvc-angular-4
+
+    ng build --prod
+    ng build --prod --aot # ahead-of-time
+
+### https://jaxenter.com/angular-4-top-features-133165.html
+    npm install @angular/{common,compiler,compiler-cli,core,forms,http,platform-browser,platform-browser-dynamic,platform-server,router,animations}@next –save
+
+### http://stackoverflow.com/questions/41403810/how-to-upgrade-angular-2-version-in-angular-cli-project?rq=1
+    https://github.com/angular/angular-cli/wiki/stories-rc-update
+
