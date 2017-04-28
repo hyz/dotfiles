@@ -1,3 +1,9 @@
+### http://stackoverflow.com/questions/101754/is-there-a-way-to-run-python-on-android
+
+    http://kivy.org/
+    http://www.talkandroid.com/1225-android-scripting-environment/
+        Android Scripting Environment (ASE)
+
 ### http://stackoverflow.com/questions/3056048/filename-and-line-number-of-python-script
     from inspect import currentframe, getframeinfo
     frameinfo = getframeinfo(currentframe())
