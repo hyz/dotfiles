@@ -147,4 +147,5 @@ project user-config ;
 #     ## <linkflags>-lstdc++ ## $(ndkCXXDIR)/libs/$(androidARCH)/libgnustl_static.a
 #    ;
 #
+# http://stackoverflow.com/questions/30498776/position-independent-executables-and-android-lollipop
 ### === ### === ### === ### === ### === ### === ### === ### === ###
