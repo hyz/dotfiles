@@ -1,5 +1,9 @@
 ### https://github.com/gianarb/awesome-angularjs
 
+### https://github.com/semlinker/angular-faq
+### https://segmentfault.com/a/1190000009099653
+### https://segmentfault.com/a/1190000009041192
+ Angular 4.x FAQ
 ### https://hackernoon.com/top-8-resources-to-explore-angular-4-ff2c1b42020a
 ### http://blog.angular-university.io/new-in-angular-4-better-reactive-programming-support/
 ### https://coryrylan.com/tags#angular
