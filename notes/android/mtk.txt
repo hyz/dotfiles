@@ -80,8 +80,9 @@ frameworks/native/include/media/openmax/OMX_Component.h
     struct OMX_COMPONENTTYPE
 
 ###
-./mk -o=TARGET_BUILD_VARIANT=user new
 ./mk -o=TARGET_BUILD_VARIANT=user systemimage
+./mk -o=TARGET_BUILD_VARIANT=user new
+./mk -o=TARGET_BUILD_VARIANT=user n
 ./mk -o=TARGET_BUILD_VARIANT=user n k
 ./mk -o=TARGET_BUILD_VARIANT=user bootimage n
 
