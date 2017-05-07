@@ -1,3 +1,4 @@
+#include <inttypes.h> // imaxabs
 #include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -45,7 +46,7 @@
 #include <boost/multi_index/random_access_index.hpp>
 //#include <boost/multi_index/ordered_index.hpp>
 
-typedef long Long;
+typedef int64_t Int64;
 
 #define ERR_EXIT(...) err_exit_(__LINE__, "%d: " __VA_ARGS__)
 template <typename... Args> void err_exit_(int lin_, char const* fmt, Args... a) {
@@ -151,14 +152,14 @@ namespace boost { namespace spirit { namespace traits
 //BOOST_FUSION_ADAPT_STRUCT(ymd_type, (ymd_type::year_type,year)(ymd_type::month_type,month)(ymd_type::day_type,day))
 
 struct Av : boost::addable<Av,boost::subtractable<Av,boost::dividable2<Av,int>>> {
-    Long volume = 0;
-    Long amount = 0;
+    Int64 volume = 0;
+    Int64 amount = 0;
 
     Av& operator+=(Av const& lhs) { amount += lhs.amount; volume += lhs.volume; return *this; }
     Av& operator-=(Av const& lhs) { amount -= lhs.amount; volume -= lhs.volume; return *this; }
     Av& operator/=(int x) { volume /= x; amount /= x; return *this; }
 };
-BOOST_FUSION_ADAPT_STRUCT(Av, (Long,volume)(Long,amount))
+BOOST_FUSION_ADAPT_STRUCT(Av, (Int64,volume)(Int64,amount))
 
 //typedef fusion::vector<Av,Av> Avsb;
 //auto First  = [](auto&& x) -> auto& { return fusion::at_c<0>(x); };
@@ -233,8 +234,8 @@ template <typename I, typename BinaryOperation> // boost::make_function_output_i
 void for2(I first, I second, I end, BinaryOperation&& op) // -> array<decltype(*it),2>
 {
     op(first, second);
-    while (++second != end) {
-        op(++first, second);
+    while (second != end) {
+        op(++first, ++second);
     }
 }
 
@@ -276,11 +277,11 @@ struct Opstatus {
     std::string detail;
 };
 struct SInfo {
-    Long capital1 = 0; // capital stock in circulation
-    Long capital0 = 0; // general capital
+    Int64 capital1 = 0; // capital stock in circulation
+    Int64 capital0 = 0; // general capital
     int eps = 0; // earnings per share(EPS)
 };
-BOOST_FUSION_ADAPT_STRUCT(SInfo, (Long,capital1)(Long,capital0)(int,eps))
+BOOST_FUSION_ADAPT_STRUCT(SInfo, (Int64,capital1)(Int64,capital0)(int,eps))
 
 struct Unit : Av {
     array<int,2> oc = {}, lohi = {};
@@ -329,7 +330,6 @@ struct Main::initializer : multi_index_t //std::unordered_map<int,SInfo>, boost:
 
 int main(int argc, char* const argv[])
 {
-    BOOST_STATIC_ASSERT(sizeof(Long)==8);
     BOOST_STATIC_ASSERT(sizeof(code2_t)==sizeof(unsigned));
     try {
         Main a(argc, argv);
@@ -565,13 +565,13 @@ int Main::run(int argc, char* const argv[])
                         values.push_back( a.amount*100/a.volume );
                     });
             if (el.numb() == DebugNumb) { //debug
-                printf("%d", DebugNumb);
+                printf("%06d P", DebugNumb);
                 for (int v : values)
                     printf(" %d", v);
                 printf("\n");
             }
             int xs[2] = {0,0};
-            for2(values.begin(), values.begin()+1, values.end(), [&pcs,&xs](auto first, auto second) {
+            for2(values.begin(), values.begin()+1, values.end()-1, [&pcs,&xs](auto first, auto second) {
                         xs[0]++;
                         if (*first >= *second)
                             xs[1]++;
@@ -581,50 +581,60 @@ int Main::run(int argc, char* const argv[])
         if ((int)pcs.size() < NDays_Minimal) {
             continue;
         }
-        printf("%06d %7.2f", Numb(el.code), el.capital0*el.oc[1]/100.0/Yi);
         {
-            auto maxp = std::max_element(pcs.begin()+NDays_Minimal, pcs.end());
-            printf("\t% .2d %- .3d", int(maxp-pcs.begin()), *maxp);
-        } {
-            typedef std::vector<unsigned>::iterator iterator;
-            std::vector<unsigned> vols;
+            typedef std::vector<Int64>::iterator iterator;
+            std::vector<Int64> vols;
             vols.reserve(el.size()); // vols5.reserve(el.size());
             for (auto i = el.rbegin(), end = el.rend(); i != end; ++i) { // boost::adaptors::reversed(el)
                 vols.push_back(i->volume);
             }
 
-            unsigned vold = 0;
-            for2(vols.begin(), vols.begin()+1, vols.end(), [&vold](auto first, auto second) {
-                vold += std::abs(int(*first) - int(*second));
+            Int64 vold = 0;
+            for2(vols.begin(), vols.begin()+1, vols.end()-1, [&vold](auto first, auto second) {
+                vold += imaxabs(*second - *first);
             });
 
             std::sort(vols.begin(), vols.end());
             int vlen = (int)vols.size();
 
-            struct { iterator pos; int ri; } p = {};
-            for2(vols.begin()+vlen/3, vols.begin()+vlen/3+1, vols.end(), [&p](auto first,auto second) {
+            struct { iterator pos; int ri; } sp = {};
+            for2(vols.begin()+vlen/3, vols.begin()+vlen/3+1, vols.end()-1, [&sp](auto first,auto second) {
                 int x = (*second - *first)*100 / *first;
-                if (x > p.ri) {
-                    p.ri = x;
-                    p.pos = second;
+                if (x > sp.ri) {
+                    sp.ri = x;
+                    sp.pos = second;
                 }
             });
-            int ln = p.pos - vols.begin();
-            int hn = vols.end() - p.pos;
-            unsigned ls = std::accumulate(vols.begin(),p.pos, 0u, [](unsigned s, unsigned x){ return s+x; });
-            unsigned hs = std::accumulate(p.pos,  vols.end(), 0u, [](unsigned s, unsigned x){ return s+x; });
-            unsigned la = ls / ln;
-            unsigned ha = hs / hn;
-            unsigned l0 = vols.front(), l1 = *(vols.begin()+1);
-            unsigned h0 = vols.back(), h1 = *(vols.rbegin()+1);
+            if (el.numb() == DebugNumb) { //debug
+                printf("%06d V %d %lu %d\n", DebugNumb, int(sp.pos-vols.begin()), *sp.pos, sp.ri);
+                printf("%06d V", DebugNumb);
+                for (Int64 v : vols)
+                    printf(" %ld", v);
+                printf("\n");
+            }
+            int ln = sp.pos - vols.begin();
+            int hn = vols.end() - sp.pos;
+            Int64 ls = std::accumulate(vols.begin(),sp.pos, Int64{}, [](Int64 s, Int64 x){ return s+x; });
+            Int64 hs = std::accumulate(sp.pos,  vols.end(), Int64{}, [](Int64 s, Int64 x){ return s+x; });
+            Int64 la = ls / ln;
+            Int64 ha = hs / hn;
+            Int64 l0 = vols.front(), l1 = *(vols.begin()+1);
+            Int64 h0 = vols.back(), h1 = *(vols.rbegin()+1);
 
-            vold = vold/(ln+hn-1) *100 / ((ls+hs)/(ln+hn));
-            unsigned vol0 = el.back().volume;
-            unsigned vola5 = std::accumulate(el.rbegin()+1,el.rbegin()+6, 0u, [](unsigned x0, Av const&x){ return x0+x.volume; }) / 5;
+            vold = vold/(vols.size()-1) *100 / ((ls+hs)/(ln+hn));
+            Int64 vol0 = el.back().volume;
+            Int64 vola5 = std::accumulate(el.rbegin()+1,el.rbegin()+6, Int64{}, [](Int64 x0, Av const&x){ return x0+x.volume; }) / 5;
+            Int64 hi15 = std::max_element(el.rbegin()+1,el.rbegin()+15, [](Av const&x, Av const&y){ return x.volume<y.volume; })->volume;
 
-            printf("\t% .3d % .3d % .3d % .3d % .3d % .3d", vol0*100/vola5, vold, ha*100/la, h0*100/ha, h0*100/h1, l0*100/la);
+            printf("%06d %2d %7.2f", Numb(el.code), int(el.size()), el.capital0*el.oc[1]/100.0/Yi);
+            {
+                auto maxp = std::max_element(pcs.begin()+NDays_Minimal, pcs.end());
+                printf("\t%2d %3d", int(maxp-pcs.begin()), *maxp);
+            }
+            printf("\t%3ld %3ld", vol0*100/vola5, vol0*100/hi15);
+            printf("\t%3ld %3ld %2d %3ld %3ld", vold, h0*100/h1, hn*100/(hn+ln), ha*100/la, h0*100/ha);
         }
-        printf("\t%2d\n", (int)el.size());
+        printf("\n");
 
         //. //if (el.size() < unsigned(n_day_+n_ign_)) {
         //. //    DBG_MSG("%u: %u < %u + %u", Numb(el.code), el.size(), unsigned(n_day_), n_ign_);
