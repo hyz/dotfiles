@@ -1,0 +1,16 @@
+
+### http://www.wutianqi.com/?p=1903
+    最短路径算法—Floyd(弗洛伊德)算法分析与实现(C/C++)
+
+### http://www.itnose.net/detail/6067045.html
+    图算法 单源最短路径 Dijkstra算法（邻接表/邻接矩阵+优先队列STL)
+
+### http://www.cnblogs.com/skywang12345/p/3711507.html
+    Prim算法(二)之 C++详解 
+### http://www.cnblogs.com/skywang12345/p/3711526.html
+    Floyd算法(二)之 C++详解
+
+http://blog.csdn.net/gzlaiyonghao/article/details/1341412
+    较高人工智能的人机博弈程序实现(多个算法结合)含C++源码 
+    http://blog.csdn.net/column/details/14148.html
+

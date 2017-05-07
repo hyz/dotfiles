@@ -2,10 +2,10 @@
 
 import os ;
 path-constant HOME : [ os.environ HOME ] ;
-path-constant BOOST_ROOT : /BOOST_ROOT ;
-#path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
 
-use-project boost : /BOOST_ROOT ; # /boost//headers
+#path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+#path-constant BOOST_ROOT : /BOOST_ROOT ;
+#use-project boost : /BOOST_ROOT ; # /boost//headers
 
 #using msvc ; #: : : <architecture>x86 <runtime-link>static <link>static ;
 #

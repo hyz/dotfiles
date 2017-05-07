@@ -68,11 +68,14 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 
 #which todo 2>/dev/null && alias todo='todo --database-loaders binary'
 
-if x=`which b2 2>/dev/null` ; then
-    alias b2="$x -sBOOST_ROOT=/BOOST_ROOT -j5"
-fi
 # # export BOOST_BUILD_PATH=/usr/share/boost/build/v2
-# 
+if [ -d /opt/share/boost-build ] ; then
+    export BOOST_BUILD_PATH=/opt/share/boost-build
+fi
+#if x=`which b2 2>/dev/null` ; then
+#    alias b2="$x -sBOOST_ROOT=/BOOST_ROOT -j5"
+#fi
+
 [ -d "/tmp/.home/$USER" ] || mkdir -p "/tmp/.home/$USER"
 [ -d "/tmp/.$USER" ] || mkdir "/tmp/.$USER"
 

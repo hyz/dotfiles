@@ -9,7 +9,8 @@
 # /boost//headers
 
 project mys
-    : requirements <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
+    : requirements
+         # <include>$(BOOST_ROOT) # <define>PLUGIN_EXPORTS=1
     : default-build release
     ;
 
@@ -27,6 +28,9 @@ exe ls-dczxg : ls-dczxg.cc : <link>static ;
 exe s-diff : diff.cc : <link>static ;
 exe s-inters : inters.cc : <link>static ;
 
+lib boost_filesystem ;
+lib boost_system ;
+
 #exe x-minute : x-minute.cc /boost//filesystem : <link>static ;
 #exe x-day : x-day.cc /boost//filesystem : <link>static ;
 #exe x3 : x3.cc /boost//filesystem : <link>static ;
@@ -35,7 +39,7 @@ exe s-inters : inters.cc : <link>static ;
 #exe x6 : x6.cc /boost//filesystem : <link>static ;
 #exe jx : jx.cc /boost//filesystem : <link>static ;
 #exe fx : fx.cc /boost//date_time /boost//filesystem : <link>static ;
-exe A : trend.cpp /boost//date_time /boost//filesystem : <link>static ;
+exe A : trend.cpp boost_filesystem boost_system ; #/boost//date_time /boost//filesystem : <link>static ;
 
 install $(HOME)/bin : #ls-dczxg s-diff s-inters # x-minute f1 f2 f5 f8 f9 f6 fx f7 #x3 x4 x5 x6
     A

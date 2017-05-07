@@ -233,8 +233,8 @@ template <typename I, typename BinaryOperation> // boost::make_function_output_i
 void for2(I first, I second, I end, BinaryOperation&& op) // -> array<decltype(*it),2>
 {
     op(first, second);
-    while (second != end) {
-        op(++first, ++second);
+    while (++second != end) {
+        op(++first, second);
     }
 }
 
@@ -421,35 +421,35 @@ void Main::initializer::loadx(int nskip, char const* path)
             }
             std::vector<Unit> uvec;// = elem;;
             Unit usum = {}, ulas = {};
+            int nrec = 0;
+            auto parse = [&pos,end](Unit& u) {
+                using qi::int_;
+                using qi::long_;
+                return qi::phrase_parse(pos,end
+                        , long_>>long_>>int_>>int_>>int_>>int_, qi::space
+                        , u.volume, u.amount, u.oc[0], u.oc[1], u.lohi[0], u.lohi[1]);
+            };
 
-            using qi::int_;
-            using qi::long_;
-            while (qi::phrase_parse(pos,end, long_>>long_>>int_>>int_>>int_>>int_, qi::space
-                        , usum.volume, usum.amount, usum.oc[0], usum.oc[1], usum.lohi[0], usum.lohi[1])) {
-                if (nskip-- > 0)
-                    continue;
-                if (usum.volume == 0)
-                    continue;
-                while (qi::phrase_parse(pos,end, long_>>long_>>int_>>int_>>int_>>int_, qi::space
-                            , ulas.volume, ulas.amount, ulas.oc[0], ulas.oc[1], ulas.lohi[0], ulas.lohi[1])) {
-                    if (ulas.volume) {
-                        if (usum.lohi[0] > ulas.lohi[0])
-                            usum.lohi[0] = ulas.lohi[0];
-                        if (usum.lohi[1] < ulas.lohi[1])
-                            usum.lohi[1] = ulas.lohi[1];
-                        usum.oc[1] = ulas.oc[1];
-                        static_cast<Av&>(usum) += static_cast<Av&>(ulas);
-                        uvec.push_back(ulas);
-                    }
+            while (nskip-- > 0 && parse(usum))
+                ++nrec;
+            while (usum.volume == 0 && parse(usum))
+                ++nrec;
+            while (parse(ulas)) {
+                ++nrec;
+                if (ulas.volume) {
+                    if (usum.lohi[0] > ulas.lohi[0])
+                        usum.lohi[0] = ulas.lohi[0];
+                    if (usum.lohi[1] < ulas.lohi[1])
+                        usum.lohi[1] = ulas.lohi[1];
+                    usum.oc[1] = ulas.oc[1];
+                    static_cast<Av&>(usum) += static_cast<Av&>(ulas);
+                    uvec.push_back(ulas);
                 }
-                break;
             }
 
-            static int prev_nskip_ = 0;
-            if (prev_nskip_ == 0)
-                prev_nskip_ = nskip;
-            if (prev_nskip_ != nskip)
-                ERR_EXIT("%d %d!=%d", numb, nskip, prev_nskip_);
+            static int nrec0 = nrec;
+            if (nrec != nrec0)
+                ERR_EXIT("%d %d!=%d", numb, nrec, nrec0);
 
             if (ulas.volume <= 0) {
                 fprintf(stderr, "%06d stopped\n",numb);
@@ -599,9 +599,10 @@ int Main::run(int argc, char* const argv[])
             });
 
             std::sort(vols.begin(), vols.end());
+            int vlen = (int)vols.size();
 
             struct { iterator pos; int ri; } p = {};
-            for2(vols.begin()+vols.size()/3, vols.begin()+vols.size()/3+1, vols.end(), [&p](auto first,auto second) {
+            for2(vols.begin()+vlen/3, vols.begin()+vlen/3+1, vols.end(), [&p](auto first,auto second) {
                 int x = (*second - *first)*100 / *first;
                 if (x > p.ri) {
                     p.ri = x;
@@ -610,8 +611,8 @@ int Main::run(int argc, char* const argv[])
             });
             int ln = p.pos - vols.begin();
             int hn = vols.end() - p.pos;
-            unsigned ls = std::accumulate(vols.begin(),p.pos, unsigned{}, [](unsigned s, unsigned x){ return s+x; });
-            unsigned hs = std::accumulate(p.pos,  vols.end(), unsigned{}, [](unsigned s, unsigned x){ return s+x; });
+            unsigned ls = std::accumulate(vols.begin(),p.pos, 0u, [](unsigned s, unsigned x){ return s+x; });
+            unsigned hs = std::accumulate(p.pos,  vols.end(), 0u, [](unsigned s, unsigned x){ return s+x; });
             unsigned la = ls / ln;
             unsigned ha = hs / hn;
             unsigned l0 = vols.front(), l1 = *(vols.begin()+1);
