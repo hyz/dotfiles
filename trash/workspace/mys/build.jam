@@ -33,11 +33,11 @@ exe s-inters : inters.cc : <link>static ;
 #exe x4 : x4.cc /boost//filesystem : <link>static ;
 #exe x5 : x5.cc /boost//filesystem : <link>static ;
 #exe x6 : x6.cc /boost//filesystem : <link>static ;
-exe jx : jx.cc /boost//filesystem : <link>static ;
-exe fx : fx.cc /boost//date_time /boost//filesystem : <link>static ;
+#exe jx : jx.cc /boost//filesystem : <link>static ;
+#exe fx : fx.cc /boost//date_time /boost//filesystem : <link>static ;
+exe A : trend.cpp /boost//date_time /boost//filesystem : <link>static ;
 
-install bin : ls-dczxg s-diff s-inters # x-minute f1 f2 f5 f8 f9 f6 fx f7 #x3 x4 x5 x6
-    jx
-    fx
+install $(HOME)/bin : #ls-dczxg s-diff s-inters # x-minute f1 f2 f5 f8 f9 f6 fx f7 #x3 x4 x5 x6
+    A
     ;
 
