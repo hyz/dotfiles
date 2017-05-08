@@ -623,6 +623,7 @@ int Main::run(int argc, char* const argv[])
 
             vold = vold/(vols.size()-1) *100 / ((ls+hs)/(ln+hn));
             Int64 vol0 = el.back().volume;
+            Int64 vola3 = std::accumulate(el.rbegin()+1,el.rbegin()+4, Int64{}, [](Int64 x0, Av const&x){ return x0+x.volume; }) / 5;
             Int64 vola5 = std::accumulate(el.rbegin()+1,el.rbegin()+6, Int64{}, [](Int64 x0, Av const&x){ return x0+x.volume; }) / 5;
             Int64 hi15 = std::max_element(el.rbegin()+1,el.rbegin()+15, [](Av const&x, Av const&y){ return x.volume<y.volume; })->volume;
 
@@ -631,7 +632,7 @@ int Main::run(int argc, char* const argv[])
                 auto maxp = std::max_element(pcs.begin()+NDays_Minimal, pcs.end());
                 printf("\t%2d %3d", int(maxp-pcs.begin()), *maxp);
             }
-            printf("\t%3ld %3ld", vol0*100/vola5, vol0*100/hi15);
+            printf("\t%3ld %3ld %3ld", vol0*100/vola3, vol0*100/vola5, vol0*100/hi15);
             printf("\t%3ld %3ld %2d %3ld %3ld", vold, h0*100/h1, hn*100/(hn+ln), ha*100/la, h0*100/ha);
         }
         printf("\n");

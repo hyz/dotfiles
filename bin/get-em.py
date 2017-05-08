@@ -214,8 +214,9 @@ def download_lis(lis):
             with open('%06d.%d.html' % (code,market), 'w') as f:
                 f.write(rsp.text)
 
-        if time.time() - time0 > 0.5:
-            time.sleep( random.randint(2,6) )
+        time.sleep( random.randint(200,600)/1000.0 )
+        if time.time() - time0 > 2:
+            time.sleep( random.randint(1,5) )
             time0 = time.time()
         if _STOP:
             break
