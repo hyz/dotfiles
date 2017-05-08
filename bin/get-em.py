@@ -210,20 +210,18 @@ def download_lis(lis):
             for x,y in rsp.cookies.items():
                 print(' ', 'cookie', x,y)
             print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
-
             with open('%06d.%d.html' % (code,market), 'w') as f:
                 f.write(rsp.text)
 
-        time.sleep( random.randint(200,600)/1000.0 )
-        if time.time() - time0 > 2:
-            time.sleep( random.randint(1,5) )
-            time0 = time.time()
         if _STOP:
             break
-        if random.randint(1,100) > 90:
-            session.close()
-            session = requests.Session()
-            #pass
+        time.sleep( random.randint(300,600)/1000.0 )
+        if time.time() - time0 > 1.5:
+            time.sleep( random.randint(1000,3000)/1000.0 )
+            time0 = time.time()
+            if random.randint(1,100) > 80:
+                session.close()
+                session = requests.Session()
 
 def parse_html(fp, parse_fn):
     bn,ext = os.path.splitext( fp )
