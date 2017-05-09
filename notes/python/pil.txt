@@ -1,3 +1,5 @@
+### http://blog.csdn.net/gzlaiyonghao/article/details/1852726
+    用Python做图像处理
 
 ### http://effbot.org/imagingbook/
     The Python Imaging Library Handbook

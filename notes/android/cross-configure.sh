@@ -1,3 +1,8 @@
+### http://stackoverflow.com/questions/30498776/position-independent-executables-and-android-lollipop
+You can compile and link a PIE executable in one of two ways. First, compile everything with -fPIE and link with -pie. The second is to compile everything with -fPIC and link with -pie.
+
+If you are building both a shared object and a program, then compile everything with -fPIC. Link the shared object with -shared, and link the program with -pie.
+
 ### https://z3ntu.github.io/2015/12/12/Cross-compiling-native-linux-applications-for-android.html
 
 ###

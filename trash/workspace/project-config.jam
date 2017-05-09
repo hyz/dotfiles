@@ -1,16 +1,16 @@
 # export PATH=$PATH:/opt/android/standalone-toolchain/gcc-4.9-android-18/bin
 
-#import os ;
-#path-constant HOME : [ os.environ HOME ] ;
-path-constant BOOST_ROOT : /BOOST_ROOT ;
-#path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+import os ;
+path-constant HOME : [ os.environ HOME ] ;
 
-use-project boost : /BOOST_ROOT ; # /boost//headers
+#path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;
+#path-constant BOOST_ROOT : /BOOST_ROOT ;
+#use-project boost : /BOOST_ROOT ; # /boost//headers
 
 #using msvc ; #: : : <architecture>x86 <runtime-link>static <link>static ;
 #
 
-using gcc : : : <cxxflags>-std=c++0x ;
+using gcc : : : <cxxflags>-std=c++1y ;
 #using clang : : : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
 #using clang : : clang++-3.6 : <cxxflags>-std=c++1y <cxxflags>"-stdlib=libc++" <linkflags>"-stdlib=libc++" ;
 

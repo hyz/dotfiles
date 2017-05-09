@@ -3,3 +3,7 @@ $NDK/ndk-build NDK_DEBUG=1  => forces the generation of debug binaries
 $NDK/ndk-build NDK_DEBUG=0  => forces the generation of release binaries
 If you don't specify NDK_DEBUG, ndk-build will keep its default behaviour, which is to inspect the AndroidManifest.xml, if any, and see if its <application> element has android:debuggable="true".
 
+### https://code.tutsplus.com/tutorials/analyzing-android-network-traffic--mobile-10663
+### http://www.androidtcpdump.com/
+    tcpdump
+

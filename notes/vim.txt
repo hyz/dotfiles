@@ -42,6 +42,7 @@ http://www.cnblogs.com/linux-sir/p/4676647.html
     [1]
         echo bar > test
         vim test '+s/b/\n/' '+s/a/\r/' +wq
+        vim a.txt '+set fileformat=unix' +wq
     [2]
         :set magic
         Control-v ...

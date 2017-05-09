@@ -210,20 +210,18 @@ def download_lis(lis):
             for x,y in rsp.cookies.items():
                 print(' ', 'cookie', x,y)
             print(' ', 'Content-Encoding', rsp.headers.get('Content-Encoding'))
-
             with open('%06d.%d.html' % (code,market), 'w') as f:
                 f.write(rsp.text)
 
-        if time.time() - time0 > 0.3:
-            time.sleep( random.randint(2,6) )
-            time0 = time.time()
         if _STOP:
             break
-        if random.randint(1,100) >80:
-            pass
-            #session.close()
-            #session = requests.Session()
-    sys.exit(0)
+        time.sleep( random.randint(300,600)/1000.0 )
+        if time.time() - time0 > 1.5:
+            time.sleep( random.randint(1000,3000)/1000.0 )
+            time0 = time.time()
+            if random.randint(1,100) > 80:
+                session.close()
+                session = requests.Session()
 
 def parse_html(fp, parse_fn):
     bn,ext = os.path.splitext( fp )
@@ -261,11 +259,17 @@ def download():
             code,market = int(v[0]), int(v[1])
             if not os.path.exists(os.path.join(outdir,'%06d.%d.html' % (code,market))):
                 lis.append( (code,market) )
-    if lis:
-        os.chdir(outdir)
-        random.shuffle(lis)
-        download_lis(lis)
+    os.chdir(outdir)
+    random.shuffle(lis)
+    while lis:
+        try:
+            download_lis(lis)
+            break #sys.exit(0)
+        except Exception as e:
+            print(e, file=sys.stderr)
+            time.sleep( random.randint(4,10) )
     print('Completed.')
+    #_NAMES = read_names()
 
 def parse1():
     for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
@@ -289,11 +293,8 @@ if __name__ == '__main__':
         global _STOP
         _STOP = 1
     signal.signal(signal.SIGINT, sig_handler)
-    try:
-        #_NAMES = read_names()
-        globals().get(os.path.basename(sys.argv[0]), main)()
-    except Exception as e:
-        print(e, file=sys.stderr)
+
+    globals().get(os.path.basename(sys.argv[0]), main)()
 
 # >>> import requests
 # >>> help(requests.get)

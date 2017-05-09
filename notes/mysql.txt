@@ -1,3 +1,8 @@
+
+### unix-socket
+https://askubuntu.com/questions/733200/mariadb-plugin-unix-socket-is-not-loaded
+https://unix.stackexchange.com/questions/252267/mariadb-create-and-grant-a-new-user-using-unix-sockets-plugin-passwordless
+
 ### https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial
 ### https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
 ### http://stackoverflow.com/questions/8484722/access-denied-for-user-rootlocalhost-while-attempting-to-grant-privileges
@@ -17,8 +22,8 @@
     # systemctl start mariadb
     # mysql_secure_installation
     $ mysql -u root -p
-    MariaDB> CREATE USER 'monty'@'localhost' IDENTIFIED BY 'some_pass';
-    MariaDB> GRANT ALL PRIVILEGES ON mydb.* TO 'monty'@'localhost';
+    MariaDB> CREATE USER 'wood'@'localhost' IDENTIFIED BY '123456';
+    MariaDB> GRANT ALL PRIVILEGES ON mydb.* TO 'wood'@'localhost';
     MariaDB> FLUSH PRIVILEGES;
     MariaDB> quit
 
