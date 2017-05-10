@@ -90,3 +90,6 @@ $ xlog
 $ xlog filter-set verbose
 $ xlog filter-set off
 
+#       modified:   device/ckt/ckt6580_we_l/device.mk
+#       deleted:    packages/apps/Game/Android.mk
+

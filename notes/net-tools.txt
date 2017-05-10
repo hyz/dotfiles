@@ -1,3 +1,9 @@
+### https://github.com/shadowsocks/shadowsocks/wiki/Convert-Shadowsocks-into-an-HTTP-proxy
+    polipo socksParentProxy=127.0.0.1:8787 proxyAddress=0.0.0.0
+    http_proxy=http://x.x.x.x:8123 curl www.google.com
+    http://fanqiangba.blogspot.com/2017/
+    http://fanqiangba.blogspot.com/2017/04/goproxytls13-http2.html
+
 ### https://pleiades.ucsc.edu/hyades/Iperf3
 ### http://iperf3-python.readthedocs.io/en/latest/examples.html
 ### https://www.veritas.com/support/en_US/article.000066021
@@ -54,4 +60,8 @@ ss-local -c kcptun-bin/ss.json
 ### http://shawnelee88.github.io/2015/07/10/proxychains-shadowsocks%E7%A5%9E%E5%99%A8/
 ### https://zhuanlan.zhihu.com/p/24358104
     proxychain4 npm install
+
+    http://www.linuxjournal.com/content/use-ssh-create-http-proxy#comment-336098
+    ssh -fqND 5555 thedoc@tardis
+    pc emerge --sync
 
