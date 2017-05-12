@@ -83,7 +83,7 @@ class Main(object):
     #        chunk.export(out_file, format="wav")
 
 def transcode(target_dir, **kvargs):
-    def trcode(filename, in_dir):
+    def convert(filename, in_dir):
         print(filename)
         b, ext = os.path.splitext(filename)
         if ext.lower() == '.mp3':
@@ -94,10 +94,10 @@ def transcode(target_dir, **kvargs):
             print(filename, file=sys.stderr)
             print('# find', in_dir, '-name "*.wav" |xargs rm -f', file=sys.stderr)
             sys.exit(1)
-    song.export(os.path.join(b+'.wav'), format='wav')
+        song.export(os.path.join(b+'.wav'), format='wav')
     for top, dirs, files in os.walk(target_dir):
         for x in files:
-            trcode(os.path.join(top,x), top)
+            convert(os.path.join(top,x), top)
 
 def stat(wav_fp, *args, **kvargs):
     seg = AudioSegment.from_wav(wav_fp)
