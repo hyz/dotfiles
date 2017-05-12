@@ -49,6 +49,8 @@ ss-local -c kcptun-bin/ss.json
 
 ### curl & cookies
     curl -v --cookie /tmp/cj --cookie-jar /tmp/cj http://127.0.0.1:9999/show
+    curl -OL git.io/get-goproxy-vps
+    curl -kOL https://x.x.x.x/xxx
 
 ### http://stackoverflow.com/questions/21228995/how-to-clear-https-proxy-setting-of-npm
     npm config rm proxy
