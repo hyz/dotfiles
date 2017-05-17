@@ -82,3 +82,15 @@ adb.exe programming:
     adb backup -apk com.twitter.android
     dd if=backup.ab bs=24 skip=1 | openssl zlib -d > backup.tar
 
+### http://stackoverflow.com/questions/2604727/how-can-i-connect-to-android-with-adb-over-tcp
+### http://stackoverflow.com/questions/4893953/run-install-debug-android-applications-over-wi-fi
+        su
+        setprop service.adb.tcp.port 5555
+        stop adbd
+        start adbd
+
+        adb shell netcfg
+        adb tcpip 5555
+        adb connect 192.168.0.101:5555
+
+

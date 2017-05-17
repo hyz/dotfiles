@@ -17,3 +17,59 @@ sshfs wood@192.168.3.254:/home/wood/wrt/luci /usr/lib/lua/luci -o nonempty
 
 git diff --name-status fa8667bbcae2aef9e1e38079aedb1457e1649ac6 |grep -v '^D' |awk '{print $2}' |cpio -pud /tmp/u
 
+===
+X. 下载trunk版本源码
+    cd ~/work/openwrt
+    mkdir trunk
+    svn co svn://svn.openwrt.org/openwrt/trunk ./trunk
+    cd trunk
+    ./scripts/feeds update -a
+    ./scripts/feeds install -a
+
+    make menuconfig 
+    选择 Target System (Atheros AR7xxx/AR9xxx)  --->                ## 为了支持AR9344 
+    Target Profile (TP-LINK TL-WDR3500/3600/4300/4310)  --->
+
+    make V=99  编译
+
+===
+X.  openwrt恢复成原厂的方法:
+     
+    1. telnet 登陆到openwrt后台
+    2. 
+    cd /tmp
+    wget http://web服务器url/tplink_wdr4310_firmware.bin  
+    mtd -r write /tmp/tplink_wdr4310_firmware.bin  firmware
+    系统自动重启, 恢复至原厂.
+
+===
+X. 刷新固件
+
+    网线直连设
+    #连上设备
+    telnet 192.168.2.1
+
+    #下载固件到/tmp
+
+    cd /tmp
+    wget ...
+    #刷写固件
+    mtd -r write ....bin linux
+
+    # ip 恢复为192.168.1.1
+    # 修改主机电脑ip为1段
+    # 连上设备
+    telnet 192.168.1.1
+
+===
+X. wifidog
+    iptables -t mangle -A WiFiDog_br-lan_Outgoing -s 192.168.3.123 -m mac --mac-source EC:55:F9:A5:B8:DF  -j MARK --or-mark 0x0200
+    iptables -t mangle -A WiFiDog_br-lan_Incoming -d 192.168.3.123 -j ACCEPT
+    OR
+    iptables -t mangle -A WiFiDog_br-lan_Outgoing -s 192.168.3.123 -m mac --mac-source EC:55:F9:A5:B8:DF  -j MARK --set-mark 0x02
+    iptables -t mangle -A WiFiDog_br-lan_Incoming -d 192.168.3.123 -j ACCEPT
+
+===
+    还有一个问题就是关于wifidog的，APP认证，http认证
+    我们现有的嵌入式路由器（AR9344）
+
