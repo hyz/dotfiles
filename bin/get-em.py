@@ -25,12 +25,13 @@ def getval(pairs, k):
             return y
     return None
 
+parse_html_1_print_head = False
 def parse_html_1(code,market, html):
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             self.stacks.append( (tag,attrs,'') )
         def handle_data(self, data):
-            data = data.strip()
+            data = data.strip().rstrip('-')
             if self.stacks and data:
                 tag,attrs,_ = self.stacks[-1]
                 self.stacks[-1] = (tag,attrs,data)
@@ -40,7 +41,7 @@ def parse_html_1(code,market, html):
                 if tag == 'th':
                     self.kname = data
                 elif getattr(self,'kname',None):
-                    self.results.append((self.kname[0], self.prep(data)))
+                    self.results.append((self.kname, self.prep(data)))
                     self.kname = None
 
         def prep(self, val):
@@ -66,15 +67,24 @@ def parse_html_1(code,market, html):
     par.stacks, par.results = [], []
     par.feed(html)
 
+    global parse_html_1_print_head
+    if not parse_html_1_print_head:
+        parse_html_1_print_head = True
+        print('%06d %d' % (0,0), '%2d %2d' % (0,0,), end='')
+        print('\t', par.results[13][0], sep='', end='')
+        for i in 4,6,8,9,10:
+            print('\t', par.results[i][0], sep='', end='')
+        print()
+
     if par.results[13][1] > 0:
         print('%06d %d' % (code,market), '%2d %2d' % (
             int(100*par.results[4][1]/par.results[13][1]) , int(100*par.results[6][1]/par.results[13][1])), end='')
-        print('\t%5.1f' % par.results[13][1], end='')
+        print('\t', '%5.1f' % par.results[13][1], sep='', end='')
         for i in 4,6,8,9,10:
-            print('\t%s %.1f' % par.results[i], end='')
+            print('\t', '%.1f' % par.results[i][1], sep='', end='')
         print()
     else:
-        print('%06d %d zero' % (code,market), file=sys.stderr)
+        print(f'{code:06} {market} zero', file=sys.stderr)
 
     par.close()
     #first = re.compile('</span><span class="time-tip first-tip"><span class="tip-content">(.*?)</span>')
@@ -91,7 +101,7 @@ def parse_html_2(code,market, html):
         def handle_starttag(self, tag, attrs):
             self.stacks.append( (tag,attrs,'') )
         def handle_data(self, data):
-            data = data.strip()
+            data = data.strip().rstrip('-')
             if self.stacks and data:
                 tag,attrs,_ = self.stacks[-1]
                 self.stacks[-1] = (tag,attrs,data)
@@ -272,6 +282,7 @@ def download():
     #_NAMES = read_names()
 
 def parse1():
+    #print('Number\tM\tx\tx\txxxx\t营\t净\t毛\t净\t净')
     for fp in each_file( len(sys.argv)>1 and sys.argv[1] or '.' ):
         parse_html(fp, parse_html_1)
 def parse2():
