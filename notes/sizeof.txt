@@ -20,3 +20,12 @@
         7.3 mm (0.29 in) D
         Weight  179 g (6.31 oz)
 
+### https://en.wikipedia.org/wiki/Earth
+    Aphelion 	152100000 km[n 2]
+    (94500000 mi; 1.017 AU)
+    Perihelion 	147095000 km[n 2]
+    (91401000 mi; 0.98327 AU)
+    Semi-major axis
+        149598023 km[1]
+    (92955902 mi; 1.00000102 AU)
+
