@@ -213,7 +213,7 @@ fi
 
 export PATH
 
-alias tmux='TERM=xterm-256color tmux'
+alias tmux='tmux -2'
 
 ##alias for cnpm
 #alias cnpm="npm --registry=https://registry.npm.taobao.org \
