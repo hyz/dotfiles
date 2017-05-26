@@ -1,6 +1,7 @@
 
 cygcheck -c cygwin
 
+mkpasswd -l
 mkpasswd -c -p "$(cygpath -H)"
 mkpasswd -c -p "$(cygpath -H)" > /etc/passwd
 

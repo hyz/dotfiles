@@ -1,4 +1,8 @@
 
+### https://clang.llvm.org/docs/ExternalClangExamples.html
+### https://www.chess.com/blog/lockijazz/using-python-to-traverse-and-modify-clang-s-ast-tree
+### http://eli.thegreenplace.net/2011/07/03/parsing-c-in-python-with-clang
+
 ### http://stackoverflow.com/questions/9427356/how-to-compile-clang-on-windows?rq=1
 
 # build boost
