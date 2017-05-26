@@ -11,6 +11,14 @@ compinit
 promptinit
  
 prompt walters
+# cat /usr/share/zsh/functions/Prompts/prompt_walters_setup
+if [[ "$TERM" = "dumb" ]]; then
+    export PROMPT="%(?..[%?] )%n@%m:%~> "
+else
+    IPAddr=`ip addr show dev $(ip route |/bin/grep -Po '^default.*dev \K\w+') |/bin/grep -Po '\s+inet \d+.\d+.\d+.\K\d+'`
+    export  PROMPT="%(?..[%?] )%n@${IPAddr}> "
+    export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
+fi
 
 export HISTSIZE=10000
 export SAVEHIST=1000
@@ -213,7 +221,7 @@ fi
 
 export PATH
 
-alias tmux='TERM=xterm-256color tmux'
+#alias tmux='TERM=xterm-256color tmux'
 
 ##alias for cnpm
 #alias cnpm="npm --registry=https://registry.npm.taobao.org \

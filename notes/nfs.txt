@@ -31,7 +31,7 @@ showmount -e 127.0.0.1 # showmount -e <NFS server name>
 
 ###
 ifconfig eth0 192.168.2.192
-mount -t nfs -o nolock 192.168.2.115:/export/wood /mnt/nfs
+umount /mnt/nfs ; mount -t nfs -o nolock 192.168.2.115:/export/wood /mnt/nfs
 
 ifconfig eth0 192.168.9.192
 mount -t nfs -o nolock 192.168.9.172:/export/wood /mnt/nfs

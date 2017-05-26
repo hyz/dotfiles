@@ -1,4 +1,8 @@
 
+### grep ip addr
+ip addr show dev `ip route |/bin/grep -Po '^default.*dev \K\w+'` |/bin/grep -Po '^\s+inet \K\d+.\d+.\d+.\d+'
+
+
 echo 'D/MtkOmxVdec(17259): [0xaf89c000] ION allocate Size (3136320), u4VA(0x9B1D2000), share_fd(83), VA(0x9B1D2000), PA(0x05800000)' \
     | grep -Po 'u4VA.\K0x\w+'
 
