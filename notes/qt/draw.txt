@@ -1,0 +1,33 @@
+
+### https://stackoverflow.com/questions/1242005/what-is-the-most-efficient-way-to-display-decoded-video-frames-in-qt?rq=1
+    class QGLCanvas : public QGLWidget
+    {
+    public:
+        QGLCanvas(QWidget* parent = NULL);
+        void setImage(const QImage& image);
+    protected:
+        void paintEvent(QPaintEvent*);
+    private:
+        QImage img;
+    };
+
+    QGLCanvas::QGLCanvas(QWidget* parent)
+        : QGLWidget(parent)
+    {
+    }
+
+    void QGLCanvas::setImage(const QImage& image)
+    {
+        img = image;
+    }
+
+    void QGLCanvas::paintEvent(QPaintEvent*)
+    {
+        QPainter p(this);
+
+        //Set the painter to use a smooth scaling algorithm.
+        p.setRenderHint(QPainter::SmoothPixmapTransform, 1);
+
+        p.drawImage(this->rect(), img);
+    }
+
