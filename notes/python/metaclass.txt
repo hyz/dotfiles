@@ -1,0 +1,4 @@
+
+### https://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python?rq=1
+    A metaclass is the class of a class
+
