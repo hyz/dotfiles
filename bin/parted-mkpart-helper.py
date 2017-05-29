@@ -12,34 +12,36 @@ def floor(a, sec_pos):
 
 def args():
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--sector", default="512B/4096B")
-    parser.add_argument("begin")
-    parser.add_argument("end")
-    args = parser.parse_args()
-    assert args.begin.endswith('s')
-    assert args.end[-1] in ('s', 'M', 'G')
+    argp = argparse.ArgumentParser()
+    argp.add_argument('-s', '--sector', default='512B/4096B')
+    argp.add_argument('begin') #(, nargs=2)
+    argp.add_argument('size', help='size/end') #(, nargs='?')
+    opt = argp.parse_args()
+    assert opt.begin.endswith('s')
+    assert opt.size[-1] in ('s', 'M', 'G')
 
-    G, M = 1024*1024*1024, 1024*1024
-    res = re.match('(\d+)B/(\d+)B', args.sector)
+    T, G, M = 1024**4, 1024**3, 1024**2
+    res = re.match('(\d+)B/(\d+)B', opt.sector)
     S_logical, S_physical = int(res.group(1)), int(res.group(2))
     assert S_physical % S_logical == 0
     assert M % S_physical == 0
     S_count = int(M / S_logical)
     print('\t\t##', f'Sector size (logical/physical): {S_logical}B/{S_physical}B')
 
-    assert args.begin[-1] == 's' and args.end[-1] in ('s', 'M', 'G')
-    args.begin = int(args.begin[:-1]) #max(int(args.begin[:-1]), S_count)
-    args.begin = ceil(S_count, args.begin)
+    assert opt.begin[-1] == 's' and opt.size[-1] in ('s', 'M', 'G')
+    begin = int(opt.begin[:-1]) #max(int(opt.begin[:-1]), S_count)
+    begin = ceil(S_count, begin)
 
-    args.end, tag = int(args.end[:-1]), args.end[-1]
-    if tag != 's':
-        args.end = args.begin + (args.end * (M,G)[tag=='G']) / S_logical
-    args.end = floor(S_count, args.end)-1
+    size, tag = int(opt.size[:-1]), opt.size[-1]
+    if tag == 's':
+        end = size
+    else:
+        end = begin + (size * (M,G)[tag=='G']) / S_logical
+    end = floor(S_count, end)-1
 
-    #print( args.begin, args.end, args.sector )
-    assert args.begin < args.end
-    return args.begin, int(args.end)
+    #print( begin, end, opt.sector )
+    assert begin < end
+    return begin, end
 
 if __name__ == '__main__':
     try:
