@@ -50,7 +50,6 @@ response = ...
 ### https://github.com/PyMySQL/PyMySQL.git
 
 ### excel
-[pythonexcels]: http://www.pythonexcels.com
 [python-excel]: http://www.python-excel.org
 
 

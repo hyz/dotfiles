@@ -1,3 +1,4 @@
+
 ### http://strotmann.de/roller/cas/entry/cloning_macos_x_from_linux
 
 ### http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/

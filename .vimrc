@@ -79,6 +79,11 @@ autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
 "autocmd FileType python setlocal nocindent ai
 autocmd FileType python setlocal makeprg=python\ %
 
+"" jump to the last position when reopening a file
+if has("autocmd")
+    au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+endif
+
 set history=600
 cnoremap <C-L> <Up>
 "cnoremap <Esc>b <S-Left>
@@ -99,8 +104,6 @@ cnoremap <C-L> <Up>
 "ctags --languages=c,c++ --c++-kinds=+p --langmap=c++:+. --fields=+aiS --extra=+q -R `pwd`
 "map Ctrl-p Ctrl-y
 "
-
-"au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal g'\"" | endif
 
 "if has("cscope")
 "		" set csprg=/usr/bin/cscope

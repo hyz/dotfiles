@@ -79,10 +79,13 @@ date +%g%m
 date --set="23 Apr 2014 10:36:23"
 
 ### dd ###
-# http://www.kwx.gd/CentOSApp/CentOS-dd.html
-$ dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
+### http://www.kwx.gd/CentOSApp/CentOS-dd.html
+    dd if=mbr.2T-gpt of=/tmp/mbr-x conv=notrunc
+        # notrunc prevent truncation when writing into a file. This has no effect on a block device
+    dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 
 ### xxd ###
+xxd -ps -c32 -l256 mbr.2T-gpt
 xxd -ps -c$((128*128)) 128x128.y |less
 xxd -ps -c40000 400x100.y |cut -c-16 |less
 xxd -g1 -p -c32 out > b

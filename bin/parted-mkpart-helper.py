@@ -3,38 +3,50 @@
 import sys, re
 
 # Sector size (logical/physical): 512B/4096B
-#sec_size_log, sec_size_phy = 512, 4096
+#S_logical, S_physical = 512, 4096
 
-def align(a, sec_begin, sec_count):
-    sec_begin = int((sec_begin + (a-1)) /a) * a    # aligned START
-    sec_end = sec_begin + sec_count
-    sec_end = int((sec_end + (a-1)) /a) * a    # aligned START
-    return sec_begin, sec_end - 1
+def ceil(a, sec_pos):
+    return int((sec_pos + (a-1)) / a) * a
+def floor(a, sec_pos):
+    return int(sec_pos / a) * a
+
+def args():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--sector", default="512B/4096B")
+    parser.add_argument("begin")
+    parser.add_argument("end")
+    args = parser.parse_args()
+    assert args.begin.endswith('s')
+    assert args.end[-1] in ('s', 'M', 'G')
+
+    G, M = 1024*1024*1024, 1024*1024
+    res = re.match('(\d+)B/(\d+)B', args.sector)
+    S_logical, S_physical = int(res.group(1)), int(res.group(2))
+    assert S_physical % S_logical == 0
+    assert M % S_physical == 0
+    S_count = int(M / S_logical)
+    print('\t\t##', f'Sector size (logical/physical): {S_logical}B/{S_physical}B')
+
+    assert args.begin[-1] == 's' and args.end[-1] in ('s', 'M', 'G')
+    args.begin = int(args.begin[:-1]) #max(int(args.begin[:-1]), S_count)
+    args.begin = ceil(S_count, args.begin)
+
+    args.end, tag = int(args.end[:-1]), args.end[-1]
+    if tag != 's':
+        args.end = args.begin + (args.end * (M,G)[tag=='G']) / S_logical
+    args.end = floor(S_count, args.end)-1
+
+    #print( args.begin, args.end, args.sector )
+    assert args.begin < args.end
+    return args.begin, int(args.end)
 
 if __name__ == '__main__':
-    G, M = 1024*1024*1024, 1024*1024
-
     try:
-        assert len(sys.argv) >= 3
-        sec_begin, exp_size, s_log_phy = sys.argv[1], sys.argv[2], '512B/4096B'
-        assert sec_begin[-1] in ('s',)
-        assert exp_size[-1] in ('G','M')
-        if len(sys.argv) == 4:
-            s_log_phy = sys.argv[3]
-        res = re.match('(\d+)B/(\d+)B', s_log_phy)
-        assert res
-        sec_size_log, sec_size_phy = int(res.group(1)), int(res.group(2))
-        assert sec_size_phy % sec_size_log == 0
-        assert M % sec_size_phy == 0
-
-        sec_count = int(exp_size.rstrip('MG')) * (M,G)[exp_size[-1] == 'G'] / sec_size_log
-        sec_begin = max(int(sec_begin.rstrip('s')), int(M / sec_size_log))
-        sec_begin, sec_count = align(int(M/sec_size_log), sec_begin, sec_count)
-
-        print(f'mkpart primary {sec_begin}s {sec_count}s')
-        print('\t###', f'Sector size (logical/physical): {sec_size_log}B/{sec_size_phy}B')
+        sec_begin, sec_end = args()
+        print(f'mkpart primary {sec_begin}s {sec_end}s')
     except Exception:
         print('Example:')
-        print('   ', sys.argv[0], '1260218368s 32G 512B/4096B')
+        print('   ', sys.argv[0], '-s 512B/4096B 1260218368s 32G')
         raise
 
