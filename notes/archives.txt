@@ -1,0 +1,3 @@
+
+rpm2cpio OVMF-0.1+r14071-1.1.x86_64.rpm | cpio -idmv
+
