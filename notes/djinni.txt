@@ -1,0 +1,14 @@
+
+### https://github.com/dropbox/djinni/issues/128
+### https://github.com/dropbox/djinni/issues/87
+
+	... cd deps/gyp && git checkout -q 0bb67471bca068996e15b56738fa4824dfa19de0
+    ... find deps/gyp -name android.py
+
+    ANDROID_BUILD_TOP=$(shell dirname `which ndk-build`) gyp --depth=. -f  "android.py" -DOS=android -Icommon.gypi example/libtextsort.gyp --root-target=libtextsort_jni
+
+### http://eevee.cc/2016/05/06/using-djinni/
+### http://mobilecpptutorials.com/your-first-cross-platform-djinni-app-part-1-cplusplus/
+
+### https://github.com/boloutaredoubeni/Twenty48
+
