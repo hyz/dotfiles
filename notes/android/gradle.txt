@@ -1,3 +1,7 @@
 
 ### https://gradle.org/docs#getting-started
+    gradle tasks
+    gradle components
+
+### https://en.wikipedia.org/wiki/Gradle
 
