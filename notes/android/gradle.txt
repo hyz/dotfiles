@@ -3,5 +3,12 @@
     gradle tasks
     gradle components
 
+    mkdir java && cd java
+    gradle init --type java-application
+    gradle tasks
+    gradle run
+
+### http://tools.android.com/tech-docs/new-build-system/user-guide
+
 ### https://en.wikipedia.org/wiki/Gradle
 
