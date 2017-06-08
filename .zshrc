@@ -179,7 +179,7 @@ fi
 ANDROID_NDK=/opt/android-ndk
 if [ -d "$ANDROID_NDK" ]; then
     ANDROID_NDK_HOME=$ANDROID_NDK
-    export ANDROID_NDK ANDROID_NDK_ROOT
+    export ANDROID_NDK ANDROID_NDK_HOME
 
     PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi

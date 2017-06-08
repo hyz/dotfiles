@@ -12,6 +12,8 @@
 
     svn diff --summarize -r780:HEAD
 
+    svn st |grep '^M' |awk '{print $2}' |cpio -vpud ~/tmp/jni
+
 ### svn diff & patch
     生成patch文件:
      svn diff > patchFile // 整个工程的变动生成patch
