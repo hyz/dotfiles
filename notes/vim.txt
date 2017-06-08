@@ -5,6 +5,9 @@
 
 :g/:10014..devtok/ .w >> user-10014.txt
 :g/"cmd":\(99\|211\|111\|112\),/ .w >>10014-99-211.txt
+:g/^\s*LOG.*\\n/s/\\n//
+
+### http://vim.wikia.com/wiki/Power_of_g
 
 ### ###
 ### http://stackoverflow.com/questions/4789811/how-do-i-repeat-any-command-in-vim-like-c-x-z-in-emacs
@@ -24,9 +27,6 @@ apt-get install vim-scripts
 ### http://askubuntu.com/questions/216818/how-do-i-use-plugins-in-the-vim-scripts-package
 vam ## vim-addon-manager
 vam install taglist
-
-###
-:g/^\s*LOG.*\\n/s/\\n//
 
 https://github.com/Valloric/YouCompleteMe
 ### https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source

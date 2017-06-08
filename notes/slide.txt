@@ -1,0 +1,5 @@
+
+### http://mindfulstart.net/slides.html
+
+    pandoc oo.md -o oo.html -t revealjs -s -V theme=white
+

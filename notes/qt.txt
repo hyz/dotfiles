@@ -6,9 +6,11 @@
     http://download.qt.io/official_releases/qt/5.8/5.8.0/single/qt-everywhere-opensource-src-5.8.0.zip
 ### http://stackoverflow.com/questions/1011197/qt-static-linking-and-deployment
 
-### http://blog.csdn.net/liuyez123/article/details/50462637
 ### http://doc.qt.io/qt-5/windows-requirements.html
-    windeployqt a.exe
+### http://blog.csdn.net/liuyez123/article/details/50462637
+    - mkdir release
+    - cp xxx.exe release/
+    - cd release/ && windeployqt xxx.exe
 
 ### https://wiki.qt.io/Build_Standalone_Qt_Application_for_Windows
     Using Microsoft Tools

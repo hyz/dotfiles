@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-import sys, time, os, re, io, subprocess, types, contextlib
+import sys, time, os, re, subprocess, types, contextlib
 import fnmatch, shutil, glob, tempfile, itertools
 from pprint import pprint
 import timeit
-dictobj = lambda **d: type('_',(object,), d)
 
 HOME = os.environ['HOME']
-host1_ = dictobj(user='build', host='192.168.2.115', rhome='build@192.168.2.115:.')
-host2_ = dictobj(user='build', host='192.168.2.113', rhome='build@192.168.2.113:.')
-
+_rhost = '192.168.2.115'
+_ruser = 'build'
+_rhome = _ruser + '@' + _rhost + ':.' #_rhome = '/home/build'
 _this_module = sys.modules[__name__]
 # setattr(sys.modules[__name__], x, os.environ.get(x, None))
 
@@ -65,15 +64,28 @@ class Apk(object):
         self.outfiles = [ os.path.join(self.outdir,os.path.basename(x)) for x in self.depfiles ]
 
         print(self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename)
+        #self.outfiles = []
+        #if env.VARIANT == 'g500':
+        #    #d = 'mt6580/alps/' 'packages/apps/Game/'
+        #    libdir = apkdir = os.path.join(self.outdir,'packages/apps/Game')
+        #else:
+        #    libdir = os.path.join(self.outdir,'vendor/g368_noain_t300/application/lib')
+        #    apkdir = os.path.join(self.outdir,'vendor/g368_noain_t300/application/internal')
+        #for sf in self.depfiles:
+        #    if sf.endswith('.apk'):
+        #        self.outfiles.append( os.path.join(apkdir, 'Game.apk') )
+        #    else:
+        #        assert sf.endswith('.so'):
+        #        self.outfiles.append( os.path.join(libdir, os.path.basename(sf)) )
 
     def __load_vers_info(self, prefix, arg_dic):
         for x in 'OldSVNRev', 'NewSVNRev', 'OldVer', 'NewVer':
             y = arg_dic.pop(x, None)
             if y:
-                y = tuple(map(int, y.split('.')))
+                y = tuple(map(int,y))
             setattr(self, x, y)
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v(\d+)\.(\d+)\.(\d+)(-r\d+)?"')
-        re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+)"')
+        re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn(\d+) \d+"')
         with open( prefix(self._AppConfig), 'r') as cf:
             for line in cf:
                 if not self.OldVer:
@@ -91,65 +103,50 @@ class Apk(object):
             self.NewSVNRev = self.NewSVNRev.decode().strip()
             self.NewSVNRev = (int(self.NewSVNRev),)
 
-    def generate_makefile(self, Make0,Make1,Make2, *args, **kwargs):
-        from os.path import join,basename,dirname
-        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
-        if Make2:
-            _ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
-        slis_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
+    def generate_makefile(self, Make1,Make2,Make3, **kwargs):
+        sl_arg_dic = [ '='.join(p) for p in _arg_dic.items() if p[0]!='RARPWD' ]
 
-        appcfg = self.prefix_src(self._AppConfig) #_dep0 = os.path.join(self.src,'initialized.txt')
-        log_h  = self.prefix_src(self._Log_h)
-        manifest = self.prefix_src(self._AndroidManifest)
-
-        with Make0('clean_'+self.prjname) as cmd:
-            cmd('rm -rf', *self.libfiles)
-            cmd('rm -rf', self.outdir)
-            cmd('cd',self.src,'&& svn revert', self._Log_h, self._AppConfig, self._AndroidManifest)
-            cmd('touch', log_h) #, appcfg, manifest)
-
-        with Make0(manifest) as cmd:
-            pass
-        with Make0(appcfg) as cmd:
-            pass
-        with Make0(log_h) as cmd:
+        libBarcode = self.prefix_src('libs/armeabi-v7a/libBarcode.so')
+        with Make1(libBarcode) as cmd:
             cmd('test -d "{}"'.format(self.src))
-            cmd('rm -f', *self.libfiles)
-            cmd('rm -rf', self.outdir)
-            cmd('mkdir -p', self.outdir)
-
+            cmd('svn revert', self.prefix_src(self._AndroidManifest))
+            cmd(sys.argv[0], self.prjname+'.edit_build_tree', *sl_arg_dic)
             cmd('cp -vf', self._CryptoRelease, self._Crypto)
-            cmd(sys.argv[0], self.prjname+'.edit_build_tree', *slis_arg_dic)
+            cmd('mkdir -p', self.outdir)
             cmd('$(MAKE)', 'info_'+self.prjname)
-
-        for lib in self.libfiles:
-            with Make0(lib, appcfg, manifest, log_h) as cmd:
-                cmd('while ! test -f "{}" ; do sleep 1; done'.format(lib))
-
-        with Make0(self.export_filename, *self.libfiles) as cmd:
             cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
-            cmd('test -f "{}"'.format(self.export_filename))
-            cmd('cp -vrt', self.outdir, *self.libfiles)
-            cmd('rsync -RrL', self.outdir, host1_.rhome) #, 'bin/hzrbuild'
-            if Make2:
-                cmd(_ssh1_make, 'rrsync_up'+self.prjname)
-        if Make2: #self.prjname == 'Game14':
-            with Make1('rrsync_up'+self.prjname) as cmd:
-                cmd('rsync -vRrL', self.outdir, host2_.rhome)
-            Make1.phony('rrsync_up'+self.prjname)
 
-        with Make0(self.prjname, self.export_filename) as cmd:
+        _rsync_apk = 'rsync_apk'+self.prjname # Make1.phony(_rsync_apk)
+        with Make1(_rsync_apk) as cmd:
+            cmd('rsync -RrL', self.outdir, _rhome)
+            if self.rsync113: #self.prjname in ('Game14','Game16k550'):
+                cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _rsync_apk)
+        if self.rsync113: #self.prjname in ('Game14','Game16k550'):
+            with Make2(_rsync_apk) as cmd:
+                cmd('rsync -vRrL', self.outdir, AndMT6572.rhome)
+            # Make2.phony(_rsync_apk)
+
+        with Make1(self.export_filename, libBarcode) as cmd:
+            cmd('test -f "{}"'.format(self.export_filename))
+            #cmd(sys.argv[0], 'waitfiles', self.export_filename, *self.libfiles)
+            cmd('cp -vrt', self.outdir, *self.libfiles)
+            cmd('$(MAKE)', _rsync_apk)
+
+        with Make1(self.prjname, self.export_filename) as cmd:
             pass
 
-        with Make0('update_'+self.prjname) as cmd:
+        with Make1('update_'+self.prjname) as cmd:
             pass #cmd('cd', self.src, '&& svn up')
 
-        with Make0('info_'+self.prjname) as cmd:
+        with Make1('clean_'+self.prjname) as cmd:
+            cmd('rm -rf', *self.libfiles)
+            cmd('rm -rf', self.outdir)
+
+        with Make1('info_'+self.prjname) as cmd:
             cmd('#')
-            if self.prjname == 'Game14':
-                cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
+            cmd('#', *map(lambda s:s.strip(), grep('Key', 'src/howto.txt')) )
             cmd('#', self.svnrev(old=1), '=>', self.svnrev(), self.fullver(), self.export_filename.replace('/','\\'))
-            cmd('#', '===============================================')
+            cmd('# ===============================================')
 
     def svn_commit_confirm(self, *args, **kwargs):
         d = self.vars(**kwargs)
@@ -172,34 +169,43 @@ class Apk(object):
         bash_command('cd {} && svn commit -m"{}"'.format(self.src, msg))
 
     def edit_build_tree(self, *args, **kwargs):
-        # fp = os.path.join(self.src,'.project')
-        # print('edit:', fp, '<name>', self.prjname)
-        # etree_replace_text(fp, './name', self.prjname)
-        ##copyfile(self._CryptoRelease, self._Crypto)
+        fp = os.path.join(self.src,'.project')
+        print('edit:', fp, '<name>', self.prjname)
+        etree_replace_text(fp, './name', self.prjname)
+
+        #copyfile(self._CryptoRelease, self._Crypto)
 
         log_h = self.prefix_src(self._Log_h)
-        regex_sub('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
+        print('edit:', log_h, 'BUILD_RELEASE')
+        edit('^[^\s]+#\s*define\s+BUILD_RELEASE', '#define BUILD_RELEASE', log_h, count=1)
 
         if self.prjname == 'Game16k550':
             pass
 
+        def android_uid_system(AndroidManifest):
+            print('edit:', AndroidManifest, 'android.uid.system')
+            edit('\sandroid:versionName="(\d+\.\d+)"\s', ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
+                    , AndroidManifest, count=1)
+
         if self.prjname == 'Game16':
-            fp = self.prefix_src(self._AndroidManifest)
-            regex_sub('\sandroid:versionName="(\d+\.\d+)"\s'
-                    , ' android:versionName="\\1" android:sharedUserId="android.uid.system" '
-                    , fp, count=1)
+            pass
 
         if self.prjname == 'Game14':
+            android_uid_system(self.prefix_src(self._AndroidManifest))
+            pass
+            #
             #for fp in glob.glob(os.path.join(self.src, 'doc/*.xls')):
             #    shutil.copy(fp, '/samba/release1/doc/')
-            with open('svn.log.{}.{}'.format(self.prjname,self.ver()), 'w') as f:
-                try:
-                    bash_command('svn log -r{}:HEAD {}'.format(self.svnrev(old=1), self.src), stdout=f)
-                except: pass
-                print(self.fullver()
-                        , '%s => %s' % (self.svnrev(old=1),self.svnrev())
-                        , '%s => %s' % (self.ver(old=1),self.ver()), file=f)
-                #print('$ vim', self.prefix_src('doc/版本发布记录.txt'), f.name)
+            #
+            #0503 with open('svn.log.{}.{}'.format(self.prjname,self.ver()), 'w') as f:
+            #0503     try:
+            #0503         pass #bash_command('svn log -r{}:HEAD {}'.format(self.svnrev(old=1), self.src), stdout=f)
+            #0503     except: pass
+            #0503     print(self.fullver()
+            #0503             , '%s => %s' % (self.svnrev(old=1),self.svnrev())
+            #0503             , '%s => %s' % (self.ver(old=1),self.ver()), file=f)
+            #0503     #print('$ vim', self.prefix_src('doc/版本发布记录.txt'), f.name)
+            #
 
         self.version_set(self.prefix_src(self._AppConfig), self.ver(), self.svnrev())
 
@@ -209,11 +215,12 @@ class Apk(object):
             lines = sf.readlines()
 
         re_ver = re.compile('\spublic\s.*\sString\s+VERSION\s*=\s*"v\d+\.\d+\.\d+(-r\d+)?"')
-        re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn\d+"')
+        re_svnrev = re.compile('\spublic\s.*\sString\s+SVNVERSION\s*=\s*"new-svn\d+ \d+"')
         with open(appconfig_java, 'w') as outf:
             def repf(r):
                 if 'SVNVERSION' in r.group(0):
-                    return re.sub('=\s*"new-svn\d+"', '= "new-svn{}"'.format(svnrev), r.group(0))
+                    return re.sub('=\s*"new-svn\d+ \d+"', '= "new-svn{} {}"'.format(svnrev,self.datestr), r.group(0))
+                #if self.VARIANT == 'test': #return re.sub('=\s*"v[^"]+"', '= "v{}-{}"'.format(ver, svnrev), r.group(0))
                 return re.sub('=\s*"v[^"]+"', '= "v{}"'.format(ver), r.group(0))
             for line in lines:
                 lin = re.sub(re_ver, repf, line)
@@ -264,11 +271,14 @@ class Apk(object):
     #def __str__(self): return ','.join((OldVer, OldSVNRev, NewVer, NewSVNRev))
 
 class Game14(Apk,metaclass=GlobalSingleton):
-    pass
+    rsync113 = True
 class Game16(Apk,metaclass=GlobalSingleton):
-    pass
-class Game16K550(Apk,metaclass=GlobalSingleton):
-    pass
+    rsync113 = False
+class TongZi17(Apk,metaclass=GlobalSingleton):
+    rsync113 = False
+class feizhenhuzi_android(Apk,metaclass=GlobalSingleton):
+    rsync113 = True
+#class Game16k550(Apk,metaclass=GlobalSingleton): pass
 
 class Android(object):
     def __init__(self, arg_lis, arg_dic):
@@ -279,166 +289,200 @@ class Android(object):
         self.outdir = os.path.join('release1', self.outname)
         self.out = self.outdir
         self.outrar = self.outdir + '.rar'
-        #super().__init__(arg_lis, arg_dic)
-    #def __call__(self, *args, **kwargs): return self
 
-class AndClassic(Android):
+class AndMT6572(Android):
+    host = '192.168.2.113'
+    user = 'build'
+    rhome = 'build@192.168.2.113:.' # home = '/home/build'
+
     def __init__(self, arg_lis, arg_dic):
-        from os.path import join,basename,dirname
-        self.prjname = type(self).__name__
-        self.apk = Game14(arg_lis, arg_dic)
-        self.src = join('android',self.prjname) #'/osca/' + self.prjname
-        apkdir = join('vendor/g368_noain_t300/application', 'internal')
-        libdir = join('vendor/g368_noain_t300/application', 'lib')
-        self._depfiles = [ join(apkdir,basename(self.apk.apkfile)) ] + [ join(libdir,basename(x)) for x in self.apk.libfiles ]
-        self.depfiles = [ join(self.src,x) for x in self._depfiles ]
         for x in self.depfiles:
             assert x.endswith('.apk') or x.endswith('.so')
-        Makes().Make1().Make2()
         super().__init__(arg_lis, arg_dic)
+        Makes().Make2().Make3() #Makefile1().Makefile2().Makefile3()
 
-    def generate_makefile(self, Make0,Make1,Make2, *args, RARPWD=None, **kwargs):
+    def generate_makefile(self, Make1,Make2,Make3, RARPWD=None, **kwargs):
+        from os.path import join,basename,dirname
         assert RARPWD
-        from os.path import join, basename, dirname
-        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
-        _ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
 
-        _clean = 'clean_'+self.prjname
-        with Make0(_clean) as cmd:
-            cmd(_ssh1_make, _clean)
-        with Make1(_clean) as cmd:
-            cmd(_ssh2_make, _clean)
-            cmd('rm -rf', self.outdir)
-            cmd('rm -f' , self.outrar)
-        with Make2(_clean) as cmd:
-            cmd('rm -rf', self.outdir)
-            cmd('rm -f' , self.outrar)
-            cmd('rm -f' , *self.depfiles)
-
-        with Make0(self.prjname, self.apk.prjname) as cmd:
-            cmd(_ssh1_make, self.prjname)
-        #with Make0(self.outdir) as cmd:
-        #    cmd(_ssh1_make, self.outdir)
-        with Make1(self.prjname, self.outrar) as cmd:
-            pass #cmd(_ssh2_make, self.prjname)
-        with Make1(self.outrar, self.outdir) as cmd:
+        with Make1(self.prjname, self.apk.prjname) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.prjname)
+        #with Make1(self.outdir) as cmd:
+        #    cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.outdir)
+        with Make2(self.prjname, self.outrar) as cmd:
+            pass #cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, self.prjname)
+        with Make2(self.outrar, self.outdir) as cmd:
             cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, basename(self.outdir)))
-        with Make1(self.outdir) as cmd:
-            cmd(_ssh2_make, self.outdir)
-            cmd('rsync -vrL', join(host2_.rhome,self.outdir), dirname(self.outdir))
-        #with Make2(self.prjname, self.outdir) as cmd:
+        with Make2(self.outdir) as cmd:
+            cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, self.outdir)
+            cmd('rsync -vrL', join(self.rhome,self.outdir), dirname(self.outdir))
+        #with Make3(self.prjname, self.outdir) as cmd:
         #    pass
-        with Make2(self.outdir, *self.depfiles) as cmd:
+        with Make3(self.outdir, *self.depfiles) as cmd:
             cmd('bin/hzrbuild', self.src, '/osca/release/'+self.outname)
             #cmd('mkdir -p', dirname(self.outdir), '&& ln -vsnf', rout, self.outdir)
-            cmd('test -d "release1/{}"'.format(self.outname))
-        #with Make1(self.outdir) as cmd: # , *self.depfiles
-        #    #cmd('rsync -vRL', 'bin/hzrbuild', Make1.file.name, self.rhome)
+            cmd('[ -d "release1/{}" ]'.format(self.outname))
+        #with Make2(self.outdir) as cmd: # , *self.depfiles
+        #    #cmd('rsync -vRL', 'bin/hzrbuild', Make2.file.name, self.rhome)
         #    #cmd('rsync -vrL {} {}'.format(join(self.rhome,self.outdir), dirname(self.outdir)))
         #    #Mk('\t', '[ -e "{}" ]'.format(self.build), '&& cp -vft', self.libdir, *filter(lambda x:x.endswith('.so'), self.depfiles))
 
         dd = dict( (basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ basename(t) ]
-            with Make2(t, x) as cmd:
-                cmd('/bin/cp -vf $< $@')
+            with Make3(t) as cmd: # (t,x)
+                cmd('/bin/cp -vf', x, '$@')
+
+        _clean = 'clean_'+self.prjname
+        with Make1(_clean) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _clean)
+        with Make2(_clean) as cmd:
+            cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, _clean)
+            cmd('rm -rf', self.outdir)
+            cmd('rm -f' , self.outrar)
+        with Make3(_clean) as cmd:
+            cmd('rm -rf', self.outdir)
+            cmd('rm -f' , self.outrar)
+            cmd('rm -f' , *self.depfiles)
 
         _update = 'update_'+self.prjname
-        with Make0(_update) as cmd:
-            cmd(_ssh1_make, _update)
         with Make1(_update) as cmd:
-            cmd(_ssh2_make, _update)
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _update)
         with Make2(_update) as cmd:
+            cmd('ssh {}@{}'.format(self.user,self.host), 'make -f',Make3.file.name, _update)
+        with Make3(_update) as cmd:
             cmd('cd', self.src, '&& git pull')
 
-        _git_push = 'git_push_' + self.prjname
-        with Make0(_git_push) as cmd:
-            cmd(_ssh1_make, _git_push)
-        with Make1(_git_push) as cmd:
-            cmd(_ssh2_make, _git_push)
-        with Make2(_git_push) as cmd:
-            cmd('cd {self.src} && git add {0} && git commit -m "Game.apk({ver}) updated" {0} && git push'
-                    .format(' '.join(self._depfiles), ver=self.apk.ver2(), self=self))
-
-class k400(AndClassic, metaclass=GlobalSingleton):
-    pass
-class k350c(AndClassic, metaclass=GlobalSingleton):
-    pass
-class k350t(AndClassic, metaclass=GlobalSingleton):
-    pass
-class k550(AndClassic, metaclass=GlobalSingleton):
-    pass
-
-class g500(Android, metaclass=GlobalSingleton):
+class k400(AndMT6572, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
-        from os.path import join,basename,dirname
         self.prjname = type(self).__name__
-        self.apk = Game16(arg_lis, arg_dic)
-        self.src = 'android/g500' #'mt6580/alps' #self.out = 'mt6580/alps'
-        apkdir = os.path.join('packages/apps/Game')
+        self.src = os.path.join('android',self.prjname)
+        self.apk = Game14(arg_lis, arg_dic)
+        #self.apk = feizhenhuzi_android(arg_lis, arg_dic)
+        #apkdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'internal')
+        #libdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkdir = os.path.join(self.src, 'packages/apps/Game')
+        libdir = apkdir #os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        AndMT6572.__init__(self, arg_lis, arg_dic)
+class k350c(AndMT6572, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.src = os.path.join('android',self.prjname)
+        self.apk = Game14(arg_lis, arg_dic)
+        #apkdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'internal')
+        #libdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkdir = os.path.join(self.src, 'packages/apps/Game')
+        libdir = apkdir #os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        AndMT6572.__init__(self, arg_lis, arg_dic)
+class k350t(AndMT6572, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.src = os.path.join('android',self.prjname)
+        self.apk = Game14(arg_lis, arg_dic)
+        #apkdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'internal')
+        #libdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkdir = os.path.join(self.src, 'packages/apps/Game')
+        libdir = apkdir #os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        AndMT6572.__init__(self, arg_lis, arg_dic)
+
+class k550(AndMT6572, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.src = os.path.join('android',self.prjname) #'/osca/' + self.prjname
+        self.apk = Game14(arg_lis, arg_dic)
+        #self.apk.rsync113 = True
+        apkdir = os.path.join(self.src, 'packages/apps/Game')
+        libdir = apkdir #os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        AndMT6572.__init__(self, arg_lis, arg_dic)
+
+class k400fz(AndMT6572, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = 'k400'
+        self.src = os.path.join('android',self.prjname)
+        #self.apk = Game14(arg_lis, arg_dic)
+        self.apk = feizhenhuzi_android(arg_lis, arg_dic)
+        apkdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'internal')
+        libdir = os.path.join(self.src, 'vendor/g368_noain_t300/application', 'lib')
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
+        AndMT6572.__init__(self, arg_lis, arg_dic)
+
+class AndMT6580(Android):
+    def __init__(self, arg_lis, arg_dic):
+        #self.out = 'mt6580/alps'
+        apkdir = os.path.join(self.src,'packages/apps/Game')
         libdir = apkdir
-        self._depfiles = [ join(apkdir,basename(self.apk.apkfile)) ] + [ os.path.join(libdir,basename(x)) for x in self.apk.libfiles ]
-        self.depfiles = [ join(self.src,x) for x in self._depfiles ]
-        Makes().Make1()
+        apkfile = os.path.basename(self.apk.apkfile)
+        self.depfiles = [ os.path.join(apkdir,apkfile) ] + [ os.path.join(libdir,os.path.basename(x)) for x in self.apk.libfiles ]
         super().__init__(arg_lis, arg_dic)
+        Makes().Make2() # Makefile1().Makefile2()
 
-    def generate_makefile(self, Make0,Make1,Make2_, *args, RARPWD=None, **kwargs):
+    def generate_makefile(self, Make1,Make2,Make3_, RARPWD=None, **kwargs):
         assert RARPWD
-        from os.path import join,basename,dirname
-        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
-        #_ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
 
-        outdir, _ = os.path.splitext(self.outrar)
-        _, dname  = os.path.split(outdir)
-
-        with Make0(self.prjname, self.apk.prjname) as cmd:
-            cmd(_ssh1_make, self.prjname)
-        with Make1(self.prjname, self.outrar) as cmd:
+        with Make1(self.prjname, self.apk.prjname) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.prjname)
+        with Make2(self.prjname, self.outrar) as cmd:
             pass
 
         dd = dict( (os.path.basename(x),x) for x in self.apk.outfiles )
         for t in self.depfiles:
             x = dd[ os.path.basename(t) ]
-            with Make1(t, x) as cmd:
-                cmd('/bin/cp -vf $< $@')
+            with Make2(t) as cmd: # (t,x)
+                cmd('/bin/cp -vf', x, '$@')
 
-        #with Make1(self.outrar, self.outdir) as cmd:
-        #with Make0(self.outdir) as cmd: cmd(_ssh1_make, self.outdir)
-        with Make1(self.outrar, *self.depfiles) as cmd: # , *self.depfiles
+        with Make2(self.outrar, self.outdir) as cmd:
+            cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(self.outdir, RARPWD, self.outname))
+
+        with Make1(self.outdir) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, self.outdir)
+        with Make2(self.outdir, *self.depfiles) as cmd: # , *self.depfiles
             cmd('cd', self.src
                 , '&& source build/envsetup.sh'
                 , '&& lunch full_ckt6580_we_l-user && make -j8')
-            cmd('rm -rf', outdir)
-            cmd('mt6580-copyout.sh', self.src, outdir)
-            cmd('cd {0}/.. && rar a -hp{1} {2}.rar {2}'.format(outdir, RARPWD, dname))
+            cmd('mt6580-copyout.sh', self.src, self.outdir)
 
         _clean = 'clean_'+self.prjname
-        with Make0(_clean) as cmd:
-            cmd(_ssh1_make, _clean)
         with Make1(_clean) as cmd:
-            cmd('rm -rf', outdir)
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _clean)
+        with Make2(_clean) as cmd:
+            cmd('rm -rf', self.outdir)
             cmd('rm -f' , self.outrar)
             cmd('rm -f' , *self.depfiles)
 
         _update = 'update_'+self.prjname
-        with Make0(_update) as cmd:
-            cmd(_ssh1_make, _update)
         with Make1(_update) as cmd:
+            cmd('ssh {}@{}'.format(_ruser,_rhost), 'make -f',Make2.file.name, _update)
+        with Make2(_update) as cmd:
             cmd('cd', self.src, '&& git pull')
-        #with Make2(_update) as cmd: pass #cmd('cd', self.src, '&& git pull')
 
-        _git_push = 'git_push_' + self.prjname
-        with Make0(_git_push) as cmd:
-            cmd(_ssh1_make, _git_push)
-        with Make1(_git_push) as cmd:
-            depfs = ' '.join(self._depfiles)
-            cmd('cd',self.src,'&& git add', depfs)
-            cmd('cd',self.src,'&& git commit -m "Game.apk({}) updated"'.format(self.apk.ver2()), depfs)
-            cmd('cd',self.src,'&& git push')
+class g500(AndMT6580, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.apk = Game16(arg_lis, arg_dic)
+        self.src = os.path.join('android',self.prjname)
+        AndMT6580.__init__(self, arg_lis, arg_dic)
+class t500(AndMT6580, metaclass=GlobalSingleton):
+    def __init__(self, arg_lis, arg_dic):
+        self.prjname = type(self).__name__
+        self.apk = TongZi17(arg_lis, arg_dic)
+        self.src = os.path.join('android',self.prjname) # = 'android/t500'
+        AndMT6580.__init__(self, arg_lis, arg_dic)
+
+class AndMT6735(Android):
+    pass
 
 class Main(object, metaclass=GlobalSingleton):
     def __init__(self, arg_lis, arg_dic):
-        # {} help k400 g500 RARPWD=huaguanjiye k400=dict(NewSVNRev=111) #TODO
+        arg_dic.setdefault('RARPWD', 'huaguanjiye')
         alls, ands, apks = {}, {}, {}
         for a in set(arg_lis):
             T = getattr(_this_module, a)
@@ -448,70 +492,50 @@ class Main(object, metaclass=GlobalSingleton):
             alls.setdefault(o, (argl,argd))
             ands.setdefault(o, (argl,argd))
             apks.setdefault(o.apk, (argl,argd))
-        Make0,Make1,Make2 = Makes() #Make0,Make1,Make2 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
+        Make1,Make2,Make3 = Makes() #Make1,Make2,Make3 = Makefile1(), Makefile2('Makefile2'), Makefile3('Makefile3')
 
-        from os.path import join,basename,dirname
-        _ssh1_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host1_, Make1.file.name)
-        #_ssh2_make = 'ssh {0.user}@{0.host} make -f {1}'.format(host2_, Make2.file.name)
+        with Make1('default') as cmd:
+            cmd('$(MAKE) clean')
+            cmd('$(MAKE) update')
+            cmd('$(MAKE) games')
+            cmd('$(MAKE) all')
 
-        ## TODO
-        #cmd = Make0('all', self.prjname)
-        #cmd(...)
-        #cmd = Make1('all', self.prjname)
-        #cmd(...)
-
-        #// ands prjname // === === ===
         names = [ x.prjname for x in ands.keys() ]
-        with Make0('all',*names):
+        with Make1('all',*names):
             pass
-
-        git_push_ = list(map(lambda x:'git_push_'+x, names))
-        with Make0('git_push', *git_push_):
+        names = [ x.prjname for x in apks.keys() ]
+        with Make1('games',*names):
             pass
-        with Make1('git_push', *git_push_):
-            pass
+        names   = [ x.prjname for x in alls.keys() ]
         clean_  = list(map(lambda x:'clean_'+x, names))
         update_ = list(map(lambda x:'update_'+x, names))
         info_   = list(map(lambda x:'info_'+x, names))
         with Make1('clean', *clean_) as cmd:
-            pass #('rm -f Makefile?')
+            pass #cmd('rm -f Makefile?')
         with Make1('update', *update_):
             pass
         with Make1('info', *info_):
             pass
 
-        #// apks prjname // === === ===
-        names = [ x.prjname for x in apks.keys() ]
-        with Make0('games',*names):
-            pass
-        clean_  = list(map(lambda x:'clean_'+x, names))
-        update_ = list(map(lambda x:'update_'+x, names))
-        info_   = list(map(lambda x:'info_'+x, names))
-        with Make0('clean', *clean_) as cmd:
-            cmd(_ssh1_make, '$@')
-        with Make0('update', *update_):
-            cmd(_ssh1_make, '$@')
-        with Make0('info', *info_):
-            cmd(_ssh1_make, '$@')
-
         for o,(a,d) in alls.items():
-            o.generate_makefile(Make0,Make1,Make2, *a, **d)
+            o.generate_makefile(Make1,Make2,Make3, **d)
 
-        Make0.phony('all', 'games', 'clean', 'update')
-        for symbs in (names, clean_, update_, info_): #itertools.chain(names, clean_, update_, info_)
-            Make0.phony(*symbs)
+        #deps = itertools.chain(names, clean_, update_, info_)
+        Make1.phony('all', 'games', 'clean', 'update')
+        for syms in (names, clean_, update_, info_):
+            Make1.phony(*syms)
 
-        with Make0('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
-            cmd('rsync $^', host1_.rhome)
-            if Make2:
-                cmd(_ssh1_make, 'sync_makefile')
-        Make0.phony('sync_makefile')
-        if Make2:
-            with Make1('sync_makefile', Make2.file.name) as cmd:
-                cmd('rsync', Make2.file.name, host2_.rhome)
-            Make1.phony('sync_makefile')
+        with Make1('sync_makefile', *[mk.file.name for mk in Makes() if mk]) as cmd:
+            cmd('rsync $^', _rhome)
+            if Make3:
+                cmd('ssh {0}@{1} make -f {2} sync_makefile'.format(_ruser,_rhost,Make2.file.name))
+        Make1.phony('sync_makefile')
+        if Make3:
+            with Make2('sync_makefile', Make3.file.name) as cmd:
+                cmd('rsync', Make3.file.name, AndMT6572.rhome)
+            Make2.phony('sync_makefile')
 
-        for mk in Makes(): # Make0,Make1,Make2:
+        for mk in Makes(): # Make1,Make2,Make3:
             if mk:
                 mk.__exit__(None,None,None)
         bash_command('make sync_makefile')
@@ -519,8 +543,8 @@ class Main(object, metaclass=GlobalSingleton):
     def help(self, *args, **kwargs):
         print('''\
 Usages:
-    make clean update games all
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    make
+    ^^^^^
 '''.format(sys.argv[0], ','.join(args)))
         #self.show_info(*args, **kwargs)
 
@@ -593,21 +617,9 @@ Usages:
     #        revert(self)
     #        raise
 
-    #def show_info(self, *args, **kwargs):
-    #    #pprint(vars(self))
-    #    #if args: pprint(args)
-    #    #if kwargs: pprint(kwargs)
-    #    #print()
-    #    for s in grep('Key.*word', 'src/howto.txt'):
-    #        print(s.strip())
-    #    #for prj in self.projects:
-    #    #    apk = prj.export_filename.replace('/','\\')
-    #    #    print(prj.svnrev(old=1), '=>', prj.svnrev() , prj.fullver(), apk)
-    #    #    #pprint(vars(self)) #pprint(globals())
-
 class Makefile(object):
     class Makerule(object):
-        # TODO io.StringIO
+        # TODO StringIO
         def __init__(self, file_, x, *a):
             self.file = file_
             print(x, ': ', sep='',end='', file=self.file)
@@ -643,19 +655,17 @@ class Makefile(object):
         print('.PHONY:', *a, file=self.file)
         print(file=self.file)
 
-    def attach2common(self, commonName, *a):
-        self.commons.setdefault(commonName, []).extend(a)
-
 class Makes(list, metaclass=GlobalSingleton):
     def __init__(self):
         super().__init__( (Makefile(), None, None) )
         self.gen_headers(self[0])
-    def Make1(self): return self.Make(1)
-    def Make2(self): return self.Make(2)
-    def Make(self, ix):
-        prev, self[ix] = self[ix], Makefile('Makefile'+str(ix))
-        if not (prev is self[ix]):
-            self.gen_headers(self[ix])
+    def Make2(self):
+        self[1] = Makefile('Makefile2')
+        self.gen_headers(self[1])
+        return self
+    def Make3(self):
+        self[2] = Makefile('Makefile3')
+        self.gen_headers(self[2])
         return self
     def gen_headers(self, mk):
         mk.line('### Auto-generated')
@@ -665,11 +675,6 @@ class Makes(list, metaclass=GlobalSingleton):
         mk.line('')
     def __call__(self):
         return self
-
-def sprint(*args, **kwargs):
-    with io.StringIO() as out:
-        print(*args, file=out, **kwargs)
-        return out.getvalue()
 
 def check(*args, **kwargs):
     for x in ('src/Game14/.svn', 'src/Game16/.svn'
@@ -760,7 +765,7 @@ def etree_replace_text(filename, path, text):
         node.text = text
         tree.write(filename, encoding='UTF-8', xml_declaration=True) #(, short_empty_elements=False)
 
-def regex_sub(expr, ss, *files, count=-1):
+def edit(expr, ss, *files, count=-1):
     for textf in files:
         lines = []
         with open(textf) as sf:
@@ -771,7 +776,6 @@ def regex_sub(expr, ss, *files, count=-1):
                     l, line = line, re.sub(expr, ss, line)
                     if not (l is line):
                         count -= 1
-                        print('edit:', textf.split()[-1], ':', line.strip())
                 outf.write( line )
 
 def grep(expr, *files, filt=None):
@@ -788,14 +792,12 @@ def grep(expr, *files, filt=None):
         print(textf, e, file=sys.stderr)
         raise
 
-def _2object(attr):
+def _object(attr):
     if isinstance(attr, dict):
-        return type('_', (object,), dict( (x,_2object(y)) for x,y in attr.items()))
+        return type('_', (object,), dict( (x,_object(y)) for x,y in attr.items()))
     if isinstance(attr, (tuple, list, set, frozenset)):
-        return type(attr)(_2object(x) for x in attr)
+        return type(attr)(_object(x) for x in attr)
     return attr
-def simple_object(**d):
-    return type('_', (object,), dict( (x,_2object(y)) for x,y in d.items()))
 
 def bootstrap(*xfs):
     import signal
