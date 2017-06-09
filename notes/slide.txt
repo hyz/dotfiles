@@ -1,5 +1,18 @@
 
+### https://github.com/hakimel/reveal.js
+### https://github.com/webpro/reveal-md
+
 ### http://mindfulstart.net/slides.html
 
     pandoc oo.md -o oo.html -t revealjs -s -V theme=white
+
+### https://github.com/jgm/pandoc/issues/2157
+
+    title: test reveal.js slideshow
+    author: author’s name
+    date: May 18, 2015
+
+    # 1st Header Slide
+    ## 1st Slide Level Slide
+    level 2 is the “slide level”. Because the 1st Header Slide has no content, this slide is nested.
 

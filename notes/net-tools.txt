@@ -67,3 +67,15 @@ ss-local -c kcptun-bin/ss.json
     ssh -fqND 5555 thedoc@tardis
     pc emerge --sync
 
+### https://ngrok.com/
+
+    ngrok tcp --remote-addr 1.tcp.ngrok.io:20301 22
+    ngrok http -region ap 8080
+
+    -- -region
+        us - United States (Ohio)
+        eu - Europe (Frankfurt)
+        ap - Asia/Pacific (Singapore)
+        au - Australia (Sydney)
+
+
