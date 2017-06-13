@@ -1,6 +1,7 @@
 
 ### https://github.com/hakimel/reveal.js
 ### https://github.com/webpro/reveal-md
+    reveal-md -p 8000 -h 0 oo.md --static ooslide
 
 ### http://mindfulstart.net/slides.html
 
