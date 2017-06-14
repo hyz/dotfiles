@@ -1,5 +1,5 @@
 
-https://gist.github.com/mtigas/952344
+### https://gist.github.com/mtigas/952344
     Mini tutorial for configuring client-side SSL certificates.
 
 http://stackoverflow.com/questions/4261369/openssl-verify-peer-client-certificate-in-c
@@ -8,4 +8,7 @@ http://www.zedwood.com/article/openssl-c-verify-self-signed-certificate-signatur
 http://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl
 
 http://stackoverflow.com/questions/13612343/verifying-self-signed-expired-certificate-with-openssl-library-does-not-return-e
+
+### https://github.com/shanet/Crypto-Example
+    A short, proof-of-concept RSA and AES encryption program with OpenSSL
 

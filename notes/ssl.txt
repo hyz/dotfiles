@@ -1,25 +1,4 @@
-
-### http://stackoverflow.com/questions/27611193/curl-ssl-with-self-signed-certificate
-### http://stackoverflow.com/questions/9776857/curl-simple-https-request-returns-nothing-c
-    curl -k url
-    curl --insecure url
-
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
-### http://security.stackexchange.com/questions/38782/ssl-tls-distinction-between-self-signed-cert-and-self-signed-ca-and-other-que?rq=1
-    SSL/TLS - Distinction between self-signed cert and self-signed CA, and other questions?
-
-    A CA certificate is a certificate which is owned by a CA and marked as being suitable for usage as a CA; namely, that it contains a Basic Constraints extension with the "cA" flag set to TRUE.
-    A self-signed certificate is a certificate which is signed with the private key corresponding to the public key which is in the certificate itself. This means that the certificate was issued by the certificate owner itself, not by somebody else.
-
-https://www.ibm.com/developerworks/library/l-openssl/
-
-https://sandilands.info/sgordon/https-and-certificates-with-apache-openssl-tcpdump
-
-### http://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl?rq=1
-
-https://gist.github.com/kyledrake/d7457a46a03d7408da31
+### https://gist.github.com/kyledrake/d7457a46a03d7408da31
     Creating a self-signed SSL certificate, and then verifying it on another Linux machine
     # Procedure is for Ubuntu 14.04 LTS.
 
@@ -52,5 +31,30 @@ https://gist.github.com/kyledrake/d7457a46a03d7408da31
     # BUT I WANTED TO PAY $1500 FOR VERISIGN TO DO THE SAME FUCKING THING!
     Cool, send it here instead: 1Q5gek6gZc4E8dREcTkctQNtcb8dmikX1p
 
+### https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs
+
+### http://stackoverflow.com/questions/27611193/curl-ssl-with-self-signed-certificate
+### http://stackoverflow.com/questions/9776857/curl-simple-https-request-returns-nothing-c
+    curl -k url
+    curl --insecure url
+
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+### http://security.stackexchange.com/questions/38782/ssl-tls-distinction-between-self-signed-cert-and-self-signed-ca-and-other-que?rq=1
+    SSL/TLS - Distinction between self-signed cert and self-signed CA, and other questions?
+
+    A CA certificate is a certificate which is owned by a CA and marked as being suitable for usage as a CA; namely, that it contains a Basic Constraints extension with the "cA" flag set to TRUE.
+    A self-signed certificate is a certificate which is signed with the private key corresponding to the public key which is in the certificate itself. This means that the certificate was issued by the certificate owner itself, not by somebody else.
+
+### http://www.gerv.net/security/self-signed-certs/
+    Firefox and Self-Signed Certs
+
+
+https://www.ibm.com/developerworks/library/l-openssl/
+
+https://sandilands.info/sgordon/https-and-certificates-with-apache-openssl-tcpdump
+
+### http://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl?rq=1
 
 

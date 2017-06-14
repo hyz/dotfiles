@@ -3,3 +3,6 @@ http://valgrind.org/
 Valgrind
 
 
+find . -name "*.h" -o -name "*.cpp" |/usr/bin/arduino-ctags --c++-kinds=+px -L-
+
+
