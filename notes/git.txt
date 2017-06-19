@@ -67,6 +67,7 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     (User masukomi points out below that git checkout test will NOT work in modern git if you have multiple remotes. In this case use 
         git checkout -b test remote-name/test)
 
+### https://stackoverflow.com/questions/1778088/how-to-clone-a-single-branch-in-git
 ### git clone single branch
         git clone -b <branch name> [remote repository address]
     fetch所有remote branch并checkout特定branch。
@@ -75,6 +76,8 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     如果只想fetch特定分支
         git clone xxx -b remote-branch --single-branch
         git clone --depth 1 -b server2 --single-branch file:///$HOME/repo/xxx.git
+        git clone <url> --branch <branch> --single-branch [<folder>]
+        git clone git@192.168.2.105:mt6572 --branch k400 --single-branch k400
 
 ### http://stackoverflow.com/questions/2519933/git-clone-repo-across-local-file-system-in-windows
     git clone file:////<host>/<share>/<path>
