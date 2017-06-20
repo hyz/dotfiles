@@ -1,39 +1,51 @@
 #!/usr/bin/env python
 
 ### https://stackoverflow.com/questions/6270782/how-to-send-an-email-with-python
-import sys, time, smtplib
+### https://stackoverflow.com/questions/3362600/how-to-send-email-attachments-with-python
+### http://www.pythonforbeginners.com/code-snippets-source-code/using-python-to-send-email
+### https://stackoverflow.com/questions/24077314/how-to-send-an-email-with-style-in-python3
+import sys, time
+import argparse, getpass
+import smtplib, email.utils
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import argparse, getpass
 
 def main():
-    argp = argparse.ArgumentParser('Send email')
-    argp.add_argument('-p', '--password', default=None, help='password') #(, nargs=2)
-    argp.add_argument('-s', '--subject', default=time.strftime('%F') + ' <时间简史>')
-    argp.add_argument('-f', '--from', dest='From', help='From: zero@qq.com')
-    argp.add_argument('Tos', nargs='+', help='To: one@qq.com two@163.com')
-    opt = argp.parse_args()
+    def options():
+        argp = argparse.ArgumentParser('Send email')
+        argp.add_argument('-p', '--password', default=None, help='password') #(, nargs=2)
+        argp.add_argument('-s', '--subject', default=time.strftime('%F') + ' <时间简史>')
+        argp.add_argument('-f', '--from', dest='From', help='From: zero@qq.com')
+        argp.add_argument('Tos', nargs='+', help='To: one@qq.com two@163.com')
+        return argp.parse_args()
 
+    opt = options()
     if not opt.password:
         opt.password = getpass.getpass('password:')
 
-    #msg = MIMEMultipart()
-    msg = MIMEText(sys.stdin.read())
-    msg['Subject'] = opt.subject
-    msg['From'] = opt.From
-    msg['To'] = ', '.join(opt.Tos)
+    multipart = MIMEMultipart()
+    multipart['Subject'] = opt.subject
+    multipart['From'] = opt.From
+    multipart['To'] = email.utils.COMMASPACE.join(opt.Tos)
 
-    #msg.preamble = 'One small step for man, one giant stumble for mankind.'
+    body = sys.stdin.read()
+    multipart.attach( MIMEText(body, 'html') )
+
+    part = MIMEText(body)
+    part['Content-Disposition'] = 'attachment; filename="list.txt"'
+    multipart.attach( part )
+
+    #multipart.preamble = 'One small step for man, one giant stumble for mankind.'
     #for file in pngfiles:
     #    with open(file, 'rb') as fp:
     #        img = MIMEImage(fp.read())
-    #    msg.attach(img)
+    #    multipart.attach(img)
 
-    s = smtplib.SMTP_SSL('smtp.ym.163.com',465)
-    s.login(opt.From, opt.password)
-    s.sendmail(opt.From, opt.Tos, msg.as_string())
-    s.quit()
+    smtp = smtplib.SMTP_SSL('smtp.ym.163.com',465)
+    smtp.login(opt.From, opt.password)
+    smtp.sendmail(opt.From, opt.Tos, multipart.as_string())
+    smtp.quit()
 main()
 
 ### MIMEMultipart
