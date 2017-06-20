@@ -5,26 +5,36 @@ import sys, time, smtplib
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import argparse, getpass
 
-From = 'wujiyong@huaguanjiye.com'
-Tos = ['jywww@qq.com']
+def main():
+    argp = argparse.ArgumentParser('Send email')
+    argp.add_argument('-p', '--password', default=None, help='password') #(, nargs=2)
+    argp.add_argument('-s', '--subject', default=time.strftime('%F') + ' <时间简史>')
+    argp.add_argument('-f', '--from', dest='From', help='From: zero@qq.com')
+    argp.add_argument('Tos', nargs='+', help='To: one@qq.com two@163.com')
+    opt = argp.parse_args()
 
-#msg = MIMEMultipart()
-msg = MIMEText(sys.stdin.read())
-msg['Subject'] = time.strftime('%F') + ' <时间简史>'
-msg['From'] = From
-msg['To'] = ', '.join(Tos)
+    if not opt.password:
+        opt.password = getpass.getpass('password:')
 
-#msg.preamble = 'One small step for man, one giant stumble for mankind.'
-#for file in pngfiles:
-#    with open(file, 'rb') as fp:
-#        img = MIMEImage(fp.read())
-#    msg.attach(img)
+    #msg = MIMEMultipart()
+    msg = MIMEText(sys.stdin.read())
+    msg['Subject'] = opt.subject
+    msg['From'] = opt.From
+    msg['To'] = ', '.join(opt.Tos)
 
-s = smtplib.SMTP_SSL('smtp.ym.163.com',465)
-s.login(sys.argv[1], sys.argv[2])
-s.sendmail(From, Tos, msg.as_string())
-s.quit()
+    #msg.preamble = 'One small step for man, one giant stumble for mankind.'
+    #for file in pngfiles:
+    #    with open(file, 'rb') as fp:
+    #        img = MIMEImage(fp.read())
+    #    msg.attach(img)
+
+    s = smtplib.SMTP_SSL('smtp.ym.163.com',465)
+    s.login(opt.From, opt.password)
+    s.sendmail(opt.From, opt.Tos, msg.as_string())
+    s.quit()
+main()
 
 ### MIMEMultipart
 #
