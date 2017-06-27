@@ -1,3 +1,5 @@
+### http://p-nand-q.com/programming/windows/building_openssl_with_visual_studio_2013.html
+
 ### https://gist.github.com/kyledrake/d7457a46a03d7408da31
     Creating a self-signed SSL certificate, and then verifying it on another Linux machine
     # Procedure is for Ubuntu 14.04 LTS.

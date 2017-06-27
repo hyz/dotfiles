@@ -1,0 +1,7 @@
+
+### http://blog.csdn.net/caoshangpa/article/details/53738393
+    VS2015编译Qt5.7.0生成支持XP的静态库 
+
+### http://blog.csdn.net/caoshangpa/article/details/53690612
+    使用Qt5.7.0 VS2015版本生成兼容XP的可执行程序 
+

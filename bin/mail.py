@@ -4,7 +4,7 @@
 ### https://stackoverflow.com/questions/3362600/how-to-send-email-attachments-with-python
 ### http://www.pythonforbeginners.com/code-snippets-source-code/using-python-to-send-email
 ### https://stackoverflow.com/questions/24077314/how-to-send-an-email-with-style-in-python3
-import sys, time
+import sys, os, time
 import argparse, getpass
 import smtplib, email.utils
 from email.mime.image import MIMEImage
@@ -17,6 +17,7 @@ def main():
         argp.add_argument('-p', '--password', default=None, help='password') #(, nargs=2)
         argp.add_argument('-s', '--subject', default=time.strftime('%F') + ' <时间简史>')
         argp.add_argument('-f', '--from', dest='From', help='From: zero@qq.com')
+        argp.add_argument('-a', '--attach', default=None)
         argp.add_argument('Tos', nargs='+', help='To: one@qq.com two@163.com')
         return argp.parse_args()
 
@@ -32,9 +33,17 @@ def main():
     body = sys.stdin.read()
     multipart.attach( MIMEText(body, 'html') )
 
-    part = MIMEText(body)
-    part['Content-Disposition'] = 'attachment; filename="list.txt"'
-    multipart.attach( part )
+    if opt.attach:
+        for fn in opt.attach.split(','):
+            if not os.path.exists(fn):
+                print('file not exist:', fn, file=sys.stderr)
+                continue
+            basename = os.path.basename(fn)
+            body = open(fn)
+            part = MIMEText(body.read(), 'plain')
+            body.close()
+            part['Content-Disposition'] = f'attachment; filename="{basename}"'
+            multipart.attach( part )
 
     #multipart.preamble = 'One small step for man, one giant stumble for mankind.'
     #for file in pngfiles:

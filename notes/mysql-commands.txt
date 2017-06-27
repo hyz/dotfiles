@@ -22,6 +22,9 @@ $
 $ mysql -u root -p lindu_test < lindu_test.sql
 $
 
+$ mysqldump -h localhost -P 3306 -u -root mydb | mysql -h localhost -P 3306 -u root mydb2
+
+
 > VIEW dump & modify
 >
 > DROP TABLE IF EXISTS `client_users_view`;

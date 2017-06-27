@@ -1,0 +1,4 @@
+
+cal -yw
+date +%Y-%W
+
