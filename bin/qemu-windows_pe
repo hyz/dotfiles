@@ -1,0 +1,86 @@
+#!/bin/sh
+
+qemu-system-x86_64 -enable-kvm -machine type=pc,accel=kvm -cpu host -m 3072M -smp 2 \
+    -drive file=/boot/winpe.iso,index=2,media=cdrom \
+    -boot order=d
+
+####
+hda=/dev/sda9 ### Windows7
+SLIC=/sys/firmware/acpi/tables/SLIC
+#SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
+
+[ "`stat -c '%G' $hda`" = "kvm" ] || sudo chgrp kvm $hda
+[ "`stat -c '%G' $SLIC`" = "kvm" ] || sudo chgrp kvm $SLIC
+[ -r $SLIC ] || sudo chmod g+r $SLIC
+
+### lsusb
+### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
+### ... -usb -device usb-host,hostbus=2,hostaddr=6
+### sudo chgrp kvm /dev/bus/usb/002/006
+### qemu-system-x86_64 -device help
+### qemu-system-x86_64 -device usb-host,help
+### qemu
+
+qemu-system-x86_64 -enable-kvm \
+    -machine type=pc,accel=kvm \
+    -cpu host -m 3072M -smp 2 -rtc base=localtime -name Winows7 -full-screen \
+    -acpitable sig=SLIC,file=$SLIC \
+    -drive file=$hda,index=0,media=disk,format=raw \
+    -drive file=$HOME/qemu/virtio-win-0.1.117.iso,index=2,media=cdrom \
+    -net nic,model=virtio -net user\
+    -boot order=c \
+
+    #-drive file=$hda,index=0,media=disk,if=virtio,cache=none \
+    #-drive file=$hda,index=0,media=disk,format=raw,cache=none \
+    #-drive file=$hda,index=0,media=disk,if=virtio,aio=native \
+    #-net user,smb=/home/wood/smb \
+    #-net nic,model=rtl8139 -net user \
+    # -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no,vhost=on
+    #
+    #-acpitable sig=RSDT,oem_id=LENOVO,oem_table_id=TP-70\ \ \ \
+    #-acpitable sig=SLIC,file=$SLIC \
+    #-acpitable sig=RSDT,rev=1,oem_id=LENOVO,oem_table_id=TP-70\ \ \ ,oem_rev=00003240,asl_compiler_id=\ LTP,asl_compiler_rev=00000000,data=/tmp/slic.dat \
+    #-bios ~/qemu/bios.bin -acpitable sig=SLIC,file=$SLIC \
+    #-bios ~/qemu/bios.bin \
+    #-bios "$rom" \
+    #-boot menu=on,splash-time=5000 \
+    #
+    #-drive file=/dev/sdb,index=1,media=disk,format=raw \
+    #
+    #-usb -device usb-host,hostbus=2,hostaddr=6 \
+    #-usb -usbdevice host:0781:5567 \
+    #
+    #-fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
+exit
+
+#!/bin/sh
+### qemu
+qemu-system-x86_64 -enable-kvm -cpu host -m 12288 -smp 2 -rtc base=localtime \
+    -usb \
+    -name Win7 -monitor telnet:127.0.0.1:12997,server,nowait,ipv4 \
+    -drive file=/home/jserink/VMs/Win_7_Pro.img,index=0,media=disk,format=raw \
+    -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 \
+    -cdrom /home/jserink/CDs/virtio-win-0.1-49.iso \
+    -net nic,vlan=0,model=virtio,macaddr=52:54:00:00:EE:07 -net vde \
+    -vga qxl -global qxl.vram_size=128000 \
+    -spice port=15900,addr=127.0.0.1,disable-ticketing \
+    -chardev spicevmc,id=spicechannel0,name=vdagent \
+    -boot c \
+    & 
+####
+
+# -redir tcp:3389::3389
+# -drive file=/path/to/primary/disk.img,index=0,media=disk,if=virtio
+# -drive file=/path/to/installer.iso,index=2,media=cdrom
+# -drive file=/path/to/virtio.iso,index=3,media=cdrom 
+#
+
+###
+# acpidump -o acpidata
+# acpixtract -l acpidata
+Signature Length  OemId     OemTableId   OemRevision CompilerId
+CompilerRevision
+    SLIC     374  "LENOVO"  "TP-7O   "    00002210    " LTP"     00000000
+# acpixtract -sSLIC acpidata
+# qemu-system-x86_64 -acpitable sig=SLIC,rev=1,oem_id=LENOVO,oem_table_id=TP-70\ \ \ ,oem_rev=00002210,asl_compiler_id=\ LTP,asl_compiler_rev=00000000,data=SLIC.dat
+

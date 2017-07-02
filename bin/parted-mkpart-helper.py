@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ### http://rainbow.chard.org/2013/01/30/how-to-align-partitions-for-best-performance-using-parted/
 
-import sys, re
+import sys, os, math
 
 # Sector size (logical/physical): 512B/4096B
 #S_logical, S_physical = 512, 4096
@@ -11,46 +11,77 @@ def ceil(a, sec_pos):
 def floor(a, sec_pos):
     return int(sec_pos / a) * a
 
-def args():
-    import argparse
-    argp = argparse.ArgumentParser()
-    argp.add_argument('-s', '--sector', default='512B/4096B')
-    argp.add_argument('begin') #(, nargs=2)
-    argp.add_argument('size', help='size/end') #(, nargs='?')
-    opt = argp.parse_args()
-    assert opt.begin.endswith('s')
-    assert opt.size[-1] in ('s', 'M', 'G')
+def args(opt):
+    assert opt.begin[-1] in ('s', 'M', 'G')
+    assert opt.end[-1]   in ('s', 'M', 'G')
+    assert 's' in (opt.begin[-1], opt.end[-1])
 
-    T, G, M = 1024**4, 1024**3, 1024**2
-    res = re.match('(\d+)B/(\d+)B', opt.sector)
-    S_logical, S_physical = int(res.group(1)), int(res.group(2))
-    assert S_physical % S_logical == 0
-    assert M % S_physical == 0
-    S_count = 65535*4 #int(1000*M / S_logical)
-    print('\t\t##', f'Sector size (logical/physical): {S_logical}B/{S_physical}B')
-
-    assert opt.begin[-1] == 's' and opt.size[-1] in ('s', 'M', 'G')
-    begin = int(opt.begin[:-1]) #max(int(opt.begin[:-1]), S_count)
-    begin = ceil(S_count, begin)
-
-    size, tag = int(opt.size[:-1]), opt.size[-1]
-    if tag == 's':
-        end = size
+    begin, bflag = int(opt.begin[:-1]), opt.begin[-1]
+    end, eflag = int(opt.end[:-1]), opt.end[-1]
+    if bflag == 's':
+        begin = ceil(lcms, begin)
+        if eflag != 's':
+            size = end
+            size = int((size * (M,G)[eflag=='G']) / logical_block_size)
+            end = begin + size
+        end = floor(lcms, end)
     else:
-        end = begin + (size * (M,G)[tag=='G']) / S_logical
-    end = floor(S_count, end)-1
+        end = floor(lcms, end)
+        if bflag != 's':
+            size = begin
+            size = int((size * (M,G)[bflag=='G']) / logical_block_size)
+            begin = end - size
+        begin = ceil(lcms, begin)
+    end -= 1
 
     #print( begin, end, opt.sector )
     assert begin < end
     return begin, end
 
+T, G, M = 1024**4, 1024**3, 1024**2
 if __name__ == '__main__':
+    def options():
+        import argparse
+        argp = argparse.ArgumentParser()
+        argp.add_argument('-d', '--drive', default='/dev/sda')
+        argp.add_argument('-a', '--align', default=None)
+        argp.add_argument('begin', help='begin/size') #(, nargs=2)
+        argp.add_argument('end', help='end/size') #(, nargs='?')
+        return argp.parse_args()
+    def ints(*fs):
+        v = []
+        for f in fs:
+            with open(f) as f:
+                v.append( int(f.read().strip()) )
+        return v
+    opt = options()
+    print(' ', opt.drive)
+    sdx=os.path.basename(opt.drive)
+    optimal_io_size, physical_block_size, logical_block_size = ints(f'/sys/block/{sdx}/queue/optimal_io_size', f'/sys/block/{sdx}/queue/physical_block_size', f'/sys/block/{sdx}/queue/logical_block_size')
+    if optimal_io_size == 0:
+        optimal_io_size = max(4096, physical_block_size)
+        if opt.align:
+            if opt.align[-1] == 'M':
+                optimal_io_size= int(opt.align[:-1])*M
+            else:
+                optimal_io_size= int(opt.align)
+        print(' ', f'optimal_io_size=0,{optimal_io_size}', f'physical_block_size={physical_block_size}')
+    print(' ', f'optimal_io_size={optimal_io_size} physical_block_size={physical_block_size} logical_block_size={logical_block_size}')
+    assert optimal_io_size % logical_block_size == 0
+    assert physical_block_size % logical_block_size == 0
+    assert M % logical_block_size == 0
+    lcms = optimal_io_size*physical_block_size/math.gcd(optimal_io_size,physical_block_size)/logical_block_size
+    lcms = int(lcms)
+    print('lcms={lcms},{lcmM:2}M'.format(lcms=lcms,lcmM=(lcms*512/M))
+            , 'M={}s'.format(int(M/logical_block_size))
+            , 'G={}s'.format(int(G/logical_block_size)))
+
     try:
-        sec_begin, sec_end = args()
+        sec_begin, sec_end = args(opt)
         print(f'mkpart primary {sec_begin}s {sec_end}s')
     except Exception:
         print('Example:')
-        print('   ', sys.argv[0], '-s 512B/4096B 1260218368s 32G')
+        print('   ', sys.argv[0], '1260218368s 32G')
         raise
 
 #
