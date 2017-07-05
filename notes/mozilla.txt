@@ -2,6 +2,7 @@ https://github.com/mozilla/learning.mozilla.org
 
 http://stackoverflow.com/questions/14335496/firefox-source-code-for-android
 
+https://www.mozilla.org/en-US/firefox/all/
 https://wiki.mozilla.org/Mobile/Fennec/Android
 
 
