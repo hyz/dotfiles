@@ -1,3 +1,10 @@
+
+### https://bbs.archlinux.org/viewtopic.php?id=192015
+    ~/.gnupg/gpg.conf
+
+        keyserver-options auto-key-retrieve
+        auto-key-locate hkp://pool.sks-keyservers.net
+
 ### https://wiki.archlinux.org/index.php/GnuPG
 
 ### http://www.gossamer-threads.com/lists/gnupg/users/57629

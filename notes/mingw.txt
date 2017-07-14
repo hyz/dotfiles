@@ -1,0 +1,30 @@
+
+### http://www.msys2.org/
+
+    pacman -Sy base-devel mingw-w64-i686-toolchain
+    pacman -Sy base-devel mingw-w64-x86_64-toolchain
+
+    makepkg-mingw -s
+    MINGW_INSTALLS=mingw32 makepkg-mingw -s
+
+    pacman -S mingw32/mingw-w64-i686-qt5-static
+    export PATH=$PATH:/mingw32/bin:/mingw32/qt5-static/bin
+
+### https://gist.github.com/elvisw/cc00088e9c8fd1c83aca
+    # head etc/pacman.d/mirrorlist.msys
+    ##中国科学技术大学开源软件镜像
+    http://mirrors.ustc.edu.cn/msys2/msys/$arch
+    ##北京理工大学镜像
+    Server = http://mirror.bit.edu.cn/msys2/REPOS/MSYS2/$arch
+
+    # head etc/pacman.d/mirrorlist.mingw32
+    ##中国科学技术大学开源软件镜像
+    Server = http://mirrors.ustc.edu.cn/msys2/mingw/i686
+    ##北京理工大学镜像
+    Server = http://mirror.bit.edu.cn/msys2/REPOS/MINGW/i686
+
+### openssl
+    wget -c https://www.openssl.org/source/openssl-1.0.2l.tar.gz
+    ./Configure --prefix=../3rdparty/openssl-1.0.2j-32bit-release-static-VS2015 mingw no-shared no-idea no-mdc2 no-rc5
+    make depend && make && make install
+

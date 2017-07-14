@@ -1,4 +1,8 @@
 
+### http://www.dpull.com/blog/2016-11-25-code-sanitizer
+    C／C++内存错误,
+    clang -fsanitize=address test.c
+
 ### https://clang.llvm.org/docs/ExternalClangExamples.html
 ### https://www.chess.com/blog/lockijazz/using-python-to-traverse-and-modify-clang-s-ast-tree
 ### http://eli.thegreenplace.net/2011/07/03/parsing-c-in-python-with-clang

@@ -1,0 +1,30 @@
+
+### http://falsinsoft.blogspot.com/2015/11/qt-snippet-rounded-corners-qpushbutton.html
+    QPushButton *pButtonWidget = new QPushButton();
+    pButtonWidget->setGeometry(QRect(0, 0, 150, 100));
+    pButtonWidget->setText("Test");
+    pButtonWidget->setFlat(true);
+    pButtonWidget->setAttribute(Qt::WA_TranslucentBackground);
+    pButtonWidget->setStyleSheet(
+        "background-color: darkRed;"
+        "border: 1px solid black;"
+        "border-radius: 15px;"
+        "color: lightGray; "
+        "font-size: 25px;"
+        );
+    QGraphicsProxyWidget *pButtonProxyWidget = scene()->addWidget(pButtonWidget);
+### http://falsinsoft.blogspot.com/search/label/Qt
+
+### http://falsinsoft.blogspot.com/2014/08/qt-snippet-create-qpixmap-with.html
+    QPixmap MyPixmap(QSize(32,32));
+
+    MyPixmap.fill(Qt::transparent);
+
+    /// Now you can draw into ...
+    Painter.begin(&MyPixamp);
+    // Here paint inside QPixmap
+    Painter.setPen(QPen(QBrush(Qt::red), 1, Qt::DashLine));
+    Painter.drawRect(0,0,32,32);
+    // ...
+    Painter.end();
+

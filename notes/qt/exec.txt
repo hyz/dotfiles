@@ -1,0 +1,10 @@
+
+### http://falsinsoft.blogspot.com/2014/02/qt-wait-for-signal-in-synchronously-mode.html
+    QEventLoop SignalWaitLoop;
+
+    connect(obj_pointer_generating_signal, SIGNAL(signal_func_name()), &SignalWaitLoop, SLOT(quit()));
+    // Here start code generating the signal to wait for 
+    // ...
+
+    SignalWaitLoop.exec();
+

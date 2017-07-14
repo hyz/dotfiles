@@ -2,9 +2,19 @@
 ### https://wiki.qt.io/Building_a_static_Qt_for_Windows_using_MinGW
 ### https://wiki.qt.io/Build_Standalone_Qt_Application_for_Windows
 ### https://wiki.qt.io/How_to_build_a_static_Qt_version_for_Windows_with_gcc
-    http://download.qt.io/official_releases/qt/5.8/5.8.0/qt-opensource-windows-x86-mingw530-5.8.0.exe
-    http://download.qt.io/official_releases/qt/5.8/5.8.0/single/qt-everywhere-opensource-src-5.8.0.zip
+    http://download.qt.io/official_releases/qt/5.9/5.9.1/
+
 ### http://stackoverflow.com/questions/1011197/qt-static-linking-and-deployment
+
+### http://xpam.pl/blog/?p=106
+    Qt 5 + MSVC 2015 + OpenSSL + Windows XP Support = absolute mess
+    configure -target xp -release -qmake -opensource -nomake examples -opengl desktop -platform win32-msvc2015 -openssl -I C:\Users\me\git\openssl-1.0.1p-vs2015\include -L C:\Users\me\git\openssl-1.0.1p-vs2015\shared OPENSSL_LIBS="-llibeay32 -lssleay32 -lgdi32"
+### http://www.cnblogs.com/bbxx111/p/5461069.html
+### http://www.cnblogs.com/superbi/p/5672049.html
+    Win10 + VS2015 下编译 Qt
+    aria2c http://download.qt.io/official_releases/qt/5.9/5.9.1/single/qt-everywhere-opensource-src-5.9.1.zip.meta4
+### http://blog.csdn.net/caoshangpa/article/details/53738393
+     VS2015编译Qt5.7.0生成支持XP的静态库 
 
 ### http://doc.qt.io/qt-5/windows-requirements.html
 ### http://blog.csdn.net/liuyez123/article/details/50462637

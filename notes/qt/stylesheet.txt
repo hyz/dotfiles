@@ -1,0 +1,15 @@
+
+### http://falsinsoft.blogspot.com/2015/02/qt-snippet-use-stylesheet-in-qwidget.html
+    struct myDerivedClass : public QWidget {};
+
+    void myDerivedClass::paintEvent(QPaintEvent* event)
+    {
+        QPainter painter(this);
+        QStyleOption StyleOpt;
+
+        StyleOpt.initFrom(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &StyleOpt, &painter, this);
+    }
+
+    myDerivedWidget.setStyleSheet("background-color: red;");
+
