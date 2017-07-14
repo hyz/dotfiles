@@ -112,3 +112,14 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+if which keychain ; then
+    eval `keychain --agents ssh --eval $(find .ssh/*id_[dr]sa)`
+elif which ssh-agent ; then
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+        eval `ssh-agent -s`
+        trap "kill $SSH_AGENT_PID" 0
+        ssh-add $(find .ssh/*id_[dr]sa)
+    fi
+fi
+

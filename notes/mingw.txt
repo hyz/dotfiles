@@ -1,5 +1,6 @@
 
 ### http://www.msys2.org/
+### https://mingw-w64.org/
 
     pacman -Sy base-devel mingw-w64-i686-toolchain
     pacman -Sy base-devel mingw-w64-x86_64-toolchain
@@ -9,6 +10,16 @@
 
     pacman -S mingw32/mingw-w64-i686-qt5-static
     export PATH=$PATH:/mingw32/bin:/mingw32/qt5-static/bin
+
+### https://github.com/git-for-windows/git
+
+### resources
+    # https://wiki.archlinux.org/index.php/MinGW_package_guidelines
+    # https://wiki.qt.io/Category:MinGW
+    # https://github.com/Alexpux/MINGW-packages
+    # https://news.ycombinator.com/item?id=11214230
+    # https://news.ycombinator.com/item?id=11200989
+        MSYS2 is a software distro and building platform for Windows
 
 ### https://gist.github.com/elvisw/cc00088e9c8fd1c83aca
     # head etc/pacman.d/mirrorlist.msys

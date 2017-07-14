@@ -1,21 +1,20 @@
 
 ### http://superuser.com/questions/259791/how-can-i-use-the-shutdown-command-to-hibernate-the-computer-in-x-hours
-shutdown -s -t 36000
+    shutdown -s -t 36000
 
 ### mintty.bat
-@start mintty E:\cygwin64\bin\zsh.exe --login -i -
+    @start mintty E:\cygwin64\bin\zsh.exe --login -i -
 
 # shexview-x64
 
 # Tcpview.exe
 
 ### Win-R
-msinfo32
-dxdiag
+    msinfo32
+    dxdiag
 
 ### CMD.exe
-systeminfo
-
+    systeminfo
 
 ### http://stackoverflow.com/questions/48198/how-can-you-find-out-which-process-is-listening-on-a-port-on-windows
     resmon.exe
