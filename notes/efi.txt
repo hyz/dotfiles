@@ -12,3 +12,6 @@ efibootmgr -o 0,1,6
 [OR]
 /EFI/Arch/vmlinuz-linux root=PARTLABEL=Arch rw add_efi_memmap initrd=/EFI/Arch/initramfs-linux.img
 
+### https://www.douban.com/note/244514051/
+    Install Win7 - UEFI & GPT
+

@@ -1,18 +1,44 @@
-https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
- Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 
 
-https://arch-anywhere.org/
+### https://gist.github.com/mattiaslundberg/8620837
+    Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
+### https://wiki.archlinux.org/index.php/Installation_guide
+### https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
+### install archlinux from archlinux
+    pacman -Ql arch-install-scripts
+    ...
+    pacstrap /mnt base vim efibootmgr dialog wpa_supplicant
+    genfstab -pU /mnt | tee /mnt/etc/fstab
+    arch-chroot /mnt
+    mkinitcpio -p linux
+    ...
+    grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
+
+### https://github.com/yantis/instant-archlinux-on-mac
+    https://wiki.archlinux.org/index.php/Clover
+    https://wiki.archlinux.org/index.php/Persistent_block_device_naming
+
+### https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface
+
+    -drive if=pflash,format=raw,readonly,file=/usr/share/ovmf/ovmf_code_x64.bin \
+    -drive if=pflash,format=raw,file=my_uefi_vars.bin
+
+    bcdedit /set "{bootmgr}" path "\EFI\path\to\app.efi"
+
+### https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
+    Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 
+
+### https://arch-anywhere.org/
     Bringing you Arch - Anywhere
 
 ### https://aur.archlinux.org/packages/?SB=v&SO=d&O=0&PP=50
     aur voted
 
-makepkg --noextract
-makepkg --nobuild --nodeps
+    makepkg --noextract
+    makepkg --nobuild --nodeps
 
-pacman -S --clean
-pacman -Qs android
-pacman -Qe
+    pacman -S --clean
+    pacman -Qs android
+    pacman -Qe
 
 ### https://wiki.archlinux.org/index.php/Pacman_tips
 
