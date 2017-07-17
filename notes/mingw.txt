@@ -11,6 +11,12 @@
     pacman -S mingw32/mingw-w64-i686-qt5-static
     export PATH=$PATH:/mingw32/bin:/mingw32/qt5-static/bin
 
+### https://stackoverflow.com/questions/17097883/mingw-fails-on-windows-xp
+    MinGW fails on Windows XP
+
+    -D_WIN32_WINNT=0x0501 -ldwmapi
+    ls /mingw32/i686-w64-mingw32/include/{sdkddkver.h,versionhelpers.h,winapifamily.h}
+
 ### https://github.com/git-for-windows/git
 
 ### resources
