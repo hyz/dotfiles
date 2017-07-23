@@ -1,3 +1,8 @@
+
+### https://github.com/v2ray
+### https://github.com/oldj/SwitchHosts
+### https://github.com/TheTorProject
+
 ### https://github.com/shadowsocks/shadowsocks/wiki/Convert-Shadowsocks-into-an-HTTP-proxy
     polipo socksParentProxy=127.0.0.1:8787 proxyAddress=0.0.0.0
     http_proxy=http://x.x.x.x:8123 curl www.google.com

@@ -1,3 +1,34 @@
+
+### https://github.com/andrewssobral/simple_vehicle_counting
+    Vehicle Detection, Tracking and Counting
+### https://github.com/andrewssobral/bgslibrary
+    A Background Subtraction Library
+
+### https://github.com/kylemcdonald/FaceTracker
+    Real time deformable face tracking in C++ with OpenCV 3.
+
+### https://github.com/trishume/eyeLike
+    An OpenCV based webcam gaze tracker based on a simple image gradient-based eye center algorithm by Fabian Timm.
+
+### https://github.com/hrastnik/FaceSwap
+    Real-time FaceSwap application built with OpenCV and dlib
+
+### https://github.com/Hironsan/BossSensor
+    Hide screen when boss is approaching. http://ahogrammer.com/2016/11/15/deep…
+
+### https://github.com/CMU-Perceptual-Computing-Lab/openpose
+    OpenPose: A Real-Time Multi-Person Keypoint Detection And Multi-Threading C++ Library
+### https://github.com/CMU-Perceptual-Computing-Lab/caffe_rtpose
+
+### https://github.com/spmallick/learnopencv
+    Learn OpenCV : C++ and Python Examples
+
+### https://github.com/davisking/dlib
+    A toolkit for making real world machine learning and data analysis applications in C++ http://dlib.net
+### https://github.com/mit-nlp/MITIE
+    MITIE: MIT Information Extraction
+    This project provides free (even for commercial use) state-of-the-art information extraction tools. The current release includes tools for performing named entity extraction and binary relation detection as well as tools for training custom extractors and relation detectors
+
 http://stackoverflow.com/questions/26270821/segmenting-characters-from-image
 
 https://github.com/MasteringOpenCV/code
