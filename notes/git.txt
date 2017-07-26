@@ -52,6 +52,8 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     git diff --name-status master..branchName
     git diff master..branch
     git diff bde7984f893966d..aa953d00e36ad
+    git diff bde7984f893966d..HEAD
+    git diff bde7984f893966d..HEAD packages/apps/Phone/src/com/android/phone/CallNotifier.java
     git log master..branch
     git shortlog master..branch
 

@@ -11,5 +11,6 @@ sudo systemctl start sshd
     systemctl --user show-environment
     systemctl --user list-dependencies rslsync
     systemctl --user status rslsync
+    systemctl --user restart rslsync
     systemctl is-system-running
 
