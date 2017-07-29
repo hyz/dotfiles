@@ -1,4 +1,8 @@
 
+https://github.com/rust-unofficial/awesome-rust
+https://github.com/servo/servo
+https://github.com/gfx-rs/gfx
+
 https://doc.rust-lang.org/book/
 https://doc.rust-lang.org/book/second-edition/ch04-00-understanding-ownership.html
 
