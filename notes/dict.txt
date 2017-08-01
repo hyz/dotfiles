@@ -3,4 +3,7 @@
 apt-get install sdcv
 man sdcv
 
+### words:
+area/region/zone/district
+agent/dealer/distributor
 
