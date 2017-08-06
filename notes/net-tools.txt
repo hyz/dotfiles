@@ -1,4 +1,8 @@
 
+### bftpd
+    pacman -S bftpd
+    bftpd -c .config/bftpd.conf -D
+
 ### https://github.com/v2ray
 ### https://github.com/oldj/SwitchHosts
 ### https://github.com/TheTorProject
