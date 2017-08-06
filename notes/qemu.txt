@@ -1,3 +1,11 @@
+
+### boot grub in same disk
+    qemu-system-x86_64 -enable-kvm -machine type=pc,accel=kvm -cpu host -m 4G -smp 2 -sdl -display sdl -vga std \
+        -acpitable sig=SLIC,file=/sys/firmware/acpi/tables/SLIC \
+        -drive file=/dev/sda,index=0,media=disk,format=host_device,if=virtio
+
+        # -drive file=/boot/bootmgr.vhd,index=1,media=disk,format=raw,if=virtio -boot order=d
+
 ### https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
 
 ### http://chuansong.me/n/1271580847916

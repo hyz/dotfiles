@@ -32,7 +32,7 @@
     X:\> bootsect /nt60 b: /mbr
     X:\> bcdboot c:\Windows /s b:
 
-http://reboot.pro/topic/19516-hack-bootmgr-to-boot-windows-in-bios-to-gpt/page-2#entry184489
+### http://reboot.pro/topic/19516-hack-bootmgr-to-boot-windows-in-bios-to-gpt/page-2#entry184489
 
 ### slmgr
 slmgr.vbs -ilc NAME.XRM-MS # with the asus certificate and then do a
