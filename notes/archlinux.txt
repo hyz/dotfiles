@@ -11,14 +11,15 @@
     vim /mnt/etc/locale.gen
     ...
     arch-chroot /mnt
+    locale-gen
     mkinitcpio -p linux
     ...
-    # grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
     # grub-install --target=i386-pc --recheck --debug /dev/sdb
+    #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
     grub-mkconfig -o /boot/grub/grub.cfg
     passwd
 
-    ... pacman -S openssh git gnupg2
+    ... pacman -S openssh git gnupg2 syslinux dosfstools parted gptfdisk ntfs-3g mtools
 
 ### https://github.com/yantis/instant-archlinux-on-mac
     https://wiki.archlinux.org/index.php/Clover

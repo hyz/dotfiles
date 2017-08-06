@@ -3,7 +3,7 @@
 hd0=/dev/sda
 
 qemu-system-x86_64 -enable-kvm -machine type=pc,accel=kvm -cpu host -m 4G -smp 2 \
-    -drive file=/boot/winpe.iso,index=2,media=cdrom \
+    -drive file=/boot/winpe.iso,index=2,media=cdrom,format=raw \
     -drive file=$hd0,index=0,media=disk,format=raw,if=virtio \
     -boot order=d
 
