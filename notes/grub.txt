@@ -20,4 +20,24 @@ grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=grub --boot
 modprobe efivars
 efibootmgr -v
 
+### /etc/grub.d/40_custom 
+
+    menuentry "bootmgr.vhd" {
+        linux16 /boot/memdisk harddisk
+        initrd16 (hd0,gpt4)/boot/bootmgr.vhd
+    }
+
+    menuentry "Windows 10" {
+         insmod ntfs
+         insmod ntldr
+         insmod part_msdos
+         insmod search_fs_uuid
+         search --no-floppy --fs-uuid --set=root C68011F58011ECA5
+         ntldr /bootmgr
+    }
+
+    menuentry 'Windows GPT bootmgr wimboot' {
+        linux16 /wimboot
+        initrd16 newc:bootmgr:(hd0,gpt1)/bootmgr newc:bcd:(hd0,gpt1)/Boot/BCD
+    }
 
