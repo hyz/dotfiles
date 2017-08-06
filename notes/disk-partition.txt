@@ -1,18 +1,28 @@
 
+### http://linuxadministration.us/?p=154
+    Linux copy GPT partition table with dd
+        parted -ms /dev/sda print
+        Formula = (128*N)+1024
+    Where N is the number of partitions you have. In this case I had 4, so I end up with a value of 1536
+        dd if=/dev/sda of=GPT_TABLE bs=1 count=1536
+        dd if=GPT_TABLE of=/dev/sdb bs=1 count=1536
+        partprobe /dev/sdb
+### http://www.linuxjournal.com/magazine/hack-and-when-disaster-strikes-restoring-master-boot-record
+### http://www.digitalinternals.com/unix/unix-linux-backup-restore-partition-table/413/
+    Unix / Linux: Backup Restore Partition Table (MBR, EBR)
+
 ### http://strotmann.de/roller/cas/entry/cloning_macos_x_from_linux
 
 ### http://www.cyberciti.biz/faq/linux-list-disk-partitions-command/
-
-lsblk
-lsscsi
-parted -l
-fdisk -l
+    lsblk
+    lsscsi
+    parted -l
+    fdisk -l
 
 ### https://wiki.archlinux.org/index.php/Swap
-
-mkswap /dev/sdb8
-swapon /dev/sdb8
-swapon -s
+    mkswap /dev/sdb8
+    swapon /dev/sdb8
+    swapon -s
 
 ###
 losetup -o 32256 -f /dev/sda9

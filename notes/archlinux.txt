@@ -6,12 +6,19 @@
 ### install archlinux from archlinux
     pacman -Ql arch-install-scripts
     ...
-    pacstrap /mnt base vim efibootmgr dialog wpa_supplicant
+    pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant
     genfstab -pU /mnt | tee /mnt/etc/fstab
+    vim /mnt/etc/locale.gen
+    ...
     arch-chroot /mnt
     mkinitcpio -p linux
     ...
-    grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
+    # grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
+    # grub-install --target=i386-pc --recheck --debug /dev/sdb
+    grub-mkconfig -o /boot/grub/grub.cfg
+    passwd
+
+    ... pacman -S openssh git gnupg2
 
 ### https://github.com/yantis/instant-archlinux-on-mac
     https://wiki.archlinux.org/index.php/Clover

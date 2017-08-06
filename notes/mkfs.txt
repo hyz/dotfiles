@@ -1,0 +1,4 @@
+
+mkfs.ntfs --quick -L Ntfs /dev/sdb1
+mkfs.ext4 -L Home /dev/sdb2
+
