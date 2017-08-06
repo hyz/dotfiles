@@ -1,4 +1,9 @@
 
+###
+cp -vt $HOME/.local/share/fonts/ ...ttf
+fc-cache -fv
+
+###
 find /usr -name "font*.c"
 
     font_sun12x22.c

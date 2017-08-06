@@ -4,6 +4,8 @@
 ### https://wiki.archlinux.org/index.php/Installation_guide
 ### https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 ### install archlinux from archlinux
+    $HOME/{.gnupg,.ssh,.git,.password-store} # fonts
+    ...
     pacman -Ql arch-install-scripts
     pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
     ...
@@ -16,7 +18,7 @@
     locale-gen
     vim /etc/pacman.d/mirrorlist
     #
-    pacman -S openssh git gnupg2 syslinux dosfstools parted gptfdisk ntfs-3g mtools
+    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python
     passwd
     #
     grub-install --target=i386-pc --recheck /dev/sdX
