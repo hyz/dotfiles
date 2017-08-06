@@ -5,21 +5,28 @@
 ### https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 ### install archlinux from archlinux
     pacman -Ql arch-install-scripts
+    pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
     ...
-    pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant
-    genfstab -pU /mnt | tee /mnt/etc/fstab
-    vim /mnt/etc/locale.gen
+    genfstab -pU /mnt | sudo tee /mnt/etc/fstab
+    sudo vim /mnt/etc/{fstab,hostname,locale.gen} #/etc/locale.conf, /etc/vconsole.conf
+    sudo vimdiff {,/mnt}/etc/grub.d/40_custom
     ...
-    arch-chroot /mnt
+    sudo arch-chroot /mnt
+    ln -sf /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime
     locale-gen
-    mkinitcpio -p linux
-    ...
-    # grub-install --target=i386-pc --recheck --debug /dev/sdb
+    vim /etc/pacman.d/mirrorlist
+    #
+    pacman -S openssh git gnupg2 syslinux dosfstools parted gptfdisk ntfs-3g mtools
+    passwd
+    #
+    grub-install --target=i386-pc --recheck /dev/sdX
     #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
     grub-mkconfig -o /boot/grub/grub.cfg
-    passwd
-
-    ... pacman -S openssh git gnupg2 syslinux dosfstools parted gptfdisk ntfs-3g mtools
+    mkinitcpio -p linux
+    ...
+### http://www.volkerschatz.com/unix/archclone.html
+    # https://wiki.archlinux.org/index.php/Disk_cloning
+    # https://wiki.archlinux.org/index.php/Migrate_installation_to_new_hardware
 
 ### https://github.com/yantis/instant-archlinux-on-mac
     https://wiki.archlinux.org/index.php/Clover
