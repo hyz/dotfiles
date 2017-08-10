@@ -6,6 +6,7 @@ echo "zshrc" >> /tmp/zsh.$USER
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
 #RPROMPT=$'%(0?..%?%)) %{\e[36m%}%n%{\e[35m%}@%{\e[34m%}%M %{\e[33m%}%T%{\e[0m%}'
 
+fpath+=~/.zfunc
 autoload -U compinit promptinit
 compinit
 promptinit
@@ -132,7 +133,7 @@ esac
 
 ###########################################################
 
-for x in /opt/bin /opt/local/bin ; do
+for x in $HOME/.cargo/bin /opt/bin /opt/local/bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done

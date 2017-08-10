@@ -30,6 +30,9 @@
     # https://wiki.archlinux.org/index.php/Disk_cloning
     # https://wiki.archlinux.org/index.php/Migrate_installation_to_new_hardware
 
+### https://www.parabola.nu/
+    https://wiki.parabola.nu/Migration_from_the_GNU/Linux_distribution_of_Arch
+
 ### https://github.com/yantis/instant-archlinux-on-mac
     https://wiki.archlinux.org/index.php/Clover
     https://wiki.archlinux.org/index.php/Persistent_block_device_naming
