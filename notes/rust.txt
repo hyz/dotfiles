@@ -10,5 +10,3 @@ https://doc.rust-lang.org/book/second-edition/ch04-00-understanding-ownership.ht
 https://rustwiki.org/rust-by-example/
 https://rustwiki.org/rust-by-example/fn/methods.html
 
-https://github.com/TheWaWaR/simple-http-server
-
