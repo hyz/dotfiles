@@ -8,4 +8,8 @@ LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
     WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 winetricks vcrun2010
     WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 winetricks vcrun2012
 
+### winetricks
+    winetricks dlls list
+    winetricks dlls riched20
+
 

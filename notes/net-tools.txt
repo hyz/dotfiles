@@ -1,4 +1,6 @@
 
+### https://github.com/cyfdecyf/cow/
+
 ### bftpd
     pacman -S bftpd
     bftpd -c .config/bftpd.conf -D

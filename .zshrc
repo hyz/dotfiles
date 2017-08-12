@@ -215,6 +215,10 @@ fi
 #export ANT_ROOT=/bin
 
 ###
+if [ -d "$HOME/cargo" ]; then
+    export CARGO_HOME=$HOME/cargo
+    PATH=$PATH:$CARGO_HOME/bin
+fi
 if [ -d "$HOME/go" ]; then
     export GOPATH=$HOME/go
     PATH=$PATH:$GOPATH/bin
