@@ -18,7 +18,8 @@
     locale-gen
     vim /etc/pacman.d/mirrorlist
     #
-    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python
+    pacman -S base-devel
+    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python base-devel
     passwd
     #
     grub-install --target=i386-pc --recheck /dev/sdX

@@ -72,7 +72,7 @@ Plugin 'VundleVim/Vundle.vim'
 "Plugin 'plasticboy/vim-markdown'
 Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
-"Plugin 'racer-rust/vim-racer'
+Plugin 'racer-rust/vim-racer'
 call vundle#end()
 """
 " :PluginInstall _or_ vim +PluginInstall +qall
@@ -136,9 +136,16 @@ let g:vimim_tab_for_one_key=1
 syntax on
 filetype plugin indent on
 
-""" rust.vim
+"" https://github.com/racer-rust/vim-racer "" https://github.com/dan-t/rusty-tags
+"" rust.vim
 let g:rustfmt_autosave = 1
-""" https://github.com/dan-t/rusty-tags
+set hidden
+let g:racer_cmd = "$HOME/.cargo/bin/racer"
+let g:racer_experimental_completer = 1
 "autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
 "autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!
+au FileType rust nmap gd <Plug>(rust-def)
+au FileType rust nmap gs <Plug>(rust-def-split)
+"au FileType rust nmap gx <Plug>(rust-def-vertical)
+au FileType rust nmap <leader>gd <Plug>(rust-doc)
 

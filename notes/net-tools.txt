@@ -1,5 +1,7 @@
 
-### https://github.com/cyfdecyf/cow/
+### https://github.com/cyfdecyf/cow
+    HTTP proxy written in Go. COW can automatically identify blocked sites and use parent proxies to access.
+    curl -L git.io/cow > /tmp/cow.sh ; vim ~/.cow/rc
 
 ### bftpd
     pacman -S bftpd
@@ -30,9 +32,6 @@
     nc -p 16000 example.host 22 # port forward
 
     timeout 1 bash -c 'cat < /dev/null > /dev/tcp/google.com/80'
-
-### https://github.com/cyfdecyf/cow
-    HTTP proxy written in Go. COW can automatically identify blocked sites and use parent proxies to access.
 
 
 ### https://www.v2ex.com/t/217354

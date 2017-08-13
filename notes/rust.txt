@@ -1,6 +1,11 @@
 
-
 https://github.com/rust-unofficial/awesome-rust
+
+https://github.com/rust-lang-nursery/rls
+https://github.com/racer-rust/racer
+https://github.com/racer-rust/vim-racer
+
+https://github.com/rust-lang-nursery/rustup.rs
 https://github.com/servo/servo
 https://github.com/gfx-rs/gfx
 
@@ -9,4 +14,11 @@ https://doc.rust-lang.org/book/second-edition/ch04-00-understanding-ownership.ht
 
 https://rustwiki.org/rust-by-example/
 https://rustwiki.org/rust-by-example/fn/methods.html
+
+### [::]
+    curl https://sh.rustup.rs |tee rustup-init ; sh rustup-init
+    rustup component add rls --toolchain nightly
+    rustup component add rust-analysis --toolchain nightly
+    rustup component add rust-src --toolchain nightly
+    cargo install racer
 

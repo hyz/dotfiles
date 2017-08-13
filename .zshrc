@@ -133,7 +133,7 @@ esac
 
 ###########################################################
 
-for x in $HOME/.cargo/bin /opt/bin /opt/local/bin ; do
+for x in /opt/bin /opt/local/bin $HOME/.cargo/bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
@@ -215,10 +215,14 @@ fi
 #export ANT_ROOT=/bin
 
 ###
-if [ -d "$HOME/cargo" ]; then
-    export CARGO_HOME=$HOME/cargo
-    PATH=$PATH:$CARGO_HOME/bin
+#if [ -d "$HOME/cargo" ]; then
+#    export CARGO_HOME=$HOME/cargo
+#    PATH=$PATH:$CARGO_HOME/bin
+#fi
+if which rustc ; then
+    export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 fi
+
 if [ -d "$HOME/go" ]; then
     export GOPATH=$HOME/go
     PATH=$PATH:$GOPATH/bin
@@ -236,4 +240,6 @@ alias tmux='tmux -2'
 #  --userconfig=$HOME/.cnpmrc"
 
 # limit coredumpsize 0
+
 date
+
