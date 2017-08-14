@@ -2,9 +2,9 @@
 ## QEMU emulator version 2.7.0, Copyright (c) 2003-2016 Fabrice Bellard and the QEMU Project developers
 
 ####
-#hda=/dev/sda9 ### Windows7
-hda=/dev/sda5 ### archv1
-hdb=$HOME/VM/vhd0
+hda=/dev/sda5 ### arch
+hdb=/dev/sda6
+hdc=$HOME/VM/vhd0
 #SLIC=/sys/firmware/acpi/tables/SLIC
 ####SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
 br0=br0
@@ -23,6 +23,7 @@ if [[ "`id -ru`" = 0 ]] ; then
     [ "`id -ru $SUDO_USER`" -gt 0 ] || die "$SUDO_USER"
 
     [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || die "$hda"
+    [ "`stat -c '%G' $hdb`" = "kvm" ] || chgrp kvm $hdb || die "$hdb"
     if [ -e "$SLIC" ] ; then
         [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
     else
@@ -59,7 +60,7 @@ if [[ "`id -ru`" = 0 ]] ; then
     ##.iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
     ##.iptables -nvL -t nat
 
-    exit
+    exit ##################################################
 else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 ### lsusb
 ### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
@@ -70,19 +71,24 @@ else # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 ### qemu
     [ "`id -ru`" -gt 0 ] || exit 1
 
+    /bin/ls -l $hda $hdb
     if ! [ "`stat -c '%G' $hda`" = "kvm" ] ; then
-        /bin/ls -l $hda
         sudo chgrp kvm $hda || exit 1
+    fi
+    if ! [ "`stat -c '%G' $hdb`" = "kvm" ] ; then
+        sudo chgrp kvm $hdb || exit 1
     fi
     Mac=52:54:00:12:32:64
 
     qemu-system-x86_64 -name Archv1 -enable-kvm -machine type=pc,accel=kvm \
         -cpu host -smp cores=$(nproc) -m 4G \
         -drive file=$hda,index=0,media=disk,format=raw,if=virtio \
-        -hda $hda -boot c \
+        -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
         -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
         -nographic &
-    exit
+
+    exit ##################################################
+        -hda $hda -boot c \
         -curses -serial stdio
     -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
         -rtc base=localtime,clock=host \
