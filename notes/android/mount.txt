@@ -1,0 +1,5 @@
+
+### https://stackoverflow.com/questions/8663891/how-to-mount-the-android-img-file-under-linux
+    See the answer at: http://omappedia.org/wiki/Android_eMMC_Booting#Modifying_.IMG_Files
+    First you need to "uncompress" userdata.img with simg2img, then you can mount it via the loop device.
+

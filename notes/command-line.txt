@@ -81,7 +81,7 @@ date --set="23 Apr 2014 10:36:23"
 ### dd ###
 ### http://www.kwx.gd/CentOSApp/CentOS-dd.html
     dd if=mbr.2T-gpt of=/tmp/mbr-x conv=notrunc
-        # notrunc prevent truncation when writing into a file. This has no effect on a block device
+        # notrunc prevent truncation when writing into a file (replace part-of-file). This has no effect on a block device
     dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
 
 ### xxd ###

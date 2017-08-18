@@ -1,4 +1,6 @@
 
+go build -ldflags "-s -w"
+
 ### https://github.com/golang/go/wiki
 
 ### http://stackoverflow.com/questions/25927660/golang-get-current-scope-of-function-name

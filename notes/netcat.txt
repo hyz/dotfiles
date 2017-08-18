@@ -22,6 +22,9 @@ B> nc 127.0.0.1 9090 | ffplay -i pipe:0
 
     socat TCP-LISTEN:1234,fork SOCKS4A:127.0.0.1:google.com:80,socksport=5678
 
+    # https://github.com/greensea/mptunnel
+    socat udp-listen:4000 udp4:1.1.1.1:2000
+
 ### https://serverfault.com/questions/360321/forwarding-linux-terminal-from-serial-port-to-tcp-with-socat
 
     socat tcp-l:2020,reuseaddr,fork,crlf file:/dev/ttyACM0,echo=0,b115200,raw,crnl,icanon=1

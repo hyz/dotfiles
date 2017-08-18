@@ -1,4 +1,8 @@
 
+### https://github.com/jrfonseca/drmingw
+    Dr. Mingw is a Just-in-Time (JIT) debugger
+    https://github.com/jrfonseca/drmingw/releases
+
 ### http://www.msys2.org/
 ### https://mingw-w64.org/
 
