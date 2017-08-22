@@ -136,8 +136,7 @@ let g:vimim_tab_for_one_key=1
 syntax on
 filetype plugin indent on
 
-"" https://github.com/racer-rust/vim-racer "" https://github.com/dan-t/rusty-tags
-"" rust.vim
+"" rust
 let g:rustfmt_autosave = 1
 set hidden
 let g:racer_cmd = "$HOME/.cargo/bin/racer"

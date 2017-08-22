@@ -4,7 +4,6 @@
 ### https://wiki.archlinux.org/index.php/Installation_guide
 ### https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 ### install archlinux from archlinux
-    $HOME/{.gnupg,.ssh,.git,.password-store} # fonts
     ...
     pacman -Ql arch-install-scripts
     pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
@@ -20,13 +19,26 @@
     #
     pacman -S base-devel
     pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python base-devel
-    passwd
     #
     grub-install --target=i386-pc --recheck /dev/sdX
-    #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --boot-directory=/esp
+    #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --modules="part_gpt part_msdos"
+    #       # https://wiki.archlinux.org/index.php/GRUB#UEFI_systems
     grub-mkconfig -o /boot/grub/grub.cfg
+    #       grub-mkconfig -o /esp/grub/grub.cfg
     mkinitcpio -p linux
     ...
+    mount -a
+    passwd
+    useradd -Um -u 1000 -G wheel -s `which zsh` wood
+    visudo
+    ... ...
+    su - wood
+    rsync -va {.gnupg,.ssh,.git,.password-store} /mnt/home/wood/
+    rsync -vaR .local/share/fonts /mnt/home/wood/
+    rsync -vaR .config/*.{conf,json} .config/rslsync /mnt/home/wood/
+    rsync -vaR .local/*.json /mnt/home/wood/
+    ... ...
+
 ### http://www.volkerschatz.com/unix/archclone.html
     # https://wiki.archlinux.org/index.php/Disk_cloning
     # https://wiki.archlinux.org/index.php/Migrate_installation_to_new_hardware

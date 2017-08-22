@@ -1,4 +1,10 @@
 
+### https://wiki.archlinux.org/index.php/Systemd-boot
+
+    UUID/LABEL, which identifies a filesystem.
+    Using the PARTUUID/PARTLABEL is advantageous because it is invariant (i.e. unchanging) if you reformat the partition with another filesystem, or if the /dev/sd* mapping changed for some reason.
+        It is also useful if you do not have a filesystem on the partition (or use LUKS, which does not support LABELs).
+
 ### http://linuxadministration.us/?p=154
     Linux copy GPT partition table with dd
         parted -ms /dev/sda print

@@ -16,6 +16,10 @@
         -drive file=/home/test.img,if=virtio \
         -spice gl=on,unix,addr=/home/spice.sock,disable-ticketing
 
+    # lsusb
+    #   Bus 002 Device 004: ID 13fd:1040 Initio Corporation
+    # kvm -usb -usbdevice host:13fd:1040 ...
+
 ### share folder
 http://smilejay.com/2012/11/how-to-mount-a-qcow2-image/
     qemu-nbd
