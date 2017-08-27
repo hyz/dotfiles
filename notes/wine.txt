@@ -13,3 +13,5 @@ LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
     winetricks dlls riched20
 
 
+pacman -Sy wine lib32-alsa-lib
+
