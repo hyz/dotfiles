@@ -1,0 +1,244 @@
+#!/bin/bash
+## QEMU emulator version 2.7.0, Copyright (c) 2003-2016 Fabrice Bellard and the QEMU Project developers
+
+####
+hda=/dev/sda4 ### Windows10
+hda=/dev/sda9 ### Windows7
+hda=/dev/sda
+#hdb=$HOME/vm/u128
+SLIC=/sys/firmware/acpi/tables/SLIC
+#SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
+eth0=wlp3s0
+tapX=tap0
+br0=br0
+
+export QEMU_AUDIO_DRV=alsa
+
+case "$1" in
+init)
+    [ "`id -ru $SUDO_USER`" -gt 0 ] || die "$SUDO_USER"
+
+    [ "`stat -c '%G' $hda`" = "kvm" ] || chgrp kvm $hda || die "$hda"
+    [ "`stat -c '%G' $hdb`" = "kvm" ] || chgrp kvm $hdb || die "$hdb"
+    if [ -e "$SLIC" ] ; then
+        [ "`stat -c '%G' $SLIC`" = "kvm" ] || ( chgrp kvm $SLIC && chmod g+r $SLIC ) || exit 1
+    else
+        SLIC=
+    fi
+    ###[ -r $SLIC ] || chmod g+r $SLIC || exit 1
+
+    ip link set $eth0 up promisc on
+
+    modprobe tun
+    ip tuntap add dev $tapX mode tap user $SUDO_USER
+    ip link set $tapX master $br0 # brctl addif $br0 $tapX
+    ip link set $tapX up # promisc on
+    sleep 0.5s
+
+    ip addr ; ip tuntap list # brctl show
+
+    ### iptables
+    #modprobe tun
+    #ip tuntap add dev $tapX mode tap user wood
+    #ip link set $tapX up promisc on
+    #ip addr add 172.16.0.1/24 dev $tapX
+    ##tunctl -t $tapX
+    ## ifconfig $tapX 192.168.0.1 netmask 255.255.255.0 up
+
+    ## activate ip forwarding
+    #echo 1 > /proc/sys/net/ipv4/ip_forward
+    ### sysctl
+
+    ### iptables -nL -t nat
+    ## iptables --flush -t nat
+    ## iptables --flush
+    #### Create forwarding rules, where
+    #### $tapX - virtual interface
+    #### eth0 - net connected interface
+    #iptables -A FORWARD -i $tapX -o $eth0 -j ACCEPT
+    #iptables -A FORWARD -i $eth0 -o $tapX -m state --state ESTABLISHED,RELATED -j ACCEPT
+    #iptables -t nat -A POSTROUTING -o $eth0 -j MASQUERADE
+    #iptables -nvL -t nat
+    exit ;;
+
+*)
+    [ "`id -ru`" -gt 0 ] || exit 1
+### lsusb
+### Bus 002 Device 006: ID 0781:5567 SanDisk Corp. Cruzer Blade
+### ... -usb -device usb-host,hostbus=2,hostaddr=6
+### sudo chgrp kvm /dev/bus/usb/002/006
+### qemu-system-x86_64 -device help
+### qemu-system-x86_64 -device usb-host,help
+### qemu
+    /bin/ls -l $hda $hdb
+    if ! [ "`stat -c '%G' $hda`" = "kvm" ] ; then
+        sudo chgrp kvm $hda || exit 1
+    fi
+
+    iso=$HOME/en_windows_7_ultimate_with_sp1_x64_dvd_u_677332.iso
+    iso=/mnt/Windows/10.iso
+    iso=/mnt/Windows/Win7x64.iso
+    Mac=52:54:00:12:32:64
+
+    qemu-system-x86_64 -name Windows -enable-kvm -machine type=pc,accel=kvm \
+        -cpu host -smp cores=$(nproc) -m 4G \
+        -acpitable sig=SLIC,file=$SLIC \
+        -rtc base=localtime,clock=host \
+        -drive file=$hda,index=0,media=disk,format=host_device,if=virtio \
+        -drive file=$iso,index=2,media=cdrom \
+        -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
+        -k en-us -no-fd-bootchk -boot order=d,menu=on \
+        -soundhw ac97 -display gtk #-vga std #vmware #-daemonize
+    #
+    exit ;;
+esac
+        -drive file=/dev/sdc,index=1,media=disk,format=host_device,if=virtio \
+        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=$iso,index=1,media=cdrom,if=ide \
+        -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
+        -usb -usbdevice host:0951:1642 \
+        -usb -device usb-host,hostbus=1,hostaddr=5 \
+        -usb -usbdevice host:0781:5567 \
+        -drive file=$HOME/en_windows_7_ultimate_with_sp1_x64_dvd_u_677332.iso,index=1,media=cdrom,format=raw,if=virtio \
+        -cdrom /mnt/Windows/10.iso \
+
+    # cdrom
+        -drive file=/dev/cdrom,index=4,media=cdrom,format=host_cdrom,if=virtio \
+
+    # vvfat
+        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=fat:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=floppy,read-only=on \
+        -fda fat:floppy:rw:$HOME/vm/vvfat \
+
+        #-usb $* \
+        #-net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no \
+    -usb -usbdevice host:0781:5567
+    -drive file=$HOME/vm/Windows/10.iso,index=2,media=cdrom \
+
+-vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1,disable-ticketing -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent \
+spicy -h 127.0.0.1 -p 5900
+
+-vga qxl -full-screen \
+-vga qxl -global qxl.vram_size=128000 -spice port=5900,addr=127.0.0.1,disable-ticketing -chardev spicevmc,id=spicechannel0,name=vdagent
+-vga qxl -device virtio-serial-pci -spice port=5900,addr=127.0.0.1 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent
+    -drive file=$HOME/vm/vmware-tools.iso,index=2,media=cdrom \
+    -drive file=$HOME/vm/virtio-win-0.1.117.iso,index=2,media=cdrom \
+    -usbdevice tablet -soundhw ac97
+#http://www.spice-space.org/spice-user-manual.html#_gl_acceleration_virgl
+#-device virtio-vga,virgl=on -spice gl=on,unix,addr=/run/user/1000/spice.sock
+
+### https://www.segfault.digital/it/general/kvm-and-windows-vms/
+# windows drivers: -vga vmware
+#X:\> setup.exe /a
+### http://stackoverflow.com/questions/21496449/networking-is-not-working-on-qemu-guest-malta-mips
+#########================== =============== ==============
+
+### http://www.funtoo.org/Windows_7_Virtualization_with_KVM
+#   -vga qxl -device virtio-serial-pci -spice port=5900,password=abc123 -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent
+#
+### https://wiki.archlinux.org/index.php/Internet_sharing#Enable_NAT
+### https://wiki.archlinux.org/index.php/QEMU
+#
+### https://fedoraproject.org/wiki/Windows_Virtio_Drivers
+### http://turlucode.com/qemu-kvm-bridged-networking/
+### http://blog.elastocloud.org/2015/07/qemukvm-bridged-network-with-tap.html
+### https://en.wikipedia.org/wiki/TUN/TAP
+### https://bbs.archlinux.org/viewtopic.php?id=207907
+ip link add name br0 type bridge
+ip addr add 172.16.0.1/16 dev br0
+ip link set br0 up
+dnsmasq --interface=br0 --dhcp-range=172.16.0.123,172.16.0.150
+
+modprobe tun
+ip tuntap add dev tap0 mode tap user wood
+ip link set tap0 up promisc on
+ip link set tap0 master br0
+
+sysctl net.ipv4.ip_forward=1
+#sysctl net.ipv6.conf.default.forwarding=1
+#sysctl net.ipv6.conf.all.forwarding=1
+
+iptables -t nat -A POSTROUTING -o enp0s25 -j MASQUERADE
+iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i tap0 -o enp0s25 -j ACCEPT
+# # now run (as your user):
+# # $ qemu-system-x86_64 ... -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no
+#
+###
+
+    #-drive file=$hdb,index=1,media=disk,if=virtio \
+    #-drive file=$hda,index=0,media=disk,if=virtio,cache=none \
+    #-drive file=$hda,index=0,media=disk,format=raw,cache=none \
+    #-drive file=$hda,index=0,media=disk,if=virtio,aio=native \
+    #-net nic,model=virtio -net user\
+    #-net user,smb=/home/wood/smb \
+    #-net nic,model=rtl8139 -net user \
+    # -net nic,model=virtio -net tap,ifname=tap0,script=no,downscript=no,vhost=on
+    #
+    #-acpitable sig=RSDT,oem_id=LENOVO,oem_table_id=TP-70\ \ \ \
+    #-acpitable sig=SLIC,file=$SLIC \
+    #-acpitable sig=RSDT,rev=1,oem_id=LENOVO,oem_table_id=TP-70\ \ \ ,oem_rev=00003240,asl_compiler_id=\ LTP,asl_compiler_rev=00000000,data=/tmp/slic.dat \
+    #-bios ~/vm/bios.bin -acpitable sig=SLIC,file=$SLIC \
+    #-bios ~/vm/bios.bin \
+    #-bios "$rom" \
+    #-boot menu=on,splash-time=5000 \
+    #
+    #-drive file=/dev/sdb,index=1,media=disk,format=raw \
+    #
+    #-usb -device usb-host,hostbus=2,hostaddr=6 \
+    #-usb -usbdevice host:0781:5567 \
+    #
+    #-fda /home/wood/Downloads/virtio-win-0.1.102_x86.vfd \
+exit
+
+#!/bin/sh
+### qemu
+qemu-system-x86_64 -enable-kvm -cpu host -m 12288 -smp 2 -rtc base=localtime \
+    -usb \
+    -name Win7 -monitor telnet:127.0.0.1:12997,server,nowait,ipv4 \
+    -drive file=/home/jserink/VMs/Win_7_Pro.img,index=0,media=disk,format=raw \
+    -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 \
+    -cdrom /home/jserink/CDs/virtio-win-0.1-49.iso \
+    -net nic,vlan=0,model=virtio,macaddr=52:54:00:00:EE:07 -net vde \
+    -vga qxl -global qxl.vram_size=128000 -spice port=15900,addr=127.0.0.1,disable-ticketing -chardev spicevmc,id=spicechannel0,name=vdagent \
+    -boot c \
+    & 
+####
+
+# -redir tcp:3389::3389
+# -drive file=/path/to/primary/disk.img,index=0,media=disk,if=virtio
+# -drive file=/path/to/installer.iso,index=2,media=cdrom
+# -drive file=/path/to/virtio.iso,index=3,media=cdrom 
+#
+
+###
+# acpidump -o acpidata
+# acpixtract -l acpidata
+Signature Length  OemId     OemTableId   OemRevision CompilerId
+CompilerRevision
+    SLIC     374  "LENOVO"  "TP-7O   "    00002210    " LTP"     00000000
+# acpixtract -sSLIC acpidata
+# qemu-system-x86_64 -acpitable sig=SLIC,rev=1,oem_id=LENOVO,oem_table_id=TP-70\ \ \ ,oem_rev=00002210,asl_compiler_id=\ LTP,asl_compiler_rev=00000000,data=SLIC.dat
+
+###
+# Generated by iptables-save v1.6.0 on Sun May  1 17:23:21 2016
+*filter
+:INPUT ACCEPT [1606:795992]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [1684:769012]
+-A FORWARD -i tap0 -o wlp3s0 -j ACCEPT
+-A FORWARD -i wlp3s0 -o tap0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+COMMIT
+# Completed on Sun May  1 17:23:21 2016
+# Generated by iptables-save v1.6.0 on Sun May  1 17:23:21 2016
+*nat
+:PREROUTING ACCEPT [1276:350660]
+:INPUT ACCEPT [103:15854]
+:OUTPUT ACCEPT [135:8886]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o wlp3s0 -j MASQUERADE
+COMMIT
+# Completed on Sun May  1 17:23:21 2016
+
+Windows has stopped this device because it has reported problems. (Code 43)
+VMWare SVGA 3D
