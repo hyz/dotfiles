@@ -1,0 +1,35 @@
+
+### https://github.com/pandas-dev/pandas
+
+    pacman -Si python-pandas
+    ...
+    Optional Deps   : python-pandas-datareader: pandas.io.data replacement (recommended)
+                      python-numexpr: needed for accelerating certain numerical operations (recommended)
+                      python-bottleneck: needed for accelerating certain types of nan evaluations (recommended)
+                      python-scipy: needed for miscellaneous statistical functions
+                      python-pytables: needed for HDF5-based storage
+                      python-sqlalchemy: needed for SQL database support
+                      python-matplotlib: needed for plotting
+                      python-openpyxl: needed for Excel XLSX input/output
+                      python-xlrd: needed for Excel XLS input
+                      python-xlwt: needed for Excel XLS output
+                      python-xlsxwriter: alternative Excel XLSX output
+                      python-jinja: needed for conditional HTML formatting
+                      python-blosc: for msgpack compression using blosc
+                      python-pyqt4: needed for read_clipboard function (only one needed)
+                      python-pyside: needed for read_clipboard function (only one needed)
+                      xsel: needed for read_clipboard function (only one needed)
+                      xclip: needed for read_clipboard function (only one needed)
+                      python-beautifulsoup4: needed for read_html function
+                      python-lxml: needed for read_html function (and/or python-html5lib)
+                      python-html5lib: needed for read_hmlt function (and/or python-lxml)
+
+### convert xls to xlsx
+    pacman -S python-openpyxl python-xlrd
+
+    >>> from pandas.io import excel
+    >>> xls = excel.ExcelFile('1.xls')
+    >>> xls.sheet_names
+    >>> d = xls.parse()
+    >>> d.to_excel('1.xlsx')
+

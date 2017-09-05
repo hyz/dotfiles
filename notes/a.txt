@@ -40,3 +40,20 @@ export QTDIR=/cygdrive/d/qt/5.7.0/5.7/msvc2015 ; export PATH=$PATH:"$QTDIR/bin"
 
 kcptun-client -c ~/kcptun-bin/kcptun.json && ss-local -c ~/kcptun-bin/ss.json &
 
+rust/servo
+rust/book
+rust/ws-rs
+rust/kcp
+rust/tokio_kcp
+rust/kcp-rs
+rust/tk-http
+rust/tokio-minihttp
+rust/multipart
+rust/rustun
+rust/gotham
+rust/zemeroth
+rust/rouille
+rust/sozu
+rust/amethyst
+rust/calamine
+rust/rust-xls
