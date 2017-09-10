@@ -1,4 +1,17 @@
 
+https://www.reddit.com/r/rust/comments/6yh4ba/what_crates_source_code_one_should_learnexplore/
+https://github.com/BurntSushi/xsv
+https://github.com/BurntSushi/rust-csv
+http://blog.burntsushi.net/
+
+https://github.com/kmcallister/rustic-symmetries
+    Cheat sheet for concepts in Rust which come in matching sets or have some pleasing symmetry
+
+https://github.com/ctjhoa/rust-learning#cheat-sheets
+http://intorust.com/
+https://danielkeep.github.io/itercheat_baked.html
+http://phaiax.github.io/rust-cheatsheet/
+
 https://github.com/rust-unofficial/awesome-rust
 
 https://github.com/rust-lang-nursery/rls

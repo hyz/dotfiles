@@ -11,12 +11,12 @@ if [[ -d "$HOME/bin" ]] ; then
 else
     PATH=/bin:/usr/bin
 fi
-for x in /usr/local/bin /opt/bin ; do
+for x in /usr/local/bin /opt/bin $HOME/.cargo/bin ; do
     if [[ -d "$x" ]] ; then
         PATH=$PATH:$x
     fi
 done
-PATH=$PATH:/sbin:/usr/sbin
 
+PATH=$PATH:/sbin:/usr/sbin
 export PATH
 
