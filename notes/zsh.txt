@@ -21,3 +21,9 @@ zprofile
 zshrc
 zlogin
 
+### https://stackoverflow.com/questions/13762280/zsh-compinit-insecure-directories
+    zsh compinit: insecure directories, run compaudit for list.
+    Ignore insecure directories and continue [y] or abort compinit [n]?
+
+    compaudit | xargs chmod g-w
+
