@@ -1,0 +1,29 @@
+
+https://www.showapi.com/api/lookPoint/401
+
+http://unclechen.github.io/2016/09/02/Android%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E6%9C%8D%E5%8A%A1%E8%A7%A3%E6%9E%90/
+https://wufenfen.github.io/2017/03/22/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91%E4%B8%AD%E7%9A%84%E5%9C%B0%E7%90%86%E5%AE%9A%E4%BD%8D%E9%97%AE%E9%A2%98%E5%B0%8F%E6%80%BB%E7%BB%93/
+
+http://www.freebuf.com/articles/wireless/143292.html
+
+
+http://lbsyun.baidu.com/location/
+
+https://lbs.amap.com/getting-started/locate
+
+http://baixin.io/2017/01/iOS_Wifilist/  Wifi 定位原理及 iOS Wifi 列表获取
+
+https://tech.meituan.com/mt-wifi-locate-practice-part1.html
+
+https://en.wikipedia.org/wiki/Mozilla_Location_Service
+https://en.wikipedia.org/wiki/Wi-Fi_positioning_system
+https://location.services.mozilla.com/
+
+https://location.services.mozilla.com/downloads
+
+https://www.qxwz.com/ 千寻位置网
+
+http://api.huayinghealth.com/doc/map/lbs.html
+bts 	接入基站信息 mcc,mnc,lac,cellid,signal
+
+http://www.freebuf.com/articles/wireless/143292.html	如何更改手机定位位置？劫持WiFi定位实验 
