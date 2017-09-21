@@ -1,15 +1,46 @@
 #!/bin/python
 
-import sys, json
+import sys, json, fire
 
-d0 = 440000
-if len(sys.argv) > 1:
-    d0 = int(sys.argv[1])
+def gofmt():
+    def fmt2(subs, top):
+        topid = int(top['id']/10000)
+        #for x in filter(lambda y:int(y['id']/10000)==topid, subs):
+        #    print(topid,x['id'])
+        print('"%(name)s": subAddr{%(id)s, map[string]uint{' % top, end='')
+        print(*map(lambda y:'"%(name)s":%(id)s'%y, filter(lambda y:int(y['id']/10000)==topid, subs)), sep=',', end='')
+        print('}}')
+        # "广东": subAddr{4400, map[string]uint{"深圳": 4411, "惠州": 4422}},
+    js = json.load(sys.stdin)
+    tops, subs, _ = js['result']
+    for sub in subs:
+        sub['id'] = int(sub['id'])
+    for top in tops:
+        top['id'] = int(top['id'])
+        fmt2(subs, top)
 
-js = json.load(sys.stdin)
-for r in js['result']:
-    for x in filter(lambda x: d0<=int(x['id'])<=d0+9999, r):
+def f1(id=440000):
+    idMax = (id /10000) * 10000 + 9999
+    js = json.load(sys.stdin)
+    for r in js['result']:
+        for x in filter(lambda x: id<=int(x['id'])<=idMax, r):
+            print(x)
+def f2(id=440000):
+    idMax = (id /100) * 100 + 99
+    js = json.load(sys.stdin)
+    for r in js['result']:
+        for x in filter(lambda x: id<=int(x['id'])<=idMax, r):
+            print(x)
+def top():
+    js = json.load(sys.stdin)
+    r,_,_ = js['result']
+    for x in r: #filter(lambda x: id<=int(x['id'])<=id+9999, r):
         print(x)
+
+if __name__ == '__main__':
+    fire.Fire()
+# district.py f2 440300 < district.txt
+# district.py f2 441300 < district.txt
 
 # # curl "http://apis.map.qq.com/ws/district/v1/list?key=CD7BZ-6RTKX-U7A4W-74LRA-L3BZK-VNFUD" > district.txt
 # 

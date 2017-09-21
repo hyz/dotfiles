@@ -27,3 +27,10 @@ http://api.huayinghealth.com/doc/map/lbs.html
 bts 	接入基站信息 mcc,mnc,lac,cellid,signal
 
 http://www.freebuf.com/articles/wireless/143292.html	如何更改手机定位位置？劫持WiFi定位实验 
+http://www.hslk.com.cn/%E6%8A%80%E6%9C%AF/lbs-%E5%88%9D%E8%AF%95.html
+1、Mysql使用GeoHash转换成字符串存储
+2、Postgresql的PostGis插件，支持空间计算
+3、Mongodb 自带距离计算
+4、Redis 自带距离计算
+5、Mysql spitial
+6、lbs云服务（百度、高德…）、基于搜索引擎的
