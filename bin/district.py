@@ -19,6 +19,38 @@ def gofmt():
         top['id'] = int(top['id'])
         fmt2(subs, top)
 
+def gofmt_r():
+    def fmt2(subs, top):
+        topid = int(top['id']/10000)
+        print('%d: LocNameMap{"%s", map[uint]string{' % (topid,top['fullname']), end='')
+        print(*map(lambda y:'%(id)s:"%(fullname)s"'%y, filter(lambda y:int(y['id']/10000)==topid, subs)), sep=',', end='')
+        print('}}')
+        # "广东": subAddr{4400, map[string]uint{"深圳": 4411, "惠州": 4422}},
+    js = json.load(sys.stdin)
+    tops, subs, _ = js['result']
+    for sub in subs:
+        sub['id'] = int(sub['id'])
+    for top in tops:
+        top['id'] = int(top['id'])
+        fmt2(subs, top)
+
+def javafmt():
+    def fmt(lis, tag):
+        print(f'final int[] {tag}IdArr = {{', end='')
+        print(*map(lambda s:'%(id)s'%s, lis), sep=',', end='')
+        print('};')
+        print(f'final String[] {tag}NameArr = {{', end='')
+        print(*map(lambda s:'"%(fullname)s"'%s, lis), sep=',', end='')
+        print('};')
+    js = json.load(sys.stdin)
+    tops, subs, _ = js['result']
+    fmt( list( sorted(tops, key=lambda s:int(s['id'])) ), tag='a')
+    fmt( list( sorted(subs, key=lambda s:int(s['id'])) ), tag='b')
+    #print('int[] idA = {', ','.join(s['id'] for s in idA), '};')
+    #print('String[] strA = {', ','.join('"%(name)s"'%s for s in idA), '};')
+    #for sub in subs: print('%(id)s: "%(name)s",' % sub)
+    #for top in tops: print('%(id)s: "%(name)s",' % top)
+
 def f1(id=440000):
     idMax = (id /10000) * 10000 + 9999
     js = json.load(sys.stdin)
