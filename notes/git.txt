@@ -41,6 +41,7 @@ git config --global core.autocrlf true # Windows
 ### submodule
 ### http://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule
 
+git submodule update --init --recursive
 git submodule update --init
 git pull --recurse-submodules
 git submodule foreach git merge --ff-only
