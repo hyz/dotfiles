@@ -1,6 +1,6 @@
 #!/bin/python
 
-import sys, json, fire
+import sys, json, fire, re
 
 def gofmt():
     def fmt2(subs, top):
@@ -49,7 +49,90 @@ def javafmt():
     #print('int[] idA = {', ','.join(s['id'] for s in idA), '};')
     #print('String[] strA = {', ','.join('"%(name)s"'%s for s in idA), '};')
     #for sub in subs: print('%(id)s: "%(name)s",' % sub)
-    #for top in tops: print('%(id)s: "%(name)s",' % top)
+    #for top in tops: print('%(id)s: "%(name)s",' % sub)
+
+red_ = (
+        (('江苏','江西','广西','广东','河南','山东','福建','河北', '山西', '陕西', '辽宁', '浙江', '安徽'), '^([^省]+省)([^市]+市)')
+        , (('湖南','青海','贵州','四川','甘肃','云南','吉林'), '^([^省]+省)([^州市]+[州市])')
+        , (('北京','天津','上海'),'^([^市]+市)([^区]+区)')
+        , (('湖北','黑龙江')    , '^([^省]+省)([^市区州]+[市区州])')
+        , (('宁夏','广西')      , '^(.+自治区)([^市]+市)')
+        , (('新疆',)    , '^(.+自治区)([^州市区]+[州市区])')
+        , (('海南',)    , '^(海南省)([^市县]+[市县])')
+        , (('重庆',)    , '^(重庆市)([^区县]+[区县])')
+        , (('内蒙古',)  , '^(.+自治区)([^市盟]+[市盟])')
+        , (('西藏',)    , '^(.+自治区)([^市区]+[市区])')
+        , (('台湾',)    , '^(台湾省)([^市县]+[市县])')
+        , (('香港',)    , '^(.+行政区)([^区]+区)')
+        , (('澳门',)    , '^(.+行政区)(澳门半岛|氹仔|路氹城|路环)')
+        )
+def test():
+    reLis = []
+    for al,r in red_:
+        reLis += [ (a,r) for a in al ]
+
+    js = json.load(sys.stdin)
+    tops, subs, _ = js['result']
+    mtop = {}
+    for top in tops:
+        id = top['id'] = int(int(top['id'])/10000)
+        mtop.setdefault(id, top)
+
+    for x,y in reLis:
+        id = 0
+        for top in tops:
+            if top['name'].startswith(x):
+                id = top['id']
+        print(f'"{x}", {id}, "{y}"')
+    print()
+
+    for sub in subs:
+        id2 = sub['id'] = int(sub['id'])
+        id1 = int(id2/10000)
+        top = mtop[id1]
+        addr = top['fullname'] + sub['fullname'] + 'XYZ市区'
+        pfx2 = addr[:2]
+
+        mh = None
+        for a, _re in reLis:
+            if a.startswith(pfx2):
+                mh = re.search(_re, addr)
+
+        #if addr.startswith('台湾'):
+        #    mh = re.search('^(台湾省)([^市县]+[市县])', addr)
+        #elif addr.startswith('香港'):
+        #    mh = re.search('^(香港特别行政区)([^区]+区)', addr)
+        #elif addr.startswith('澳门'):
+        #    mh = re.search('^(澳门特别行政区)(澳门半岛|氹仔|路氹城|路环)', addr)
+        #elif addr.startswith('新疆'):
+        #    mh = re.search('^(新疆维吾尔自治区)([^州区]+[州区])', addr)
+        #elif addr.startswith('海南'):
+        #    mh = re.search('^(海南省)([^县]+[县])', addr)
+        #elif addr.startswith('重庆'):
+        #    mh = re.search('^(重庆市)([^县]+[县])', addr)
+        #elif addr.startswith('内蒙古'):
+        #    mh = re.search('^(内蒙古自治区)([^盟]+[盟])', addr)
+        #elif addr.startswith('西藏'):
+        #    mh = re.search('^(西藏自治区)([^区]+[区])', addr)
+        #else:
+        #    pass
+        #    # ! 232700 黑龙江省大兴安岭地区XYZ市区
+        #    # ! 429021 湖北省神农架林区XYZ市区
+        #    #mh = re.search('^([^省市区]+省)([^省市区]+自治州)', addr)
+        #    #if not mh:
+        #    #    mh = re.search('^([^省市区]+省)([^省市区]+市)', addr)
+        #    #    if not mh:
+        #    #        mh = re.search('^([^省市区]+市)([^省市区]+区)', addr)
+        #    #        if not mh:
+        #    #            mh = re.search('^([^省市区]+自治区)([^省市区]+市)', addr)
+        #    ##mh = re.search('^([^省市]+[省市]|.+自治区)([^市区县]+[市区县]|.+自治州)', addr)
+        if mh:
+            print(id2, mh.groups())
+        else:
+            print('!', id2, addr)
+    #for top in tops:
+    #    if not re.search('([省市]|自治区)$', top['fullname']):
+    #        print(top['id'], top['fullname'])
 
 def f1(id=440000):
     idMax = (id /10000) * 10000 + 9999
