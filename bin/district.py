@@ -2,14 +2,28 @@
 
 import sys, json, fire, re
 
-def gofmt():
+def gofmt_1():
     def fmt2(subs, top):
         topid = int(top['id']/10000)
         #for x in filter(lambda y:int(y['id']/10000)==topid, subs):
         #    print(topid,x['id'])
-        print('"%(name)s": subAddr{%(id)s, map[string]uint{' % top, end='')
+        print('"%(name)s": locNameIdxChina{%(id)s, map[string]uint{' % top, end='')
         print(*map(lambda y:'"%(name)s":%(id)s'%y, filter(lambda y:int(y['id']/10000)==topid, subs)), sep=',', end='')
-        print('}}')
+        print('},')
+        # "广东": subAddr{4400, map[string]uint{"深圳": 4411, "惠州": 4422}},
+    js = json.load(sys.stdin)
+    tops, subs, _ = js['result']
+    for sub in subs:
+        sub['id'] = int(sub['id'])
+    for top in tops:
+        top['id'] = int(top['id'])
+        fmt2(subs, top)
+def gofmt():
+    def fmt2(subs, top):
+        topid = int(top['id']/10000)
+        print('%d: map[string]uint{' % top['id'], end='')
+        print(*map(lambda y:'"%(name)s":%(id)d'%y, filter(lambda y:int(y['id']/10000)==topid, subs)), sep=',', end='')
+        print('},')
         # "广东": subAddr{4400, map[string]uint{"深圳": 4411, "惠州": 4422}},
     js = json.load(sys.stdin)
     tops, subs, _ = js['result']
@@ -24,7 +38,7 @@ def gofmt_r():
         topid = int(top['id']/10000)
         print('%d: LocNameMap{"%s", map[uint]string{' % (topid,top['fullname']), end='')
         print(*map(lambda y:'%(id)s:"%(fullname)s"'%y, filter(lambda y:int(y['id']/10000)==topid, subs)), sep=',', end='')
-        print('}}')
+        print('}},')
         # "广东": subAddr{4400, map[string]uint{"深圳": 4411, "惠州": 4422}},
     js = json.load(sys.stdin)
     tops, subs, _ = js['result']
@@ -52,19 +66,19 @@ def javafmt():
     #for top in tops: print('%(id)s: "%(name)s",' % sub)
 
 red_ = (
-        (('江苏','江西','广西','广东','河南','山东','福建','河北', '山西', '陕西', '辽宁', '浙江', '安徽'), '^([^省]+省)([^市]+市)')
-        , (('湖南','青海','贵州','四川','甘肃','云南','吉林'), '^([^省]+省)([^州市]+[州市])')
-        , (('北京','天津','上海'),'^([^市]+市)([^区]+区)')
-        , (('湖北','黑龙江')    , '^([^省]+省)([^市区州]+[市区州])')
-        , (('宁夏','广西')      , '^(.+自治区)([^市]+市)')
-        , (('新疆',)    , '^(.+自治区)([^州市区]+[州市区])')
-        , (('海南',)    , '^(海南省)([^市县]+[市县])')
-        , (('重庆',)    , '^(重庆市)([^区县]+[区县])')
-        , (('内蒙古',)  , '^(.+自治区)([^市盟]+[市盟])')
-        , (('西藏',)    , '^(.+自治区)([^市区]+[市区])')
-        , (('台湾',)    , '^(台湾省)([^市县]+[市县])')
-        , (('香港',)    , '^(.+行政区)([^区]+区)')
-        , (('澳门',)    , '^(.+行政区)(澳门半岛|氹仔|路氹城|路环)')
+        (('江苏','江西','广西','广东','河南','山东','福建','河北', '山西', '陕西', '辽宁', '浙江', '安徽'), '^[^省]+省([^市]+)市')
+        , (('湖南','青海','贵州','四川','甘肃','云南','吉林'), '^[^省]+省([^州市]+)[州市]')
+        , (('北京','天津','上海'), '^[^市]+市([^区]+)区')
+        , (('湖北','黑龙江')     , '^[^省]+省([^市区州]+)[市区州]')
+        , (('重庆',)      , '^重庆市([^区县]+)[区县]')
+        , (('海南',)      , '^海南省([^市县]+)[市县]')
+        , (('台湾',)      , '^台湾省([^市县]+)[市县]')
+        , (('宁夏','广西'), '^.+自治区([^市]+)市')
+        , (('新疆',)      , '^.+自治区([^州市区]+)[州市区]')
+        , (('内蒙古',)    , '^.+自治区([^市盟]+)[市盟]')
+        , (('西藏',)      , '^.+自治区([^市区]+)[市区]')
+        , (('香港',)      , '^.+行政区([^区]+)区')
+        , (('澳门',)      , '^.+行政区(澳门半岛|氹仔|路氹城|路环)')
         )
 def test():
     reLis = []
@@ -75,7 +89,7 @@ def test():
     tops, subs, _ = js['result']
     mtop = {}
     for top in tops:
-        id = top['id'] = int(int(top['id'])/10000)
+        id = top['id'] = int(top['id'])
         mtop.setdefault(id, top)
 
     for x,y in reLis:
@@ -83,12 +97,12 @@ def test():
         for top in tops:
             if top['name'].startswith(x):
                 id = top['id']
-        print(f'"{x}", {id}, "{y}"')
+        print(f'{{ "{x}", {id}, "{y}" }},')
     print()
 
     for sub in subs:
         id2 = sub['id'] = int(sub['id'])
-        id1 = int(id2/10000)
+        id1 = int(id2/10000)*10000
         top = mtop[id1]
         addr = top['fullname'] + sub['fullname'] + 'XYZ市区'
         pfx2 = addr[:2]

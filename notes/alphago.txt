@@ -1,0 +1,8 @@
+
+https://github.com/chncwang/FoolGo
+
+https://github.com/maxpumperla/betago
+https://github.com/brilee/MuGo
+http://torch.ch/
+https://github.com/lifrordi/DeepStack-Leduc
+https://github.com/torch/torch7

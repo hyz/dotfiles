@@ -1,0 +1,45 @@
+
+pg_dump test --schema-only |tee test.sql > db/test.sql.$(date +%m%d%M)
+vim test.sql
+dropdb test ; createdb test && psql test -f test.sql
+
+pg_dump --schema-only test -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%M)
+psql test -c '\d+ tab1'
+
+### https://wiki.archlinux.org/index.php/PostgreSQL
+
+    psql
+    /var/lib/postgres/data/pg_hba.conf
+
+### https://www.postgresql.org/docs/current/static/
+    # https://www.postgresql.org/docs/current/static/app-psql.html
+        psql test -c '\?'
+        psql test -c '\l'
+        psql test -c '\du'
+        psql test -c '\dt'
+        psql test -c '\dv'
+        psql test -c '\d table_A'
+        psql test -c '\h SELECT'
+        psql test -c '\a' -c "SELECT * FROM table_A"
+
+    # https://www.postgresql.org/docs/current/static/app-pgdump.html
+    # https://www.postgresql.org/docs/current/static/app-pgrestore.html
+        pg_dump.exe --host localhost --port 5432 --username "postgres" --no-password --verbose -F t --file "/tmp/mydatabase.sql" "mydatabase"
+
+    # https://stackoverflow.com/questions/109325/postgresql-describe-table
+        psql test -c '\d+ table_A'
+
+    # https://astaxie.gitbooks.io/build-web-application-with-golang/content/en/05.4.html
+        PostgreSQL
+
+    # http://godoc.org/github.com/lib/pq
+
+### https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL#MySQL
+    https://github.com/dimitri/pgloader
+
+### https://stackoverflow.com/questions/109325/postgresql-describe-table?rq=1
+    \d+ tablename
+### https://stackoverflow.com/questions/512451/how-can-i-add-a-column-to-a-postgresql-database-that-doesnt-allow-nulls
+    ALTER TABLE mytable ADD COLUMN mycolumn character varying(50) NOT NULL DEFAULT 'foo';
+    ... some work (set real values as you want)...
+    ALTER TABLE mytable ALTER COLUMN mycolumn DROP DEFAULT;
