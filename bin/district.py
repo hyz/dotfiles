@@ -48,6 +48,16 @@ def gofmt_r():
         top['id'] = int(top['id'])
         fmt2(subs, top)
 
+def gensql(opx):
+    js = json.load(sys.stdin)
+    tops, _, _ = js['result']
+    for top in tops:
+        loc = top['id']
+        if opx.upper() == 'INSERT':
+            print(f"INSERT INTO k9loc(loc,man,rip) VALUES('{loc}', 0, '127.0.0.1');")
+        elif opx.upper() == 'UPDATE':
+            print(f"UPDATE k9loc set man=0, tims='now()' where loc={loc};")
+
 def javafmt():
     def fmt(lis, tag):
         print(f'final int[] {tag}IdArr = {{', end='')

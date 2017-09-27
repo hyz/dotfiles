@@ -43,3 +43,12 @@ psql test -c '\d+ tab1'
     ALTER TABLE mytable ADD COLUMN mycolumn character varying(50) NOT NULL DEFAULT 'foo';
     ... some work (set real values as you want)...
     ALTER TABLE mytable ALTER COLUMN mycolumn DROP DEFAULT;
+
+### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql
+    psql testdb -c "DROP SCHEMA public CASCADE;"
+    psql testdb -c "CREATE SCHEMA public;"
+    psql testdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+    psql testdb -c "GRANT ALL ON SCHEMA public TO postgres;"
+    psql testdb -c "GRANT ALL ON SCHEMA public TO public;"
+
