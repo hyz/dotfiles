@@ -1,10 +1,15 @@
 
+psql test -c "\list"
+psql test -c "\l+"
+
 pg_dump test --schema-only |tee test.sql > db/test.sql.$(date +%m%d%M)
 vim test.sql
 dropdb test ; createdb test && psql test -f test.sql
 
 pg_dump --schema-only test -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%M)
 psql test -c '\d+ tab1'
+
+### https://postgrest.com/en/v4.3/tutorials/tut1.html#step-1-add-a-trusted-user
 
 ### https://wiki.archlinux.org/index.php/PostgreSQL
 
