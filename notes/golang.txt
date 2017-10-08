@@ -36,5 +36,5 @@ export PATH=$PATH:$HOME/go/bin
     https://github.com/faiface/pixel
 
 ### https://stackoverflow.com/questions/10383299/how-do-i-configure-go-to-use-a-proxy
-    http_proxy=127.0.0.1:7788 go get -v ...
+    http_proxy=127.0.0.1:7788 go get -u -v ...
 

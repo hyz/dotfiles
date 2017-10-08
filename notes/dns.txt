@@ -1,3 +1,18 @@
+### https://laod.cn/hosts/2017-dns-pinggu.html
+    DNSPod DNS+：★★★★★（推荐）
+        DNSPod的 Public DNS+是目前国内第一家支持ECS的公共DNS，是DNSPod推出的公共域名解析服务，可以为全网用户提供域名的公共递归解析服务！
+        DNS 服务器 IP 地址：
+        首选：119.29.29.29
+        备选：182.254.116.116
+        作者点评：测试数据显示Public DNS+国内数据均比114DNS好，强力推荐！
+
+    114DNS：★★★★★
+        首选：114.114.114.114
+        备选：114.114.115.115
+    阿里 AliDNS：★★★★
+        首选：223.5.5.5
+        备选：223.6.6.6
+
 ### https://github.com/opendns/dnscrypt-proxy
 
 sudo ~wood/bin/dnscrypt-proxy -a 0.0.0.0 --daemonize
