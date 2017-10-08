@@ -3,5 +3,5 @@
 
 echo "zshenv $HOME" >> /tmp/zsh.$USER
 
-source $HOME/.zprofile
+#source $HOME/.zprofile
 

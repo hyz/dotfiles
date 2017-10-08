@@ -1,0 +1,14 @@
+https://stackoverflow.com/questions/18539491/headless-browser-and-scraping-solutions
+
+https://intoli.com/blog/running-selenium-with-headless-firefox/
+
+export MOZ_HEADLESS=1
+
+https://adriftwith.me/coding/2017/04/21/headless-slimerjs-with-firefox/
+https://github.com/laurentj/slimerjs/issues/80
+
+### http://www.seleniumhq.org/
+    https://seleniumhq.github.io/selenium/docs/api/javascript/module/selenium-webdriver/firefox/index.html
+    https://seleniumhq.github.io/selenium/docs/api/py/webdriver_firefox/selenium.webdriver.firefox.webdriver.html
+    http://www.seleniumeasy.com/selenium-tutorials/launching-firefox-browser-with-geckodriver-selenium-3
+
