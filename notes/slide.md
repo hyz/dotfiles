@@ -1,10 +1,17 @@
 
+### https://github.com/jaspervdj/patat
+
+Terminal-based presentations using Pandoc
+
+
 ### https://github.com/isnowfy/pydown
-    pydown is another "Presentation System in a single HTML page" written by python inspired by keydown.
-    Like keydown it uses the deck.js and its extentions for the presentation.
+
+pydown is another "Presentation System in a single HTML page" written by python inspired by keydown.
+Like keydown it uses the deck.js and its extentions for the presentation.
 
 ### https://github.com/hakimel/reveal.js
 ### https://github.com/webpro/reveal-md
+
     reveal-md -p 8000 -h 0 oo.md --static ooslide
 
 ### http://mindfulstart.net/slides.html

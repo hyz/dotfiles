@@ -73,6 +73,9 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'racer-rust/vim-racer'
+"" https://github.com/plasticboy/vim-markdown
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
 call vundle#end()
 """
 " :PluginInstall _or_ vim +PluginInstall +qall
