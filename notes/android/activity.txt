@@ -1,5 +1,0 @@
-
-http://stackoverflow.com/questions/3226495/how-to-exit-from-the-application-and-show-the-home-screen?noredirect=1&lq=1
-http://stackoverflow.com/questions/6330200/how-to-quit-android-application-programmatically?rq=1
-http://stackoverflow.com/questions/3913592/start-an-activity-with-a-parameter
-
