@@ -1,14 +1,20 @@
 
+### https://github.com/acgotaku/BaiduExporter
+
+    aria2c --conf-path $HOME/BaiduExporter/aria2c/aria2.conf
+
 ### https://github.com/fatedier/frp
 
 ### https://github.com/cyfdecyf/cow
-    HTTP proxy written in Go. COW can automatically identify blocked sites and use parent proxies to access.
-    curl -L git.io/cow > /tmp/cow.sh ; vim ~/.cow/rc
+
+HTTP proxy written in Go. COW can automatically identify blocked sites and use parent proxies to access.
+curl -L git.io/cow > /tmp/cow.sh ; vim ~/.cow/rc
 
 ### https://github.com/xtaci/kcp-go
 ### https://github.com/xtaci/kcptun
 
 ### bftpd
+
     pacman -S bftpd
     bftpd -c .config/bftpd.conf -D
 
@@ -17,14 +23,17 @@
 ### https://github.com/TheTorProject
 
 ### https://github.com/shadowsocks/shadowsocks/wiki/Convert-Shadowsocks-into-an-HTTP-proxy
+
     polipo socksParentProxy=127.0.0.1:8787 proxyAddress=0.0.0.0
     http_proxy=http://x.x.x.x:8123 curl www.google.com
-    http://fanqiangba.blogspot.com/2017/
-    http://fanqiangba.blogspot.com/2017/04/goproxytls13-http2.html
+
+http://fanqiangba.blogspot.com/2017/
+http://fanqiangba.blogspot.com/2017/04/goproxytls13-http2.html
 
 ### https://pleiades.ucsc.edu/hyades/Iperf3
 ### http://iperf3-python.readthedocs.io/en/latest/examples.html
 ### https://www.veritas.com/support/en_US/article.000066021
+
     iperf -s                -u -p 12345
     iperf -c 10.12.240.32   -u -p 12345 -t 30 -b 250M
 
@@ -40,29 +49,35 @@
 
 
 ### https://www.v2ex.com/t/217354
-dtunnel_lite ngrok 
+
+    dtunnel_lite ngrok 
 
 ### http://blog.csdn.net/zshq280017423/article/details/8928616
-    Android手机 Fiddler HTTP代理抓包 
-    http://www.telerik.com/fiddler
+
+Android手机 Fiddler HTTP代理抓包 
+http://www.telerik.com/fiddler
 
 ### http://whatismyipaddress.com/
 
 ### https://github.com/Leask/Flora_Pac
+
     python2 flora_pac -x 'SOCKS5 192.168.2.115:8787; SOCKS 192.168.2.115:8787; DIRECT' -p 8884
 
-kcptun-client -c kcptun-bin/kcptun.json
-ss-local -c kcptun-bin/ss.json
+    kcptun-client -c kcptun-bin/kcptun.json
+    ss-local -c kcptun-bin/ss.json
 
 ### http://www.oschina.net/p/dog-tunnel
-    可访问远程局域网的服务，例如HTTP，VNC远程控制，SSH等
+
+可访问远程局域网的服务，例如HTTP，VNC远程控制，SSH等
 
 ### curl & cookies
+
     curl -v --cookie /tmp/cj --cookie-jar /tmp/cj http://127.0.0.1:9999/show
     curl -OL git.io/get-goproxy-vps
     curl -kOL https://x.x.x.x/xxx
 
 ### http://stackoverflow.com/questions/21228995/how-to-clear-https-proxy-setting-of-npm
+
     npm config rm proxy
     npm config rm https-proxy
     npm config delete proxy
@@ -71,9 +86,11 @@ ss-local -c kcptun-bin/ss.json
 ### https://github.com/rofl0r/proxychains-ng
 ### http://shawnelee88.github.io/2015/07/10/proxychains-shadowsocks%E7%A5%9E%E5%99%A8/
 ### https://zhuanlan.zhihu.com/p/24358104
-    proxychain4 npm install
 
-    http://www.linuxjournal.com/content/use-ssh-create-http-proxy#comment-336098
+proxychain4 npm install
+
+http://www.linuxjournal.com/content/use-ssh-create-http-proxy#comment-336098
+
     ssh -fqND 5555 thedoc@tardis
     pc emerge --sync
 

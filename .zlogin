@@ -1,5 +1,5 @@
 
-echo "zlogin" >> /tmp/zsh.$USER
+[[ -n "$Zdbg" ]] && echo "#zlogin" >> $Zdbg
 
 if which keychain ; then
     eval `keychain --agents ssh --eval $(find .ssh/*id_[dr]sa)`
@@ -28,12 +28,4 @@ fi
 #         eval `gpg-agent -s --enable-ssh-support --daemon --write-env-file "$gnupginf"`
 #     fi
 # fi
-
-if [[ -z "$DISPLAY" ]] && [[ "$(tty)" = /dev/tty1 ]]; then
-    if which startx 2>/dev/null ; then
-        startx #; logout
-    elif which xinit 2>/dev/null ; then
-        xinit #; logout
-    fi
-fi
 
