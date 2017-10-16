@@ -11,3 +11,5 @@ Zdbg="/tmp/zsh.$USER"
 [[ -n "$Zdbg" ]] && [[ -o interactive ]] && echo "-o interactive" >> $Zdbg
 [[ -n "$Zdbg" ]] && [[ -o login ]] && echo "-o login" >> $Zdbg
 
+[ -d "/tmp/._$USER" ] || mkdir "/tmp/._$USER"
+

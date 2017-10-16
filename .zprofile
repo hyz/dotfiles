@@ -4,8 +4,6 @@
 export LANG=en_US.UTF-8
 export EDITOR=vim
 
-[ -d "/tmp/._$USER" ] || mkdir "/tmp/._$USER"
-
 if [[ -d "$HOME/bin" ]] ; then
     PATH=$HOME/bin:/bin:/usr/bin
 else
@@ -17,24 +15,7 @@ fi
   #exec startx
 #fi
 if [[ -o login ]]; then
-    # [[ "$(tty)" = /dev/tty1 ]]
-    if [ -z "$DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ]; then
-        export PATH
-        if which startx 2>/dev/null ; then
-            exec startx
-        elif which xinit 2>/dev/null ; then
-            exec xinit
-        fi
-    fi
 fi
-
-for x in /usr/local/bin /opt/bin ; do
-    if [[ -d "$x" ]] ; then
-        PATH=$PATH:$x
-    fi
-done
-
-PATH=$PATH:/sbin:/usr/sbin
 
 case "`uname -s`" in
 Darwin)
@@ -89,30 +70,8 @@ fi
 
 ###
 
-for x in /opt/bin /opt/local/bin ; do
-    [ -d "$x" ] || continue
-    PATH=$PATH:$x
-done
-
 # Add environment variable ANT_ROOT for cocos2d-x
 #export ANT_ROOT=/usr/bin
-
-ANDROID_SDK=/opt/android-sdk
-if [[ -d "$ANDROID_SDK" ]] ; then
-    #ANDROID_SDK_HOME=$ANDROID_SDK
-    ANDROID_HOME=$ANDROID_SDK
-    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
-
-    PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
-fi
-
-ANDROID_NDK=/opt/android-ndk
-if [ -d "$ANDROID_NDK" ]; then
-    ANDROID_NDK_HOME=$ANDROID_NDK
-    export ANDROID_NDK ANDROID_NDK_HOME
-
-    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
-fi
 
 # build/tools/make_standalone_toolchain.py -v --arch=arm --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
 #if x=`/bin/ls -1d /opt/android/[0-9][0-9]-*-gcc-[0-9].[0-9]/bin |head -1` ; then
@@ -152,13 +111,5 @@ fi
     #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 #fi
 
-for x in $HOME/.cargo/bin $HOME/go/bin $HOME/.yarn/bin ; do
-    [ -d "$x" ] || continue
-    PATH=$PATH:$x
-done
-if [ -d "$HOME/go" ]; then
-    export GOPATH=$HOME/go
-fi
-
-export PATH
+#PATH=$PATH:/sbin:/usr/sbin
 

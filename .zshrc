@@ -116,5 +116,33 @@ alias tmux='tmux -2'
 
 # limit coredumpsize 0
 
+ANDROID_SDK=/opt/android-sdk
+if [[ -d "$ANDROID_SDK" ]] ; then
+    #ANDROID_SDK_HOME=$ANDROID_SDK
+    ANDROID_HOME=$ANDROID_SDK
+    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
+
+    PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
+fi
+
+ANDROID_NDK=/opt/android-ndk
+if [ -d "$ANDROID_NDK" ]; then
+    ANDROID_NDK_HOME=$ANDROID_NDK
+    export ANDROID_NDK ANDROID_NDK_HOME
+
+    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
+fi
+
+# /usr/local/bin 
+for x in /opt/bin $HOME/.cargo/bin $HOME/go/bin $HOME/.yarn/bin ; do
+    [ -d "$x" ] || continue
+    PATH=$PATH:$x
+done
+if [ -d "$HOME/go" ]; then
+    export GOPATH=$HOME/go
+fi
+
+#export PATH
+
 date
 

@@ -29,3 +29,13 @@ fi
 #     fi
 # fi
 
+# [[ "$(tty)" = /dev/tty1 ]]
+if [ -z "$DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ]; then
+    export PATH
+    if which startx 2>/dev/null ; then
+        exec startx
+    elif which xinit 2>/dev/null ; then
+        exec xinit
+    fi
+fi
+
