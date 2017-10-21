@@ -63,3 +63,6 @@ rust/sozu
 rust/amethyst
 rust/calamine
 rust/rust-xls
+
+http://51.ruyo.net/p/3600.html
+http://51.ruyo.net/p/1799.html
