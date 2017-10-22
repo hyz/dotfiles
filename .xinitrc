@@ -41,10 +41,13 @@ xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
         -e "pointer = 1 2 3 5 4"
 
 # exec ck-launch-session gnome-session
+#test -x /home/wood/rust/wtftw/target/release/wtftw && exec /home/wood/rust/wtftw/target/release/wtftw 
+#which way-cooler && exec way-cooler
 which i3 && exec i3
-which xmonad && exec xmonad
+which qtile && exec qtile
 which dwm && exec dwm
 which awesome && exec awesome
+which xmonad && exec xmonad
 
 #rox -p default
 # tint2 &
