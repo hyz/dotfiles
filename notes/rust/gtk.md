@@ -20,3 +20,5 @@
     cp /usr/x86_64-w64-mingw32/share/glib-2.0/schemas/* /wherever/release/share/glib-2.0/schemas
     cp -r /usr/x86_64-w64-mingw32/share/icons/* /wherever/release/share/icons
 
+https://www.reddit.com/r/rust/comments/6rerw5/tutorial_cross_compiling_a_gtk_program_from_linux/
+
