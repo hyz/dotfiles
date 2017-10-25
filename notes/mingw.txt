@@ -1,4 +1,6 @@
 
+pacman -S mingw-w64
+
 ### https://github.com/jrfonseca/drmingw
     Dr. Mingw is a Just-in-Time (JIT) debugger
     https://github.com/jrfonseca/drmingw/releases

@@ -17,7 +17,9 @@
     # ALTER USER myuser WITH SUPERUSER;
     psql mydb -c 'SELECT rolname, rolsuper FROM pg_roles'
 
-    pg_restore -d lotsbase /tmp/qz2017020901.backup
+    pg_restore -d mydb /tmp/qz2017020901.backup
+
+    pg_dump mydb --schema-only |tee dump/mydb.schema-only.$(date +%m%d%H%M) > a.dump
 
 ### https://www.mkyong.com/database/backup-restore-database-in-postgresql-pg_dumppg_restore/
 
@@ -102,4 +104,21 @@ You have four choices regarding the password prompt:
     DROP DATABASE newdb;
     CREATE DATABASE newdb WITH OWNER = postgres ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
     CREATE DATABASE newdb WITH TEMPLATE mydb OWNER dbuser;
+
+    host=/run/postgresql user=root dbname=mydb sslmode=disable # UNIX socket
+    postgres+unix:/run/postgresql/mydb
+
+### https://stackoverflow.com/questions/15644152/list-tables-in-a-postgresql-schema
+Schema
+
+    \d+
+    \dt *.*
+    \dt public.*
+    \dt (public|s).(s|t)
+
+    psql mydb -c "\d information_schema.tables"
+    psql mydb -c "SELECT table_catalog,table_schema,table_name,table_type FROM information_schema.tables"
+
+    psql mydb -c "select nspname from pg_catalog.pg_namespace"
+    psql mydb -c "select * from pg_catalog.pg_namespace"
 
