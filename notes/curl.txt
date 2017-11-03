@@ -1,6 +1,0 @@
-
-### http://stackoverflow.com/questions/27611193/curl-ssl-with-self-signed-certificate
-
-    curl -k url
-    curl --insecure url
-
