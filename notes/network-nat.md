@@ -1,0 +1,84 @@
+
+### https://en.wikipedia.org/wiki/Network_address_translation
+
+### http://www.think-like-a-computer.com/2011/09/16/types-of-nat/
+
+Full Cone NAT (Static NAT)
+Restricted Cone NAT (Dynamic NAT)
+Port Restricted Cone NAT (Dynamic NAT)
+Symmetric NAT (Dynamic NAT)
+
+### https://www.vmware.com/support/ws3/doc/ws32_network21.html
+
+Understanding NAT 
+
+    apt-get install coturn stun
+    server:
+        $ turnserver --stun-only
+    client:
+        $ stun x.x.x.x
+        STUN client version 0.96
+        Primary: Independent Mapping, Independent Filter, random port, will hairpin
+        Return value is 0x000002
+
+
+### https://github.com/hanpfei/stund 
+
+### http://www.cnblogs.com/my_life/articles/1908552.html
+### http://blog.chinaunix.net/uid-23227798-id-2485820.html
+
+Notes: NAT Addressing and Port Mapping and Filter Behavior - RFC4787
+
+NAT Addressing and Port Mapping
+Endpoint-Independent Mapping
+    The NAT reuses the port mapping for subsequent packets sent from the same internal IP address and port (X:x) to any external IP address and port. Specifically, X1':x1' equals X2':x2' for all values of Y2:y2.
+Address-Dependent Mapping
+    The NAT reuses the port mapping for subsequent packets sent from the same internal IP address and port (X:x) to the same external IP address, regardless of the external port. Specifically, X1':x1' equals X2':x2' if and only if, Y2 equals Y1.
+Address and Port-Dependent Mapping
+    The NAT reuses the port mapping for subsequent packets sent from the same internal IP address and port (X:x) to the same external IP address and port while the mapping is still active. Specially, X1':x1' equals X2:x2' if and only if Y2:y2 equals Y1:y1. 
+             
+REQ-1: A NAT MUST have an "Endpoint-Independent Mapping" behavior.
+
+NAT Filtering Behavior
+    The key behavior to describe is what criteria are used by the NAT to filter packets originating from specific external endpoints.
+Endpoint-Independent Filtering
+    The NAT filters out only packets not destined to the internal address and port X:x, regardless of the external IP address and port source (Z:z). The NAT forwards any packets destined to X:x. In other words, sending packets from the internal side of the NAT to any external IP address is sufficient to allow any packets back to the internal endpoint.
+Address-Dependent Filtering
+    The NAT filters out packets not destined to the internal address X:x. Additionally, the NAT will filter out packets from Y:y destined for the internal endpoint X:x if X:x has not sent packets to Y previously(independently of the port used by Y). In other words, for receiving packets from a specific external endpoint, it is necessary for the internal endpoint to send packets first to that specific external endpoint's IP address.
+Address and Port-Dependent Filtering
+    This is similar to the previours behavior, except that the external port is also relevant. The NAT filters out packets not destined for the internal address X:x. Additionally, the NAT will filter out packets from Y:y destined for the internal endpoint X:x if X:x has not sent packets to Y:y previously. In other words, for receiving packets from a specific external endpoint, it is necessary for the internal endpoint to send packets first to that external endpoint's IP address and port. 
+
+REQ-8: If application transparency is most important, it is RECOMMENDED that a NAT have an "Endpoint-Independent Filtering" behavior. If a more stringent filtering behavior is most import, it is RECOMMENDED that a NAT have an "Address-Dependent Filtering" behavior.
+    a) The filtering behavior MAY be an option configurable by the administrator of the NAT.
+
+
+### https://en.wikipedia.org/wiki/Network_address_translation
+### https://en.wikipedia.org/wiki/STUN
+### http://olegh.ftp.sh/public-stun.txt
+### http://www.stunprotocol.org/
+### http://www.cnblogs.com/shangdawei/p/3680034.html
+### http://www.cnblogs.com/shangdawei/p/3680034.html
+
+### https://github.com/jselbie/stunserver
+
+    > make BOOST_INCLUDE='-I/BOOST_ROOT'
+    > ./stunclient --mode full stun.xten.com
+    Binding test: success
+    Local address: 192.168.2.115:44403
+    Mapped address: 119.137.2.248:1446
+    Behavior test: success
+    Nat behavior: Endpoint Independent Mapping
+    Filtering test: success
+    Nat filtering: Address and Port Dependent Filtering
+
+    > ./stunclient --mode full stun.b2b2c.ca
+    Binding test: success
+    Local address: 192.168.2.115:46361
+    Mapped address: 119.137.2.248:1949
+    Behavior test: success
+    Nat behavior: Endpoint Independent Mapping
+    Filtering test: success
+    Nat filtering: Address and Port Dependent Filtering
+
+### https://github.com/laike9m/PyPunchP2P
+
