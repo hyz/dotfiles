@@ -13,3 +13,7 @@ Decision tree visual example
 
 https://pythonprogramminglanguage.com/decision-tree-visual-example/
 
+### https://github.com/frappe/charts
+
+Simple, responsive, modern SVG Charts with zero dependencies: https://frappe.github.io/charts
+

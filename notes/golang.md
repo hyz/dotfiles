@@ -41,3 +41,5 @@
 
     https_proxy=127.0.0.1:7788 http_proxy=127.0.0.1:7788 go get -v -u ...
 
+### https://github.com/tmrts/go-patterns
+

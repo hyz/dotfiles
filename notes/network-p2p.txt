@@ -1,5 +1,9 @@
-https://github.com/vzex/dog-tunnel
-    udp make session flow :
+### https://github.com/kgryte/awesome-peer-to-peer
+
+### https://github.com/vzex/dog-tunnel
+
+udp make session flow :
+
     s -> c1 : query_addrlist_a
     c1 -> s : report_addrlist
     s -> c2 : query_addrlist_b  c2 have c1's addresses
@@ -9,12 +13,15 @@ https://github.com/vzex/dog-tunnel
     s -> c2 : tell_bust_b
     c2 -> s : makeholeok or makeholefail
 
-http://www.cnblogs.com/cinlap/articles/2684330.html
- 内网穿透&UDP打洞 
+### http://www.cnblogs.com/cinlap/articles/2684330.html
 
-http://stackoverflow.com/questions/3614319/practical-nat-traversal-for-reliable-network-connections
-    STUN, STUNT, TURN and ICE
+内网穿透&UDP打洞 
 
-http://www.cisco.com/c/en/us/support/docs/ip/network-address-translation-nat/26704-nat-faq-00.html
-    Network Address Translation (NAT) FAQ
+### http://stackoverflow.com/questions/3614319/practical-nat-traversal-for-reliable-network-connections
+
+STUN, STUNT, TURN and ICE
+
+### http://www.cisco.com/c/en/us/support/docs/ip/network-address-translation-nat/26704-nat-faq-00.html
+
+Network Address Translation (NAT) FAQ
 
