@@ -123,3 +123,4 @@ elif which ssh-agent ; then
     fi
 fi
 
+export EDITOR=vim

@@ -3,6 +3,7 @@
     export PATH=$PATH:$HOME/go/bin
 
     go build -ldflags "-s -w"
+    GOPATH=`pwd`/..:$GOPATH go build
 
 ### https://github.com/golang/go/wiki
 
