@@ -77,8 +77,8 @@ REQ-8: If application transparency is most important, it is RECOMMENDED that a N
 
 ### https://github.com/laike9m/PyPunchP2P
 
-### https://en.wikipedia.org/wiki/STUN
 ### http://www.stunprotocol.org/
+### https://en.wikipedia.org/wiki/STUN
 ### http://olegh.ftp.sh/public-stun.txt
 
     # 264 STUN-servers. Tested 2017-08-08
