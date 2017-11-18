@@ -1,8 +1,12 @@
 
     psql mydb -c "\list"
     psql mydb -c "\l+"
-    psql mydb -c '\du'
     psql mydb -c '\dt'
+
+    psql mydb -c '\conninfo'
+    psql mydb -c '\? variables'
+
+### db admin, backup/restore
 
     pg_dump mydb --schema-only |tee mydb.sql > db/mydb.sql.$(date +%m%d%M)
     vim mydb.sql
@@ -11,15 +15,20 @@
     pg_dump --schema-only mydb -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%M)
     psql mydb -c '\d+ tab1'
 
-    postgres$ createuser --interactive
-    # ALTER USER myuser WITH PASSWORD 'abc123';
-    # ALTER USER myuser WITH ENCRYPTED PASSWORD 'abc123';
-    # ALTER USER myuser WITH SUPERUSER;
-    psql mydb -c 'SELECT rolname, rolsuper FROM pg_roles'
-
     pg_restore -d mydb /tmp/qz2017020901.backup
 
     pg_dump mydb --schema-only |tee dump/mydb.schema-only.$(date +%m%d%H%M) > a.dump
+
+### user/password manager
+
+    postgres$ createuser --interactive
+
+    psql mydb -c 'SELECT rolname, rolsuper FROM pg_roles'
+    psql mydb -c '\du'
+
+    # ALTER USER myuser WITH PASSWORD 'abc123';
+    # ALTER USER myuser WITH ENCRYPTED PASSWORD 'abc123';
+    # ALTER USER myuser WITH SUPERUSER;
 
 ### https://www.mkyong.com/database/backup-restore-database-in-postgresql-pg_dumppg_restore/
 
