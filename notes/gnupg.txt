@@ -1,9 +1,10 @@
 
 ### https://bbs.archlinux.org/viewtopic.php?id=192015
+
     ~/.gnupg/gpg.conf
 
-        keyserver-options auto-key-retrieve
-        auto-key-locate hkp://pool.sks-keyservers.net
+    keyserver-options auto-key-retrieve
+    auto-key-locate hkp://pool.sks-keyservers.net
 
 ### https://wiki.archlinux.org/index.php/GnuPG
 
@@ -24,12 +25,12 @@ Windows) if you use it after the --export option. I have now figured
 out that I can use "-ao <file.asc>" before the "--export-secret-key 
 <key_id>" and everything works fine: 
 
-> gpg -ao private.asc --export-secret-key <key_id> 
-> gpg --import private.asc 
-gpg: key <key_id>: already in secret keyring 
-gpg: Total number processed: 1 
-gpg: secret keys read: 1 
-gpg: secret keys unchanged: 1 
+    > gpg -ao private.asc --export-secret-key <key_id> 
+    > gpg --import private.asc 
+    gpg: key <key_id>: already in secret keyring 
+    gpg: Total number processed: 1 
+    gpg: secret keys read: 1 
+    gpg: secret keys unchanged: 1 
 
 Thanks for the help! 
 -S 
@@ -38,14 +39,18 @@ Thanks for the help!
 
 ### http://lists.wald.intevation.org/pipermail/gpg4win-devel/2009-September/000882.html
 
-###
-$ export GNUPGHOME=~/mnt/home/wood/.gnupg                         ~
-$ gpg2 --list-keys                                                ~
-$ gpg2 --list-securet-keys                                                ~
+### command-line
 
-pkill gpg-agent
-gpg --allow-secret-key-import --import _gnupg/secring.gpg
-gpg --allow-secret-key-import --import _gnupg/pubring.gpg
+    export GNUPGHOME=~/mnt/home/wood/.gnupg                         ~
+    gpg2 --list-keys                                                ~
+    gpg2 --list-securet-keys                                                ~
+
+    pkill gpg-agent
+    gpg --allow-secret-key-import --import _gnupg/secring.gpg
+    gpg --allow-secret-key-import --import _gnupg/pubring.gpg
+
+    git log jcloud.com.gpg
+    git show HEAD:jcloud.com.gpg |gpg2 -d --quiet --yes --batch
 
 ### http://stackoverflow.com/questions/9460140/gpg-encrypt-file-without-keyboard-interaction
     gpg --edit-key <...>
