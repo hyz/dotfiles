@@ -1,4 +1,10 @@
 
+### https://github.com/golang/go/wiki/Ubuntu
+
+    sudo add-apt-repository ppa:gophers/archive
+    sudo apt update
+    sudo apt-get install golang-1.9-go
+
 ### https://askubuntu.com/questions/720260/updating-golang-on-ubuntu
 
 Step 1: Remove the existing golang
@@ -17,9 +23,9 @@ Step 4: Create .go directory in home. (It is easy to install the necessary packa
 
 Step 5: Set up the following environment variables
 
-    GOROOT=/usr/local/go
-    GOPATH=~/.go
-    PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+    export GOROOT=/usr/local/go
+    export GOPATH=~/.go
+    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 Step 6: Update the go command
 

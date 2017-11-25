@@ -8,11 +8,11 @@
 
 ### db admin, backup/restore
 
-    pg_dump mydb --schema-only |tee mydb.sql > db/mydb.sql.$(date +%m%d%M)
+    pg_dump mydb --schema-only |tee mydb.sql > db/mydb.sql.$(date +%m%d%H%M)
     vim mydb.sql
     dropdb mydb ; createdb -O root mydb && psql mydb -f mydb.sql
 
-    pg_dump --schema-only mydb -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%M)
+    pg_dump --schema-only mydb -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%H%M)
     psql mydb -c '\d+ tab1'
 
     pg_restore -d mydb /tmp/qz2017020901.backup
@@ -62,6 +62,7 @@ You have four choices regarding the password prompt:
 
     psql
     vim /var/lib/postgres/data/pg_hba.conf
+    vim /var/lib/postgres/data/postgresql.conf # listen_addresses
 
 ### https://www.postgresql.org/docs/current/static/
 
@@ -130,4 +131,6 @@ Schema
 
     psql mydb -c "select nspname from pg_catalog.pg_namespace"
     psql mydb -c "select * from pg_catalog.pg_namespace"
+
+### https://wiki.archlinux.org/index.php/PostgreSQL#Upgrading_PostgreSQL
 

@@ -1,12 +1,14 @@
+
 185.31.16.184 github.global.ssl.fastly.net
 
 ### .ssh/config
-Host git-oopx
-    HostName git.oschina.net
-    User git
-    IdentityFile ~/.ssh/id_rsa-XXX
-$ ssh -vT git-oopx
-$ git clone git-oopx:oopx/test.git
+
+    Host git-oopx
+        HostName git.oschina.net
+        User git
+        IdentityFile ~/.ssh/id_rsa-XXX
+    $ ssh -vT git-oopx
+    $ git clone git-oopx:oopx/test.git
 
 ### man git |grep GIT_SSH
 
@@ -14,6 +16,7 @@ $ git clone git-oopx:oopx/test.git
 ### https://github.com/gitpython-developers/gitdb
 ### https://github.com/gitpython-developers/GitPython
 ### http://gitpython.readthedocs.io/en/stable/tutorial.html#handling-remotes
+
     ssh_cmd = 'ssh -i id_deployment_key'
     with repo.git.custom_environment(GIT_SSH_COMMAND=ssh_cmd):
         repo.remotes.origin.fetch()
@@ -21,6 +24,7 @@ $ git clone git-oopx:oopx/test.git
 ### http://cms-sw.github.io/tutorial-proxy.html
 ### http://stackoverflow.com/questions/783811/getting-git-to-work-with-a-proxy-server
 ### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy
+
     git config --global http.proxy socks5://localhost:1080
     git config --global core.gitproxy "git-proxy"
     git config --global socks.proxy "localhost:1080"
@@ -28,6 +32,7 @@ $ git clone git-oopx:oopx/test.git
     view ~/.gitconfig
 
 ### http://stackoverflow.com/questions/610208/how-to-retrieve-a-single-file-from-specific-revision-in-git
+
     git show bde7984f89:mediatek/platform/mt6572/kernel/drivers/keypad/rckey.c > /tmp/rckey.c.bde7984f89
     git show object
     git show $REV:$FILE
@@ -35,21 +40,25 @@ $ git clone git-oopx:oopx/test.git
     git show HEAD^^^:test/test.py
 
 ###
-git config --global core.autocrlf input
-git config --global core.autocrlf true # Windows
+
+    git config --global core.autocrlf input
+    git config --global core.autocrlf true # Windows
 
 ### submodule
 ### http://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule
 
-git submodule update --init --recursive
-git submodule update --init
-git pull --recurse-submodules
-git submodule foreach git merge --ff-only
+    git submodule update --init --recursive
+    git submodule update --init
+    git pull --recurse-submodules
+    git submodule foreach "(git checkout master; git pull)"
+    git submodule foreach git merge --ff-only
 
 ### github: Most starts
+
 https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
 
 ### http://stackoverflow.com/questions/822811/showing-which-files-have-changed-between-two-revisions
+
     git diff --name-status master..branchName
     git diff master..branch
     git diff bde7984f893966d..aa953d00e36ad
@@ -59,12 +68,14 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     git shortlog master..branch
 
 ### http://stackoverflow.com/questions/3866165/fetching-all-remote-branches-into-a-bare-git-repository
+
     git remote update
     git fetch --all
     git fetch origin '*:*' 
     for x in `git remote show`; do git fetch $x; done
 
 ### http://stackoverflow.com/questions/1783405/how-to-checkout-a-remote-git-branch?noredirect=1&lq=1
+
     git fetch
     git checkout test
     (User masukomi points out below that git checkout test will NOT work in modern git if you have multiple remotes. In this case use 
@@ -72,6 +83,7 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
 
 ### https://stackoverflow.com/questions/1778088/how-to-clone-a-single-branch-in-git
 ### git clone single branch
+
         git clone -b <branch name> [remote repository address]
     fetch所有remote branch并checkout特定branch。
     你用git branch 看不到是因为它只显示本地分支。 看全部
@@ -83,10 +95,12 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
         git clone git@192.168.2.105:mt6572 --branch k400 --single-branch k400
 
 ### http://stackoverflow.com/questions/2519933/git-clone-repo-across-local-file-system-in-windows
+
     git clone file:////<host>/<share>/<path>
 
 ### http://stackoverflow.com/questions/1064499/how-to-get-a-list-of-all-git-tags
 ### http://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
+
     git tag -n
     git show-ref --tags -d
 
@@ -94,7 +108,8 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
     git reset --hard FETCH_HEAD
 
 ### http://stackoverflow.com/questions/7131703/how-to-know-which-branch-a-git-log-commit-belongs-to
-    How to know which branch a “git log” commit belongs to?
+
+How to know which branch a “git log” commit belongs to?
 
     git log --all --source --pretty=oneline --graph
 

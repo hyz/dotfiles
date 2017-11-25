@@ -1,0 +1,12 @@
+#!/bin/sh
+
+[ -n "$2" ] || exit 2
+sd=$1
+xd=$2
+
+find $sd -type f | while read sf ; do
+    xf=$xd/`basename $sf`
+    [ -r "$xf" ] || continue
+    cmp --quiet "$sf" "$xf" || vimdiff </dev/tty "$sf" "$xf"
+done
+

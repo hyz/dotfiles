@@ -1,50 +1,56 @@
-# rsync --daemon --no-detach -v --config .rsyncd.conf
 
-# rsync -avz -e "ssh -p 44331" Files wood@x.x.x.x:.
-# rsync --cvs-exclude -vrl -e ssh V1.1原型 wood@192.168.1.55:.
-# rsync --cvs-exclude -vrl -e ssh wood@192.168.1.55:./V1.1原型 .
+    rsync --daemon --no-detach -v --config .rsyncd.conf
+
+    rsync -avz -e "ssh -p 44331" Files wood@x.x.x.x:.
+    rsync --cvs-exclude -vrl -e ssh V1.1原型 wood@192.168.1.55:.
+    rsync --cvs-exclude -vrl -e ssh wood@192.168.1.55:./V1.1原型 .
 
 # cygwin
-rsync -vurt --no-o --no-g pc:Dropbox .
 
-rsync -vrR --no-o --no-g pc:Dropbox .
+    rsync -vurt --no-o --no-g pc:Dropbox .
+
+    rsync -vrR --no-o --no-g pc:Dropbox .
 
 ### backup Downloads
-rsync -vr --ignore-existing lan:ws/Downloads/sync wood/
-rsync -vr --size-only lan:ws/Downloads/sync wood/
 
-rsync -aPh ... ...
+    rsync -vr --ignore-existing lan:ws/Downloads/sync wood/
+    rsync -vr --size-only lan:ws/Downloads/sync wood/
 
-rsync -aPh /mnt/. foo/bar/
+    rsync -aPh ... ...
+
+    rsync -aPh /mnt/. foo/bar/
 
 ### with find
-cd ~/workspace/
-find ctpx |grep -E '\.(jam|h|cpp)$' |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
-find websocketpp/websocketpp |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
-find rapidjson/include |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
-find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 
-# #empty dir ignored
-find test \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync -v --files-from=- . /tmp/
+    cd ~/workspace/
+    find ctpx |grep -E '\.(jam|h|cpp)$' |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+    find websocketpp/websocketpp |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+    find rapidjson/include |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
+    find vn.ctp/ctpapi/x64_linux |rsync -avz --files-from=- -e ssh . x.x.x.x:workspace/
 
-find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
-find marksix |grep -vE '(.git|/.gradle|.idea|/bin\>)' |rsync -v --files-from=- . /mnt/hgfs/home/
+### empty dir ignored
 
-find svnchina \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync --no-g --no-o -v --files-from=- . /mnt/hgfs/home
-find svnchina -name ".svn" -o -name ".git*" | rsync --no-g --no-o -v --exclude-from=- . /mnt/hgfs/home
+    find test \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync -v --files-from=- . /tmp/
+
+    find studyMediacodec1 |grep -v build |rsync -v --files-from=- . /tmp/
+    find marksix |grep -vE '(.git|/.gradle|.idea|/bin\>)' |rsync -v --files-from=- . /mnt/hgfs/home/
+
+    find svnchina \( -name ".svn" -o -name ".git*" \) -prune -o -print | rsync --no-g --no-o -v --files-from=- . /mnt/hgfs/home
+    find svnchina -name ".svn" -o -name ".git*" | rsync --no-g --no-o -v --exclude-from=- . /mnt/hgfs/home
 
 ###
-rsync -vaz -L --no-o --no-g -e "ssh -p 44331" usr wood@x.x.x.x:yxim/
 
-### Symbolic links
-# --links                   # Duplicate all symlinks
-# --links --safe-links      # Duplicate safe symlinks and skip unsafe ones
-# --keep-dirlinks
-###
-# --files-from
-# --exclude-from
-# --cvs-exclude
-# --no-o --no-g
+    rsync -vaz -L --no-o --no-g -e "ssh -p 44331" usr wood@x.x.x.x:yxim/
+    find . -maxdepth 1 -name ".git*" | rsync -vaz --links --no-o --no-g -e "ssh" --exclude-from=- . lan:/opt/boost-trunk
 
-find . -maxdepth 1 -name ".git*" | rsync -vaz --links --no-o --no-g -e "ssh" --exclude-from=- . lan:/opt/boost-trunk
+### --help: Symbolic links
+
+--links                   # Duplicate all symlinks
+--links --safe-links      # Duplicate safe symlinks and skip unsafe ones
+--keep-dirlinks
+#
+--files-from
+--exclude-from
+--cvs-exclude
+--no-o --no-g
 

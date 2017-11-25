@@ -4,6 +4,7 @@
 
     find * \( -name .repo -o -name .git -o -name out \) -prune -o -type f \( -name '*.h' \) -print >> h.files
     find * \( -name .repo -o -name .git -o -name out \) -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) -print >> cxx.files
+    find * \( -path "*/protobuf" -o -path "build" \) -prune -o -print
 
 ### http://stackoverflow.com/questions/4210042/exclude-directory-from-find-command
 
