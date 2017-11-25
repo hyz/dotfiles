@@ -19,3 +19,8 @@ Fast, reliable, and secure dependency management. https://yarnpkg.com
     yarn start
     yarn global add exp
 
+### https://yarnpkg.com/en/docs/install#linux
+
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
