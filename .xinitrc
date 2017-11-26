@@ -43,8 +43,6 @@ xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
 # exec ck-launch-session gnome-session
 #test -x /home/wood/rust/wtftw/target/release/wtftw && exec /home/wood/rust/wtftw/target/release/wtftw 
 #which way-cooler && exec way-cooler
-which i3 && exec i3
-which qtile && exec qtile
 which dwm && exec dwm
 which awesome && exec awesome
 which xmonad && exec xmonad
@@ -61,7 +59,6 @@ which xmonad && exec xmonad
 # xterm -e screen -e^jj &
 
 #exec $HOME/snip/2bwm/src/2bwm
-#exec i3
 
 # exec enlightenment_start
 #exec subtle

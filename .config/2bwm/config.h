@@ -39,7 +39,7 @@ static const char *ignore_names[] = {"bar", "xclock"};
 ///--Menus and Programs---///
 static const char *menucmd[]   = { "dmenu_run", NULL };
 static const char *gmrun[]     = { "gmrun",NULL};
-static const char *terminal[]  = { "xterm", NULL };
+static const char *terminal[]  = { "xterm", "/usr/bin/zsh" };
 static const char *click1[]    = { "xdotool","click", "1", NULL };
 static const char *click2[]    = { "xdotool","click", "2", NULL };
 static const char *click3[]    = { "xdotool","click", "3", NULL };

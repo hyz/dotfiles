@@ -375,7 +375,7 @@ Key q       A    MS  Quit
 #Key R  A        CM  Restart
 key q       A    M   Restart
 # key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
-key x  A    MS  Exec xterm -geometry 128x36
+key x  A    MS  Exec xterm -geometry 128x36 "/usr/bin/zsh"
 #key Return  A    MS  Exec xterm -geometry 128x36
 #Key b  A    MS  Exec chromium
 #Key p     A    M  Exec `dmenu_path | dmenu`
@@ -728,7 +728,7 @@ AddToMenu MenuUtilities
 #% DestroyMenu MenuXUtils
 #% AddToMenu MenuXUtils
 + %gnome/24x24/apps/accessories-calculator.png%"Xcalc" Exec exec xcalc
-+ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 128x32
++ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 128x3 /usr/bin/zsh2
 + %utils-xman.png%"Xman" Exec exec xman
 + %klipper.png%"Xclipboard" Exec exec kdocker -i /home/wood/.fvwm/icons/klipper.png xclipboard
 + %xload.png%"Xload" Exec exec xload
@@ -929,7 +929,7 @@ AddToMenu MenuFvwmStopModule
 #####
 DestroyFunc FvwmViewManPage
 AddToFunc FvwmViewManPage
-+ I Exec exec xterm -fg White -bg DarkBlue -g 128x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0"
++ I Exec exec xterm -fg White -bg DarkBlue -g 128x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0" /usr/bin/zsh
 
 DestroyMenu FvwmManPagesMenu
 AddToMenu   FvwmManPagesMenu "FVWM Man Pages" Title
