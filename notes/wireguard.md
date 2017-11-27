@@ -32,3 +32,19 @@ Client Setup:
     sudo ip route add publicipserver via 192.168.1.1 dev enp3s0 proto static
     sudo ip route change default via 192.168.2.2 dev wg0 proto static
 
+### hole-punching
+
+    bin/wg-nat-hole-punching-server-example
+
+    ip link add hp0 type wireguard
+    ip addr add 10.0.0.1 peer 10.0.0.2 dev hp0
+    wg set hp0 private-key <SELF-GENKEY-FILE> peer <PEER-PUBKEY-STR> allowed-ips 10.0.0.2/32
+    bin/wg-nat-hole-punching-client-example <SERVER-IP> hp0
+    ping 10.0.0.2
+
+    ip link add hp0 type wireguard
+    ip addr add 10.0.0.2 peer 10.0.0.1 dev hp0
+    wg set hp0 private-key <SELF-GENKEY-FILE> peer <PEER-PUBKEY-STR> allowed-ips 10.0.0.1/32
+    bin/wg-nat-hole-punching-client-example <SERVER-IP> hp0
+    ping 10.0.0.1
+

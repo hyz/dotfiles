@@ -1,5 +1,17 @@
 
-http://curl.haxx.se/
+### ...
+
+Test direct proxying with cURL:
+
+    curl -kvx localhost:8080 http://www.google.com/humans.txt
+    curl -kvx localhost:8080 https://www.google.com/humans.txt
+
+Test HTTP connect with cURL:
+
+    curl -kpvx localhost:8080 http://www.google.com/humans.txt
+    curl -kpvx localhost:8080 https://www.google.com/humans.txt
+
+### http://curl.haxx.se/
 
 ### http://stackoverflow.com/questions/27611193/curl-ssl-with-self-signed-certificate
 
