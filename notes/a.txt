@@ -2,6 +2,8 @@
 ipv6.sjtu.edu.cn
 ipv6-test.com
 
+http://www.msj1.com/archives/628.html
+
 https://github.com/jackpal/Taipei-Torrent
 
 https://en.wikipedia.org/wiki/Template:Clickable_world_map

@@ -36,6 +36,7 @@ setopt HIST_REDUCE_BLANKS
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_VERIFY
 
+## http://zshwiki.org/home/zle/bindkeys
 bindkey -v
 autoload -U        edit-command-line
 zle -N             edit-command-line
@@ -45,6 +46,7 @@ export KEYTIMEOUT=20 # Fri, Nov 21, 2014  8:36:52 AM
 setopt interactive_comments
 bindkey "\e#" vi-pound-insert
 # bindkey "\eq" push-line
+bindkey "^J" self-insert
 
 #unalias run-help
 #autoload run-help

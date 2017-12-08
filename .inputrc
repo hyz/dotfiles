@@ -1,3 +1,7 @@
+## https://wiki.archlinux.org/index.php/Readline
+## https://www.reddit.com/r/commandline/comments/kbeoe/you_can_make_readline_and_bash_much_more_user/
+## https://wiki.archlinux.org/index.php/Zsh#Key_bindings
+
 set editing-mode vi
 
 #$if mode=vi
@@ -12,4 +16,8 @@ set editing-mode vi
 #$endif
 
 set bell-style none
+
+"\C-j": insert-comment
+
+# bind -x '"\C-j":"clear;ls"'
 
