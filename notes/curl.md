@@ -31,3 +31,7 @@ Maybe *memory-leak* will happend in this mode..
 
 ### https://stackoverflow.com/questions/972925/persistent-keepalive-http-with-the-php-curl-library
 
+###
+
+    curl --connect-timeout 2 -x 127.0.0.1:8118 http://google.com
+
