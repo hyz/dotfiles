@@ -24,3 +24,7 @@ Fast, reliable, and secure dependency management. https://yarnpkg.com
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 
+### https://yarn.bootcss.com/blog/2016/11/24/offline-mirror.html
+
+    yarn config set yarn-offline-mirror .yarn-offline-mirror
+

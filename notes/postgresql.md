@@ -134,3 +134,11 @@ Schema
 
 ### https://wiki.archlinux.org/index.php/PostgreSQL#Upgrading_PostgreSQL
 
+### trigger
+
+https://oschina.net/translate/postgresql-triggers-golang
+https://github.com/rapidloop/ptgo
+
+    CREATE FUNCTION mytrigger() RETURNS TRIGGER AS '/tmp/ptgo.so' LANGUAGE C;
+    CREATE TRIGGER trig_1 AFTER INSERT OR UPDATE ON urls FOR EACH ROW EXECUTE PROCEDURE mytrigger();
+
