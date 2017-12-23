@@ -113,3 +113,5 @@ fi
 
 #PATH=$PATH:/sbin:/usr/sbin
 
+
+export PATH="$HOME/.cargo/bin:$PATH"

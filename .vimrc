@@ -57,7 +57,7 @@ cnoremap <C-L> <Up>
 
 "" #pathogen https://github.com/tpope/vim-pathogen
 ""  mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
-execute pathogen#infect()
+"execute pathogen#infect()
 "" #vim-go https://github.com/fatih/vim-go
 ""  git clone https://github.com/fatih/vim-go.git ~/.vim/bundle/vim-go
 ""  :GoInstallBinaries

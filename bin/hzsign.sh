@@ -12,8 +12,7 @@
 [ -n "$1" ] || exit 1
 
 Src=$1
-#SignDir=/cygdrive/d/workspace/sign
-SignDir=`basename $0 .sh`
+SignDir=$HOME/hzmake/sign
 
 rm -vf $SignDir/{libmtkhw.so,libBarcode.so,Game.apk}
 

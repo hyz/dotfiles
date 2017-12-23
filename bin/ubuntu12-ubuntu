@@ -3,7 +3,7 @@
 
 ####
 #hda=/dev/sda9 ### Windows7
-hda=/dev/sda6 ### archv1
+hda=/dev/sda4 ### archv1
 hdb=$HOME/VM/vhd0
 #SLIC=/sys/firmware/acpi/tables/SLIC
 ####SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
