@@ -1,10 +1,13 @@
 
-    psql mydb -c "\list"
-    psql mydb -c "\l+"
-    psql mydb -c '\dt'
+    $ createdb
 
-    psql mydb -c '\conninfo'
-    psql mydb -c '\? variables'
+    psql <<< "SELECT version()"
+    psql <<< "\list"
+    psql -c "\l+"
+    psql -c "\dt"
+
+    psql -c "\conninfo"
+    psql -c "\? variables"
 
 ### db admin, backup/restore
 
@@ -136,9 +139,26 @@ Schema
 
 ### trigger
 
-https://oschina.net/translate/postgresql-triggers-golang
-https://github.com/rapidloop/ptgo
+http://big-elephants.com/2015-10/writing-postgres-extensions-part-i/
+https://oschina.net/translate/postgresql-triggers-golang # https://github.com/rapidloop/ptgo
+https://stackoverflow.com/questions/20827761/could-not-access-file-libdir-plpgsql-no-such-file-or-directory
+https://www.postgresql.org/docs/9.6/static/xfunc-c.html
+https://www.postgresql.org/docs/9.6/static/triggers.html
+https://www.postgresql.org/docs/9.6/static/trigger-example.html
 
-    CREATE FUNCTION mytrigger() RETURNS TRIGGER AS '/tmp/ptgo.so' LANGUAGE C;
+    pg_config --libdir
+    pg_config --pkglibdir
+    cp -t `pg_config --pkglibdir` ptgo.so 
+
+    psql <<< "\d pg_trigger"
+    psql <<< "SELECT tgrelid,tgname,tgtype,tgargs FROM pg_trigger"
+    psql <<< "SELECT * FROM pg_language"
+
+    DROP TRIGGER IF EXISTS mytrigger ON urls
+    CREATE FUNCTION mytrigger() RETURNS TRIGGER AS 'ptgo' LANGUAGE C;
     CREATE TRIGGER trig_1 AFTER INSERT OR UPDATE ON urls FOR EACH ROW EXECUTE PROCEDURE mytrigger();
+
+    ...
+    INSERT INTO urls VALUES ('http://example.com/');
+    UPDATE urls SET url='http://www.test.com/';
 

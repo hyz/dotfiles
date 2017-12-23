@@ -16,7 +16,7 @@ def main():
         argp = argparse.ArgumentParser('Send email')
         argp.add_argument('-p', '--password', default=None, help='password') #(, nargs=2)
         argp.add_argument('-s', '--subject', default=time.strftime('%F') + ' <时间简史>')
-        argp.add_argument('-f', '--from', dest='From', help='From: zero@qq.com')
+        argp.add_argument('-f', '--from', dest='from', help='From: zero@qq.com')
         argp.add_argument('-a', '--attach', default=None)
         argp.add_argument('Tos', nargs='+', help='To: one@qq.com two@163.com')
         return argp.parse_args()
