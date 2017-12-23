@@ -1,61 +1,37 @@
 
 ### https://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html
-ifconfig eth0:1 192.168.9.172/24
 
-ip addr flush dev eth0
-ip addr del 192.168.9.172/24 dev eth0
-ip addr add 192.168.9.172/24 dev eth0
-ip addr add 192.168.9.172/24 dev eth0 label eth0:1
+    ifconfig eth0:1 192.168.9.172/24
 
-ip route flush dev eth0
-ip route del default dev eth0
-ip route del 192.168.9.1/24
-ip route add default via 192.168.9.1 dev eth0
-ip route add 192.168.2.0/24 via 192.168.2.1 dev eth0
+    ip addr flush dev eth0
+    ip addr del 192.168.9.172/24 dev eth0
+    ip addr add 192.168.9.172/24 dev eth0
+    ip addr add 192.168.9.172/24 dev eth0 label eth0:1
 
-ip link set eth0 down
-ip link set eth0 up
+    ip route flush dev eth0
+    ip route del default dev eth0
+    ip route del 192.168.9.1/24
+    ip route add default via 192.168.9.1 dev eth0
+    ip route add 192.168.2.0/24 via 192.168.2.1 dev eth0
+
+    ip link set eth0 down
+    ip link set eth0 up
 
 ### http://unix.stackexchange.com/questions/140697/trying-to-connect-to-gateway-in-static-ip-network
 
 ### https://support.qiniu.com/hc/kb/article/112993/
+
     手机端网络测试工具 (android、ios)
     手机端带宽测试
 
 ### http://software.internet2.edu/owamp/
+
     One-Way Ping (OWAMP)
 
 ### http://stackoverflow.com/questions/3755208/measuring-time-difference-between-networked-devices?rq=1
 ### http://stackoverflow.com/questions/8682702/how-to-calculate-packet-time-from-latency-and-bandwidth
 
-### http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-can-send-without-fragmenting?rq=1
-### http://stackoverflow.com/questions/14993000/the-most-reliable-and-efficient-udp-packet-size
-    MTU size of the host handling the PDU (most of the case it will be 1500) -
-    size of the IP header (20 bytes) -
-    size of UDP header (8 bytes)
-
-    1500 MTU - 20 IP hdr - 8 UDP hdr  = 1472 bytes
-
-### http://stackoverflow.com/questions/47903/udp-vs-tcp-how-much-faster-is-it?rq=1
-
-### https://en.wikipedia.org/wiki/Nagle%27s_algorithm
-socket 选项 TCP_NODELAY 和 Nagle 算法 
-    int on = 1;  
-#   ifdef WIN32  
-    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (const char *)&on, sizeof(on));  
-    setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(on));  
-#   else  
-    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&on, sizeof(on));  
-    setsockopt( sock, IPPROTO_TCP, TCP_NODELAY, (void *)&on, sizeof(on));  
-#endif  
-
-
-### http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t?rq=1
-SO_REUSEADDR
-SO_REUSEPORT
-EADDRINUSE
-
 ### http://stackoverflow.com/questions/1694144/can-two-applications-listen-to-the-same-port?noredirect=1&lq=1
 
-iptables -m statistic --mode random --probability 0.5
+    iptables -m statistic --mode random --probability 0.5
 

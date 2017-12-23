@@ -63,3 +63,30 @@ http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-c
 ### http://stackoverflow.com/questions/2031109/understanding-set-getsockopt-so-sndbuf
     Understanding set/getsockopt SO_SNDBUF
 
+### http://stackoverflow.com/questions/900697/how-to-find-the-largest-udp-packet-i-can-send-without-fragmenting?rq=1
+### http://stackoverflow.com/questions/14993000/the-most-reliable-and-efficient-udp-packet-size
+    MTU size of the host handling the PDU (most of the case it will be 1500) -
+    size of the IP header (20 bytes) -
+    size of UDP header (8 bytes)
+
+    1500 MTU - 20 IP hdr - 8 UDP hdr  = 1472 bytes
+
+### http://stackoverflow.com/questions/47903/udp-vs-tcp-how-much-faster-is-it?rq=1
+
+### https://en.wikipedia.org/wiki/Nagle%27s_algorithm
+socket 选项 TCP_NODELAY 和 Nagle 算法 
+    int on = 1;  
+#   ifdef WIN32  
+    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (const char *)&on, sizeof(on));  
+    setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(on));  
+#   else  
+    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&on, sizeof(on));  
+    setsockopt( sock, IPPROTO_TCP, TCP_NODELAY, (void *)&on, sizeof(on));  
+#endif  
+
+
+### http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t?rq=1
+SO_REUSEADDR
+SO_REUSEPORT
+EADDRINUSE
+

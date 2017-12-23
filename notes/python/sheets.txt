@@ -1,33 +1,42 @@
 
+### https://www.zhihu.com/question/50985792
+
+    import win32com.client
+    o = win32com.client.Dispatch("Excel.Application")
+    o.Visible = 1
+    sht = o.Worksheets[0]
+    sht.Cells(2,1).Value = "Hello"
+
 ### https://openpyxl.readthedocs.io/en/default/
 ### http://www.python-excel.org/
 ### https://github.com/python-excel/tutorial
 
 ### http://www.jb51.net/article/60510.htm
-import xlwt3
- 
-if __name__ == '__main__':
+
+    import xlwt3
      
-    datas = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h']]#二维数组
-    file_path = 'D:\\test.xlsx'
-     
-    wb = xlwt3.Workbook()
-    sheet = wb.add_sheet('test')#sheet的名称为test
-     
-    #单元格的格式
-    style = 'pattern: pattern solid, fore_colour yellow; '#背景颜色为黄色
-    style += 'font: bold on; '#粗体字
-    style += 'align: horz centre, vert center; '#居中
-    header_style = xlwt3.easyxf(style)
-     
-    row_count = len(datas)
-    col_count = len(datas[0])
-    for row in range(0, row_count): 
-        col_count = len(datas[row]) 
-        for col in range(0, col_count):
-            if row == 0:#设置表头单元格的格式
-                sheet.write(row, col, datas[row][col], header_style)
-            else:
-                sheet.write(row, col, datas[row][col])
-    wb.save(file_path)
+    if __name__ == '__main__':
+         
+        datas = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h']]#二维数组
+        file_path = 'D:\\test.xlsx'
+         
+        wb = xlwt3.Workbook()
+        sheet = wb.add_sheet('test')#sheet的名称为test
+         
+        #单元格的格式
+        style = 'pattern: pattern solid, fore_colour yellow; '#背景颜色为黄色
+        style += 'font: bold on; '#粗体字
+        style += 'align: horz centre, vert center; '#居中
+        header_style = xlwt3.easyxf(style)
+         
+        row_count = len(datas)
+        col_count = len(datas[0])
+        for row in range(0, row_count): 
+            col_count = len(datas[row]) 
+            for col in range(0, col_count):
+                if row == 0:#设置表头单元格的格式
+                    sheet.write(row, col, datas[row][col], header_style)
+                else:
+                    sheet.write(row, col, datas[row][col])
+        wb.save(file_path)
 

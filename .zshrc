@@ -148,3 +148,5 @@ fi
 
 date
 
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
