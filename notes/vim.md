@@ -7,6 +7,9 @@
     :g/"cmd":\(99\|211\|111\|112\),/ .w >>10014-99-211.txt
     :g/^\s*LOG.*\\n/s/\\n//
 
+    $ vim +"echo &runtimepath" +q
+    $ proxychains vim +PlugInstall +q
+
 ### http://vim.wikia.com/wiki/Power_of_g
 
 ### http://stackoverflow.com/questions/4789811/how-do-i-repeat-any-command-in-vim-like-c-x-z-in-emacs

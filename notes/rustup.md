@@ -2,6 +2,7 @@
 ### https://github.com/rust-lang-nursery/rustup.rs
 
     rustup self update
+    rustup update nightly
     rustup update
     rustup show
 

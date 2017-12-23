@@ -77,14 +77,23 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
 call vundle#end()
-"""
-" :PluginInstall _or_ vim +PluginInstall +qall
+" vim +PluginInstall +qall
 """Brief help
 " :PluginList       - lists configured plugins
 " :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
 " :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
 "
+"""https://github.com/junegunn/vim-plug
+" curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+" vim +PlugInstall +q
+call plug#begin('~/.vim/plugged')
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+Plug 'junegunn/goyo.vim'
+"Plug 'autozimu/LanguageClient-neovim', {'tag': 'binary-*-x86_64-linux-musl' }
+call plug#end()
+
 """ Put your non-Plugin stuff after this line === === ===
 
 "cnoremap <Esc>b <S-Left>
