@@ -112,6 +112,7 @@ fi
 #fi
 
 #PATH=$PATH:/sbin:/usr/sbin
+PATH=$HOME/.cargo/bin:$PATH
 
+export PATH
 
-export PATH="$HOME/.cargo/bin:$PATH"
