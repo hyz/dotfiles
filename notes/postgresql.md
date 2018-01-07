@@ -162,3 +162,8 @@ https://www.postgresql.org/docs/9.6/static/trigger-example.html
     INSERT INTO urls VALUES ('http://example.com/');
     UPDATE urls SET url='http://www.test.com/';
 
+### compare timestamp/UNIX_Time
+https://dba.stackexchange.com/questions/2796/how-do-i-get-the-current-unix-timestamp-from-postgresql
+
+    select id,tims from k9ss where extract(epoch from tims)>1512316800 order by id limit 3
+
