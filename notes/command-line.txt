@@ -154,11 +154,13 @@ sort -t$'\t' -k3 -nr file.txt
 http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
 ### time
-hwclock --systohc --utc
+
+    hwclock --systohc --utc
 
 ### ctags
-ctags --c-kinds=+px `find $(pwd) -type f -name "*.[ch]*" |grep -v win`
 
-find *.* dzpk /usr/include/qt/ -path "3rdparty" -prune -o \( -name "*.h" -o -name "*.cpp" \) -print > tags.files
-/usr/bin/arduino-ctags --c++-kinds=+px -Ltags.files
+    ctags --c-kinds=+px `find $(pwd) -type f -name "*.[ch]*" |grep -v win`
+
+    find *.* dzpk /usr/include/qt/ -path "3rdparty" -prune -o \( -name "*.h" -o -name "*.cpp" \) -print > tags.files
+    /usr/bin/arduino-ctags --c++-kinds=+px -Ltags.files
 
