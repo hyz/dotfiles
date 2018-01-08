@@ -36,5 +36,8 @@ https://www.samba.org/samba/docs/using_samba/ch09.html
 
 ### hide files
 
-    veto files = /.*/
+https://www.samba.org/samba/docs/using_samba/ch08.html
+
+    veto files = /.*/*.bmp/*.jpg/*.png/*.gif/
+
 
