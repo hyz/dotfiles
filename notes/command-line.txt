@@ -164,3 +164,8 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
     find *.* dzpk /usr/include/qt/ -path "3rdparty" -prune -o \( -name "*.h" -o -name "*.cpp" \) -print > tags.files
     /usr/bin/arduino-ctags --c++-kinds=+px -Ltags.files
 
+    ctags -f tags/java -R --language-force=java /opt/java/src
+
+    rg -t java --files |grep -vE '(test|3rdparty|Crypto)' > java.files
+    rg -t cpp --files |grep -vE '(test|3rdparty|Crypto)' > cpp.files
+
