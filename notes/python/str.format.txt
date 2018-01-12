@@ -5,3 +5,5 @@ https://pyformat.info/
 
     https://stackoverflow.com/questions/tagged/f-string
 
+### https://mkaz.tech/code/python-string-format-cookbook/
+
