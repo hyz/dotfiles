@@ -33,3 +33,6 @@ https://github.com/jirihnidek/daemon
 
 ### https://www.freedesktop.org/wiki/Software/systemd/FrequentlyAskedQuestions/
 
+### https://superuser.com/questions/278396/systemd-does-not-run-etc-rc-local
+
+/etc/rc.local
