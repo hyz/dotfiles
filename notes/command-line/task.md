@@ -1,6 +1,7 @@
 
 ### https://taskwarrior.org/docs/
 ### https://taskwarrior.org/docs/best-practices.html
+### https://linux.die.net/man/5/task-faq
 
     pacman -Sy task
 
