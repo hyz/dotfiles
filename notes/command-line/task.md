@@ -23,3 +23,4 @@
     task projects
     task project:server
 
+    task |awk '{if($3!="todo")print}'
