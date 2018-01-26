@@ -1,4 +1,6 @@
 
+awk +ACTIVE |tail +4 |awk '{$2=$3="";print $0}' |column -t
+
 ### https://taskwarrior.org/docs/
 ### https://taskwarrior.org/docs/best-practices.html
 ### https://linux.die.net/man/5/task-faq
@@ -25,3 +27,14 @@
     task project:server
 
     task |awk '{if($3!="todo")print}'
+
+### https://taskwarrior.org/docs/tags.html
+
+virtual tags
+
+    task 1 start
+    task +ACTIVE list
+
+    task 1 modify +work
+
+task +ACTIVE |tail +4 |awk '{print $1" "$4" "$5}' |column -t 
