@@ -11,6 +11,10 @@ Test HTTP connect with cURL:
     curl -kpvx localhost:8080 http://www.google.com/humans.txt
     curl -kpvx localhost:8080 https://www.google.com/humans.txt
 
+json
+
+    curl -H "Content-Type: application/json" -X POST -d '{"key": "value"}' http:localhost:18001/get
+
 ### http://curl.haxx.se/
 
 ### http://stackoverflow.com/questions/27611193/curl-ssl-with-self-signed-certificate
