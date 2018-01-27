@@ -1,5 +1,14 @@
 
-awk +ACTIVE |tail +4 |awk '{$2=$3="";print $0}' |column -t
+    task commands
+    task calendar
+
+    task tags
+    task +ACTIVE |tail +4 |awk '{$2=$3="";print $0}' |column -t
+    task +Todo add ...
+
+    task scheduled:2018-01-01 add ...
+    task due:+2days add ...
+    task recur:weekday add ...
 
 ### https://taskwarrior.org/docs/
 ### https://taskwarrior.org/docs/best-practices.html
@@ -26,7 +35,7 @@ awk +ACTIVE |tail +4 |awk '{$2=$3="";print $0}' |column -t
     task projects
     task project:server
 
-    task |awk '{if($3!="todo")print}'
+    task |awk '{if($3!="Todo")print}'
 
 ### https://taskwarrior.org/docs/tags.html
 
