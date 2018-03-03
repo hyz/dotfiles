@@ -48,6 +48,7 @@ bindkey "\e#" vi-pound-insert
 # bindkey "\eq" push-line
 bindkey "^J" self-insert
 
+export SDCV_HISTSIZE=10000
 #unalias run-help
 #autoload run-help
 
