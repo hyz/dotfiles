@@ -145,6 +145,10 @@ if [ -d "$HOME/go" ]; then
     export GOPATH=$HOME/go
 fi
 
+if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
+    # export NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
+fi
+
 #export PATH
 
 date
