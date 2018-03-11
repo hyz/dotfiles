@@ -1,11 +1,33 @@
-https://www.qcloud.com/community/article/186
-    再说TCP神奇的40ms -- Nagel
-    客户端：
-        关闭nagel算法，即设置socket tcp_no_delay属性。
-        ...
-    服务端：
-        关闭tcp_delay_ack, 这样， 每个tcp请求包都会有一个ack及时响应， 不会出现延迟的
-        ...
+
+### https://networkengineering.stackexchange.com/questions/1782/why-does-my-udp-broadcast-wireless-communication-is-capped-at-1mbs/
+
+https://www.v2ex.com/t/371950
+最主要的问题是大多数无限适配器，广播的时候速率都会强制限制在 1Mbps，因为只有这个是所有连接的客户端都必须要支持的速率，当然丢包率会很高了。无线网络的广播因为这个基本就是个笑话。 
+...
+
+802.11 只有 unicast 和 broadcast。UDP 广播以及组播在实际传输上，根据设置的不同，可以被操作系统自动转换成 unicast 和 broadcast。转成 unicast 的好处很明显：
+1. 可以使用 multi stream。即多个空间流传输，能够达到无线的标称速率比如：433Mbps/866Mbps
+2. 可靠性比 broadcast 高，因为每一个包对会有物理层的 ACK。
+3. 可以使用 802.11n 之后的高级特性，比如 A-MPDU，A-MSDU 等。
+缺点也很明显，有多个 client 的时候，每个都要这样传输一遍，很占空域时间。实际上 OpenWrt 等路由器的默认广播 /组播就是用 unicast 发送的,要想修改可以参考如下： https://wiki.openwrt.org/doc/howto/udp_multicast。
+使用 multcast 发送的好处如下：
+1. 路由器端对于任何一个组播或者广播包只需要发送一次
+坏处：
+1. 没有 ACK，容易丢包
+2. 不能使用 802.11n 的高级特性。比如 A-MPDU、A-MSDU。
+3. 为了保证所有的 client 都能接收到，采用了信噪比比较高的 MCS，这个时候速率可能只有 1Mbps。
+
+我之前在芯片厂商做个 Wi-Fi 芯片固件和驱动，也支持过客户做过视频 /文件的可靠 /不可靠分发。当时的情况是一个路由器至少带 60 个人。有什么问题，可以咨询一下我。PS：打很多字太累。。。
+
+### https://www.qcloud.com/community/article/186
+
+再说TCP神奇的40ms -- Nagel
+客户端：
+    关闭nagel算法，即设置socket tcp_no_delay属性。
+    ...
+服务端：
+    关闭tcp_delay_ack, 这样， 每个tcp请求包都会有一个ack及时响应， 不会出现延迟的
+    ...
 
 http://unix.stackexchange.com/questions/122281/why-is-my-tcp-throughput-much-greater-than-udp-throughput
 

@@ -67,7 +67,10 @@ cnoremap <C-L> <Up>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
-"Plugin 'Valloric/YouCompleteMe'
+Plugin 'Valloric/YouCompleteMe'
+""" https://github.com/Valloric/YouCompleteMe
+"""     ./install.py --rust-completer
+"""     ./install.py --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
 "Plugin 'plasticboy/vim-markdown'
 Plugin 'rhysd/rust-doc.vim'
@@ -154,6 +157,7 @@ let g:rustfmt_autosave = 1
 set hidden
 let g:racer_cmd = "$HOME/.cargo/bin/racer"
 let g:racer_experimental_completer = 1
+let g:ycm_rust_src_path="$HOME/rs/rust-master/src"
 "autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
 "autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!
 au FileType rust nmap gd <Plug>(rust-def)
