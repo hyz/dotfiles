@@ -153,6 +153,7 @@ syntax on
 filetype plugin indent on
 
 "" rust
+"" https://github.com/ivanceras/rust-vim-setup
 let g:rustfmt_autosave = 1
 set hidden
 let g:racer_cmd = "$HOME/.cargo/bin/racer"
