@@ -1,4 +1,8 @@
 
+https://stackoverflow.com/questions/6094575/creating-an-instance-using-the-class-name-and-calling-constructor
+https://docs.oracle.com/javase/tutorial/reflect/member/ctorInstance.html
+
+
 > pwd
 /home/wood/workspace/rtsp/mp4parser-master/examples/src/main/java
 > find . -name MetaDataRead.java

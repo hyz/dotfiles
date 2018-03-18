@@ -11,6 +11,8 @@
 
 ### db admin, backup/restore
 
+    sudo -iu postgres -- pg_dump --column-inserts --data-only mydb -t mytab > /tmp/mytab
+
     pg_dump mydb --schema-only |tee mydb.sql > db/mydb.sql.$(date +%m%d%H%M)
     vim mydb.sql
     dropdb mydb ; createdb -O root mydb && psql mydb -f mydb.sql

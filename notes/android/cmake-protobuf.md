@@ -1,6 +1,10 @@
 
 ### protobuf-lite
 
+https://aur.archlinux.org/packages/android-sdk-cmake/
+https://dl-ssl.google.com/android/repository/cmake-3.6.4111459-linux-x86_64.zip
+https://github.com/taka-no-me/android-cmake
+
     cd ~/protobuf/protobuf-3.4.1
 
     ## remove libprotobuf, libprotoc, protoc, leave only libprotobuf-lite
