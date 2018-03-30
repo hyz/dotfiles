@@ -1,4 +1,8 @@
 
+### https://gist.github.com/Pulimet/5013acf2cd5b28e55036c82c91bd56d8
+
+Adb useful commands list
+
 ### https://stackoverflow.com/questions/4032960/how-do-i-get-an-apk-file-from-an-android-device
 
     adb shell pm list packages |grep com.xxx.yyy
