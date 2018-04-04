@@ -5,6 +5,12 @@
     go build -ldflags "-s -w"
     GOPATH=`pwd`/..:$GOPATH go build
 
+### https://github.com/golang/go/wiki/Ubuntu
+
+    sudo add-apt-repository ppa:gophers/archive
+    sudo apt-get update
+    sudo apt-get install golang-1.10-go
+
 ### https://github.com/golang/go/wiki
 
 ### http://stackoverflow.com/questions/25927660/golang-get-current-scope-of-function-name

@@ -52,6 +52,7 @@ http://www.jianshu.com/p/296faefe3226
     adb shell am start -n com.example.hello/.MainActivity
     adb shell monkey -p com.example.hello 1
     adb shell am start -a android.intent.action.MAIN -n com.android.settings/.wifi.WifiSettings
+    adb shell am start -a android.intent.action.MAIN -n com.huazhen.barcode/.app.LogoActivity
 
 ### broadcast
 
@@ -65,21 +66,34 @@ http://stackoverflow.com/questions/5171354/android-adb-shell-am-broadcast-bad-co
         Broadcast completed: result=0
 
 http://blog.csdn.net/sunrock/article/details/5675067
+https://blog.csdn.net/soslinken/article/details/50245865
 
     adb shell am start -a android.intent.action.VIEW -d http://g.cn
         ##java
         # Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://g.cn"));
         # startActivity(browserIntent);
     adb shell am start -a android.intent.action.CALL -d tel:10086
+    adb shell service call phone 1 s16 "10086"
     adb shell am start -a android.intent.action.VIEW -d 'geo:0,0?q=shanghai'
+
+    adb shell am start -a android.settings.INPUT_METHOD_SETTINGS
 
 ### input
 
     adb shell input text 'http://192.168.2.115:8000'
+
     ## http://stackoverflow.com/questions/7789826/adb-shell-input-events
-    ## 4 -->  "KEYCODE_BACK" 
-    ## 3 -->  "KEYCODE_HOME" 
+    ## https://zhuanlan.zhihu.com/p/26236061
+    ##  4 -->  "KEYCODE_BACK" 
+    ##  3 -->  "KEYCODE_HOME" 
+    ##  5 -->  "KEYCODE_CALL" 
+    ## 24 -->  "KEYCODE_VOLUME_UP" 
+    ## 25 -->  "KEYCODE_VOLUME_DOWN" 
+    ## 26 -->  "KEYCODE_POWER" 
+    ## 27 -->  "KEYCODE_CAMERA" 
     adb shell input keyevent 4
+    adb shell input keyevent 3
+    adb shell input --longpress keyevent 3
 
 ### svc
 

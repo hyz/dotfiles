@@ -4,11 +4,12 @@ export PATH=$PATH:$HOME/bin
 
 env > /tmp/.wood/$0
 
-cd $HOME/go/mcts/.git/.. && git commit -am u && git push
-cd $HOME/go/mcts/statis/.git/.. && git commit -am u && git push
-
 exec >$HOME/Sync/Main/Temp/cron.daily.`hostname`
 date
 
 net-helper.py hostname=`hostname` ns1_dnspod_net_6666
+
+cd $HOME/go/mcts/.git/.. && git commit -am u && git push
+cd $HOME/go/mcts/statis/.git/.. && git commit -am u && git push
+cd
 

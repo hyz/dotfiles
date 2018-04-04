@@ -1,4 +1,10 @@
 
+### https://www.wireguard.com/install/
+
+    sudo add-apt-repository ppa:wireguard/wireguard
+    sudo apt-get update
+    sudo apt-get install wireguard
+
 ### https://wiki.archlinux.org/index.php/WireGuard
 
     wg genkey | tee wg.genkey | wg pubkey > wg.pubkey
