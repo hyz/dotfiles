@@ -32,18 +32,26 @@
     vam ## vim-addon-manager
     vam install taglist
 
-https://github.com/Valloric/YouCompleteMe
-
 ### https://github.com/VundleVim/Vundle.vim
 
     git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 
-### https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source
+### YouCompleteMe
+
+https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source
+https://github.com/Valloric/YouCompleteMe
 
     sudo checkinstall
     dpkg -r vim
     ...
-    cd ~/.vim/bundle/YouCompleteMe ; ./install.py --clang-completer --system-libclang
+
+    cd ~/.vim/bundle/YouCompleteMe
+    ./install.py --go-completer --rust-completer --js-completer
+
+https://github.com/Valloric/YouCompleteMe/issues/538
+
+    #./install.sh --clang-completer --system-libclang
+
 
 https://aur.archlinux.org/packages/vim-youcompleteme-core-git/
 http://howiefh.github.io/2015/05/22/vim-install-youcompleteme-plugin/?utm_source=tuicool&utm_medium=referral
@@ -64,11 +72,6 @@ http://www.cnblogs.com/linux-sir/p/4676647.html
 
     set makeprg=g++\ -g\ -pthread\ -std=c++0x\ -I/BOOST_ROOT\ -I.\ %\ -lrt
 
-
-### YCM/ycm
-### https://github.com/Valloric/YouCompleteMe/issues/538
-
-    ./install.sh --clang-completer --system-libclang
 
 ### golang
 

@@ -1,9 +1,18 @@
 
 ### https://www.wireguard.com/install/
 
-    sudo add-apt-repository ppa:wireguard/wireguard
-    sudo apt-get update
-    sudo apt-get install wireguard
+ubuntu
+
+    add-apt-repository ppa:wireguard/wireguard
+    apt-get update
+    apt-get install wireguard
+
+debian
+
+    echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list
+    printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable
+    apt update
+    apt install wireguard
 
 ### https://wiki.archlinux.org/index.php/WireGuard
 

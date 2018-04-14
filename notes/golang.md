@@ -7,6 +7,10 @@
 
 ### https://github.com/golang/go/wiki/Ubuntu
 
+    wget https://dl.google.com/go/go1.10.1.linux-amd64.tar.gz
+    tar -C /usr/local -xzf go1.10.1.linux-amd64.tar.gz
+
+    # not recommented
     sudo add-apt-repository ppa:gophers/archive
     sudo apt-get update
     sudo apt-get install golang-1.10-go

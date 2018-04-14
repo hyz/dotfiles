@@ -136,8 +136,7 @@ if [ -d "$ANDROID_NDK" ]; then
     PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi
 
-# /usr/local/bin 
-for x in /opt/bin $HOME/.cargo/bin $HOME/go/bin $HOME/.yarn/bin ; do
+for x in /usr/local/bin  /opt/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
