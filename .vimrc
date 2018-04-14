@@ -76,6 +76,7 @@ Plugin 'Valloric/YouCompleteMe'
 Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'racer-rust/vim-racer'
+Plugin 'fatih/vim-go'
 "" https://github.com/plasticboy/vim-markdown
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
@@ -91,7 +92,7 @@ call vundle#end()
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
 call plug#begin('~/.vim/plugged')
-Plug 'fatih/vim-go'
+"Plug 'fatih/vim-go'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/goyo.vim'
