@@ -68,18 +68,15 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'Valloric/YouCompleteMe'
-""" https://github.com/Valloric/YouCompleteMe
-"""     ./install.py --rust-completer
-"""     ./install.py --clang-completer --system-libclang --system-boost
+""" cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
-"Plugin 'plasticboy/vim-markdown'
 Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'fatih/vim-go'
-"" https://github.com/plasticboy/vim-markdown
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
+" Plugin 'ternjs/tern_for_vim'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
