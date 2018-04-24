@@ -26,3 +26,5 @@
     #-DANDROID_TOOLCHAIN=gcc                        # Need to use gcc instead of clang because we're using gnustl
     #-DANDROID_STL=gnustl_shared \                   # TODO: Why did libc++ fail out due to lack of TR1 support? PB is picking up the wrong clang version
 
+    cmake -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=/opt -DCMAKE_BUILD_TYPE=Release ../protobuf-3.4.1/cmake
+
