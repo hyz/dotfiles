@@ -81,3 +81,10 @@ http://www.cnblogs.com/linux-sir/p/4676647.html
 
 ### http://coderoncode.com/tools/2017/04/16/vim-the-perfect-ide.html
 
+### http://www.commandlinefu.com/commands/view/1204/save-a-file-you-edited-in-vim-without-the-needed-permissions
+
+https://stackoverflow.com/questions/2600783/how-does-the-vim-write-with-sudo-trick-work
+
+    :w !sudo tee %
+    :%!sudo tee %
+

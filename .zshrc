@@ -136,16 +136,25 @@ if [ -d "$ANDROID_NDK" ]; then
     PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi
 
-for x in /usr/local/bin  /opt/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
+for x in /usr/local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
+done
+for x in /opt/bin ; do
+    [ -d "$x" ] || continue
+    PATH=$x:$PATH
 done
 if [ -d "$HOME/go" ]; then
     export GOPATH=$HOME/go
 fi
 
 if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
-    # export NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
+    #if [ x"$NODE_PATH" = x ] ; then
+    #NODE_PATH="$HOME/.config/yarn/global/node_modules"
+    #else
+    #    NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
+    #fi
+    #export NODE_PATH
 fi
 
 #export PATH
