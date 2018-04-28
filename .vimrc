@@ -70,13 +70,13 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
-Plugin 'rhysd/rust-doc.vim'
+"Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'fatih/vim-go'
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
-" Plugin 'ternjs/tern_for_vim'
+"Plugin 'moll/vim-node'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
