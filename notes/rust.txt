@@ -28,7 +28,7 @@ https://doc.rust-lang.org/book/second-edition/ch04-00-understanding-ownership.ht
 https://github.com/rust-lang/rust-by-example
 https://rustbyexample.com/
 
-### [::]
+### vim/YouCompleteMe/dev-tools
 
     curl https://sh.rustup.rs |tee rustup-init ; sh rustup-init
     rustup component add rls --toolchain nightly

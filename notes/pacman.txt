@@ -13,10 +13,10 @@ pacman -S --clean
 ### pacman with proxy
     #1 curl -x
     # /etc/pacman.conf
-        XferCommand = /usr/bin/curl -x socks5://127.0.0.1:8787 ...
+        XferCommand = /usr/bin/curl -x socks5://127.0.0.1:8118 ...
 
     #2
-    export http_proxy='http://127.0.0.1:8787'
+    export http_proxy='http://127.0.0.1:8118'
 
     #3 wget
     # /etc/pacman.conf

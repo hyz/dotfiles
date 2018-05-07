@@ -1,6 +1,4 @@
 
-    cargo web start --target-webasm --release --host 0
-
     LIBGL_ALWAYS_SOFTWARE=1 cargo run --release
     LIBGL_ALWAYS_SOFTWARE=1 cargo run -p stylish_webrender --example demo --release
 
@@ -9,4 +7,9 @@
 ### mingw-w64
 
     cargo build -vv --target x86_64-pc-windows-gnu --release
+
+### cargo web
+
+    cargo web build --release --target wasm32-unknown-unknown
+    ## cargo web start --target-webasm --release --host 0
 

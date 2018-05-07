@@ -10,9 +10,12 @@
 export LANG=en_US.UTF-8
 # export LANG=en_HK.UTF-8
 
-export XMODIFIERS="@im=ibus"
-export GTK_IM_MODULE="ibus"
-export QT_IM_MODULE="xim"
+#export XMODIFIERS="@im=ibus"
+#export GTK_IM_MODULE="ibus"
+#export QT_IM_MODULE="ibus"
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
 
 ibus-daemon -d -x
 # fcitx &
