@@ -107,6 +107,8 @@ You have four choices regarding the password prompt:
     ... some work (set real values as you want)...
     ALTER TABLE mytable ALTER COLUMN mycolumn DROP DEFAULT;
 
+    ALTER TABLE statis_xequip ALTER game1 SET DEFAULT 0
+
 ### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql
 
     psql mydb -c "DROP SCHEMA public CASCADE;"
