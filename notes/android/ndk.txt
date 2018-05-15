@@ -1,3 +1,8 @@
+
+https://developer.android.com/ndk/downloads/older_releases
+
+    wget https://dl.google.com/android/repository/android-ndk-r10e-windows-x86_64.zip
+
 https://bugzilla.mozilla.org/show_bug.cgi?id=1055607
 JNI wrappers for the Java MediaCodec and related classes in order to decode audio/video. NDK r10 includes these native wrappers itself, but only for the upcoming Android L release
 
