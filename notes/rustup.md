@@ -20,6 +20,9 @@
     rustup toolchian uninstall stable-x86_64-unknown-linux-gnu
     rustup default nightly-x86_64-pc-windows-gnu
 
+    rustup component add rust-src
+    cargo install racer
+
 ### ~/.cargo/config
 
     [target.x86_64-pc-windows-gnu]

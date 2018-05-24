@@ -136,8 +136,8 @@ Schema
     psql mydb -c "\d information_schema.tables"
     psql mydb -c "SELECT table_catalog,table_schema,table_name,table_type FROM information_schema.tables"
 
-    psql mydb -c "select nspname from pg_catalog.pg_namespace"
-    psql mydb -c "select * from pg_catalog.pg_namespace"
+    psql mydb -c "SELECT nspname from pg_catalog.pg_namespace"
+    psql mydb -c "SELECT * from pg_catalog.pg_namespace"
 
 ### https://wiki.archlinux.org/index.php/PostgreSQL#Upgrading_PostgreSQL
 
@@ -169,5 +169,6 @@ https://www.postgresql.org/docs/9.6/static/trigger-example.html
 ### compare timestamp/UNIX_Time
 https://dba.stackexchange.com/questions/2796/how-do-i-get-the-current-unix-timestamp-from-postgresql
 
-    select id,tims from k9ss where extract(epoch from tims)>1512316800 order by id limit 3
+    SELECT * from k9ss where EXTRACT(epoch from tims)>1512316800 order by id limit 3
+    SELECT * FROM mytab WHERE xtime BETWEEN '2012-04-01 23:55:00'::timestamp AND now()::timestamp
 
