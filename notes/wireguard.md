@@ -18,6 +18,11 @@ debian
 
     wg genkey | tee wg.genkey | wg pubkey > wg.pubkey
 
+### https://github.com/aturl/... /WireGuard/WireGuard_VPN_Tunnel.md
+
+    wg genkey | tee privatekey | wg pubkey > publickey | wg genpsk > presharedkey
+    wg pubkey <wg.genkey
+
 ### https://github.com/alokhan/wireguard/blob/master/command
 
 Server setup:
