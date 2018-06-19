@@ -1,4 +1,11 @@
 
+### https://github.com/FormidableLabs/spectacle
+
+    create-react-app my-presentation --scripts-version spectacle-scripts
+    cd my-presentation
+    yarn run build
+    miniserve build
+
 ### https://github.com/jaspervdj/patat
 
 Terminal-based presentations using Pandoc

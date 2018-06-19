@@ -1,3 +1,7 @@
+
+    find * -type d -name node_modules -prune
+    find * -type d -prune
+
 ### find
 
     find jni -type f ! -path "*/Crypto/*" \( -name "*.h" -o -name "*.cpp" \)

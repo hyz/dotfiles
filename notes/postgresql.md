@@ -172,3 +172,7 @@ https://dba.stackexchange.com/questions/2796/how-do-i-get-the-current-unix-times
     SELECT * from k9ss where EXTRACT(epoch from tims)>1512316800 order by id limit 3
     SELECT * FROM mytab WHERE xtime BETWEEN '2012-04-01 23:55:00'::timestamp AND now()::timestamp
 
+### SELECT ::date
+
+    psql equipment_usages -c "SELECT * from statis_xequip where game1t::date='2018-05-10'"
+

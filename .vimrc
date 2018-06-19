@@ -67,6 +67,7 @@ cnoremap <C-L> <Up>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'jremmen/vim-ripgrep'
 Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
@@ -76,6 +77,8 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'fatih/vim-go'
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
+Plugin 'mxw/vim-jsx'
+Plugin 'pangloss/vim-javascript'
 "Plugin 'moll/vim-node'
 call vundle#end()
 " vim +PluginInstall +qall

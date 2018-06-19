@@ -4,3 +4,8 @@ svn diff 01prj |awk '/^Index/{print $2}' | rsync -v --files-from=- . /samba/Anon
 
 svn diff 01prj |awk '/^Index/{print $2}' | rsync -v --no-relative --files-from=- . /samba/Anonymous
 
+echo '"v0.0.1"' |awk -F\" '{print substr($2, match($2,"[0-9]"))}'
+
+svn info |awk '/^Revision:/{sub("([^0-9]+)","$"); print}'
+svn info |awk '/^Revision:/{print substr($2,2)}'
+

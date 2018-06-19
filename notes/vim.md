@@ -46,11 +46,11 @@ https://github.com/Valloric/YouCompleteMe
     ...
 
     cd ~/.vim/bundle/YouCompleteMe
-    ./install.py --go-completer --rust-completer --js-completer
+    ./install.py --system-boost --go-completer --rust-completer --js-completer
 
 https://github.com/Valloric/YouCompleteMe/issues/538
 
-    #./install.sh --clang-completer --system-libclang
+    ./install.py --clang-completer --system-libclang
 
 
 https://aur.archlinux.org/packages/vim-youcompleteme-core-git/

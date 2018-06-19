@@ -7,6 +7,8 @@
 
 ### https://github.com/fatedier/frp
 
+frpc & frps
+
 ### https://github.com/cyfdecyf/cow
 
     curl -L git.io/cow | bash
