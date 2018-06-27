@@ -3,4 +3,8 @@
 ar = "/usr/x86_64-w64-mingw32/bin/ar"
 linker = "/usr/bin/x86_64-w64-mingw32-gcc"
 #linker = "/home/wood/bin/mingw.sh"
+#rustc-link-search = ["/usr/x86_64-w64-mingw32/lib"]
+
+#[target.x86_64-pc-windows-gnu.sdl2-sys]
+#rustc-link-search = ["/usr/x86_64-w64-mingw32/lib"]
 
