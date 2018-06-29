@@ -47,6 +47,8 @@ https://github.com/Valloric/YouCompleteMe
 
     cd ~/.vim/bundle/YouCompleteMe
     ./install.py --system-boost --go-completer --rust-completer --js-completer
+    ./install.py --rust-completer --system-boost --clang-completer --system-libclang
+    ./install.py --go-completer --js-completer
 
 https://github.com/Valloric/YouCompleteMe/issues/538
 

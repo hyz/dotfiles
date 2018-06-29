@@ -159,7 +159,8 @@ let g:rustfmt_autosave = 1
 set hidden
 let g:racer_cmd = "$HOME/.cargo/bin/racer"
 let g:racer_experimental_completer = 1
-let g:ycm_rust_src_path="$HOME/rs/rust-master/src"
+let g:ycm_rust_src_path="$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
+
 "autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
 "autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!
 au FileType rust nmap gd <Plug>(rust-def)
