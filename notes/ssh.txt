@@ -1,54 +1,68 @@
+
+    autossh -M 22088 -f -NTR 88:127.0.0.1:22 192.168.9.23
+
 ### sshfs
-sshfs -p 44331 root@192.168.1.55:/etc mnt
-sshfs 192.168.1.55:. mnt
+
+    sshfs -p 44331 root@192.168.1.55:/etc mnt
+    sshfs 192.168.1.55:. mnt
 
 ###
-ssh -fN -R 7000:127.0.0.1:22 wood@192.168.9.110
+
+    ssh -fN -R 7000:127.0.0.1:22 wood@192.168.9.110
 
 ### http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
+
 #Port Forwarding Using SSH Tunnel
 
-ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
-ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
+    ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
+    ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
 
 ### http://serverfault.com/questions/52285/create-a-public-ssh-key-from-the-private-key
-ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub
+
+    ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub
 
 ## http://serverfault.com/questions/50775/how-do-i-change-my-private-key-passphrase
 ## http://www.cyberciti.biz/faq/howto-ssh-changing-passphrase/
-ssh-keygen -p -f ~/.ssh/id_dsa
+
+    ssh-keygen -p -f ~/.ssh/id_dsa
 
 ###
-ssh-copy-id -i .ssh/id_rsa.pub -p 22 wood@107.182.x.x
-ssh -p 22 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
+
+    ssh-copy-id -i .ssh/id_rsa.pub -p 22 wood@107.182.x.x
+    ssh -p 22 wood@58.6x.x.x 'cat >> authorized_keys' < .ssh/id_rsa.pub
 
 ###http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
+
 #Port Forwarding Using SSH Tunnel
 
 ##
-ssh -fN -R 7000:localhost:22 username@yourMachine-ipaddress
-ssh -fN -R 7000:127.0.0.1:22 192.168.9.110
 
-ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
-ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
+    ssh -fN -R 7000:localhost:22 username@yourMachine-ipaddress
+    ssh -fN -R 7000:127.0.0.1:22 192.168.9.110
+
+    ssh -qTfnN -D 7070 www.issh.in@173.192.165.130 -p 1234
+    ssh -qTfnN -D 7070 usassh@free.usassh.com -p 443 # https://www.usassh.com/free.php
 
 ###ssh hosts
-uid502@s6.sshwall.com
+
+    uid502@s6.sshwall.com
 
 ###sshfs
-sshfs -p 44331 root@192.168.1.55:/etc mnt
-sshfs 192.168.1.55:. mnt
+
+    sshfs -p 44331 root@192.168.1.55:/etc mnt
+    sshfs 192.168.1.55:. mnt
 
 ### https://www.cyberciti.biz/faq/force-ssh-client-to-use-given-private-key-identity-file/
-> git clone git@git.oschina.net:oopx/oopx.git
-... Access denied
->
-> ssh -vT git@git.oschina.net
-> ssh-add -D
-> ssh-add .ssh/id_xxx
->
-> git clone git@git.oschina.net:oopx/oopx.git
->
+
+    > git clone git@git.oschina.net:oopx/oopx.git
+    ... Access denied
+    >
+    > ssh -vT git@git.oschina.net
+    > ssh-add -D
+    > ssh-add .ssh/id_xxx
+    >
+    > git clone git@git.oschina.net:oopx/oopx.git
+
 ### https://baoz.net/ssh-session-establish/
 ### https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process
 
