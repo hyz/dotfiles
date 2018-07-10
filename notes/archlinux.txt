@@ -31,7 +31,7 @@
     #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --modules="part_gpt part_msdos"
     #       # https://wiki.archlinux.org/index.php/GRUB#UEFI_systems
     grub-mkconfig -o /boot/grub/grub.cfg
-    #       grub-mkconfig -o /esp/EFI/grub/grub.cfg
+    #       grub-mkconfig -o /boot/grub/grub.cfg
     mkinitcpio -p linux
     ...
     mount -a
