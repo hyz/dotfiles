@@ -1,4 +1,10 @@
 
+### https://github.com/Microsoft/WSL/issues/2578
+
+Location of WSL rootfs filesystem
+
+    C:\Users\%USERNAME%\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\LocalState\rootfs\
+
 ### https://github.com/Microsoft/WSL/issues/449
 
     C:\Users\USER\AppData\Local\lxss
