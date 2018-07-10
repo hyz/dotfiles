@@ -22,5 +22,5 @@ xmodmap -e "pointer = 1 2 3 5 4" # macosx
 
 ## ctags --c++-kinds=+px /usr/include/X11/keysymdef.h /usr/include/xcb/*.h *.{h,c}
 
-# pacman -S xorg-server xf86-video-intel xorg-xinit xterm dwm dmenu firefox
+# pacman -S xorg-server xf86-video-intel xf86-input-evdev xorg-xinit xterm fvwm gmrun firefox
 
