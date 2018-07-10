@@ -25,7 +25,7 @@
     vim /etc/pacman.d/mirrorlist
     #
     pacman -S base-devel
-    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python base-devel
+    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python base-devel net-tools
     #
     grub-install --target=i386-pc --recheck /dev/sdX
     #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --modules="part_gpt part_msdos"
