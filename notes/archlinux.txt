@@ -8,8 +8,15 @@
     pacman -Ql arch-install-scripts
     pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
     ...
+    mkswap /dev/XXX
+    swapon /dev/XXX
+    mkfs.ext4 /dev/YYY
+    mount /dev/YYY /mnt/home
     genfstab -pU /mnt | sudo tee /mnt/etc/fstab
-    sudo vim /mnt/etc/{fstab,hostname,locale.gen} #/etc/locale.conf, /etc/vconsole.conf
+    ...
+    cp /etc/netctl/XXX /mnt/etc/netctl/
+    ...
+    sudo vim /mnt/etc/{fstab,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
     sudo vimdiff {,/mnt}/etc/grub.d/40_custom
     ...
     sudo arch-chroot /mnt
@@ -24,7 +31,7 @@
     #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --modules="part_gpt part_msdos"
     #       # https://wiki.archlinux.org/index.php/GRUB#UEFI_systems
     grub-mkconfig -o /boot/grub/grub.cfg
-    #       grub-mkconfig -o /esp/grub/grub.cfg
+    #       grub-mkconfig -o /esp/EFI/grub/grub.cfg
     mkinitcpio -p linux
     ...
     mount -a
