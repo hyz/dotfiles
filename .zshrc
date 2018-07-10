@@ -119,47 +119,7 @@ alias tmux='tmux -2'
 
 # limit coredumpsize 0
 
-ANDROID_SDK=/opt/android-sdk
-if [[ -d "$ANDROID_SDK" ]] ; then
-    #ANDROID_SDK_HOME=$ANDROID_SDK
-    ANDROID_HOME=$ANDROID_SDK
-    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
-
-    PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
-fi
-
-ANDROID_NDK=/opt/android-ndk
-if [ -d "$ANDROID_NDK" ]; then
-    ANDROID_NDK_HOME=$ANDROID_NDK
-    export ANDROID_NDK ANDROID_NDK_HOME
-
-    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
-fi
-
-for x in /usr/local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
-    [ -d "$x" ] || continue
-    PATH=$PATH:$x
-done
-for x in /opt/bin ; do
-    [ -d "$x" ] || continue
-    PATH=$x:$PATH
-done
-if [ -d "$HOME/go" ]; then
-    export GOPATH=$HOME/go
-fi
-
-if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
-    #if [ x"$NODE_PATH" = x ] ; then
-    #NODE_PATH="$HOME/.config/yarn/global/node_modules"
-    #else
-    #    NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
-    #fi
-    #export NODE_PATH
-fi
-
-#export PATH
-
 date
 
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+

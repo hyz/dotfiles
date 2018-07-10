@@ -1,4 +1,11 @@
 
+### https://github.com/rust-lang-nursery/rustup.rs/blob/master/README.md#installation
+
+Choosing where to install
+
+    CARGO_HOME
+    RUSTUP_HOME
+
 ### https://github.com/rust-lang-nursery/rustup.rs
 
     rustup self update

@@ -1,4 +1,31 @@
 
+### https://github.com/Microsoft/WSL/issues/449
+
+    C:\Users\USER\AppData\Local\lxss
+
+First uninstall your current WSL with lxrun /uninstall /full. Before installing WSL again you need to move %LocalAppData% folder to another partition and then create in the AppData folder a junction pointing to the new location. mklink /J C:\Users\onoma\AppData\Local E:\Local
+After that lxrun /install will work like always.
+
+---
+
+    lxrun /uninstall /full
+    mklink /J C:\Users\onoma\AppData\Local E:\Local
+    lxrun /install
+
+---
+
+I uninstalled via lxrun /uninstall /full /y but recreated the folder %localappdata%\lxss, created a 20GB NTFS-formatted lxss.vhdx in diskmgmt on my side hdd (W:), and mounted it to %localappdata%\lxss with diskpart's mount command, then reinstalled WSL via bash.exe. So far, it's working.
+I have a task set up right now to mount the vhdx on boot via the taskschd.msc running diskpart together with a script as System user, should continue to work after a reboot.
+The script:
+    select vdisk file="W:\lxss.vhdx"
+    attach vdisk
+    `assign mount="C:\Users\fpqc\appdata\local\lxss"``
+Also, another benefit of this is that you can easily back up your lxss install (if you are going to mess around and try something that might break it), simply by copying the vhdx.
+
+### https://askubuntu.com/questions/759880/where-is-the-ubuntu-file-system-root-directory-in-windows-nt-subsystem-and-vice
+
+###
+
 https://insights.ubuntu.com/2016/03/30/ubuntu-on-windows-the-ubuntu-userspace-for-windows-developers/
 http://neue.v2ex.com/t/300618
 https://www.zhihu.com/question/50144689/answer/119648581
