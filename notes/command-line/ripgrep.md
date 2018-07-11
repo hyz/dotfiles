@@ -6,3 +6,8 @@
 
     rg -t cpp --files |grep -vE '(3rdparty|tmp)' |ctags --c++-kinds=+px -L-
 
+###
+
+    rg -t rust --files target
+    rg -t rust --files target |rg hello
+

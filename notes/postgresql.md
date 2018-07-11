@@ -1,5 +1,6 @@
 
-    $ createdb
+    $ createuser --interactive
+    $ psql -c "create database wood OWNER wood"
 
     psql <<< "SELECT version()"
     psql <<< "\list"
@@ -175,4 +176,19 @@ https://dba.stackexchange.com/questions/2796/how-do-i-get-the-current-unix-times
 ### SELECT ::date
 
     psql equipment_usages -c "SELECT * from statis_xequip where game1t::date='2018-05-10'"
+
+### https://stackoverflow.com/questions/27037990/connecting-to-postgres-via-database-url-and-unix-socket-in-rails
+
+You must omit the host to use unix socket, like so:
+
+    postgres://username@/dbname
+
+or simply
+
+    postgres:///dbname
+
+This works with psql > 9.2.
+
+///.env
+DATABASE_URL=postgres:///dbname
 
