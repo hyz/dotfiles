@@ -1,20 +1,24 @@
+
+    yes | /opt/android-sdk/tools/bin/sdkmanager --licenses
+
 ### https://wiki.archlinux.org/index.php/Android
 
-
 ### tips
+
 https blocked, but http is availiable.
 vim PKGBUILD
 change https to http
 
-#mirrors
-#http://downloads.puresoftware.org/files/android/
-#http://mirrors.neusoft.edu.cn/android/repository/
+mirrors
 
-###
+    http://downloads.puresoftware.org/files/android/
+    http://mirrors.neusoft.edu.cn/android/repository/
+
 ### Downloads
-###
-http://www.cnblogs.com/bjzhanghao/archive/2012/11/14/android-platform-sdk-download-mirror.html
+
+    http://www.cnblogs.com/bjzhanghao/archive/2012/11/14/android-platform-sdk-download-mirror.html
 
 ### dependencies
-pacman -Sy lib32-alsa-lib lib32-openal lib32-libstdc++5 lib32-libxv lib32-mesa lib32-ncurses lib32-sdl lib32-zlib lib32-fontconfig lib32-libpulse
+
+    pacman -Sy lib32-alsa-lib lib32-openal lib32-libstdc++5 lib32-libxv lib32-mesa lib32-ncurses lib32-sdl lib32-zlib lib32-fontconfig lib32-libpulse
 

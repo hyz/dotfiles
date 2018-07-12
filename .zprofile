@@ -119,7 +119,7 @@ if [[ -d "$ANDROID_SDK" ]] ; then
     ANDROID_HOME=$ANDROID_SDK
     export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
 
-    PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
+    PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
 fi
 
 ANDROID_NDK=/opt/android-ndk

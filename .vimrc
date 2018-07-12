@@ -80,6 +80,8 @@ Plugin 'plasticboy/vim-markdown'
 Plugin 'mxw/vim-jsx'
 Plugin 'pangloss/vim-javascript'
 "Plugin 'moll/vim-node'
+"Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+"Plug 'junegunn/fzf.vim'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
@@ -91,13 +93,11 @@ call vundle#end()
 """https://github.com/junegunn/vim-plug
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
-call plug#begin('~/.vim/plugged')
-"Plug 'fatih/vim-go'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/goyo.vim'
-"Plug 'autozimu/LanguageClient-neovim', {'tag': 'binary-*-x86_64-linux-musl' }
-call plug#end()
+
+"call plug#begin('~/.vim/plugged')
+"Plug 'junegunn/goyo.vim'
+""Plug 'autozimu/LanguageClient-neovim', {'tag': 'binary-*-x86_64-linux-musl' }
+"call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
 

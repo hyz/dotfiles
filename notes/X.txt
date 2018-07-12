@@ -24,3 +24,15 @@ xmodmap -e "pointer = 1 2 3 5 4" # macosx
 
 # pacman -S xorg-server xf86-video-intel xf86-input-evdev xorg-xinit xterm fvwm gmrun firefox
 
+### https://stackoverflow.com/questions/31168066/initial-ubuntu-guest-screen-resolution-on-vmware
+
+    xrandr -q
+    cvt 1900 1000 60
+    xrandr --newmode "1904x1000_60.00" 158.25 1904 2024 2224 2544 1000 1003 1013 1038 -hsync +vsync
+    xrandr --addmode Virtual1 1904x1000_60.00
+    xrandr --output Virtual1 --mode 1904x1000_60.00
+
+    ls -l ~/.local/share/xorg/Xorg.0.log
+
+    file ~/.xprofile
+

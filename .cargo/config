@@ -8,3 +8,16 @@ linker = "/usr/bin/x86_64-w64-mingw32-gcc"
 #[target.x86_64-pc-windows-gnu.sdl2-sys]
 #rustc-link-search = ["/usr/x86_64-w64-mingw32/lib"]
 
+### android
+
+#[target.arm-linux-androideabi]
+#linker = "/opt/android/toolchain-18/bin/arm-linux-androideabi-clang"
+
+[target.aarch64-linux-android]
+ar = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-ar"
+linker = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-clang"
+
+[target.armv7-linux-androideabi]
+ar = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-ar"
+linker = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-clang"
+
