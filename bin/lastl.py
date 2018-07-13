@@ -55,6 +55,10 @@ def echo(filename, pat):
     finally:
         pass #fp.close()
   
+def dumpbin(filename):
+    with open(filename, 'rb') as fp:
+        return fp.read()
+
 def modifyLast(filename, pw_uid, hostname, ttyname, strtime):
     timestamp = 0
     try:
@@ -73,22 +77,20 @@ def modifyLast(filename, pw_uid, hostname, ttyname, strtime):
   
     try:
         data = struct.pack(LAST_STRUCT, timestamp, ttyname, hostname)
-        with open(filename, 'rb') as fp:
-            buf = fp.read()
-            if len(buf) < LAST_STRUCT_SIZE * pw_uid + len(data):
-                errexit("len-of-file", len(buf), pw_uid)
-            buf = list(buf)
-            buf[LAST_STRUCT_SIZE * pw_uid : len(data)] = data
+        buf = dumpbin(filename)
+        off = LAST_STRUCT_SIZE * pw_uid
+        if len(buf) < off + len(data):
+            errexit("len-off-file", len(buf), pw_uid)
+        buf = list(buf)
+        buf[off : off + len(data)] = data
+        buf = ''.join(buf)
         with open(filename, 'wb') as fp:
             #fp.seek(LAST_STRUCT_SIZE * pw_uid)
-            fp.write(''.join(buf))
+            fp.write(buf)
     except Exception,ex:
-        print('Cannot open file: %s' % filename, ex)
-    finally:
-        pass
+        errexit(filename, ex)
+
     echo(filename, LAST_STRUCT)
-    return True
-  
   
 def errexit(*msg):
     print(msg)
