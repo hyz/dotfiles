@@ -151,6 +151,7 @@ fi
 if uname -r |grep Microsoft 2>/dev/null ; then
     export CARGO_HOME=/mnt/d/home/cargo
     export RUSTUP_HOME=/mnt/d/home/rustup
+    export RUST_SRC_PATH=/mnt/d/home/rustup/rust-src
     PATH="/mnt/d/home/cargo/bin:$PATH"
 fi
 
