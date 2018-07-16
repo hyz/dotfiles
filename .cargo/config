@@ -13,11 +13,23 @@ linker = "/usr/bin/x86_64-w64-mingw32-gcc"
 #[target.arm-linux-androideabi]
 #linker = "/opt/android/toolchain-18/bin/arm-linux-androideabi-clang"
 
+[target.armv7-linux-androideabi]
+ar = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-ar"
+linker = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-clang"
+# rustflags = ["..", ".."]
+
+[target.armeabi-none-linux-android]
+ar = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-ar"
+linker = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-clang"
+
 [target.aarch64-linux-android]
 ar = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-ar"
 linker = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-clang"
 
-[target.armv7-linux-androideabi]
-ar = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-ar"
-linker = "/opt/android/toolchain/arm/bin/arm-linux-androideabi-clang"
+################
+[http]
+proxy = "127.0.0.1:8118"
+
+[alias]
+br = "build --release"
 
