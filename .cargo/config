@@ -28,7 +28,7 @@ linker = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-clang"
 
 ################
 [http]
-proxy = "127.0.0.1:8118"
+#proxy = "127.0.0.1:8118"
 
 [alias]
 br = "build --release"

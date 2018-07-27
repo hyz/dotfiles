@@ -1,14 +1,17 @@
+
 ### http://stackoverflow.com/questions/18715694/cmake-doesnt-find-boost-libraries-while-using-android-cmake-toolchain-file?noredirect=1&lq=1
-    CMake boost/c++
+
+CMake boost/c++
+
 ### http://stackoverflow.com/questions/3808775/cmake-doesnt-find-boost?rq=1
 
 ### https://github.com/googlesamples/android-ndk/tree/master-cmake
 
-
 ### http://stackoverflow.com/questions/10798357/want-to-compile-native-android-binary-i-can-run-in-terminal-on-the-phone
-    Using CMake with the Android NDK is a nice way to compile Android console applications.
 
-    Download CMake and android-cmake (set it up like this). If your program is called main.c, then write the following in file CMakeLists.txt:
+Using CMake with the Android NDK is a nice way to compile Android console applications.
+
+Download CMake and android-cmake (set it up like this). If your program is called main.c, then write the following in file CMakeLists.txt:
 
     project(test)
     cmake_minimum_required(VERSION 2.8)
@@ -16,11 +19,13 @@
 
     and run cmake -DCMAKE_TOOLCHAIN_FILE=$ANDTOOLCHAIN .
 
-    You will then have a Makefile for your program, you can run make to have your test executable.
+You will then have a Makefile for your program, you can run make to have your test executable.
 
 ###
+
 http://opencv.org/platforms/android.html
 https://github.com/taka-no-me/android-cmake
+
     cmake -DCMAKE_TOOLCHAIN_FILE=android.toolchain.cmake \
           -DANDROID_NDK=<ndk_path>                       \
           -DCMAKE_BUILD_TYPE=Release                     \
@@ -31,7 +36,19 @@ https://github.com/taka-no-me/android-cmake
 http://stackoverflow.com/questions/19207721/build-android-ndk-project-with-cmake
 
 http://wiki.navit-project.org/index.php/Android_development#With_cmake
-cmake -DCMAKE_TOOLCHAIN_FILE=$SOURCE_PATH/Toolchain/arm-eabi.cmake -DCACHE_SIZE="(20*1024*1024)" -DAVOID_FLOAT=1 -DANDROID_PERMISSIONS="CAMERA" -DANDROID_API_VERSION=8 -DXSLT_PROCESSOR=/usr/bin/saxonb-xslt $SOURCE_PATH
-make
-make apkg
+
+    cmake -DCMAKE_TOOLCHAIN_FILE=$SOURCE_PATH/Toolchain/arm-eabi.cmake -DCACHE_SIZE="(20*1024*1024)" -DAVOID_FLOAT=1 -DANDROID_PERMISSIONS="CAMERA" -DANDROID_API_VERSION=8 -DXSLT_PROCESSOR=/usr/bin/saxonb-xslt $SOURCE_PATH
+    make
+    make apkg
+
+### https://github.com/googlesamples/android-ndk
+
+android studio cmake hello-jni
+
+    cd hello-jni
+    find . -name cmake_build_command.txt
+    cat app/.externalNativeBuild/cmake/arm7Debug/armeabi-v7a/cmake_build_command.txt
+
+    export PATH=$PATH:/opt/android-ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin
+    arm-linux-androideabi-objdump -T lib/armeabi-v7a/libSDL2.so
 

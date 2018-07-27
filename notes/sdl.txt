@@ -31,3 +31,16 @@ http://headerphile.com/sdl2/sdl2-part-0-setting-up-visual-studio-for-sdl2/
 
 http://www.cnblogs.com/tocy/tag/SDL/
 
+
+### https://discourse.libsdl.org/t/android-gradle-sdl2-0-8-issue/24482/2
+### https://stackoverflow.com/questions/50336033/error-android-studio-3-1-2-ndkbuild/50345736#50345736
+
+    android { defaultConfig { ndk {
+        abiFilters 'armeabi-v7a'
+    } } }
+
+
+### https://github.com/Tencent/mars/issues/412
+
+使用的是ndk17吗？ ndk17已经不支持armeabi了
+

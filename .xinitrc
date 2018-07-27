@@ -41,15 +41,14 @@ xset +fp /home/wood/.local/share/fonts
 #xterm -geometry +480+0 &
 #xterm -geometry -0-28 &
 
-xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" \
-        -e "pointer = 1 2 3 5 4"
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
 
 # exec ck-launch-session gnome-session
-#test -x /home/wood/rust/wtftw/target/release/wtftw && exec /home/wood/rust/wtftw/target/release/wtftw 
-#which way-cooler && exec way-cooler
-which dwm && exec dwm
-which awesome && exec awesome
-which xmonad && exec xmonad
+#exec wtftw
+exec enlightenment_start
+exec dwm
+exec awesome
+exec xmonad
 
 #rox -p default
 # tint2 &
@@ -64,7 +63,6 @@ which xmonad && exec xmonad
 
 #exec $HOME/snip/2bwm/src/2bwm
 
-# exec enlightenment_start
 #exec subtle
 #exec 2bwm
 exec fvwm
@@ -78,10 +76,10 @@ exec wmaker
 exec startfluxbox
 
 #export OOO_FORCE_DESKTOP=gnome
-#export LANG="en_GB.UTF-8"
-#export LC_ALL="en_GB.UTF-8"
-#export LANGUAGE="en_GB.UTF-8"
-#export LC_CTYPE="en_GB.UTF-8"
+#export LANG="en_US.UTF-8"
+#export LC_ALL="en_US.UTF-8"
+#export LANGUAGE="en_US.UTF-8"
+#export LC_CTYPE="en_US.UTF-8"
 
 # Source scripts in /etc/X11/xinit/xinitrc.d/
 if [ -d /etc/X11/xinit/xinitrc.d ]; then

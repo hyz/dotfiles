@@ -1,3 +1,11 @@
 
-openssl rand -base64 6
+    openssl rand -base64 6
+
+### musl & openssl-1.1.0h & OPENSSL_NO_ASYNC
+
+    CC="musl-gcc -fPIC -pie" ./config --prefix=/opt no-zlib-dynamic no-shared -DOPENSSL_NO_ASYNC -I/usr/lib/musl/include -L/usr/lib/musl/lib -lcrypt
+
+https://github.com/jedisct1/libsodium
+
+    CC="musl-gcc -fPIC -pie" ./configure --prefix=/opt/musl --disable-shared
 
