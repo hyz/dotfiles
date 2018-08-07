@@ -71,7 +71,7 @@ Plugin 'jremmen/vim-ripgrep'
 Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
-"Plugin 'rhysd/rust-doc.vim'
+Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'fatih/vim-go'
@@ -94,10 +94,11 @@ call vundle#end()
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
 
-"call plug#begin('~/.vim/plugged')
-"Plug 'junegunn/goyo.vim'
-""Plug 'autozimu/LanguageClient-neovim', {'tag': 'binary-*-x86_64-linux-musl' }
-"call plug#end()
+call plug#begin('~/.vim/plugged')
+Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
+Plug 'junegunn/fzf'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
 
@@ -152,21 +153,29 @@ let g:vimim_tab_for_one_key=1
 
 syntax on
 filetype plugin indent on
-
-"" rust
-"" https://github.com/ivanceras/rust-vim-setup
-let g:rustfmt_autosave = 1
 set hidden
+
+""" rust
+""" https://github.com/ivanceras/rust-vim-setup
+let g:rustfmt_autosave = 1
 let g:racer_cmd = "$HOME/.cargo/bin/racer"
 let g:racer_experimental_completer = 1
 let g:ycm_rust_src_path="$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
 
-"autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
-"autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!
+""autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
+""autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!
 au FileType rust nmap gd <Plug>(rust-def)
 au FileType rust nmap gs <Plug>(rust-def-split)
-"au FileType rust nmap gx <Plug>(rust-def-vertical)
 au FileType rust nmap <leader>gd <Plug>(rust-doc)
+""au FileType rust nmap gx <Plug>(rust-def-vertical)
+
+"let g:LanguageClient_serverCommands = { 'rust': ['$HOME/.cargo/bin/rustup', 'run', 'nightly', 'rls'] }
+"    " , 'javascript': ['/usr/local/bin/javascript-typescript-stdio'], 'javascript.jsx': ['tcp://127.0.0.1:2089'], 'python': ['/usr/local/bin/pyls'],
+"nnoremap <F5> :call LanguageClient_contextMenu()<CR>
+"" Or map each action separately
+"nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
+"nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+"nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 command W :execute ':silent w !sudo tee % > /dev/null' | :edit!
 

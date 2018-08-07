@@ -14,17 +14,17 @@ linker = "/usr/bin/x86_64-w64-mingw32-gcc"
 #linker = "/opt/android/toolchain-18/bin/arm-linux-androideabi-clang"
 
 [target.armv7-linux-androideabi]
-ar = "/opt/android/toolchain/armeabi-v7a/bin/arm-linux-androideabi-ar"
-linker = "/opt/android/toolchain/armeabi-v7a/bin/arm-linux-androideabi-clang"
+ar = "/opt/android/armeabi-v7a/bin/arm-linux-androideabi-ar"
+linker = "/opt/android/armeabi-v7a/bin/arm-linux-androideabi-clang"
 # rustflags = ["..", ".."]
 
 [target.armeabi-none-linux-android]
-ar = "/opt/android/toolchain/arm64-v8a/bin/arm-linux-androideabi-ar"
-linker = "/opt/android/toolchain/arm64-v8a/bin/arm-linux-androideabi-clang"
+ar = "/opt/android/arm64-v8a/bin/arm-linux-androideabi-ar"
+linker = "/opt/android/arm64-v8a/bin/arm-linux-androideabi-clang"
 
 [target.aarch64-linux-android]
-ar = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-ar"
-linker = "/opt/android/toolchain/arm64/bin/aarch64-linux-android-clang"
+ar = "/opt/android/arm64-v8a/bin/aarch64-linux-android-ar"
+linker = "/opt/android/arm64-v8a/bin/aarch64-linux-android-clang"
 
 ################
 [http]
