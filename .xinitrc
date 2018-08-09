@@ -43,12 +43,10 @@ xset +fp /home/wood/.local/share/fonts
 
 xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
 
+for x in enlightenment_start dwm fvwm awesome xmonad ; do
+    which $x 2>/dev/null && exec $x
+done
 # exec ck-launch-session gnome-session
-#exec wtftw
-exec enlightenment_start
-exec dwm
-exec awesome
-exec xmonad
 
 #rox -p default
 # tint2 &
@@ -65,7 +63,6 @@ exec xmonad
 
 #exec subtle
 #exec 2bwm
-exec fvwm
 exec gnome-session
 exec openbox-session
 # exec compiz
