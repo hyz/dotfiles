@@ -3,7 +3,7 @@
 
 ####
 hda=/dev/sda4 ### Windows10
-hda=/dev/sda9 ### Windows7
+hda=/dev/sda
 hdb=$HOME/vm/u128
 SLIC=/sys/firmware/acpi/tables/SLIC
 #SLIC=/esp/OEM/OEM-dos-disk/7U.BIN
@@ -53,15 +53,17 @@ init)
         -cpu host -smp cores=$(nproc) -m 4G \
         -acpitable sig=SLIC,file=$SLIC \
         -rtc base=localtime,clock=host \
-        -drive file=$hda,index=0,media=disk,format=host_device,if=virtio \
-        -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
-        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
+        -drive file=$hda,index=0,media=disk,format=host_device \
         -device virtio-net-pci,netdev=nwk1,mac=$Mac -netdev tap,id=nwk1,ifname=$tapX,script=no,downscript=no \
         -k en-us -boot order=c \
         -display gtk #-vga std #vmware #-daemonize
     #
     exit ;;
 esac
+        -drive file=$hda,index=0,media=disk,format=host_device,if=virtio \
+        -drive file=$hdb,index=1,media=disk,format=raw,if=virtio \
+        -drive file=fat:rw:$HOME/vm/vvfat,index=2,media=disk,format=vvfat,if=virtio \
+
     # cdrom
         -drive file=/dev/cdrom,index=4,media=cdrom,format=host_cdrom,if=virtio \
 
