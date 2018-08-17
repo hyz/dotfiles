@@ -1,44 +1,53 @@
-android --help
-android
-android avd
 
-adb --help
-adb install bin/HelloCpp-debug.apk
-adb uninstall org.cocos2dx.hellocpp
+    android --help
+    android
+    android avd
 
-# ant -Dsdk.dir=path/to/android/sdk/root/dir -Dtarget=targeted-android-sdk-version
-ant -Dsdk.dir=/opt/android-sdk debug
+    adb --help
+    adb install bin/HelloCpp-debug.apk
+    adb uninstall org.cocos2dx.hellocpp
 
-android create project --target "android-15" --name World --path /tmp/World --activity MainActivity --package com.example.world
-android list target
-android create project --target "android-18" --name Hello --path hello --activity Hello --package com.hello
+### ant
 
-###
-android update project --path . --target android-18
+    # ant -Dsdk.dir=path/to/android/sdk/root/dir -Dtarget=targeted-android-sdk-version
+    ant -Dsdk.dir=/opt/android-sdk debug
+
+### android
+
+    android list target
+
+    android create project --target "android-15" --name World --path /tmp/World --activity MainActivity --package com.example.world
+    android create project --target "android-18" --name Hello --path hello --activity Hello --package com.hello
+
+    android update project --path . --target android-18
 
 ### install sdk
 
-android --help list sdk
-android --help update sdk
+    android --help list sdk
+    android --help update sdk
 
-android list sdk --extended
-android update sdk --no-ui --filter android-18,platform,source
-                    # Android 4.3.1, API 18, revision 3
+    android list sdk --extended
 
-###
-android.bat list targets
-android.bat update project --path . --target android-18
+    android update sdk --no-ui --filter android-18,platform,source
+                        # Android 4.3.1, API 18, revision 3
+
+    android.bat list targets
+    android.bat update project --path . --target android-18
 
 
 ### DEPENDS
+
     arm-linux-androideabi-readelf -d ../libs/armeabi/a
 
 ### adb
+
     adb -s 0123456789ABCDEF push armeabi/a /data/
     adb -s 0123456789ABCDEF shell chmod 0755 /data/a && /data/a
     adb -s 0123456789ABCDEF shell chmod 0666 /dev/Vcodec /dev/MTK_SMI /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
     adb -s 0123456789ABCDEF logcat |grep --line-buffered -E '^./(epoll|hgs|thread|ildec|buffer|Video)' |tee log.$(date +%d%H%M)
     adb -s 0123456789ABCDEF logcat |tee log.$(date +%d%H%M) |grep -E '^./(epoll|hgs|thread|ildec|buffer|Video)'
 
-export SDK=/cygdrive/d/Android/sdk PATH=$PATH:$SDK/platform-tools:$SDK/tools
+### export PATH
+
+    export SDK=/cygdrive/d/Android/sdk PATH=$PATH:$SDK/platform-tools:$SDK/tools
 

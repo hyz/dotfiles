@@ -1,14 +1,19 @@
+
 ### http://www.myabandonware.com/
 ### http://www.dosbox.com/comp_list.php?letter=a
 
 ### http://gaming.stackexchange.com/questions/16565/mouse-jumps-around-when-using-dosbox
 
-export SDL_VIDEO_X11_DGAMOUSE=0 
+    export SDL_VIDEO_X11_DGAMOUSE=0 
 
 ### dosbox
-# http://www.myabandonware.com/game/sid-meier-s-civilization-1nj
-mount c: /path/to/game
-mount d: /path/to/game -t cdrom
-# http://www.vogons.org/viewtopic.php?t=15878
-loadfix -16
+
+http://www.myabandonware.com/game/sid-meier-s-civilization-1nj
+
+    mount c: /path/to/game
+    mount d: /path/to/game -t cdrom
+
+http://www.vogons.org/viewtopic.php?t=15878
+
+    loadfix -16
 

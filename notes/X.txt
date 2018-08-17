@@ -1,28 +1,45 @@
 
-$ Xvfb :1 -screen 0 1024x768x24 &
-$ DISPLAY=:1 ./eclipse/eclimd start
+    $ Xvfb :1 -screen 0 1024x768x24 &
+    $ DISPLAY=:1 ./eclipse/eclimd start
 
 ### 改变鼠标滚轮方向
-xmodmap -e "pointer = 1 2 3 4 5" # 默认方向
-xmodmap -e "pointer = 1 2 3 5 4" # macosx
+
+    xmodmap -e "pointer = 1 2 3 4 5" # 默认方向
+    xmodmap -e "pointer = 1 2 3 5 4" # macosx
+
+### https://wiki.archlinux.org/index.php/LightDM
+
+    vim /etc/lightdm/lightdm.conf
+
+    groupadd -r autologin
+    groupadd -r nopasswdlogin
+    usermod -aG autologin,nopasswdlogin wood
+
+    lightdm --test-mode --debug
+
+    loginctl show-session $XDG_SESSION_ID
 
 ### 2bwm/archlinux
-# abs
-> make clean -C src/2bwm ; rm -f 2bwm-0.2-2-x86_64.pkg.tar.xz ; makepkg --noextract
+
+    abs
+
+    make clean -C src/2bwm ; rm -f 2bwm-0.2-2-x86_64.pkg.tar.xz ; makepkg --noextract
 
 ### https://wiki.archlinux.org/index.php/Xephyr
-### Xephyr is a nested X server that runs as an X application. 
-# pacman -S xorg-server-xephyr
-> Xephyr -br -ac -noreset -screen 800x600 :1
-> DISPLAY=:1 src/tilewm
-> DISPLAY=:1 xterm
 
-###
-# http://hack.org/mc/projects/mcwm/
+Xephyr is a nested X server that runs as an X application. 
 
-## ctags --c++-kinds=+px /usr/include/X11/keysymdef.h /usr/include/xcb/*.h *.{h,c}
+    pacman -S xorg-server-xephyr
 
-# pacman -S xorg-server xf86-video-intel xf86-input-evdev xorg-xinit xterm fvwm gmrun firefox
+    Xephyr -br -ac -noreset -screen 800x600 :1
+    DISPLAY=:1 src/tilewm
+    DISPLAY=:1 xterm
+
+### http://hack.org/mc/projects/mcwm/
+
+    ctags --c++-kinds=+px /usr/include/X11/keysymdef.h /usr/include/xcb/*.h *.{h,c}
+
+    pacman -S xorg-server xf86-video-intel xf86-input-evdev xorg-xinit xterm fvwm gmrun firefox
 
 ### https://stackoverflow.com/questions/31168066/initial-ubuntu-guest-screen-resolution-on-vmware
 

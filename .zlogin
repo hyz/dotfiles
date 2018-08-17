@@ -1,4 +1,6 @@
 
+[ -d "/tmp/._$USER" ] || mkdir "/tmp/._$USER"
+Zdbg="/tmp/._$USER/zsh.log" ; [ -z "$Zdbg" -o -e $Zdbg ] || /bin/env > $Zdbg
 [[ -n "$Zdbg" ]] && echo "#zlogin" >> $Zdbg
 
 if which keychain ; then

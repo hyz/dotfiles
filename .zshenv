@@ -1,7 +1,6 @@
 
-Zdbg="/tmp/zsh.$USER"
-
-[ -z "$Zdbg" -o -e $Zdbg ] || /bin/env > $Zdbg
+[ -d "/tmp/._$USER" ] || mkdir "/tmp/._$USER"
+Zdbg="/tmp/._$USER/zsh.log" ; [ -z "$Zdbg" -o -e $Zdbg ] || /bin/env > $Zdbg
 
 [[ -n "$Zdbg" ]] && echo >> $Zdbg
 [[ -n "$Zdbg" ]] && echo "#zshenv $USER" >> $Zdbg
@@ -11,5 +10,4 @@ Zdbg="/tmp/zsh.$USER"
 [[ -n "$Zdbg" ]] && [[ -o interactive ]] && echo "-o interactive" >> $Zdbg
 [[ -n "$Zdbg" ]] && [[ -o login ]] && echo "-o login" >> $Zdbg
 
-[ -d "/tmp/._$USER" ] || mkdir "/tmp/._$USER"
 
