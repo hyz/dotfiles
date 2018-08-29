@@ -71,17 +71,23 @@ Plugin 'jremmen/vim-ripgrep'
 Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
-Plugin 'rhysd/rust-doc.vim'
+"Plugin 'rhysd/rust-doc.vim'
 Plugin 'rust-lang/rust.vim'
+Plugin 'timonv/vim-cargo'
 Plugin 'racer-rust/vim-racer'
-Plugin 'fatih/vim-go'
-Plugin 'godlygeek/tabular'
+"Plugin 'fatih/vim-go'
+"Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
 Plugin 'mxw/vim-jsx'
 Plugin 'pangloss/vim-javascript'
 "Plugin 'moll/vim-node'
-"Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-"Plug 'junegunn/fzf.vim'
+Plugin 'junegunn/fzf'
+""" { 'dir': '~/.fzf', 'do': './install --all' }
+Plugin 'junegunn/fzf.vim'
+"Plugin 'autozimu/LanguageClient-neovim'
+""" { 'branch': 'next', 'do': 'bash install.sh', }
+Plugin 'python-mode/python-mode'
+Plugin 'amoffat/snake'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
@@ -89,18 +95,22 @@ call vundle#end()
 " :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
 " :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
-"
+
 """https://github.com/junegunn/vim-plug
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
-
-call plug#begin('~/.vim/plugged')
-Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
-Plug 'junegunn/fzf'
-Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-call plug#end()
+"
+"call plug#begin('~/.vim/plugged')
+"Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
+"Plug 'junegunn/fzf'
+"Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+"call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
+
+"""https://github.com/autozimu/LanguageClient-neovim
+""" cd .vim/bundle/LanguageClient-neovim && bash install.sh
+set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 
 "cnoremap <Esc>b <S-Left>
 "cnoremap <Esc>w <S-Right>
@@ -161,6 +171,12 @@ let g:rustfmt_autosave = 1
 let g:racer_cmd = "$HOME/.cargo/bin/racer"
 let g:racer_experimental_completer = 1
 let g:ycm_rust_src_path="$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
+
+""" python
+"let g:ycm_python_binary_path = 'python'
+if filereadable(expand("~/.vim/bundle/snake/plugin/snake.vim"))
+    source ~/.vim/bundle/snake/plugin/snake.vim
+endif
 
 ""autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
 ""autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!

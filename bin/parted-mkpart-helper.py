@@ -6,30 +6,57 @@ import sys, os, math
 # Sector size (logical/physical): 512B/4096B
 #S_logical, S_physical = 512, 4096
 
+TB, GB, MB = 1024**4, 1024**3, 1024**2
+
 def ceil(a, sec_pos):
     return int((sec_pos + (a-1)) / a) * a
 def floor(a, sec_pos):
     return int(sec_pos / a) * a
 
-def args(opt):
-    assert opt.begin[-1] in ('s', 'M', 'G')
-    assert opt.end[-1]   in ('s', 'M', 'G')
-    assert 's' in (opt.begin[-1], opt.end[-1])
+def main(sdx, begin,end, bflag,eflag):
+    def readints(*fs):
+        v = []
+        for f in fs:
+            with open(f) as f:
+                v.append( int(f.read().strip()) )
+        return v
+    optimal_io_size, physical_block_size, logical_block_size = readints(f'/sys/block/{sdx}/queue/optimal_io_size', f'/sys/block/{sdx}/queue/physical_block_size', f'/sys/block/{sdx}/queue/logical_block_size')
+    if optimal_io_size == 0:
+        optimal_io_size = max(4096, physical_block_size)
+        if opt.align:
+            if opt.align[-1] == 'M':
+                optimal_io_size= int(opt.align[:-1])*MB
+            else:
+                optimal_io_size= int(opt.align)
+        print(' ', f'optimal_io_size=0,{optimal_io_size}', f'physical_block_size={physical_block_size}')
+    print(' ', f'optimal_io_size={optimal_io_size} physical_block_size={physical_block_size} logical_block_size={logical_block_size}')
+    assert optimal_io_size % logical_block_size == 0
+    assert physical_block_size % logical_block_size == 0
+    assert MB % logical_block_size == 0
 
-    begin, bflag = int(opt.begin[:-1]), opt.begin[-1]
-    end, eflag = int(opt.end[:-1]), opt.end[-1]
+    scm = optimal_io_size*physical_block_size/math.gcd(optimal_io_size,physical_block_size)/logical_block_size #smallest_cm
+    print('scm={scm:2},{scmM:2}M'.format(scm=scm, scmM=(scm*512/MB))
+            , 'M={}s G={}s'.format(int(MB/logical_block_size), int(GB/logical_block_size)))
+    lcms = int(scm)
+
+    bflag, eflag = opt.begin[-1], opt.end[-1] #begin, bflag = int(opt.begin[:-1]), opt.begin[-1] # end, eflag = int(opt.end[:-1]), opt.end[-1]
+    begin, end = int(opt.begin[:-1]), int(opt.end[:-1])
+    assert bflag in ('s', 'M', 'G')
+    assert eflag in ('s', 'M', 'G')
+    assert 's' in (bflag, eflag)
+
     if bflag == 's':
         begin = ceil(lcms, begin)
         if eflag != 's':
             size = end
-            size = int((size * (M,G)[eflag=='G']) / logical_block_size)
+            size = int((size * (MB,GB)[eflag=='G']) / logical_block_size)
             end = begin + size
         end = floor(lcms, end)
     else:
         end = floor(lcms, end)
         if bflag != 's':
             size = begin
-            size = int((size * (M,G)[bflag=='G']) / logical_block_size)
+            size = int((size * (MB,GB)[bflag=='G']) / logical_block_size)
             begin = end - size
         begin = ceil(lcms, begin)
     end -= 1
@@ -38,7 +65,6 @@ def args(opt):
     assert begin < end
     return begin, end
 
-T, G, M = 1024**4, 1024**3, 1024**2
 if __name__ == '__main__':
     def options():
         import argparse
@@ -48,36 +74,11 @@ if __name__ == '__main__':
         argp.add_argument('begin', help='begin/size') #(, nargs=2)
         argp.add_argument('end', help='end/size') #(, nargs='?')
         return argp.parse_args()
-    def ints(*fs):
-        v = []
-        for f in fs:
-            with open(f) as f:
-                v.append( int(f.read().strip()) )
-        return v
-    opt = options()
-    print(' ', opt.drive)
-    sdx=os.path.basename(opt.drive)
-    optimal_io_size, physical_block_size, logical_block_size = ints(f'/sys/block/{sdx}/queue/optimal_io_size', f'/sys/block/{sdx}/queue/physical_block_size', f'/sys/block/{sdx}/queue/logical_block_size')
-    if optimal_io_size == 0:
-        optimal_io_size = max(4096, physical_block_size)
-        if opt.align:
-            if opt.align[-1] == 'M':
-                optimal_io_size= int(opt.align[:-1])*M
-            else:
-                optimal_io_size= int(opt.align)
-        print(' ', f'optimal_io_size=0,{optimal_io_size}', f'physical_block_size={physical_block_size}')
-    print(' ', f'optimal_io_size={optimal_io_size} physical_block_size={physical_block_size} logical_block_size={logical_block_size}')
-    assert optimal_io_size % logical_block_size == 0
-    assert physical_block_size % logical_block_size == 0
-    assert M % logical_block_size == 0
-    lcms = optimal_io_size*physical_block_size/math.gcd(optimal_io_size,physical_block_size)/logical_block_size
-    lcms = int(lcms)
-    print('lcms={lcms},{lcmM:2}M'.format(lcms=lcms,lcmM=(lcms*512/M))
-            , 'M={}s'.format(int(M/logical_block_size))
-            , 'G={}s'.format(int(G/logical_block_size)))
-
     try:
-        sec_begin, sec_end = args(opt)
+        opt = options()
+        print(' ', opt.drive)
+        sdx = os.path.basename(opt.drive)
+        sec_begin, sec_end = main(sdx, int(opt.begin[:-1]), int(opt.end[:-1]), opt.begin[-1], opt.end[-1])
         print(f'mkpart primary {sec_begin}s {sec_end}s')
     except Exception:
         print('Example:')
