@@ -88,6 +88,7 @@ Plugin 'junegunn/fzf.vim'
 """ { 'branch': 'next', 'do': 'bash install.sh', }
 Plugin 'python-mode/python-mode'
 Plugin 'amoffat/snake'
+Plugin 'vim-scripts/VimIM'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
@@ -144,9 +145,17 @@ set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 "		set csverb
 "endif
 
-""" VimIM
-let g:vimim_tab_for_one_key=1
+""" VimIM - https://github.com/vim-scripts/VimIM
 "let g:vimim_one_key=0
+"    let g:vimim_cloud = 'google,sogou,baidu,qq'
+let g:vimim_cloud = 'sogou,baidu,qq'
+let g:vimim_map = 'tab_as_gi'
+" :let g:vimim_mode = 'dynamic'
+" :let g:vimim_mycloud = 0
+" :let g:vimim_plugin = 'C:/var/mobile/vim/vimfiles/plugin'
+" :let g:vimim_punctuation = 2
+" :let g:vimim_shuangpin = 0
+" :let g:vimim_toggle = 'pinyin,google,sogou'
 
 """
 "let g:EclimDisabled=1
