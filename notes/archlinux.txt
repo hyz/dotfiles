@@ -64,17 +64,25 @@
 
     bcdedit /set "{bootmgr}" path "\EFI\path\to\app.efi"
 
-### https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
-    Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 
+### abs https://wiki.archlinux.org/index.php/Arch_Build_System
+
+    svn checkout svn://svn.archlinux.org/packages/openssl-1.0
+
+    svn checkout --depth=empty svn://svn.archlinux.org/packages
+    svn checkout --depth=empty svn://svn.archlinux.org/community
+
+https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
+Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 
 
 ### https://arch-anywhere.org/
+
     Bringing you Arch - Anywhere
 
-### https://aur.archlinux.org/packages/?SB=v&SO=d&O=0&PP=50
-    aur voted
+### https://aur.archlinux.org/packages/?SB=v&SO=d&O=0&PP=50 # aur voted
 
     makepkg --noextract
     makepkg --nobuild --nodeps
+    makepkg --skippgpcheck
 
     pacman -S --clean
     pacman -Qs android

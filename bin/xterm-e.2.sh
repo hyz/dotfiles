@@ -1,8 +1,10 @@
 #!/bin/bash
 
 date
+acpi
+sensors
 echo
 fortune
 
-sleep 2
+sleep 5
 

@@ -45,7 +45,7 @@ set path=.,..
 "autocmd FileType python setlocal ts=4 | setlocal sw=4
 "autocmd FileType python compiler pyunit
 "autocmd FileType python setlocal nocindent ai
-autocmd FileType python setlocal makeprg=python\ %
+"autocmd FileType python setlocal makeprg=python\ %
 
 "" jump to the last position when reopening a file
 if has("autocmd")
@@ -86,8 +86,9 @@ Plugin 'junegunn/fzf'
 Plugin 'junegunn/fzf.vim'
 "Plugin 'autozimu/LanguageClient-neovim'
 """ { 'branch': 'next', 'do': 'bash install.sh', }
-Plugin 'python-mode/python-mode'
+"Plugin 'python-mode/python-mode'
 Plugin 'amoffat/snake'
+"Plugin 'vimim/vimim'
 Plugin 'vim-scripts/VimIM'
 call vundle#end()
 " vim +PluginInstall +qall
@@ -147,9 +148,9 @@ set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 
 """ VimIM - https://github.com/vim-scripts/VimIM
 "let g:vimim_one_key=0
-"    let g:vimim_cloud = 'google,sogou,baidu,qq'
-let g:vimim_cloud = 'sogou,baidu,qq'
-let g:vimim_map = 'tab_as_gi'
+"    let g:Vimim_cloud = 'google,sogou,baidu,qq'
+let g:Vimim_cloud = 'baidu,sogou,qq'
+"let g:vimim_map = 'tab_as_gi'
 " :let g:vimim_mode = 'dynamic'
 " :let g:vimim_mycloud = 0
 " :let g:vimim_plugin = 'C:/var/mobile/vim/vimfiles/plugin'
@@ -170,8 +171,8 @@ let g:vimim_map = 'tab_as_gi'
 "set completeopt-=preview
 
 
-syntax on
 filetype plugin indent on
+syntax on
 set hidden
 
 """ rust
@@ -182,6 +183,7 @@ let g:racer_experimental_completer = 1
 let g:ycm_rust_src_path="$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
 
 """ python
+let g:pymode_python = 'python3'
 "let g:ycm_python_binary_path = 'python'
 if filereadable(expand("~/.vim/bundle/snake/plugin/snake.vim"))
     source ~/.vim/bundle/snake/plugin/snake.vim

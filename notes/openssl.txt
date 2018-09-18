@@ -3,9 +3,19 @@
 
 ### musl & openssl-1.1.0h & OPENSSL_NO_ASYNC
 
-    CC="musl-gcc -fPIC -pie" ./config --prefix=/opt no-zlib-dynamic no-shared -DOPENSSL_NO_ASYNC -I/usr/lib/musl/include -L/usr/lib/musl/lib -lcrypt
+    svn checkout svn://svn.archlinux.org/packages/openssl-1.0
+    cd openssl-1.0/trunk
+    vim PKGBUILD
+
+    CC="musl-gcc -fPIC -pie" \
+    ./config --prefix=/usr/lib/musl ...
+        # no-zlib-dynamic no-shared -DOPENSSL_NO_ASYNC -I/usr/lib/musl/include -L/usr/lib/musl/lib -lcrypt
 
 https://github.com/jedisct1/libsodium
 
-    CC="musl-gcc -fPIC -pie" ./configure --prefix=/opt/musl --disable-shared
+    svn co svn://svn.archlinux.org/community/libsodium
+    cd libsodium/trunk
+    vim PKGBUILD
+
+    CC="musl-gcc -fPIC -pie" ./configure --prefix=/usr/lib/musl --disable-shared
 

@@ -1,4 +1,9 @@
 
+RUSTFLAGS="-Ctarget-feature=-crt-static"
+RUSTFLAGS="-Clinker=musl-gcc"
+CC="musl-gcc -fPIC -pie"
+OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl --bin ssserver
+
 ### https://internals.rust-lang.org/t/static-binary-support-in-rust/2011/61
 
 ### http://rust-dev.1092773.n5.nabble.com/Compiling-static-binary-td11340.html#a11341
