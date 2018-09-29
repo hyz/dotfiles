@@ -1,4 +1,8 @@
 
+### https://github.com/linrunner/TLP
+
+advanced power management for linux
+
 ### https://gist.github.com/mattiaslundberg/8620837
     Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
 ### https://wiki.archlinux.org/index.php/Installation_guide
