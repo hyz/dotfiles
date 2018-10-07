@@ -12,3 +12,7 @@ Win-S search:
 
     reset disk
 
+Win-S search:
+
+    control panel
+
