@@ -3,6 +3,11 @@
 
 advanced power management for linux
 
+### https://wiki.archlinux.org/index.php/Laptop/Lenovo
+
+https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon
+https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_6)
+
 ### https://gist.github.com/mattiaslundberg/8620837
     Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
 ### https://wiki.archlinux.org/index.php/Installation_guide
