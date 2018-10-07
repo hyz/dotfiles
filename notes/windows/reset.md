@@ -6,3 +6,9 @@
 - On the Boot options menu, select Troubleshoot > Reset this PC > Remove everything. 
 - Your PC will restart and will reset itself. 
 
+### https://support.microsoft.com/en-us/help/4027579/windows-10-create-a-password-reset-disk-for-a-local-account
+
+Win-S search:
+
+    reset disk
+

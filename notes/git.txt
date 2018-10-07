@@ -114,3 +114,11 @@ How to know which branch a “git log” commit belongs to?
     git log --all --source --pretty=oneline --graph
 
 
+### https://stackoverflow.com/questions/1230084/how-to-have-git-log-show-filenames-like-svn-log-v
+
+    git log --name-only
+    git log --name-status
+    git log --stat
+
+    git diff --name-only SHA1 SHA2
+
