@@ -3,8 +3,8 @@
 
 ### sshfs
 
+    sshfs -o uid=1000,gid=1000 192.168.1.111:. $PWD/mnt
     sshfs -p 44331 root@192.168.1.55:/etc mnt
-    sshfs 192.168.1.55:. mnt
 
 ###
 
