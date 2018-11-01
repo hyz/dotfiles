@@ -1,11 +1,15 @@
 
-$ screen -e^jj -Rd
-$
+    $ screen -e^jj -Rd
+    $
 
-: register x hello-world
-: paste x
+    : register x hello-world
+    : paste x
 
-http://superuser.com/questions/243459/unix-how-to-unsplit-in-screen
+### http://superuser.com/questions/243459/unix-how-to-unsplit-in-screen
+
     Unix: How to unsplit in screen
 
+### Cannot make directory '/run/screen': Permission denied
+
+    SCREENDIR=$HOME/.screen screen -e^jj -Rd
 
