@@ -57,6 +57,8 @@
     > git clone git@git.oschina.net:oopx/oopx.git
     ... Access denied
     >
+    > eval `ssh-agent -s` ; env |grep SSH
+    >
     > ssh -vT git@git.oschina.net
     > ssh-add -D
     > ssh-add .ssh/id_xxx
