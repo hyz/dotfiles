@@ -1,7 +1,7 @@
 
     autossh -M 22088 -f -NTR 88:127.0.0.1:22 192.168.9.23
 
-### sshfs
+### sshfs, root not required
 
     sshfs -o uid=1000,gid=1000 192.168.1.111:. $PWD/mnt
     sshfs -p 44331 root@192.168.1.55:/etc mnt
