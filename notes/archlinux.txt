@@ -9,10 +9,14 @@ https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon
 https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_6)
 
 ### https://gist.github.com/mattiaslundberg/8620837
-    Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
+
+Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
+
 ### https://wiki.archlinux.org/index.php/Installation_guide
-### https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
-### install archlinux from archlinux
+https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
+
+install archlinux from archlinux
+
     ...
     pacman -Ql arch-install-scripts
     pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
@@ -56,15 +60,18 @@ https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_6)
     ... ...
 
 ### http://www.volkerschatz.com/unix/archclone.html
-    # https://wiki.archlinux.org/index.php/Disk_cloning
-    # https://wiki.archlinux.org/index.php/Migrate_installation_to_new_hardware
+
+https://wiki.archlinux.org/index.php/Disk_cloning
+https://wiki.archlinux.org/index.php/Migrate_installation_to_new_hardware
 
 ### https://www.parabola.nu/
-    https://wiki.parabola.nu/Migration_from_the_GNU/Linux_distribution_of_Arch
+
+https://wiki.parabola.nu/Migration_from_the_GNU/Linux_distribution_of_Arch
 
 ### https://github.com/yantis/instant-archlinux-on-mac
-    https://wiki.archlinux.org/index.php/Clover
-    https://wiki.archlinux.org/index.php/Persistent_block_device_naming
+
+https://wiki.archlinux.org/index.php/Clover
+https://wiki.archlinux.org/index.php/Persistent_block_device_naming
 
 ### https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface
 
@@ -93,13 +100,16 @@ Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1)
     makepkg --nobuild --nodeps
     makepkg --skippgpcheck
 
+    makepkg --skippgpcheck --nodeps --nobuild
+
     pacman -S --clean
     pacman -Qs android
     pacman -Qe
 
 ### https://wiki.archlinux.org/index.php/Pacman_tips
 
-$ pacman -Qs android
+    $ pacman -Qs android
+
 local/android-ndk r10c-2
     Android C/C++ developer kit
 local/android-platform 21_r01-1
@@ -114,25 +124,25 @@ local/android-tools 5.0.0_r7-1
     Android platform tools
 local/android-udev r124-1
     Udev rules to connect Android devices to your linux box
-$
 
 ### https://wiki.archlinux.org/index.php/Netctl
-### netctl
 
-wifi-menu
-netctl list
-netctl stop-all
-netctl start wireless-static
-netctl enable ethernet-static
+netctl
+
+    wifi-menu
+    netctl list
+    netctl stop-all
+    netctl start wireless-static
+    netctl enable ethernet-static
 
 ### netstat, nslookup
-pacman -S dnsutils
-pacman -S net-tools
+
+    pacman -S dnsutils
+    pacman -S net-tools
 
 https://wiki.archlinux.org/index.php/Installation_guide
 https://wiki.archlinux.org/index.php/Install_from_existing_Linux#From_a_host_running_another_Linux_distribution
-    http://mirrors.163.com/archlinux/iso/
-        archlinux-bootstrap-2016.11.01-x86_64.tar.gz
+http://mirrors.163.com/archlinux/iso/ archlinux-bootstrap-2016.11.01-x86_64.tar.gz
 https://wiki.archlinux.org/index.php/Archiso
 https://wiki.archlinux.org/index.php/Archboot
 

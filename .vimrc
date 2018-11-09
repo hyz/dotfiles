@@ -67,6 +67,7 @@ cnoremap <C-L> <Up>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'w0rp/ale'
 Plugin 'jremmen/vim-ripgrep'
 Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
@@ -150,6 +151,7 @@ set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 "let g:vimim_one_key=0
 "    let g:Vimim_cloud = 'google,sogou,baidu,qq'
 let g:Vimim_cloud = 'baidu,sogou,qq'
+let g:Vimim_punctuation = 3
 "let g:vimim_map = 'tab_as_gi'
 " :let g:vimim_mode = 'dynamic'
 " :let g:vimim_mycloud = 0

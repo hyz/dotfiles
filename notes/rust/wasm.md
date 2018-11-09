@@ -1,4 +1,6 @@
 
+https://rustwasm.github.io/book/
+
 ### https://www.hellorust.com/
 
     rustup target add wasm32-unknown-unknown --toolchain nightly
