@@ -4,8 +4,8 @@ export LANG=en_US.UTF-8
 export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS=”@im=fcitx”
 #export GTK_IM_MODULE="ibus" QT_IM_MODULE="ibus" XMODIFIERS="@im=ibus"
 
-ibus-daemon -d -x
-# fcitx &
+fcitx -d
+#ibus-daemon -d -x
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
 # xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4

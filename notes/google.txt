@@ -2,18 +2,17 @@
 https://plus.google.com/+XizheSun/posts/3jBkcG4KUwG
 http://blog.csdn.net/techzero/article/details/17276273
 
-### google ip
-# http://blog.it2048.cn/article_googlejx.html
-# 173.194.14.53 210.242.125.83
-
 ### nameserver
-nameserver 114.114.114.114
-nameserver 8.8.4.4
-nameserver 8.8.8.8
-nameserver 202.96.134.133
-nameserver 58.250.87.149
-nameserver 202.67.222.222
 
+    nameserver 114.114.114.114
+    nameserver 8.8.4.4
+    nameserver 8.8.8.8
+    nameserver 202.96.134.133
+    nameserver 58.250.87.149
+    nameserver 202.67.222.222
 
+### chrome browser
+
+https://www.google.com/intl/en/chrome/?standalone=1
 https://www.google.com/chrome/browser/desktop/index.html?standalone=1
 
