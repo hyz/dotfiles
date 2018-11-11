@@ -41,7 +41,7 @@ xset +fp ~/.local/share/fonts
 # xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
 [[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
-for x in enlightenment_start dwm fvwm awesome xmonad ; do
+for x in fvwm enlightenment_start dwm awesome xmonad ; do
     which $x 2>/dev/null && exec $x
 done
 # exec ck-launch-session gnome-session

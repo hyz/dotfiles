@@ -20,13 +20,13 @@
 # wallpaper  : found on a screenshot browsing google images, don't know the real name
 #
 # aquafont   : http://aquablue.milkcafe.to/tears/font/dl.htm
-# DejaVu     : http://dejavu.sourceforge.net/
+# DejaVu	 : http://dejavu.sourceforge.net/
 # Liberation : https://www.redhat.com/promo/fonts/ 
-# artwiz     : http://artwizaleczapka.sourceforge.net/
+# artwiz	 : http://artwizaleczapka.sourceforge.net/
 #
 # Libstroke for mouse gestures: 
 #   Slackware: http://www.linuxpackages.net/pkg_details.php?id=10888
-#   Arch     : http://www.archlinux.org/packages/extra/i686/libstroke/
+#   Arch	 : http://www.archlinux.org/packages/extra/i686/libstroke/
 #
 # Some functionality config provides: 
 #   - QNX Photon like panel (which can also "swallow" anything)
@@ -35,7 +35,7 @@
 #   - quake like rxvt console
 #   - panels and taskbar can hide, expand, move ...
 #   - and all the other things that make fvwm the best and 
-#     most powerfull wm today
+#	 most powerfull wm today
 #
 #
 # This is a modified fvwm2rc, initially written by Tavis Ormandy
@@ -87,7 +87,7 @@ IgnoreModifiers L2
 # Maximized windows don't cover the panel nor taskbar
 # Without Xinerama
 #% EwmhBaseStruts 0 128 0 28
-EwmhBaseStruts 0 0 0 28
+#EwmhBaseStruts 0 0 0 28
 # 1280x1024
 #EwmhBaseStruts 0 1144 0 28
 # 1024x768@1280x1024
@@ -121,7 +121,7 @@ SnapAttraction 3 SameType
 #Style * StartsOnScreen p
 
 # Shell
-Test (f /bin/zsh) ExecUseShell /bin/zsh
+Test (f /bin/zsh) 	ExecUseShell /bin/zsh
 
 # Menu styles
 Colorset 0 fg #38362e, bg #e4e2d4, #e4e2d4
@@ -192,75 +192,75 @@ Style FvwmScript-Quit PositionPlacement Center, StaysOnTop, MiniIcon general-set
 Style DeskControl NoTitle, NeverFocus, CirculateSkip, WindowListSkip, Sticky, StaysOnBottom, FixedSize, NoHandles
 # Xinerama
 #Style FvwmShelf   NoTitle, StaysOnBottom, Sticky, WindowListSkip, CirculateSkip, FixedSize, NoHandles
-#Style FvwmBar     NoTitle, WindowListSkip, CirculateSkip, Sticky, NeverFocus, StaysOnBottom, FixedSize, NoHandles
+#Style FvwmBar	 NoTitle, WindowListSkip, CirculateSkip, Sticky, NeverFocus, StaysOnBottom, FixedSize, NoHandles
 Style FvwmShelf   NoTitle, StaysOnBottom, Sticky, WindowListSkip, CirculateSkip, NeverFocus, FixedSize, NoHandles
-Style FvwmBar     NoTitle, WindowListSkip, CirculateSkip, Sticky, NeverFocus, StaysOnBottom, NoHandles
+Style FvwmBar	 NoTitle, WindowListSkip, CirculateSkip, Sticky, NeverFocus, StaysOnBottom, NoHandles
 Style FvwmIdent   MiniIcon fx_info.png
 Style fvwm_menu   MiniIcon gears.png, NoButton 4
 # X
-Style Xman        EWMHMiniIconOVerride, MiniIcon utils-xman.png
-Style xmag        ClickToFocus, MiniIcon xmag.png
-Style XCalc       EWMHMiniIconOVerride, MiniIcon utils-calc.png
-Style XVroot      GrabFocus
-Style xmessage    EWMHMiniIconOVerride, MiniIcon fx_info.png, MinOverlapPlacement, EWMHPlacementIgnoreWorkingArea
-Style xv          EWMHMiniIconOVerride, MiniIcon graphics-pallete.png
-Style xfig        EWMHMiniIconOVerride, MiniIcon xfig.png
-Style XDiary      EWMHMiniIconOverride, MiniIcon utils-calendar.png
+Style Xman		EWMHMiniIconOVerride, MiniIcon utils-xman.png
+Style xmag		ClickToFocus, MiniIcon xmag.png
+Style XCalc	   EWMHMiniIconOVerride, MiniIcon utils-calc.png
+Style XVroot	  GrabFocus
+Style xmessage	EWMHMiniIconOVerride, MiniIcon fx_info.png, MinOverlapPlacement, EWMHPlacementIgnoreWorkingArea
+Style xv		  EWMHMiniIconOVerride, MiniIcon graphics-pallete.png
+Style xfig		EWMHMiniIconOVerride, MiniIcon xfig.png
+Style XDiary	  EWMHMiniIconOverride, MiniIcon utils-calendar.png
 Style XClipboard  EWMHMiniIconOverride, MiniIcon klipper.png, NoTitle, CirculateSkip, WindowListSkip
 Style stalonetray NoTitle
-Style Xpdf        EWMHMiniIconOverride, MiniIcon xpdf.png
-Style *lock       NoTitle, Sticky, Layer 5, WindowListSkip, CirculateSkip, PositionPlacement -0 6
-# Style *lock       NoTitle, !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -64
-#% Style xclock      NoTitle, Sticky, WindowListSkip
+Style Xpdf		EWMHMiniIconOverride, MiniIcon xpdf.png
+Style *lock	   NoTitle, Sticky, Layer 5, WindowListSkip, CirculateSkip, PositionPlacement -0 6
+# Style *lock	   NoTitle, !Handles, Sticky, Layer 5, WindowListSkip, CirculateSkip, !Iconifiable, !Maximizable, !Closable, PositionPlacement -0 -64
+#% Style xclock	  NoTitle, Sticky, WindowListSkip
 # Term
-Style XTerm       EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
-Style urxvt       EWMHMiniIconOverride, MiniIcon gnome-terminal.png, WindowShadeShrinks
+Style XTerm	   EWMHMiniIconOVerride, MiniIcon gnome-xterm.png
+Style urxvt	   EWMHMiniIconOverride, MiniIcon gnome-terminal.png, WindowShadeShrinks
 #Style HiddenConsole GrabFocus, Sticky, WindowListSkip, Notitle, StaysOnTop, NoHandles, CirculateSkip
 Style HiddenConsole Sticky, WindowListSkip, Notitle, StaysOnTop, NoHandles, CirculateSkip
 Style HiddenConsole WindowShadeSteps 100, ResizeHintOverride
 # User
-Style gmrun       EWMHMiniIconOVerride, MiniIcon gears.png, GrabFocus, StaysOnTop, PositionPlacement Center, WindowListSkip, CirculateSkip, BorderWidth 3
-Style Gmrun       EWMHMiniIconOVerride, MiniIcon gears.png, GrabFocus, StaysOnTop, PositionPlacement Center, WindowListSkip, CirculateSkip, BorderWidth 3
+Style gmrun	   EWMHMiniIconOVerride, MiniIcon gears.png, GrabFocus, StaysOnTop, PositionPlacement Center, WindowListSkip, CirculateSkip, BorderWidth 3
+Style Gmrun	   EWMHMiniIconOVerride, MiniIcon gears.png, GrabFocus, StaysOnTop, PositionPlacement Center, WindowListSkip, CirculateSkip, BorderWidth 3
 Style ROX-Filer   EWMHMiniIconOverride, MiniIcon utils-file_manager.png, !FPFocusByProgram, !FPGrabFocusTransient
-Style gqview      EWMHMiniIconOverride, MiniIcon browse-pics.png
-Style GQview      EWMHMiniIconOverride, MiniIcon browse-pics.png
+Style gqview	  EWMHMiniIconOverride, MiniIcon browse-pics.png
+Style GQview	  EWMHMiniIconOverride, MiniIcon browse-pics.png
 Style rainlendar  UsePPosition, !FPFocusByProgram, IgnoreRestack
-Style vmware      EWMHMiniIconOVerride, MiniIcon hardware_computers.png
-Style VMware      EWMHMiniIconOVerride, MiniIcon hardware_computers.png
-Style kgpg        EWMHMiniIconOverride, MiniIcon utils-gpg.png, PositionPlacement Center
-Style Kgpg        EWMHMiniIconOverride, MiniIcon utils-gpg.png, PositionPlacement Center
-Style Waiting     MinOverlapPlacement, ClickToFocus
+Style vmware	  EWMHMiniIconOVerride, MiniIcon hardware_computers.png
+Style VMware	  EWMHMiniIconOVerride, MiniIcon hardware_computers.png
+Style kgpg		EWMHMiniIconOverride, MiniIcon utils-gpg.png, PositionPlacement Center
+Style Kgpg		EWMHMiniIconOverride, MiniIcon utils-gpg.png, PositionPlacement Center
+Style Waiting	 MinOverlapPlacement, ClickToFocus
 # Chat
-Style xchat-2     !FPFocusByProgram, NoFuncHint, NoDecorHint
-Style irssi       EWMHMiniIconOverride, MiniIcon net-xchat.png
-Style Gajim       EWMHMiniIconOverride, MiniIcon net-im-jabber.png, UsePPosition, !FPFocusByProgram, !Iconifiable, IgnoreRestack
-Style Gajim.py    EWMHMiniIconOverride, MiniIcon net-im-jabber.png
-Style gajim.py    EWMHMiniIconOverride, MiniIcon net-im-jabber.png
+Style xchat-2	 !FPFocusByProgram, NoFuncHint, NoDecorHint
+Style irssi	   EWMHMiniIconOverride, MiniIcon net-xchat.png
+Style Gajim	   EWMHMiniIconOverride, MiniIcon net-im-jabber.png, UsePPosition, !FPFocusByProgram, !Iconifiable, IgnoreRestack
+Style Gajim.py	EWMHMiniIconOverride, MiniIcon net-im-jabber.png
+Style gajim.py	EWMHMiniIconOverride, MiniIcon net-im-jabber.png
 # Net
-Style D4X         EWMHMiniIconOverride, MiniIcon net-d4x.png
-Style D4X_Main    EWMHMiniIconOverride, MiniIcon net-d4x.png
+Style D4X		 EWMHMiniIconOverride, MiniIcon net-d4x.png
+Style D4X_Main	EWMHMiniIconOverride, MiniIcon net-d4x.png
 Style Firefox-bin EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
 Style Swiftfox-bin EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
-Style Firefox     EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
-Style Swiftfox    EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
+Style Firefox	 EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
+Style Swiftfox	EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
 Style Navigator   EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
 Style Minefield   EWMHMiniIconOVerride, MiniIcon net-browser.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
-Style opera       EWMHMiniIconOverride, MiniIcon net-opera.png
-Style Skype       EWMHMiniIconOverride, MiniIcon net-skype.png, UsePPosition, !FPFocusByProgram, !Iconifiable, IgnoreRestack
-Style Pine        EWMHMiniIconOverride, MiniIcon net-email.png
-Style Alpine      EWMHMiniIconOverride, MiniIcon net-email.png
-Style gFTP        EWMHMiniIconOverride, MiniIcon net-gftp.png
-Style Valknut     EWMHMiniIconOverride, MiniIcon dc.png
-Style Xqf         EWMHMiniIconOverride, MiniIcon xqf.png
+Style opera	   EWMHMiniIconOverride, MiniIcon net-opera.png
+Style Skype	   EWMHMiniIconOverride, MiniIcon net-skype.png, UsePPosition, !FPFocusByProgram, !Iconifiable, IgnoreRestack
+Style Pine		EWMHMiniIconOverride, MiniIcon net-email.png
+Style Alpine	  EWMHMiniIconOverride, MiniIcon net-email.png
+Style gFTP		EWMHMiniIconOverride, MiniIcon net-gftp.png
+Style Valknut	 EWMHMiniIconOverride, MiniIcon dc.png
+Style Xqf		 EWMHMiniIconOverride, MiniIcon xqf.png
 Style uTorrent.exe EWMHMiniIconOverride, MiniIcon net-utorrent.png
 # Editing
-Style gimp        EWMHMiniIconOverride, MiniIcon graphics-gimp.png, !FPFocusByProgram
-Style gimp-2.0    EWMHMiniIconOverride, MiniIcon graphics-gimp.png, !FPFocusByProgram
-Style Emacs       EWMHMiniIconOverride, MiniIcon editors-emacs.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
-Style vim         EWMHMiniIconOverride, MiniIcon editors-vim.png
-Style gvim        EWMHMiniIconOverride, MiniIcon editors-vim.png
-Style poEdit      EWMHMiniIconOverride, MiniIcon poedit.png
-Style khexedit    EWMHMiniIconOverride, MiniIcon hexeditor.png
+Style gimp		EWMHMiniIconOverride, MiniIcon graphics-gimp.png, !FPFocusByProgram
+Style gimp-2.0	EWMHMiniIconOverride, MiniIcon graphics-gimp.png, !FPFocusByProgram
+Style Emacs	   EWMHMiniIconOverride, MiniIcon editors-emacs.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea
+Style vim		 EWMHMiniIconOverride, MiniIcon editors-vim.png
+Style gvim		EWMHMiniIconOverride, MiniIcon editors-vim.png
+Style poEdit	  EWMHMiniIconOverride, MiniIcon poedit.png
+Style khexedit	EWMHMiniIconOverride, MiniIcon hexeditor.png
 # Media
 Style "MPlayer"	  MiniIcon media-menu.png, Title
 # There is some universaly stupid behaviour with mplayer, controls
@@ -268,22 +268,22 @@ Style "MPlayer"	  MiniIcon media-menu.png, Title
 # it's always on top (of the picture).. this is the only way to change 
 # that, unfortunately it's stays on top of other windows too.
 Style "MPlayer - Video" MiniIcon media-menu.png, NoTitle, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea, Layer 11 4
-Style xine        MwmDecor, UsePPosition, MiniIcon media-menu.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea, WindowListSkip, CirculateSkip, Sticky
-Style Xitk        MwmDecor, UsePPosition, MiniIcon media-menu.png
-Style oxine       MwmDecor, UsePPosition, MiniIcon media-menu.png, WindowListSkip, CirculateSkip, Sticky
-Style NoClass     MwmDecor, UsePPosition, MiniIcon media-menu.png, WindowListSkip, CirculateSkip, Sticky
+Style xine		MwmDecor, UsePPosition, MiniIcon media-menu.png, EWMHPlacementIgnoreWorkingArea, EWMHMaximizeIgnoreWorkingArea, WindowListSkip, CirculateSkip, Sticky
+Style Xitk		MwmDecor, UsePPosition, MiniIcon media-menu.png
+Style oxine	   MwmDecor, UsePPosition, MiniIcon media-menu.png, WindowListSkip, CirculateSkip, Sticky
+Style NoClass	 MwmDecor, UsePPosition, MiniIcon media-menu.png, WindowListSkip, CirculateSkip, Sticky
 Style Amarokapp   EWMHMiniIconOverride, MiniIcon media-amarok.png
 Style amarokapp   EWMHMiniIconOverride, MiniIcon media-amarok.png
-Style Aumix       EWMHMiniIconOverride, MiniIcon media-mixer.png
-Style Nero        EWMHMiniIconOverride, MiniIcon media-burner2.png
-Style nero        EWMHMiniIconOverride, MiniIcon media-burner2.png
+Style Aumix	   EWMHMiniIconOverride, MiniIcon media-mixer.png
+Style Nero		EWMHMiniIconOverride, MiniIcon media-burner2.png
+Style nero		EWMHMiniIconOverride, MiniIcon media-burner2.png
 # Not used
-#Style xystray     NoTitle
-#Style Kaffeine    WindowListSkip, CirculateSkip
-#Style Dolphin     EWMHMiniIconOverride, MiniIcon utils-file_manager.png, !FPFocusByProgram, !FPGrabFocusTransient
-#Style dolphin     EWMHMiniIconOverride, MiniIcon utils-file_manager.png, !FPFocusByProgram, !FPGrabFocusTransient
-#Style XOsview     WindowListSkip, CirculateSkip, NoTitle
-#Style xmms        MiniIcon xmms.png
+#Style xystray	 NoTitle
+#Style Kaffeine	WindowListSkip, CirculateSkip
+#Style Dolphin	 EWMHMiniIconOverride, MiniIcon utils-file_manager.png, !FPFocusByProgram, !FPGrabFocusTransient
+#Style dolphin	 EWMHMiniIconOverride, MiniIcon utils-file_manager.png, !FPFocusByProgram, !FPGrabFocusTransient
+#Style XOsview	 WindowListSkip, CirculateSkip, NoTitle
+#Style xmms		MiniIcon xmms.png
 #Style beep-media-player MiniIcon beep-media-player.png, UsePPosition, !FPFocusByProgram, !Iconifiable, IgnoreRestack
 
 #####
@@ -333,111 +333,113 @@ DestroyModuleConfig FvwmProxy: *
 DestroyModuleConfig FvwmWindowEvents: *
 *FvwmWinEvents: deiconify DeThumbnail
 
-
 #####
 # Mouse bindings.
 #####
-Mouse 1 R       A   Menu MenuFvwmRoot
-Mouse 4 R       A   Menu MenuFvwmRoot
-Mouse 5 R       A   Menu MenuFvwmRoot
-Mouse 4 A       M   Next (AcceptsFocus) FlipFocus
-Mouse 5 A       M   Prev (AcceptsFocus) Focus
-Mouse 4 A       S   WheelScroll down
-Mouse 5 A       S   WheelScroll up
-Mouse 4 R       C   WheelScroll down
-Mouse 5 R       C   WheelScroll up
-Mouse 4 T       N   WheelToggleShade True
-Mouse 5 T       N   WheelToggleShade False
-Mouse 2 R       A   WindowList SortByClass MaxLabelWidth 60
-Mouse 0 1       N   Menu MenuFvwmWindowOps
-Mouse 0 2       A   DestroyOnHold
-Mouse 0 6       A   Thumbnail
-Mouse 0 4       A   Maximize
-Mouse 0 8       A   Module FvwmIdent
-Mouse 1 FS      A   Resize-or-Raise
-Mouse 1 T       A   Move-or-Raise
-Mouse 1 I       A   Move-or-Iconify
-Mouse 2 I       A   Iconify
-Mouse 3 TSIF    A   RaiseLower
-Mouse 2 W       C   Resize-or-Raise
-Mouse 1 W       M   Move-or-Raise
+Mouse 	1  R    A 	Menu MenuFvwmRoot
+Mouse 	4  R    A 	Menu MenuFvwmRoot
+Mouse 	5  R    A 	Menu MenuFvwmRoot
+Mouse 	4  A    M 	Next (AcceptsFocus) FlipFocus
+Mouse 	5  A    M 	Prev (AcceptsFocus) Focus
+Mouse 	4  A    S 	WheelScroll down
+Mouse 	5  A    S 	WheelScroll up
+Mouse 	4  R    C 	WheelScroll down
+Mouse 	5  R    C 	WheelScroll up
+Mouse 	4  T    N 	WheelToggleShade True
+Mouse 	5  T    N 	WheelToggleShade False
+Mouse 	2  R    A 	WindowList SortByClass MaxLabelWidth 60
+Mouse 	0  1    N 	Menu MenuFvwmWindowOps
+Mouse 	0  2    A 	DestroyOnHold
+Mouse 	0  6    A 	Thumbnail
+Mouse 	0  4    A 	Maximize
+Mouse 	0  8    A 	Module FvwmIdent
+Mouse 	1  FS   A 	Resize-or-Raise
+Mouse 	1  T    A 	Move-or-Raise
+Mouse 	1  I    A 	Move-or-Iconify
+Mouse 	2  I    A 	Iconify
+Mouse 	3  TSIF A 	RaiseLower
+Mouse 	2  W    C 	Resize-or-Raise
+Mouse 	1  W    M 	Move-or-Raise
+
+### --- --- --- --- --- --- --- --- --- ### --- --- --- --- --- --- --- --- --- ###
+### http://fvwmforums.org/wiki/Tips/XTermRunDialogue/
+Style fvwm-run-dialog FPGrabFocus, FPReleaseFocus
 
 #####
 # Key bindings.
 #####
-Key Up      A   M Pick AnimatedMove keep 0p
-Key Left      A   M Pick AnimatedMove 0p keep
-Key Down      A   M Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height] - 28))p"
-Key Right      A   M Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
+Key 	Up     A  M 	Pick AnimatedMove keep 0p
+Key 	Left   A  M 	Pick AnimatedMove 0p keep
+Key 	Down   A  M 	Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height] - 28))p"
+Key 	Right  A  M 	Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
 # Pick CentreWindow (126/2) (28/2) Animated
 ###
-Key q       A    MS  Quit
-#Key R  A        CM  Restart
-key q       A    M   Restart
-# key Return  A    MS   Exec xterm # -geometry 81x27 -e screen -e^jj -R
-key x  A    MS  Exec xterm -geometry 128x36 "/usr/bin/zsh"
-#key Return  A    MS  Exec xterm -geometry 128x36
-#Key b  A    MS  Exec chromium
-#Key p     A    M  Exec `dmenu_path | dmenu`
-#Key p       A    M   Exec dmenu_run
-Key x  A    M   Exec gmrun
-# Key p       A    MS   None (*run) Exec grun || gmrun || fbrun || xfrun4
-# Key x       A    M    Exec rox
-#Key F3 A        M   Exec exec emacs
-Key c       A    M   Pick Close
-#% Key c    A    MS  Pick Quit
-#% Key F3   A    M   Pick Close
-#% Key F4   A    M   Pick Close # maybe Destroy
-#% Key F4   A    CM  Quit
-Key j       A    M   Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
-Key k       A    M   Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key  	q      A  MS 	Quit
+#Key 	R      A  CM 	Restart
+key 	q      A  M 	Restart
+#key 	Return A  MS	Exec xterm # -geometry 81x27 -e screen -e^jj -R
+key 	x      A  MS 	Exec xterm -geometry 128x36 "/usr/bin/zsh"
+#key 	Return A  MS 	Exec xterm -geometry 128x36
+#Key 	b      A  MS   Exec chromium
+Key 	x      A  M 	Exec exec /bin/bash $[FVWM_USERDIR]/run-dialog
+#Key 	x      A  M 	Exec gmrun
+Key 	p      A  M 	Exec gmrun
+#Key 	p      A  M 	Exec `dmenu_path | dmenu`
+# Key 	p      A  MS   None (*run) Exec grun || gmrun || fbrun || xfrun4
+# Key 	x      A  M 	Exec rox
+#Key 	F3     A  M 	Exec exec emacs
+Key 	c      A  M 	Pick Close
+#% Key 	c      A  MS 	Pick Quit
+#% Key 	F3     A  M 	Pick Close
+#% Key 	F4     A  M 	Pick Close # maybe Destroy
+#% Key 	F4     A  CM 	Quit
+Key 	j      A  M 	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key 	k      A  M 	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 
-Key i       A    M   Iconify
-Key i       A    MS  All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
-Key z       A    M   Pick Resize
-Key W       A    CM  Pick Move
-Key M       A    M   Pick Maximize
-#% Key N  A       CM  Exec exec knode
-#Key X  A        CM  Exec exec xine # this doesn't work, change X key to smtin else
-#Key P  A        CM  Exec exec amarok
-#Key G  A        CM  Exec exec gajim
+Key 	i      A  M 	Iconify
+Key 	i      A  MS 	All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
+Key 	z      A  M 	Pick Resize
+Key 	W      A  CM 	Pick Move
+Key 	M      A  M 	Pick Maximize
+#Key 	N      A  CM 	Exec exec knode
+#Key 	X      A  CM 	Exec exec xine # this doesn't work, change X key to smtin else
+#Key 	P      A  CM 	Exec exec amarok
+#Key 	G      A  CM 	Exec exec gajim
 
-#Key Up      WTSF    SM  empty
-#Key Down    WTSF    SM  emtpy
-#Key Left    WTSF    SM  empty
-#Key Right   WTSF    SM  empty
+#Key 	Up	   WTSF SM 	empty
+#Key 	Down   WTSF SM 	emtpy
+#Key 	Left   WTSF SM 	empty
+#Key 	Right  WTSF SM 	empty
 
-Key Escape      A   M   SendToModule FvwmProxy ShowToggle # alt+esc I love this
-Key Tab         A   M   WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
-# Key Super_L     A   A   Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
-# Key grave       A   M   Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
-# Key Print       A   N   Exec exec ksnapshot
-Key Print       A   N   Exec import /tmp/.import.png && feh /tmp/.import.png
-#Key Page_Down     A   M   Lower
-#Key Page_Up       A   M   Raise
-# Key Scroll_Lock A   N   Lower
-# Key Pause       A   N   Raise
-#Key Pause      A   N   Thumbnail
-#Key Delete      A   CM  Exec exec kdesktop_lock --forcelock
-#Key Menu       A   A   do some nice action here # this is the "right click" key
-Key Page_Down     A   M  GotoDesk -1
-Key Page_Up       A   M  GotoDesk +1
+Key 	Escape      A  M 	SendToModule FvwmProxy ShowToggle # alt+esc I love this
+Key 	Tab	        A  M 	WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
+#Key 	Super_L     A  A 	Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
+#Key 	grave	    A  M 	Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
+#Key 	Print	    A  N 	Exec exec ksnapshot
+Key 	Print	    A  N 	Exec import /tmp/.import.png && feh /tmp/.import.png
+#Key 	Page_Down   A  M 	Lower
+#Key 	Page_Up	    A  M 	Raise
+#Key 	Scroll_Lock A  N 	Lower
+#Key 	Pause	    A  N 	Raise
+#Key 	Pause	    A  N 	Thumbnail
+#Key 	Delete	    A  CM 	Exec exec kdesktop_lock --forcelock
+#Key 	Menu	    A  A 	do some nice action here # this is the "right click" key
+Key 	Page_Down   A  M 	GotoDesk -1
+Key 	Page_Up	    A  M 	GotoDesk +1
 
-# Multimedia Keys, keycodes defined in .Xmodmap
-#Key XF86AudioPlay         A   A Exec exec dcop amarok player play
-#Key XF86AudioStop         A   A Exec exec dcop amarok player pause
-#Key XF86AudioPrev         A   A Exec exec dcop amarok player prev
-#Key XF86AudioNext         A   A Exec exec dcop amarok player next
-Key XF86AudioMute         A   A Exec exec amixer -q sset Master toggle
-Key XF86AudioLowerVolume  A   A Exec exec amixer -q sset PCM 2dB-
-Key XF86AudioRaiseVolume  A   A Exec exec amixer -q sset PCM 2dB+
-Key XF86WWW               A   A Exec exec /usr/local/bin/firefox -browser
-Key XF86Mail              A   A Exec exec /usr/bin/urxvt -g 126x38+198+150 -title Alpine -e alpine
-
+## Multimedia Keys, keycodes defined in .Xmodmap
+#Key 	XF86AudioPlay		 A  A 	Exec exec dcop amarok player play
+#Key 	XF86AudioStop		 A  A 	Exec exec dcop amarok player pause
+#Key 	XF86AudioPrev		 A  A 	Exec exec dcop amarok player prev
+#Key 	XF86AudioNext		 A  A 	Exec exec dcop amarok player next
+Key 	XF86AudioMute		 A  A 	Exec exec amixer -q sset Master toggle
+Key 	XF86AudioLowerVolume A  A 	Exec exec amixer -q sset PCM 2dB-
+Key 	XF86AudioRaiseVolume A  A 	Exec exec amixer -q sset PCM 2dB+
+Key 	XF86WWW			     A  A 	Exec exec /usr/local/bin/firefox -browser
+Key 	XF86Mail			 A  A 	Exec exec /usr/bin/urxvt -g 126x38+198+150 -title Alpine -e alpine
 
 ###########################################################################################
-#
-####
+### http://fvwmforums.org/wiki/Tips/MouseGestures/
 # Mouse Gestures.
 #
 # Syntax reminder:
@@ -456,7 +458,6 @@ Key XF86Mail              A   A Exec exec /usr/bin/urxvt -g 126x38+198+150 -titl
 # Window, the sequence is a pattern on the grid above, so 14789 would be down then Right.
 #################
 #
-####
 # First, define a StrokeFunc.
 #
 # Without this, you would have to execute all of your gestures entirely on the Root
@@ -467,50 +468,39 @@ Key XF86Mail              A   A Exec exec /usr/bin/urxvt -g 126x38+198+150 -titl
 #
 # Note: EchoSequence prints sequences to STDERR.
 #################
-Mouse 3 R A     StrokeFunc DrawMotion FeedBack StrokeWidth 1
-#Stroke 0 0 R N     Menu MenuFvwmRoot
-
-# Down, Then Up.
-Stroke 25852 0 R N  Refresh
-
-# Directions...
-Stroke 456 0 R N    GotoPage +1p 0p
-Stroke 654 0 R N    GotoPage -1p 0p
-Stroke 852 0 R N    GotoPage 0p -1p
-Stroke 258 0 R N    GotoPage 0p +1p
-
-# Diagonal...
-Stroke 159 0 R N    GotoPage +1p +1p
-Stroke 951 0 R N    GotoPage -1p -1p
-Stroke 357 0 R N    GotoPage -1p +1p
-Stroke 753 0 R N    GotoPage +1p -1p
-
-#####
-# Quit
+#Mouse 3 R A	 StrokeFunc DrawMotion FeedBack StrokeWidth 1
+##Stroke 0 0 R N	 Menu MenuFvwmRoot
 #
-# Down, Then Right.
+## Directions...
+#Stroke 456 0 R N	GotoPage +1p 0p
+#Stroke 654 0 R N	GotoPage -1p 0p
+#Stroke 852 0 R N	GotoPage 0p -1p
+#Stroke 258 0 R N	GotoPage 0p +1p
 #
-# Dont worry about running this gesture by accident,
-# you will be asked to confirm
-#################
-Stroke 14789 0 R N  Module FvwmForm FvwmForm-QuitVerify
+## Diagonal...
+#Stroke 159 0 R N	GotoPage +1p +1p
+#Stroke 951 0 R N	GotoPage -1p -1p
+#Stroke 357 0 R N	GotoPage -1p +1p
+#Stroke 753 0 R N	GotoPage +1p -1p
+#Stroke 14789 0 R N  Module FvwmForm FvwmForm-QuitVerify
 
-####
-# Up, Then Down: Close a window.
-#
-# Note that you can also enter the sequence as it appears on your
-# Numeric Keypad, by preceding the sequence with an `N`.
-#
-# The FVWM developers think of everything :)
-#################
-Stroke N25852 0 R N Pick Close
-
-# Start a Web Browser
-Stroke N1478963 0 R N Exec exec firefox -browser
-
-# Make a new Sticky Note
-Stroke N3698741 0 R N Exec exec knotes
-
+###########################################################################################
+### http://fvwmforums.org/wiki/Tips/MouseGestures/
+# unbind the third mousebutton
+Mouse 3 R N -
+#Stroke <Sequence> <Button> <Context> <Modifiers> <Function>
+#eg. remap the third mousebutton in case the stroke was in fact only click to open window list
+Stroke 0 0 R N Menu WindowList Nop
+# from bottom left to top right to maximize the current active window
+#Stroke N159 0 W N Maximize 100 100
+# from top right to bottom left to iconify the current active window
+#Stroke N951 0 W N Iconify
+Stroke N9514753 0 W N 	Pick Close
+Stroke N1478963 0 R N 	Exec exec firefox
+#Stroke N....... 0 R N 	Pick Close
+# use StrokeFunc to grab + echo gestures (to xsession-errors) + display
+Mouse 3 A M StrokeFunc EchoSequence DrawMotion FeedBack StrokeWidth 3
+#Stroke N74123 	Exec xterm -geometry 128x36 "/usr/bin/zsh"
 ###########################################################################################
 
 #####
@@ -533,7 +523,7 @@ AddToFunc StartFunction
 #####
 # Without Xinerama
 #% + I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-129))x28+0-0 FvwmBar"
-+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-129))x28+0-0 FvwmBar"
+#  + I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-129))x28+0-0 FvwmBar"
 # 1280x1024
 #+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-1154))x28+0-0 FvwmBar"
 # 1024x768@1280x1024
@@ -542,42 +532,42 @@ AddToFunc StartFunction
 #+ I PipeRead "echo Module FvwmButtons -g $$(($[vp.width]-1480))x28+0-0 FvwmBar"
 
 #
-#% + I Test (Init) Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
-# + I Test (Init) Exec habak -ms $[fvwm_wallpaper_dir]
-# + I Test (Init) Exec cairo-clock --theme antique --date
-# + I Test (Init) Exec asclock -shape -p -0-0
-+ I Test (Init) Exec oclock -transparent -fg orange
-#+ I Test (Init) Exec xterm -geometry
-# + I Test (Init) PipeRead "echo Exec xterm -geometry $$(($[vp.width]/3*2))x$$(($[vp.height]-28))+0+0"
+#% + I Test (Init) 	Exec exec fvwm-root --dither --retain-pixmap $[fvwm_wallpaper]
+# + I Test (Init) 	Exec habak -ms $[fvwm_wallpaper_dir]
+# + I Test (Init) 	Exec cairo-clock --theme antique --date
+# + I Test (Init) 	Exec asclock -shape -p -0-0
++ I Test (Init) 	Exec oclock -transparent -fg orange
+#+ I Test (Init) 	Exec xterm -geometry
+# + I Test (Init) 	PipeRead "echo Exec xterm -geometry $$(($[vp.width]/3*2))x$$(($[vp.height]-28))+0+0"
 
-+ I Test (Init) Exec exec /usr/bin/root-tail -g 670x150+0+100 -wordwrap -font cure -reverse /var/log/everything.log,white /var/log/auth.log,white
++ I Test (Init) 	Exec exec /usr/bin/root-tail -g 670x150+0+100 -wordwrap -font cure -reverse /var/log/everything.log,white /var/log/auth.log,white
 #% + I Test (Init) Test (x urxvt) StartHiddenConsole
-#+ I Test (Init) Exec conky -c ~/.conky/cfg-0
-#+ I Test (Init) Exec conky -c ~/.conky/cfg-1
-#+ I Test (Init) Exec conky -c ~/.conky/cfg-2
-#% + I Test (Init) Exec klaptop_check
+#+ I Test (Init) 	Exec conky -c ~/.conky/cfg-0
+#+ I Test (Init) 	Exec conky -c ~/.conky/cfg-1
+#+ I Test (Init) 	Exec conky -c ~/.conky/cfg-2
+#% + I Test (Init) 	Exec klaptop_check
 # If you need icons on the desktop
-#+ I Test (Init) Exec rox -S
+#+ I Test (Init) 	Exec rox -S
 + I Test (Restart) All (Iconic) Test (f $[FVWM_USERDIR]/icon.tmp.$[w.id].png) WindowStyle IconOverride, Icon $[FVWM_USERDIR]/icon.tmp.$[w.id].png
 
 #####
 # Exit
 #####
 AddToFunc ExitFunction
-+ I Test (!ToRestart) Exec rm -f $[FVWM_USERDIR]/icon.tmp.*
++ I Test (!ToRestart) 	Exec rm -f $[FVWM_USERDIR]/icon.tmp.*
 + I KillModule FvwmAnimate
-+ I Exec killall stalonetray
-#+ I Exec killall amarokapp
-#+ I Exec killall dcopserver
-#+ I Exec killall irexec
-+ I Exec sync
++ I 	Exec killall stalonetray
+#+ I 	Exec killall amarokapp
+#+ I 	Exec killall dcopserver
+#+ I 	Exec killall irexec
++ I 	Exec sync
 
 #####
 # Autohide console
 #####
 DestroyFunc StartHiddenConsole
 AddToFunc StartHiddenConsole
-+ I Exec exec urxvt +sb -ls -bg black -fg white -fn "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -fb "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -bc -g 100x12+0+0 -name HiddenConsole
++ I 	Exec exec urxvt +sb -ls -bg black -fg white -fn "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -fb "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -bc -g 100x12+0+0 -name HiddenConsole
 + I Wait HiddenConsole
 + I Next (HiddenConsole) Resize $[vp.width]p 9
 + I Autohide HiddenConsole 0 0 N
@@ -591,7 +581,7 @@ AddToFunc HiddenConsoleKeyBinding
 #####
 DestroyMenu MenuFvwmRoot
 AddToMenu MenuFvwmRoot
-#% + %gnome-terminal.png%"&Urxvt" Exec exec urxvt --title 'terminal'
+#% + %gnome-terminal.png%"&Urxvt" 	Exec exec urxvt --title 'terminal'
 #% + "" Nop
 + %gnome/24x24/categories/applications-office.png%"Office" Popup MenuOffice
 + %gnome/24x24/categories/applications-internet.png%"Internet" Popup MenuInternet
@@ -603,8 +593,8 @@ AddToMenu MenuFvwmRoot
 + %gnome/24x24/categories/applications-games.png%"Games" Popup MenuGames
 #% + %ssh-logins.png%"Logins" Popup MenuLogins
 + "" Nop
-+ %gnome/24x24/actions/system-run.png%"Run..." Exec exec gmrun
-+ %gnome/24x24/actions/system-search.png%"Find" Exec exec kfind
++ %gnome/24x24/actions/system-run.png%"Run..." 	Exec exec gmrun
++ %gnome/24x24/actions/system-search.png%"Find" 	Exec exec kfind
 + "" Nop
 + %gnome/24x24/categories/preferences-system.png%"Preferences" Popup MenuFvwmConfig
 + %gnome/24x24/apps/gnome-window-manager.png%"Window Controls" Popup MenuFvwmWindowOps
@@ -616,70 +606,70 @@ DestroyMenu MenuOffice
 AddToMenu MenuOffice
 + %office-addressbook.png%"Management" Popup MenuManagement
 + "" Nop
-+ %office-ooo_writer.png%"Writer" Exec exec /opt/openoffice/program/swriter
-+ %gnome/24x24/apps/accessories-calculator.png%"Calc" Exec exec xcalc
-+ %office-ooo_impress.png%"Impress" Exec exec /opt/openoffice/program/simpress
-+ %office-ooo_draw.png%"Draw" Exec exec /opt/openoffice/program/sdraw
++ %office-ooo_writer.png%"Writer" 	Exec exec /opt/openoffice/program/swriter
++ %gnome/24x24/apps/accessories-calculator.png%"Calc" 	Exec exec xcalc
++ %office-ooo_impress.png%"Impress" 	Exec exec /opt/openoffice/program/simpress
++ %office-ooo_draw.png%"Draw" 	Exec exec /opt/openoffice/program/sdraw
 + "" Nop
-+ %office-documents.png%"Tellico" Exec exec tellico
++ %office-documents.png%"Tellico" 	Exec exec tellico
 + "" Nop
-+ %office-kpdf.png%"KPDF" Exec exec kpdf
-+ %office-xpdf.png%"xPDF" Exec exec xpdf
-+ %office-xchm.png%"xCHM" Exec exec xchm
++ %office-kpdf.png%"KPDF" 	Exec exec kpdf
++ %office-xpdf.png%"xPDF" 	Exec exec xpdf
++ %office-xchm.png%"xCHM" 	Exec exec xchm
 
 #% DestroyMenu MenuManagement
 #% AddToMenu MenuManagement
-#% + %office-calendar.png%"Kontact" Exec exec kontact
-#% + %office-organizer.png%"Korganizer" Exec exec korganizer
-#% + %office-addressbook2.png%"Kadressbook" Exec exec kadressbook
-#% + %office-alarm.png%"Kalarm" Exec exec kalarm
-#% + %sync.png%"Ksync" Exec exec ksync
-#% + %hardware-mobilephone.png%"Kandy" Exec exec kandy
+#% + %office-calendar.png%"Kontact" 	Exec exec kontact
+#% + %office-organizer.png%"Korganizer" 	Exec exec korganizer
+#% + %office-addressbook2.png%"Kadressbook" 	Exec exec kadressbook
+#% + %office-alarm.png%"Kalarm" 	Exec exec kalarm
+#% + %sync.png%"Ksync" 	Exec exec ksync
+#% + %hardware-mobilephone.png%"Kandy" 	Exec exec kandy
 
 DestroyMenu MenuInternet
 AddToMenu MenuInternet
-+ %hicolor/24x24/apps/chromium.png%"Chrome" Exec exec chromium
-+ %firefox.png%"Firefox" Exec exec firefox
-+ %net-browser.png%"Konqueror" Exec exec konqueror --profile webbrowsing
-+ %net-opera.png%"Opera" Exec exec opera.sh
-+ %net-browser.png%"Links" Exec exec urxvt -g 90x36 -title Links -e links ~/.links/startpage.html
-+ %net-email.png%"Alpine" Exec exec urxvt -g 126x38+198+150 -title Alpine -e alpine
-+ %net-news.png%"ANews" Exec exec urxvt -g 126x38+198+150 -title Alpine -e alpine -I "l,n,>"
-+ %net-kmail.png%"KMail" Exec exec kmail
++ %hicolor/24x24/apps/chromium.png%"Chrome" 	Exec exec chromium
++ %firefox.png%"Firefox" 	Exec exec firefox
++ %net-browser.png%"Konqueror" 	Exec exec konqueror --profile webbrowsing
++ %net-opera.png%"Opera" 	Exec exec opera.sh
++ %net-browser.png%"Links" 	Exec exec urxvt -g 90x36 -title Links -e links ~/.links/startpage.html
++ %net-email.png%"Alpine" 	Exec exec urxvt -g 126x38+198+150 -title Alpine -e alpine
++ %net-news.png%"ANews" 	Exec exec urxvt -g 126x38+198+150 -title Alpine -e alpine -I "l,n,>"
++ %net-kmail.png%"KMail" 	Exec exec kmail
 + %net-rss.png%"aKregator" exec akregator
-+ %net-gftp.png%"gFTP" Exec exec gftp
++ %net-gftp.png%"gFTP" 	Exec exec gftp
 + "" Nop
-+ %net-xchat.png%"XChat" Exec exec xchat
-+ %net-im-kopete.png%"Kopete" Exec exec kopete
-+ %net-skype.png%"Skype" Exec exec kdocker -t /usr/local/opt/skype/skype
++ %net-xchat.png%"XChat" 	Exec exec xchat
++ %net-im-kopete.png%"Kopete" 	Exec exec kopete
++ %net-skype.png%"Skype" 	Exec exec kdocker -t /usr/local/opt/skype/skype
 + "" Nop
-+ %net-utorrent.png%"uTorrent" Exec exec utorrent
-+ %net-download.png%"Klibido" Exec exec klibido
-+ %net-torrent.png%"DC++" Exec exec valknut
-+ %net-d4x.png%"KGet" Exec exec kget
++ %net-utorrent.png%"uTorrent" 	Exec exec utorrent
++ %net-download.png%"Klibido" 	Exec exec klibido
++ %net-torrent.png%"DC++" 	Exec exec valknut
++ %net-d4x.png%"KGet" 	Exec exec kget
 + "" Nop
-+ %net-netanalyzer.png%"Net Analyzer" Exec exec wireshark
-+ %net-nmap.png%"Port Scanner" Exec exec zenmap
++ %net-netanalyzer.png%"Net Analyzer" 	Exec exec wireshark
++ %net-nmap.png%"Port Scanner" 	Exec exec zenmap
 
 DestroyMenu MenuEditors
 AddToMenu MenuEditors
-+ %gtkvim.png%"VIM" Exec exec gvim -geom 72x25
-#% + %text-editor.png%"Kwrite" Exec exec kwrite
-#% + %office-abiword.png%"Kate" Exec exec kate
-#% + %text-editor.png%"Kedit" Exec exec kedit
-#% + %editors-subtitles.png%"SubAdjust" Exec exec subadjust
-#% + %poedit.png%"poEdit" Exec exec poedit
-#% + %hexeditor.png%"HexEdit" Exec exec khexedit
++ %gtkvim.png%"VIM" 	Exec exec gvim -geom 72x25
+#% + %text-editor.png%"Kwrite" 	Exec exec kwrite
+#% + %office-abiword.png%"Kate" 	Exec exec kate
+#% + %text-editor.png%"Kedit" 	Exec exec kedit
+#% + %editors-subtitles.png%"SubAdjust" 	Exec exec subadjust
+#% + %poedit.png%"poEdit" 	Exec exec poedit
+#% + %hexeditor.png%"HexEdit" 	Exec exec khexedit
 
 DestroyMenu MenuMultimedia
 AddToMenu MenuMultimedia
 + MissingSubmenuFunction FuncFvwmMenuDirectory
-+ %media-menu.png%"Xine" Exec exec xine
-+ %media-real.png%"Real" Exec exec /usr/local/opt/realplay/realplay
-+ %media-webcam.png%"wxCam" Exec exec wxcam
++ %media-menu.png%"Xine" 	Exec exec xine
++ %media-real.png%"Real" 	Exec exec /usr/local/opt/realplay/realplay
++ %media-webcam.png%"wxCam" 	Exec exec wxcam
 + "" Nop
-+ %media-burner.png%"K3B" Exec exec k3b
-+ %media-burner2.png%"Nero" Exec exec nero
++ %media-burner.png%"K3B" 	Exec exec k3b
++ %media-burner2.png%"Nero" 	Exec exec nero
 + "" Nop
 + %gnome/24x24/places/folder-videos.png%"Browse Videos" Popup $[fvwm_video_path]
 + %gnome/24x24/places/folder-music%"Browse Music" Popup $[fvwm_audio_path]
@@ -687,16 +677,16 @@ AddToMenu MenuMultimedia
 DestroyMenu MenuGraphics
 AddToMenu MenuGraphics
 + MissingSubmenuFunction FuncFvwmMenuDirectory
-+ %graphics-gimp.png%"GIMP" Exec exec gimp
-+ %inkscape.png%"Inkscape" Exec exec inkscape
++ %graphics-gimp.png%"GIMP" 	Exec exec gimp
++ %inkscape.png%"Inkscape" 	Exec exec inkscape
 + "" Nop
-+ %graphics-viewer.png%"GQview" Exec exec gqview
-+ %graphics-comix.png%"Comix" Exec exec comix
-+ %graphics-film.png%"KView" Exec exec kview
-+ %kpaint.png%"KPaint" Exec exec kolourpaint
-+ %splash.png%"KColor" Exec exec kcolorchooser
++ %graphics-viewer.png%"GQview" 	Exec exec gqview
++ %graphics-comix.png%"Comix" 	Exec exec comix
++ %graphics-film.png%"KView" 	Exec exec kview
++ %kpaint.png%"KPaint" 	Exec exec kolourpaint
++ %splash.png%"KColor" 	Exec exec kcolorchooser
 + "" Nop
-+ %graphics-snapshot.png%"Snapshot" Exec exec ksnapshot
++ %graphics-snapshot.png%"Snapshot" 	Exec exec ksnapshot
 + "" Nop
 + %gnome/24x24/places/folder-pictures.png%"Browse Images" Popup $[fvwm_image_path]
 + %gnome/24x24/places/folder-videos.png%"Browse Videos" Popup $[fvwm_video_path]
@@ -707,89 +697,89 @@ AddToMenu MenuUtilities
 #% + %utils-kde.png%"K Utils" Popup MenuKUtils
 #% + %utils-wine.png%"W Utils" Popup MenuWUtils
 #% + "" Nop
-#% + %utils-file_manager.png%"Konqueror" Exec exec konqueror --profile filemanagement
-#% + %utils-file_manager.png%"Konqueror-MC" Exec exec konqueror --profile midnightcommander
+#% + %utils-file_manager.png%"Konqueror" 	Exec exec konqueror --profile filemanagement
+#% + %utils-file_manager.png%"Konqueror-MC" 	Exec exec konqueror --profile midnightcommander
 #% + "" Nop
-#% + %general-package.png%"Archiver" Exec exec ark
-#% + %run.png%"DistCC" Exec exec distccmon-gnome
-#% + %vmware.png%"VMware" Exec exec /usr/local/opt/vmware-5.5.3/bin/vmware
-#% + %hardware-synaptics.png%"QSynaptics" Exec exec syndock
+#% + %general-package.png%"Archiver" 	Exec exec ark
+#% + %run.png%"DistCC" 	Exec exec distccmon-gnome
+#% + %vmware.png%"VMware" 	Exec exec /usr/local/opt/vmware-5.5.3/bin/vmware
+#% + %hardware-synaptics.png%"QSynaptics" 	Exec exec syndock
 #% + "" Nop
-#% + %hardware-modem.png%"Kppp" Exec exec kppp
-#% + %utils-rdc.png%"KRdc" Exec exec krdc
+#% + %hardware-modem.png%"Kppp" 	Exec exec kppp
+#% + %utils-rdc.png%"KRdc" 	Exec exec krdc
 #% + "" Nop
-#% + %utils-stngs-template.png%"KDE Settings" Exec exec konqueror --profile systemsettings
-#% + %utils-conf-template.png%"KDE Control" Exec exec kcontrol
-#% + %utils-karamba.png%"Superkaramba" Exec exec superkaramba
+#% + %utils-stngs-template.png%"KDE Settings" 	Exec exec konqueror --profile systemsettings
+#% + %utils-conf-template.png%"KDE Control" 	Exec exec kcontrol
+#% + %utils-karamba.png%"Superkaramba" 	Exec exec superkaramba
 #% + "" Nop
-#% + %apple-green.png%"Procinfo" Exec exec xterm -exec procinfo -n3
-#% + %utils-sysmonitor.png%"vmstat" Exec exec urxvt -exec vmstat 2
+#% + %apple-green.png%"Procinfo" 	Exec exec xterm -exec procinfo -n3
+#% + %utils-sysmonitor.png%"vmstat" 	Exec exec urxvt -exec vmstat 2
 
 #% DestroyMenu MenuXUtils
 #% AddToMenu MenuXUtils
-+ %gnome/24x24/apps/accessories-calculator.png%"Xcalc" Exec exec xcalc
-+ %gnome-xterm.png%"Xterminal" Exec exec xterm -geometry 128x3 /usr/bin/zsh2
-+ %utils-xman.png%"Xman" Exec exec xman
-+ %klipper.png%"Xclipboard" Exec exec kdocker -i /home/wood/.fvwm/icons/klipper.png xclipboard
-+ %xload.png%"Xload" Exec exec xload
-+ %xmag.png%"Xmagnifier" Exec exec xmag
-+ %xrefresh.png%"Xrefresh" Exec exec xrefresh
-+ %tux.png%"Xedit" Exec exec xedit
++ %gnome/24x24/apps/accessories-calculator.png%"Xcalc" 	Exec exec xcalc
++ %gnome-xterm.png%"Xterminal" 	Exec exec xterm -geometry 128x3 /usr/bin/zsh2
++ %utils-xman.png%"Xman" 	Exec exec xman
++ %klipper.png%"Xclipboard" 	Exec exec kdocker -i /home/wood/.fvwm/icons/klipper.png xclipboard
++ %xload.png%"Xload" 	Exec exec xload
++ %xmag.png%"Xmagnifier" 	Exec exec xmag
++ %xrefresh.png%"Xrefresh" 	Exec exec xrefresh
++ %tux.png%"Xedit" 	Exec exec xedit
 + "" Nop
-+ %xpaint.png%"XPaint" Exec exec xpaint
-+ %gqview.png%"XV" Exec exec xv
-+ %/usr/share/doc/xfig/html/images/xfig-logo.png%"XFig" Exec exec xfig
++ %xpaint.png%"XPaint" 	Exec exec xpaint
++ %gqview.png%"XV" 	Exec exec xv
++ %/usr/share/doc/xfig/html/images/xfig-logo.png%"XFig" 	Exec exec xfig
 
 
 #% DestroyMenu MenuKUtils
 #% AddToMenu MenuKUtils
-#% + %utils-calc.png%"Kcalc" Exec exec kcalc
-#% + %gnome-terminal.png%"Konsole" Exec exec konsole
-#% + %klipper.png%"Klipper" Exec exec klipper
-#% + %kwallet.png%"Kwallet" Exec exec kwalletmanager
-#% + %fx_info.png%"KInfoCenter" Exec exec kinfocenter
-#% + %utils-kde.png%"SysGuard" Exec exec ksysguard
-#% + %utils-kde.png%"Print Jobs" Exec exec kjobviewer
-#% + %utils-kde.png%"QT Designer" Exec exec designer
-#% + %fx_info.png%"QT Assistant" Exec exec assistant
-#% + %utils-kde.png%"KPovModeler" Exec exec kpovmodeler
-#% + %ksirc.png%"KSirc" Exec exec ksirc
-#% + %kiconedit.png%"KIcon" Exec exec kiconedit
+#% + %utils-calc.png%"Kcalc" 	Exec exec kcalc
+#% + %gnome-terminal.png%"Konsole" 	Exec exec konsole
+#% + %klipper.png%"Klipper" 	Exec exec klipper
+#% + %kwallet.png%"Kwallet" 	Exec exec kwalletmanager
+#% + %fx_info.png%"KInfoCenter" 	Exec exec kinfocenter
+#% + %utils-kde.png%"SysGuard" 	Exec exec ksysguard
+#% + %utils-kde.png%"Print Jobs" 	Exec exec kjobviewer
+#% + %utils-kde.png%"QT Designer" 	Exec exec designer
+#% + %fx_info.png%"QT Assistant" 	Exec exec assistant
+#% + %utils-kde.png%"KPovModeler" 	Exec exec kpovmodeler
+#% + %ksirc.png%"KSirc" 	Exec exec ksirc
+#% + %kiconedit.png%"KIcon" 	Exec exec kiconedit
 
 DestroyMenu MenuWUtils
 AddToMenu MenuWUtils
-+ %media-optical.png%"UltraISO" Exec exec wine ~/.cedega/wine_c/Program\ Files/UltraISO/UltraISO.exe
-+ %iso.png%"ISOBuster" Exec exec wine ~/.cedega/wine_c/Program\ Files/Smart\ Projects/IsoBuster/IsoBuster.exe
-+ %general-package.png%"PowerArchiver" Exec exec wine ~/.cedega/wine_c/Program\ Files/PowerArchiver/POWERARC.EXE
++ %media-optical.png%"UltraISO" 	Exec exec wine ~/.cedega/wine_c/Program\ Files/UltraISO/UltraISO.exe
++ %iso.png%"ISOBuster" 	Exec exec wine ~/.cedega/wine_c/Program\ Files/Smart\ Projects/IsoBuster/IsoBuster.exe
++ %general-package.png%"PowerArchiver" 	Exec exec wine ~/.cedega/wine_c/Program\ Files/PowerArchiver/POWERARC.EXE
 + "" Nop
-+ %utils-wine.png%"WineCfg" Exec exec winecfg
++ %utils-wine.png%"WineCfg" 	Exec exec winecfg
 
 DestroyMenu MenuDevel
 AddToMenu MenuDevel
-+ %run.png%"IPython" Exec exec urxvt -exec ipython
-+ %editors-emacs.png%"Emacs Py-mode" Exec exec emacs file -f python-mode
-+ %idle.png%"IDLE" Exec exec idle
-+ %rs-editor.png%"ResourceEditor" Exec exec /usr/lib/python2.4/site-packages/PythonCard/tools/resourceEditor/resourceEditor.py
-+ %utils-notes.png%"CodeEditor" Exec exec /usr/lib/python2.4/site-packages/PythonCard/tools/codeEditor/codeEditor.py
-+ %samples.png%"Samples" Exec exec /usr/lib/python2.4/site-packages/PythonCard/samples/samples.py
-+ %wxdemo.png%"wxDemo" Exec exec /usr/lib/python2.4/site-packages/wx-2.6-gtk2-unicode/wxPython/demo/demo.py
++ %run.png%"IPython" 	Exec exec urxvt -exec ipython
++ %editors-emacs.png%"Emacs Py-mode" 	Exec exec emacs file -f python-mode
++ %idle.png%"IDLE" 	Exec exec idle
++ %rs-editor.png%"ResourceEditor" 	Exec exec /usr/lib/python2.4/site-packages/PythonCard/tools/resourceEditor/resourceEditor.py
++ %utils-notes.png%"CodeEditor" 	Exec exec /usr/lib/python2.4/site-packages/PythonCard/tools/codeEditor/codeEditor.py
++ %samples.png%"Samples" 	Exec exec /usr/lib/python2.4/site-packages/PythonCard/samples/samples.py
++ %wxdemo.png%"wxDemo" 	Exec exec /usr/lib/python2.4/site-packages/wx-2.6-gtk2-unicode/wxPython/demo/demo.py
 
 DestroyMenu MenuGames
 AddToMenu MenuGames
 + MissingSubMenuFunction FuncFvwmMenuDirectory
-+ %gcompris.png%"GCompris" Exec exec gcompris
-+ %tuxpaint.png%"TuxPaint" Exec exec tuxpaint
-+ %supertux.png%"Supertux" Exec exec supertux2
-+ %hicolor/24x24/apps/inkscape.png%"Inkscape" Exec exec inkscape
-+ %games-cedega.png%"Cedega" Exec exec cedega
-+ %games-scummvm.png%"ScummVM" Exec exec scummvm
-+ %games-zsnes.png%"Zsnes" Exec exec zsnes
-+ %games-sudoku.png%"KSudoku" Exec exec ksudoku
++ %gcompris.png%"GCompris" 	Exec exec gcompris
++ %tuxpaint.png%"TuxPaint" 	Exec exec tuxpaint
++ %supertux.png%"Supertux" 	Exec exec supertux2
++ %hicolor/24x24/apps/inkscape.png%"Inkscape" 	Exec exec inkscape
++ %games-cedega.png%"Cedega" 	Exec exec cedega
++ %games-scummvm.png%"ScummVM" 	Exec exec scummvm
++ %games-zsnes.png%"Zsnes" 	Exec exec zsnes
++ %games-sudoku.png%"KSudoku" 	Exec exec ksudoku
 + "" Nop
-+ %games-xqf.png%"XQF" Exec exec xqf
++ %games-xqf.png%"XQF" 	Exec exec xqf
 + "" Nop
-+ %games-et.png%"EnemyTeritory" Exec exec et
-+ %games-quake.png%"OpenArena" Exec exec /usr/local/games/openarena-0.7.0/ioquake3.i386
++ %games-et.png%"EnemyTeritory" 	Exec exec et
++ %games-quake.png%"OpenArena" 	Exec exec /usr/local/games/openarena-0.7.0/ioquake3.i386
 + "" Nop
 + %games-browse.png%"Browse SNES Games" Popup $[fvwm_rom_path]
 
@@ -797,33 +787,33 @@ DestroyMenu MenuLogins
 AddToMenu MenuLogins
 + %ssh-session.png%"Clients" Popup MenuLoginsClients
 + "" Nop
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
 + "" Nop
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Host" Exec exec urxvt -e telnet 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Host" 	Exec exec urxvt -e telnet 
 + "" Nop
-+ %ssh-session.png%"Screen" Exec exec urxvt -e screen -raAd
++ %ssh-session.png%"Screen" 	Exec exec urxvt -e screen -raAd
 + "" Nop
-+ %utils-gpg.png%"Add Agent Identity" Exec ssh-add < /dev/null
-+ %gnome-terminal.png%"Large Terminal Emulator" Exec exec urxvt -g 102x42 -title 'terminal'
++ %utils-gpg.png%"Add Agent Identity" 	Exec ssh-add < /dev/null
++ %gnome-terminal.png%"Large Terminal Emulator" 	Exec exec urxvt -g 102x42 -title 'terminal'
 
 DestroyMenu MenuLoginsClients
 AddToMenu MenuLoginsClients
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
 + "" Nop
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
-+ %ssh-session.png%"Client" Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
++ %ssh-session.png%"Client" 	Exec exec urxvt -e ssh 
 
 DestroyMenu MenuQuit-Verify
 AddToMenu MenuQuit-Verify
@@ -843,61 +833,61 @@ AddToMenu MenuFvwmConfig
 + %hardware-keyboard.png%"Keyboard Settings" Module FvwmScript FvwmScript-KeyboardSetup
 + %media-mixer.png%"Configure Bell" Module FvwmScript FvwmScript-BellSetup
 + %general-settings.png%"General Settings" Module FvwmScript FvwmScript-BaseConfig
-+ %utils-themes.png%"Edit fvwm2rc..." Exec exec emacsclient $[FVWM_USERDIR]/.fvwm2rc
++ %utils-themes.png%"Edit fvwm2rc..." 	Exec exec emacsclient $[FVWM_USERDIR]/.fvwm2rc
 + %general-settings2.png%"Fvwm Modules" Popup MenuFvwmModules
 + %preferences-wallpaper.png%"Browse Wallpaper" Popup $[fvwm_wallpaper_dir]
-+ %fx_info.png%"Fvwm Information..." Exec exec xmessage "$(fvwm --version)"
-+ %fx_info.png%"X Information..." Exec exec xmessage "$(xdpyinfo)"
++ %fx_info.png%"Fvwm Information..." 	Exec exec xmessage "$(fvwm --version)"
++ %fx_info.png%"X Information..." 	Exec exec xmessage "$(xdpyinfo)"
 
 DestroyMenu FvwmMoveMethods
 AddToMenu FvwmMoveMethods
-+ %move_top.png%"Move to Top" Pick AnimatedMove keep 0p
-+ %move_left.png%"Move to Left" Pick AnimatedMove 0p keep
-+ %move_right.png%"Move to Right" Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
-+ %move_bottom.png%"Move to Bottom" Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
-+ %move_center.png%"Centre Window" Pick CentreWindow (126/2) (28/2) Animated
++ %move_top.png%"Move to Top" 	Pick AnimatedMove keep 0p
++ %move_left.png%"Move to Left" 	Pick AnimatedMove 0p keep
++ %move_right.png%"Move to Right" 	Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
++ %move_bottom.png%"Move to Bottom" 	Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
++ %move_center.png%"Centre Window" 	Pick CentreWindow (126/2) (28/2) Animated
 + "" Nop
 + %numbers_counter.png%"Move To Page" Popup MenuPageList
 + "" Nop
-+ %hardware-mouse.png%"Interactive Move" Pick Move
++ %hardware-mouse.png%"Interactive Move" 	Pick Move
 
 DestroyMenu MenuPageList
 AddToMenu MenuPageList
-+ %1.png% Pick MoveToPage 0 0
-+ %2.png% Pick MoveToPage 1 0
-+ %3.png% Pick MoveToPage 2 0
-+ %4_1.png% Pick MoveToPage 0 1
-+ %5.png% Pick MoveToPage 1 1
-+ %6.png% Pick MoveToPage 2 1
-+ %7.png% Pick MoveToPage 0 2
-+ %8.png% Pick MoveToPage 1 2
-+ %9.png% Pick MoveToPage 2 2
++ %1.png% 	Pick MoveToPage 0 0
++ %2.png% 	Pick MoveToPage 1 0
++ %3.png% 	Pick MoveToPage 2 0
++ %4_1.png% 	Pick MoveToPage 0 1
++ %5.png% 	Pick MoveToPage 1 1
++ %6.png% 	Pick MoveToPage 2 1
++ %7.png% 	Pick MoveToPage 0 2
++ %8.png% 	Pick MoveToPage 1 2
++ %9.png% 	Pick MoveToPage 2 2
 
 #####
 # Window controls menu.
 #####
 DestroyMenu MenuFvwmWindowOps
 AddToMenu MenuFvwmWindowOps
-+ %window_resize.png%"Resize" Pick Resize
-+ %window_iconify.png%"Iconify" Pick Iconify
-+ %window_thumbnail.png%"Thumbnail" Pick Thumbnail
-+ %window_maximize.png%"Maximise" Pick Maximize
++ %window_resize.png%"Resize" 	Pick Resize
++ %window_iconify.png%"Iconify" 	Pick Iconify
++ %window_thumbnail.png%"Thumbnail" 	Pick Thumbnail
++ %window_maximize.png%"Maximise" 	Pick Maximize
 + %hardware-mouse.png%"Move" Popup FvwmMoveMethods
-+ %window_shade.png%"Shade" Pick WindowShade Toggle
-+ %window_zoom.png%"Zoom Window" Pick Exec exec xmag -source $[w.width]x$[w.height]+$[w.x]+$[w.y] -mag 2
-+ %window_jiggle.png%"Jiggle Window" Pick Jiggle 5
++ %window_shade.png%"Shade" 	Pick WindowShade Toggle
++ %window_zoom.png%"Zoom Window" 	Pick Exec exec xmag -source $[w.width]x$[w.height]+$[w.x]+$[w.y] -mag 2
++ %window_jiggle.png%"Jiggle Window" 	Pick Jiggle 5
 + "" Nop
-+ %hardware-mouse.png%"Stick" Pick Stick
-+ %hardware-mouse.png%"Scroll" Pick Module FvwmScroll
-+ %window_refresh.png%"Refresh" Pick RefreshWindow
-+ %fx_info.png%"Identify" Pick Module FvwmIdent
++ %hardware-mouse.png%"Stick" 	Pick Stick
++ %hardware-mouse.png%"Scroll" 	Pick Module FvwmScroll
++ %window_refresh.png%"Refresh" 	Pick RefreshWindow
++ %fx_info.png%"Identify" 	Pick Module FvwmIdent
 + "" Nop
 + %window_cascade.png%"Cascade Windows" Module FvwmRearrange -cascade -animate -incx 3 -incy 3
 + %window_tile.png%"Tile Windows" Module FvwmRearrange -tile -animate -mn 2
-+ %graphics-camera.png%"Screenshot" Exec exec import -window root -quality 100 '%Y-%m-%d_$wx$h.png'
++ %graphics-camera.png%"Screenshot" 	Exec exec import -window root -quality 100 '%Y-%m-%d_$wx$h.png'
 + "" Nop
-+ %general-restart.png%"Close" Pick Close
-+ %window_close.png%"Destroy" Pick Destroy
++ %general-restart.png%"Close" 	Pick Close
++ %window_close.png%"Destroy" 	Pick Destroy
 + "" Nop
 
 DestroyMenu MenuFvwmModules
@@ -929,55 +919,55 @@ AddToMenu MenuFvwmStopModule
 #####
 DestroyFunc FvwmViewManPage
 AddToFunc FvwmViewManPage
-+ I Exec exec xterm -fg White -bg DarkBlue -g 128x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0" /usr/bin/zsh
++ I 	Exec exec xterm -fg White -bg DarkBlue -g 128x40 -fn 7x14 -fb 7x14bold -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0" /usr/bin/zsh
 
 DestroyMenu FvwmManPagesMenu
 AddToMenu   FvwmManPagesMenu "FVWM Man Pages" Title
-+ %fx_info.png%"fvwm"                FvwmViewManPage fvwm
-+ %fx_info.png%"FvwmAnimate"         FvwmViewManPage FvwmAnimate
-+ %fx_info.png%"FvwmAuto"            FvwmViewManPage FvwmAuto
-+ %fx_info.png%"FvwmBacker"          FvwmViewManPage FvwmBacker
-+ %fx_info.png%"FvwmBanner"          FvwmViewManPage FvwmBanner
-+ %fx_info.png%"FvwmButtons"         FvwmViewManPage FvwmButtons
-+ %fx_info.png%"FvwmCommand"         FvwmViewManPage FvwmCommand
-+ %fx_info.png%"FvwmConsole"         FvwmViewManPage FvwmConsole
-+ %fx_info.png%"FvwmConsoleC.pl"     FvwmViewManPage FvwmConsoleC.pl
-+ %fx_info.png%"FvwmCpp"             FvwmViewManPage FvwmCpp
-+ %fx_info.png%"FvwmDebug"           FvwmViewManPage FvwmDebug
-+ %fx_info.png%"FvwmDragWell"        FvwmViewManPage FvwmDragWell
-+ %fx_info.png%"FvwmEvent"           FvwmViewManPage FvwmEvent
-+ %fx_info.png%"FvwmForm"            FvwmViewManPage FvwmForm
-+ %fx_info.png%"FvwmGtk"             FvwmViewManPage FvwmGtk
-+ %fx_info.png%"FvwmGtkDebug"        FvwmViewManPage FvwmGtkDebug
-+ %fx_info.png%"FvwmIconBox"         FvwmViewManPage FvwmIconBox
-+ %fx_info.png%"FvwmIconMan"         FvwmViewManPage FvwmIconMan
-+ %fx_info.png%"FvwmIdent"           FvwmViewManPage FvwmIdent
-+ %fx_info.png%"FvwmM4"              FvwmViewManPage FvwmM4
-+ %fx_info.png%"FvwmPager"           FvwmViewManPage FvwmPager
-+ %fx_info.png%"FvwmPerl"            FvwmViewManPage FvwmPerl
-+ %fx_info.png%"FvwmProxy"           FvwmViewManPage FvwmProxy
-+ %fx_info.png%"FvwmRearrange"       FvwmViewManPage FvwmRearrange
-+ %fx_info.png%"FvwmSave"            FvwmViewManPage FvwmSave
-+ %fx_info.png%"FvwmSaveDesk"        FvwmViewManPage FvwmSaveDesk
-+ %fx_info.png%"FvwmScript"          FvwmViewManPage FvwmScript
-+ %fx_info.png%"FvwmScroll"          FvwmViewManPage FvwmScroll
-+ %fx_info.png%"FvwmTaskBar"         FvwmViewManPage FvwmTaskBar
-+ %fx_info.png%"FvwmTheme"           FvwmViewManPage FvwmTheme
-+ %fx_info.png%"FvwmWharf"           FvwmViewManPage FvwmWharf
-+ %fx_info.png%"FvwmWinList"         FvwmViewManPage FvwmWinList
-+ %fx_info.png%"FvwmWindowMenu"      FvwmViewManPage FvwmWindowMenu
++ %fx_info.png%"fvwm"				FvwmViewManPage fvwm
++ %fx_info.png%"FvwmAnimate"		 FvwmViewManPage FvwmAnimate
++ %fx_info.png%"FvwmAuto"			FvwmViewManPage FvwmAuto
++ %fx_info.png%"FvwmBacker"		  FvwmViewManPage FvwmBacker
++ %fx_info.png%"FvwmBanner"		  FvwmViewManPage FvwmBanner
++ %fx_info.png%"FvwmButtons"		 FvwmViewManPage FvwmButtons
++ %fx_info.png%"FvwmCommand"		 FvwmViewManPage FvwmCommand
++ %fx_info.png%"FvwmConsole"		 FvwmViewManPage FvwmConsole
++ %fx_info.png%"FvwmConsoleC.pl"	 FvwmViewManPage FvwmConsoleC.pl
++ %fx_info.png%"FvwmCpp"			 FvwmViewManPage FvwmCpp
++ %fx_info.png%"FvwmDebug"		   FvwmViewManPage FvwmDebug
++ %fx_info.png%"FvwmDragWell"		FvwmViewManPage FvwmDragWell
++ %fx_info.png%"FvwmEvent"		   FvwmViewManPage FvwmEvent
++ %fx_info.png%"FvwmForm"			FvwmViewManPage FvwmForm
++ %fx_info.png%"FvwmGtk"			 FvwmViewManPage FvwmGtk
++ %fx_info.png%"FvwmGtkDebug"		FvwmViewManPage FvwmGtkDebug
++ %fx_info.png%"FvwmIconBox"		 FvwmViewManPage FvwmIconBox
++ %fx_info.png%"FvwmIconMan"		 FvwmViewManPage FvwmIconMan
++ %fx_info.png%"FvwmIdent"		   FvwmViewManPage FvwmIdent
++ %fx_info.png%"FvwmM4"			  FvwmViewManPage FvwmM4
++ %fx_info.png%"FvwmPager"		   FvwmViewManPage FvwmPager
++ %fx_info.png%"FvwmPerl"			FvwmViewManPage FvwmPerl
++ %fx_info.png%"FvwmProxy"		   FvwmViewManPage FvwmProxy
++ %fx_info.png%"FvwmRearrange"	   FvwmViewManPage FvwmRearrange
++ %fx_info.png%"FvwmSave"			FvwmViewManPage FvwmSave
++ %fx_info.png%"FvwmSaveDesk"		FvwmViewManPage FvwmSaveDesk
++ %fx_info.png%"FvwmScript"		  FvwmViewManPage FvwmScript
++ %fx_info.png%"FvwmScroll"		  FvwmViewManPage FvwmScroll
++ %fx_info.png%"FvwmTaskBar"		 FvwmViewManPage FvwmTaskBar
++ %fx_info.png%"FvwmTheme"		   FvwmViewManPage FvwmTheme
++ %fx_info.png%"FvwmWharf"		   FvwmViewManPage FvwmWharf
++ %fx_info.png%"FvwmWinList"		 FvwmViewManPage FvwmWinList
++ %fx_info.png%"FvwmWindowMenu"	  FvwmViewManPage FvwmWindowMenu
 + "" Nop
-+ %fx_info.png%"fvwm-config"         FvwmViewManPage fvwm-config
-+ %fx_info.png%"fvwm-perllib"        FvwmViewManPage fvwm-perllib
-+ %fx_info.png%"fvwm-root"           FvwmViewManPage fvwm-root
-+ %fx_info.png%"fvwm-bug"            FvwmViewManPage fvwm-bug
-+ %fx_info.png%"fvwm-convert-2.2"    FvwmViewManPage fvwm-convert-2.2
-+ %fx_info.png%"fvwm-convert-2.4"    FvwmViewManPage fvwm-convert-2.4
++ %fx_info.png%"fvwm-config"		 FvwmViewManPage fvwm-config
++ %fx_info.png%"fvwm-perllib"		FvwmViewManPage fvwm-perllib
++ %fx_info.png%"fvwm-root"		   FvwmViewManPage fvwm-root
++ %fx_info.png%"fvwm-bug"			FvwmViewManPage fvwm-bug
++ %fx_info.png%"fvwm-convert-2.2"	FvwmViewManPage fvwm-convert-2.2
++ %fx_info.png%"fvwm-convert-2.4"	FvwmViewManPage fvwm-convert-2.4
 + "" Nop
 + %fx_info.png%"fvwm-menu-desktop"   FvwmViewManPage fvwm-menu-desktop
 + %fx_info.png%"fvwm-menu-directory" FvwmViewManPage fvwm-menu-directory
 + %fx_info.png%"fvwm-menu-headlines" FvwmViewManPage fvwm-menu-headlines
-+ %fx_info.png%"fvwm-menu-xlock"     FvwmViewManPage fvwm-menu-xlock
++ %fx_info.png%"fvwm-menu-xlock"	 FvwmViewManPage fvwm-menu-xlock
 
 #####
 # Browse directories trough the menu
@@ -985,15 +975,15 @@ AddToMenu   FvwmManPagesMenu "FVWM Man Pages" Title
 DestroyFunc FuncFvwmMenuDirectory
 AddToFunc FuncFvwmMenuDirectory
 + I PipeRead 'case "$0" in \
-        "$[fvwm_rom_path]"*) myexec="$[fvwm_rom_exec]" mypng=games-browse.png;; \
-        "$[fvwm_video_path]"*) myexec="$[fvwm_video_exec]" mypng=gnome/24x24/mimetypes/video.png;; \
-        "$[fvwm_audio_path]"*) myexec="$[fvwm_audio_exec]" mypng=gnome/24x24/mimetypes/sound.png;; \
-        "$[fvwm_image_path]"*) myexec="$[fvwm_image_exec]" mypng=gnome/24x24/mimetypes/image.png;; \
-    esac; \
-    test -f "$0"/.icontitle.png && mytitle="$0"/.icontitle.png; \
-    fvwm-menu-directory --icon-title "${mytitle:-folder_view.png}" --icon-file ${mypng:-file_text_view.png} \
-    --icon-dir general-fs.png --dir "$0" --exec-t="^${myexec:-emacsclient -n} *" \
-    --exec-file "^${myexec:-emacsclient -n}"'
+		"$[fvwm_rom_path]"*) myexec="$[fvwm_rom_exec]" mypng=games-browse.png;; \
+		"$[fvwm_video_path]"*) myexec="$[fvwm_video_exec]" mypng=gnome/24x24/mimetypes/video.png;; \
+		"$[fvwm_audio_path]"*) myexec="$[fvwm_audio_exec]" mypng=gnome/24x24/mimetypes/sound.png;; \
+		"$[fvwm_image_path]"*) myexec="$[fvwm_image_exec]" mypng=gnome/24x24/mimetypes/image.png;; \
+	esac; \
+	test -f "$0"/.icontitle.png && mytitle="$0"/.icontitle.png; \
+	fvwm-menu-directory --icon-title "${mytitle:-folder_view.png}" --icon-file ${mypng:-file_text_view.png} \
+	--icon-dir general-fs.png --dir "$0" --exec-t="^${myexec:-emacsclient -n} *" \
+	--exec-file "^${myexec:-emacsclient -n}"'
 
 AddToFunc CentreWindow I PipeRead "echo $2Move $$(((($[vp.width]-$[w.width])/2)-$0))p $$(((($[vp.height]-$[w.height])/2)-$1))p"
 
@@ -1023,20 +1013,20 @@ AddToFunc Thumbnail
 + I Raise
 + I ThisWindow (!Iconic) SetEnv Icon-$[w.id] $[w.iconfile]
 + I ThisWindow (!Shaded, Iconifiable, !Iconic) PipeRead \
-    "xwd -silent -id $[w.id] | convert -sample 128 -frame 1x1 \
-            -mattecolor black -quality 0 xwd:- png:$[FVWM_USERDIR]/icon.tmp.$[w.id].png \
-            && echo WindowStyle IconOverride, Icon $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
-            || echo Nop"
+	"xwd -silent -id $[w.id] | convert -sample 128 -frame 1x1 \
+			-mattecolor black -quality 0 xwd:- png:$[FVWM_USERDIR]/icon.tmp.$[w.id].png \
+			&& echo WindowStyle IconOverride, Icon $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
+			|| echo Nop"
 + I TestRc (Match) Test (f $[w.miniiconfile], f $[FVWM_USERDIR]/icon.tmp.$[w.id].png) PipeRead \
-    "composite -geometry +2+4 $[w.miniiconfile] $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
-    $[FVWM_USERDIR]/icon.tmp.$[w.id].png; echo Nop"
+	"composite -geometry +2+4 $[w.miniiconfile] $[FVWM_USERDIR]/icon.tmp.$[w.id].png \
+	$[FVWM_USERDIR]/icon.tmp.$[w.id].png; echo Nop"
 + I Iconify
 
 DestroyFunc DeThumbnail
 AddToFunc DeThumbnail
 + I PipeRead "echo Test \\(i \\$\\[Icon-$[w.id]\\]\\) WindowStyle Icon \\$\\[Icon-$[w.id]\\]"
 + I TestRc (NoMatch) WindowStyle NoIconOverride, Icon
-+ I Exec rm -f $[FVWM_USERDIR]/icon.tmp.$[w.id].png
++ I 	Exec rm -f $[FVWM_USERDIR]/icon.tmp.$[w.id].png
 + I All (Iconic, CurrentPage) PlaceAgain icon
 + I UnsetEnv Icon-$[w.id]
 
@@ -1063,17 +1053,17 @@ AddToFunc FuncAutoEnter I Autohide HiddenConsole 500 500 N
 #####
 DestroyFunc WallpaperBrowser
 AddToFunc WallpaperBrowser I PipeRead 'test ! -d "$0/.thumbs" && mkdir "$0/.thumbs"; \
-    for i in "$0/"*; do \
-        test -f "$0/.thumbs/${i##*/}" \
-            -a "${i}" -ot "$0/.thumbs/${i##*/}" || { \
-                convert -quality 0 -scale 42 "${i}" "png:$0/.thumbs/${i##*/}" 2>/dev/null \
-                    || continue; \
-            }; \
-    done; \
-    fvwm-menu-directory --icon-title folder_view.png --icon-file __PIXMAP__ \
-    --icon-dir general-fs.png --dir "$0" --exec-file "^fvwm-root --dither -r" \
-    --exec-t="^gqview -s *" | sed -e "s#FuncFvwmMenuDirectory#WallpaperBrowser#g" \
-    -e "s#__PIXMAP__\\(.*\\)\\\"\\(.*/\\)\\(.*\\)\\\"#\\2.thumbs/\\3\\1\\2\\3#g"'
+	for i in "$0/"*; do \
+		test -f "$0/.thumbs/${i##*/}" \
+			-a "${i}" -ot "$0/.thumbs/${i##*/}" || { \
+				convert -quality 0 -scale 42 "${i}" "png:$0/.thumbs/${i##*/}" 2>/dev/null \
+					|| continue; \
+			}; \
+	done; \
+	fvwm-menu-directory --icon-title folder_view.png --icon-file __PIXMAP__ \
+	--icon-dir general-fs.png --dir "$0" --exec-file "^fvwm-root --dither -r" \
+	--exec-t="^gqview -s *" | sed -e "s#FuncFvwmMenuDirectory#WallpaperBrowser#g" \
+	-e "s#__PIXMAP__\\(.*\\)\\\"\\(.*/\\)\\(.*\\)\\\"#\\2.thumbs/\\3\\1\\2\\3#g"'
 
 
 #####
@@ -1081,12 +1071,12 @@ AddToFunc WallpaperBrowser I PipeRead 'test ! -d "$0/.thumbs" && mkdir "$0/.thum
 #####
 DestroyFunc WheelScroll
 AddToFunc WheelScroll I PipeRead 'case $0 in \
-      up) test $[page.ny] -eq $$(($[desk.pagesy]-1)) -a $[page.nx] -lt $$(($[desk.pagesx]-1)) \
-         && echo GotoPage +1p 0 \
-         || echo GotoPage 0p +1p;; \
-      down) test $[page.ny] -eq 0 -a $[page.nx] -gt 0 \
-         && echo GotoPage -1p $$(($[desk.pagesy]-1)) \
-         || echo GotoPage 0p -1p;; \
+	  up) test $[page.ny] -eq $$(($[desk.pagesy]-1)) -a $[page.nx] -lt $$(($[desk.pagesx]-1)) \
+		 && echo GotoPage +1p 0 \
+		 || echo GotoPage 0p +1p;; \
+	  down) test $[page.ny] -eq 0 -a $[page.nx] -gt 0 \
+		 && echo GotoPage -1p $$(($[desk.pagesy]-1)) \
+		 || echo GotoPage 0p -1p;; \
    esac'
 
 

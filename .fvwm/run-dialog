@@ -1,0 +1,3 @@
+#!/bin/sh
+#xterm +sb -name fvwm-run-dialog -title "run" -geometry 80x1+224+360 -e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init
+xterm +sb -name fvwm-run-dialog -title "run" -geometry 128x16-0+0 -e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init

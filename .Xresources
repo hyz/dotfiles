@@ -70,13 +70,16 @@ XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 ! - http://www.leninlee.cn/?p=376
 !Xft.dpi:96
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
+URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=14:antialias=true
+URxvt*xftAntialias: true
 URxvt.background: rgba:0000/0000/0000/cccc
 ! URxvt.depth: 32
 ! Rxvt.geometry:192×144
-URxvt.foreground:antiquewhite
-URxvt.colorBD:yellow
-URxvt.colorUL:green
-URxvt.scrollBar:Fault
+!URxvt.foreground: antiquewhite
+URxvt.foreground: gray
+URxvt.colorBD: yellow
+URxvt.colorUL: green
+URxvt.scrollBar: Fault
 URxvt.scrollBar_right:True
 URxvt.scrollBar_floating: True
 URxvt.scrollstyle: next
@@ -102,5 +105,8 @@ URxvt.preeditType:Root
 URxvt.transparency:0 
 ! URxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
 ! URxvt.menu:/etc/X11/rxvt.menu
-URxvt.font: xft:Monaco:pixelsize=14:antialias=true,xft:Microsoft YaHei:pixelsize=14:antialias=true
+
+!!# http://fvwmforums.org/wiki/Tips/XTermRunDialogue/
+!fvwm-run-dialog.VT100*translations: #override \n\
+!    <Key>Return: string(" &\n exit\n")
 
