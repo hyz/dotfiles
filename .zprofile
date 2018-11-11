@@ -137,10 +137,6 @@ for x in /usr/local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.y
     PATH=$PATH:$x
 done
 
-if [ -d "$HOME/go" ]; then
-    export GOPATH=$HOME/go
-fi
-
 if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
     #if [ x"$NODE_PATH" = x ] ; then
     #NODE_PATH="$HOME/.config/yarn/global/node_modules"
@@ -151,11 +147,17 @@ if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
 fi
 
 if uname -r |grep Microsoft 2>/dev/null ; then
-    export CARGO_HOME=/mnt/d/home/cargo
-    export RUSTUP_HOME=/mnt/d/home/rustup
-    export RUST_SRC_PATH=/mnt/d/home/rustup/rust-src
-    PATH="/mnt/d/home/cargo/bin:$PATH"
+    DevHome=/mnt/d/home
+elif [ -d "$HOME/.home" ] ; then
+    DevHome="$HOME/.home"
+else
+    DevHome="$HOME/workspace"
 fi
+
+#export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
+export CARGO_HOME="$DevHome/cargo" RUSTUP_HOME="$DevHome/rustup"
+export GOPATH=$DevHome/go
+PATH="$CARGO_HOME/bin:$PATH"
 
 export PATH
 
