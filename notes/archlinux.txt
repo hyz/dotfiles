@@ -17,47 +17,62 @@ https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 
 install archlinux from archlinux
 
+#### host
+
+    mount /dev/XXX /mnt # root(/) partition
     ...
     pacman -Ql arch-install-scripts
     pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
-    ...
     mkswap /dev/XXX
     swapon /dev/XXX
-    mkfs.ext4 /dev/YYY
-    mount /dev/YYY /mnt/home
-    genfstab -pU /mnt | sudo tee /mnt/etc/fstab
     ...
+    mkfs.ext4 /dev/YYY # /home partition
+    mount /dev/YYY /mnt/home
+    ...
+    genfstab -pU /mnt | tee /mnt/etc/fstab
     cp /etc/netctl/XXX /mnt/etc/netctl/
     ...
-    sudo vim /mnt/etc/{fstab,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
-    sudo vimdiff {,/mnt}/etc/grub.d/40_custom
-    ...
-    sudo arch-chroot /mnt
+    vim /mnt/etc/{fstab,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
+    vimdiff {,/mnt}/etc/grub.d/40_custom
+    diff {,/mnt}/etc/pacman.d/mirrorlist
+    arch-chroot /mnt
+
+#### chroot
+
+    mount -a
     ln -sf /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime
     locale-gen
-    vim /etc/pacman.d/mirrorlist
-    #
-    pacman -S base-devel
-    pacman -S sudo openssh git gnupg2 pass rsync syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh python base-devel net-tools pacman-contrib
-    #
+    passwd
+    useradd -Um -u 1000 -G wheel -s `which zsh` wood ; passwd wood
+    visudo
+
+    mkdir /esp ; mount /dev/nvme0n1p1 /esp
     grub-install --target=i386-pc --recheck /dev/sdX
     #       grub-install --target=x86_64-efi --efi-directory=/esp --bootloader-id=grub --modules="part_gpt part_msdos"
     #       # https://wiki.archlinux.org/index.php/GRUB#UEFI_systems
     grub-mkconfig -o /boot/grub/grub.cfg
     #       grub-mkconfig -o /boot/grub/grub.cfg
+    #       vimdiff /esp/EFI/grub/grub.cfg /boot/grub/grub.cfg
     mkinitcpio -p linux
-    ...
-    mount -a
-    passwd
-    useradd -Um -u 1000 -G wheel -s `which zsh` wood
-    visudo
-    ... ...
-    su - wood
+
+    pacman -S sudo gnupg2 pass syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh pacman-contrib
+    pacman -S net-tools openssh git rsync base-devel python
+    pacman -S xorg-server xterm fvwm gmrun firefox
+
+    sudo -iu wood -- git checkout
+    sudo -iu wood -- fc-cache -fv
+    exit
+
+#### host
+
+    # su - wood
     rsync -va {.gnupg,.ssh,.git,.password-store} /mnt/home/wood/
     rsync -vaR .local/share/fonts /mnt/home/wood/
     rsync -vaR .config/*.{conf,json} .config/rslsync /mnt/home/wood/
     rsync -vaR .local/*.json /mnt/home/wood/
-    ... ...
+    pacman -Qe > /mnt/home/wood/pacman-Qe
+
+#### reboot
 
 ### http://www.volkerschatz.com/unix/archclone.html
 
