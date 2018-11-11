@@ -57,7 +57,8 @@ install archlinux from archlinux
 
     pacman -S sudo gnupg2 pass syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh pacman-contrib
     pacman -S net-tools openssh git rsync base-devel python
-    pacman -S xorg-server xterm fvwm fcitx-rime gvim gmrun firefox
+    pacman -S xorg-server xterm fvwm gvim gmrun firefox chromium
+    pacman -S fcitx-rime fcitx-gtk3 fcitx-qt5 fcitx-configtool
 
     sudo -iu wood -- git checkout
     sudo -iu wood -- fc-cache -fv

@@ -1,7 +1,8 @@
 
 export LANG=en_US.UTF-8
 
-export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS=”@im=fcitx”
+export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx
+export XMODIFIERS=”@im=fcitx”
 #export GTK_IM_MODULE="ibus" QT_IM_MODULE="ibus" XMODIFIERS="@im=ibus"
 
 fcitx -d
