@@ -56,12 +56,15 @@ install archlinux from archlinux
     mkinitcpio -p linux
 
     pacman -S sudo gnupg2 pass syslinux dosfstools parted gptfdisk ntfs-3g mtools zsh pacman-contrib
-    pacman -S net-tools openssh git rsync base-devel python
-    pacman -S xorg-server xterm fvwm gvim gmrun firefox chromium
-    pacman -S fcitx-rime fcitx-gtk3 fcitx-qt5 fcitx-configtool
+    pacman -S net-tools openssh git rsync base-devel wireguard-tools
+    pacman -S xorg-server xterm fvwm gvim gmrun gparted
+    pacman -S fcitx-rime fcitx-gtk3 fcitx-qt5 fcitx-configtool sdcv
+    pacman -S firefox chromium w3m proxychains kcptun tcpdump wireshark
+    pacman -S qemu dosbox
 
     sudo -iu wood -- git checkout
     sudo -iu wood -- fc-cache -fv
+    usermod -G kvm,video,audio,wireshark -a wood
     exit
 
 #### host
@@ -71,6 +74,7 @@ install archlinux from archlinux
     rsync -vaR .local/share/fonts /mnt/home/wood/
     rsync -vaR .config/*.{conf,json} .config/rslsync /mnt/home/wood/
     rsync -vaR .local/*.json /mnt/home/wood/
+    rsync -vr  .stardict /mnt/home/wood/
     pacman -Qe > /mnt/home/wood/pacman-Qe
 
 #### reboot
