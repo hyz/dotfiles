@@ -147,6 +147,7 @@ Style * DecorateTransient, NoPPosition, IconBox 20 20 100 -15, IconGrid 3 3, Ico
 Style * SloppyFocus, MouseFocusClickRaises, TileCascadePlacement, WindowShadeSteps 20
 #% Style * GrabFocusOff, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
 Style * MinOverlapPlacement, GrabFocus, GrabFocusTransient, NoIconTitle, !AllowMaximizeFixedSize, FPReleaseFocus, IndexedIconName
+Style * ClickToFocus
 
 # Style * Title, Color Black/MidnightBlue
 # Style * Title, Color White/Black
@@ -362,8 +363,11 @@ Mouse 	2  W    C 	Resize-or-Raise
 Mouse 	1  W    M 	Move-or-Raise
 
 ### --- --- --- --- --- --- --- --- --- ### --- --- --- --- --- --- --- --- --- ###
+### http://fvwmforums.org/wiki/Tips/RxvtRunDialogue/
 ### http://fvwmforums.org/wiki/Tips/XTermRunDialogue/
-Style fvwm-run-dialog FPGrabFocus, FPReleaseFocus
+Style  fvwm-run-dialog FPGrabFocus, FPReleaseFocus
+# Key R A 4 Exec exec $[HOME]/.fvwm/run-dialog
+## start the dialog using “Win-R”
 
 #####
 # Key bindings.
@@ -380,12 +384,13 @@ key 	q      A  M 	Restart
 #key 	Return A  MS	Exec xterm # -geometry 81x27 -e screen -e^jj -R
 key 	x      A  MS 	Exec xterm -geometry 128x36 "/usr/bin/zsh"
 #key 	Return A  MS 	Exec xterm -geometry 128x36
-#Key 	b      A  MS   Exec chromium
-Key 	x      A  M 	Exec exec /bin/bash $[FVWM_USERDIR]/run-dialog
+#Key 	b      A  MS 	Exec chromium
+#Key 	x      A  M 	Exec exec /bin/bash $[FVWM_USERDIR]/run-dialog
+Key 	x      A  M 	Exec exec bashrun
 #Key 	x      A  M 	Exec gmrun
-Key 	p      A  M 	Exec gmrun
+Key 	p      A  M 	Exec rofi -show run
 #Key 	p      A  M 	Exec `dmenu_path | dmenu`
-# Key 	p      A  MS   None (*run) Exec grun || gmrun || fbrun || xfrun4
+# Key 	p      A  MS 	None (*run) Exec grun || gmrun || fbrun || xfrun4
 # Key 	x      A  M 	Exec rox
 #Key 	F3     A  M 	Exec exec emacs
 Key 	c      A  M 	Pick Close
@@ -412,7 +417,8 @@ Key 	M      A  M 	Pick Maximize
 #Key 	Right  WTSF SM 	empty
 
 Key 	Escape      A  M 	SendToModule FvwmProxy ShowToggle # alt+esc I love this
-Key 	Tab	        A  M 	WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
+Key 	Tab	        A  M 	Exec exec rofi -show window
+#Key 	Tab	        A  M 	WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, IconifiedAtEnd # standard alt+tab
 #Key 	Super_L     A  A 	Menu MenuFvwmRoot rectangle 0x0+0+330 +0 +0 # "Win" key opens the Launch menu
 #Key 	grave	    A  M 	Next (CirculateHit, HiddenConsole) HiddenConsoleKeyBinding # alt+cedilla opens the "quake" console
 #Key 	Print	    A  N 	Exec exec ksnapshot
@@ -556,18 +562,18 @@ AddToFunc StartFunction
 AddToFunc ExitFunction
 + I Test (!ToRestart) 	Exec rm -f $[FVWM_USERDIR]/icon.tmp.*
 + I KillModule FvwmAnimate
-+ I 	Exec killall stalonetray
-#+ I 	Exec killall amarokapp
-#+ I 	Exec killall dcopserver
-#+ I 	Exec killall irexec
-+ I 	Exec sync
++ I Exec killall stalonetray
+#+ I Exec killall amarokapp
+#+ I Exec killall dcopserver
+#+ I Exec killall irexec
++ I Exec sync
 
 #####
 # Autohide console
 #####
 DestroyFunc StartHiddenConsole
 AddToFunc StartHiddenConsole
-+ I 	Exec exec urxvt +sb -ls -bg black -fg white -fn "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -fb "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -bc -g 100x12+0+0 -name HiddenConsole
++ I Exec exec urxvt +sb -ls -bg black -fg white -fn "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -fb "-xos4-terminus-medium-*-*-*-12-*-*-*-*-*-*-*" -bc -g 100x12+0+0 -name HiddenConsole
 + I Wait HiddenConsole
 + I Next (HiddenConsole) Resize $[vp.width]p 9
 + I Autohide HiddenConsole 0 0 N

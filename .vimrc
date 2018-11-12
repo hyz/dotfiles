@@ -78,7 +78,6 @@ Plugin 'timonv/vim-cargo'
 Plugin 'racer-rust/vim-racer'
 "Plugin 'fatih/vim-go'
 "Plugin 'godlygeek/tabular'
-Plugin 'plasticboy/vim-markdown'
 Plugin 'mxw/vim-jsx'
 Plugin 'pangloss/vim-javascript'
 "Plugin 'moll/vim-node'
@@ -90,7 +89,10 @@ Plugin 'junegunn/fzf.vim'
 "Plugin 'python-mode/python-mode'
 Plugin 'amoffat/snake'
 "Plugin 'vimim/vimim'
+Plugin 'plasticboy/vim-markdown'
 Plugin 'vim-scripts/VimIM'
+Plugin 'vim-scripts/fcitx.vim'
+Plugin 'suan/vim-instant-markdown'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help

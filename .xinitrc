@@ -1,12 +1,28 @@
 
 export LANG=en_US.UTF-8
 
-export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx
-export XMODIFIERS=”@im=fcitx”
-#export GTK_IM_MODULE="ibus" QT_IM_MODULE="ibus" XMODIFIERS="@im=ibus"
+#export GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS="@im=ibus"
+export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
+
+#export GDK_SCALE=2 # 4k GTK3
+#export QT_AUTO_SCREEN_SCALE_FACTOR=0 # QT5 no auto scale
+#export QT_SCALE_FACTOR=2 # QT5 manual x2
+
+#setxkbmap -option terminate:ctrl_alt_bksp
+xrdb -merge .Xresources
+xset -b
+xset +fp ~/.local/share/fonts
+
+unclutter -root -idle 2 &
 
 fcitx -d
 #ibus-daemon -d -x
+
+#mpd
+
+pgrep -x redshift &>/dev/null || redshift -r &>/dev/null &
+
+urxvtd -q -f -o
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
 # xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4
@@ -16,17 +32,6 @@ fcitx -d
 #gnome-settings-daemon &
 #gnome-volume-manager &
 #conky &
-
-xrdb -merge .Xresources
-xset -b
-xset +fp ~/.local/share/fonts
-
-#mpd
-
-#xterm -geometry +96-28 &
-#xterm -geometry +480+0 &
-#xterm -geometry -0-28 &
-# xterm -e screen -e^jj &
 
 ## http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
 # ~/.keymap

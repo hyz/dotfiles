@@ -1,3 +1,17 @@
 #!/bin/sh
+
+# http://fvwmforums.org/wiki/Tips/RxvtRunDialogue/
+# man urxvt
+# pacman -S xorg-xev
+# grep Return /usr/include/X11/keysymdef.h
+
 #xterm +sb -name fvwm-run-dialog -title "run" -geometry 80x1+224+360 -e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init
-xterm +sb -name fvwm-run-dialog -title "run" -geometry 128x16-0+0 -e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init
+#xterm +sb -name fvwm-run-dialog -title "run" -geometry 128x16-0+0 -e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init
+
+#urxvt +sb -name fvwm-run-dialog -title "run" -geometry 80x8+224+360 \
+#	-keysym.0xFF0D " &\n exit\n" \
+#   -keysym.Return
+#	-e /bin/bash --init-file $HOME/.fvwm/run-dialog.bash-init
+
+urxvt -geometry 80x4-0+0 -name 'bashrun' -e sh -c "/bin/bash"
+
