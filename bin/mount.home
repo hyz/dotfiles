@@ -1,8 +1,18 @@
 #!/bin/sh
 
-cat << @EOF | sudo /bin/sh -
-mount .home
-    && mount -o bind .home/workspace workspace
-    && mount -o bind .home/Downloads Downloads
+/bin/cat << @EOF | sudo /bin/bash -
+
+#echo "\$(pwd) SUDO_USER=\$SUDO_USER"
+
+mount .home || exit 1
+
+for x in workspace Downloads Music Movies Pictures Documents; do
+    if [ -d ".home/\$x" ]; then
+        echo ".home/\$x \$x"
+        [ -d "\$x" ] || sudo -u \$SUDO_USER -- mkdir \$x
+        mount -o bind .home/\$x \$x
+    fi
+done
+
 @EOF
 
