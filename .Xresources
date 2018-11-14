@@ -74,7 +74,7 @@ XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=14:antialias=true
 URxvt*xftAntialias: true
 !URxvt.background: rgba:0000/0000/0000/cccc
-xterm*background: black
+URxvt*background: black
 !URxvt.depth: 32
 !Rxvt.geometry:192×144
 !URxvt.foreground: antiquewhite
