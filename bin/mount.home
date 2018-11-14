@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cat << @EOF | sudo /bin/sh -
+mount .home
+    && mount -o bind .home/workspace workspace
+    && mount -o bind .home/Downloads Downloads
+@EOF
+

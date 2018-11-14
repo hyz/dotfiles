@@ -1,5 +1,7 @@
 ## fvwm
-Read $[FVWM_DATADIR]/default-config/config
+#Read $[FVWM_DATADIR]/default-config/config
+Read /usr/share/fvwm//default-config/config
+EwmhBaseStruts 0 0 0 0
 DesktopSize 1x1
 Style * TitleAtLeft
 
@@ -34,20 +36,22 @@ Key 	j      A  M 	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFu
 Key 	k      A  M 	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
 Key 	Tab    A  M 	Exec exec rofi -show window
 Key 	c      A  M 	Pick Close
-#Key 	F4     A  M 	Pick Close # maybe Destroy
+Key 	F4     A  M 	Pick Close
 Key 	i      A  M 	Iconify
 Key 	i      A  MS 	All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
-Key 	z      A  4 	Exec exec rofi -show window
 Key 	z      A  M 	Pick Resize
-Key 	m      A  M 	Pick Maximize
+Key 	m      A  MS 	Pick Maximize 100 0
+Key 	m      A  M 	Pick Maximize 0 100
 Key 	m      A  CM 	Pick Move
 
 #Key 	Page_Down A  4 	GotoDesk -1
 #Key 	Page_Up	  A  4 	GotoDesk +1
-Key 	0         A  M 	GotoDesk 0 0
-Key 	1         A  M 	GotoDesk 0 1
-Key 	2         A  M 	GotoDesk 0 2
-Key 	3         A  M 	GotoDesk 0 3
+Key 	1         A  M 	GotoDesk 0 0
+Key 	2         A  M 	GotoDesk 0 1
+Key 	3         A  M 	GotoDesk 0 2
+Key 	0         A  M 	GotoDesk 0 3
 Key 	Print	  A  N 	Exec import /tmp/_i.png && feh /tmp/_i.png
 Key 	Super_L   A  A 	Exec exec rofi -show window
+
+Style bashrun 	GrabFocus, !Title, Sticky, PositionPlacement -0 +0, HilightBorderColorset 8, Layer 6
 

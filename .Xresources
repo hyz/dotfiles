@@ -71,7 +71,7 @@ XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 ! - http://www.leninlee.cn/?p=376
 !Xft.dpi:96
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
-URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=14:antialias=true
+URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=18:antialias=True
 URxvt*xftAntialias: true
 !URxvt.background: rgba:0000/0000/0000/cccc
 URxvt*background: black
