@@ -6,7 +6,8 @@
 
 mount .home || exit 1
 
-for x in workspace Downloads Music Movies Pictures Documents; do
+#for x in workspace Downloads Music Movies Pictures Documents
+for x in workspace ; do
     if [ -d ".home/\$x" ]; then
         echo ".home/\$x \$x"
         [ -d "\$x" ] || sudo -u \$SUDO_USER -- mkdir \$x

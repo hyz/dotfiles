@@ -1,9 +1,13 @@
-## fvwm
+### fvwm
 #Read $[FVWM_DATADIR]/default-config/config
-Read /usr/share/fvwm//default-config/config
+Read /usr/share/fvwm/default-config/config
 EwmhBaseStruts 0 0 0 0
 DesktopSize 1x1
-Style * TitleAtLeft
+Style * TitleAtLeft, ClickToFocus
+Style RightPanel NeverFocus
+
+## http://fvwmforums.org/wiki/Tips/AutoHidingWindows/
+#AddToFunc StartFunction I Module FvwmAuto FvwmAutohide -menter enter_handler
 
 ##### # Miscellaneous Functions
 AddToFunc Move-or-Raise I Raise

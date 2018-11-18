@@ -112,3 +112,5 @@ URxvt.transparency: 0
 !fvwm-run-dialog.VT100*translations: #override \n\
 !    <Key>Return: string(" &\n exit\n")
 
+! Super_L/0xffeb Return/0xff0d
+
