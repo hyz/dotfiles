@@ -55,7 +55,7 @@ Key 	2         A  M 	GotoDesk 0 1
 Key 	3         A  M 	GotoDesk 0 2
 Key 	0         A  M 	GotoDesk 0 3
 Key 	Print	  A  N 	Exec import /tmp/_i.png && feh /tmp/_i.png
-Key 	Super_L   A  A 	Exec exec rofi -show window
+Key 	Super_L   A  A 	Exec exec rofi -show window -lines 9 -width 32 -location 3
 
 Style bashrun 	GrabFocus, !Title, Sticky, PositionPlacement -0 +0, HilightBorderColorset 8, Layer 6
 

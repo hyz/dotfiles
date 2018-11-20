@@ -1,0 +1,516 @@
+#!/bin/bash
+
+Target="$1"
+[ -d "$Target" ] || eixt 1
+
+tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 2
+TrapExit() {
+    /bin/rm -f $tempfn
+}
+trap TrapExit EXIT
+
+cat << _Eof > $tempfn
+[sdl]
+fullscreen=false
+fulldouble=true
+fullresolution=desktop
+windowresolution=1024x768
+output=opengl
+autolock=true
+sensitivity=100
+waitonerror=true
+priority=higher,normal
+mapperfile=mapper-0.74.map
+pixelshader=none
+usescancodes=false
+overscan=0
+
+[log]
+logfile=
+vga=true
+vgagfx=true
+vgamisc=true
+int10=true
+sblaster=true
+dma_control=true
+fpu=true
+cpu=true
+paging=true
+fcb=true
+files=true
+ioctl=true
+exec=true
+dosmisc=true
+pit=true
+keyboard=true
+pic=true
+mouse=true
+bios=true
+gui=true
+misc=true
+io=true
+pci=true
+sst=true
+
+[dosbox]
+language=
+machine=svga_s3
+vmemsize=4
+vmemsizekb=0
+captures=capture
+mainline compatible mapping=true
+mainline compatible bios mapping=true
+adapter rom is ram=false
+shell environment size=0
+private area size=32768
+a20=fast
+isa bus clock=std8.3
+pci bus clock=std33.3
+rom bios allocation max=0
+rom bios minimum size=0
+memsize=32
+memsizekb=0
+dos mem limit=0
+isa memory hole at 512kb=false
+memalias=0
+vga bios size override=0
+video bios dont duplicate cga first half rom font=false
+video bios always offer 14-pixel high rom font=true
+video bios always offer 16-pixel high rom font=true
+video bios enable cga second half rom font=true
+forcerate=
+sierra ramdac=true
+sierra ramdac lock 565=false
+page flip debug line=false
+vertical retrace poll debug line=false
+cgasnow=true
+allow port 92 reset=true
+enable port 92=true
+enable 1st dma controller=true
+enable 2nd dma controller=true
+allow dma address decrement=true
+enable dma extra page registers=true
+dma page registers write-only=false
+enable slave pic=true
+enable pc nmi mask=true
+rom bios 8x8 CGA font=true
+rom bios video parameter table=true
+allow more than 640kb base memory=false
+vesa lfb base scanline adjust=0
+allow hpel effects=false
+allow hretrace effects=false
+hretrace effect weight=4.00
+vesa vbe 1.2 modes are 32bpp=true
+allow low resolution vesa modes=true
+allow 32bpp vesa modes=true
+allow 24bpp vesa modes=true
+allow 16bpp vesa modes=true
+allow 15bpp vesa modes=true
+allow 8bpp vesa modes=true
+allow 4bpp vesa modes=true
+allow tty vesa modes=true
+enable vga resize delay=false
+resize only on vga active display width increase=false
+enable pci bus=true
+pit hack=
+
+[render]
+frameskip=0
+aspect=false
+linewise=false
+char9=false
+doublescan=true
+scaler=super2xsai
+autofit=true
+
+[vsync]
+vsyncmode=off
+vsyncrate=75
+
+[cpu]
+core=auto
+enable msr=true
+ignore undefined msr=false
+dynamic core cache block size=32
+cputype=auto
+cycles=fixed 10000
+cycleup=10
+cycledown=20
+non-recursive page fault=false
+ignore opcode 63=true
+apmbios=false
+apmbios allow realmode=true
+apmbios allow 16-bit protected mode=true
+apmbios allow 32-bit protected mode=true
+integration device=false
+isapnpbios=false
+realbig16=false
+
+[keyboard]
+aux=false
+allow output port reset=true
+auxdevice=intellimouse
+
+[pci]
+voodoo=auto
+voodoomem=standard
+
+[mixer]
+nosound=false
+swapstereo=false
+rate=44100
+blocksize=2048
+prebuffer=20
+
+[midi]
+mpu401=intelligent
+mididevice=default
+midiconfig=
+mt32.reverse.stereo=off
+mt32.verbose=off
+mt32.thread=off
+mt32.dac=auto
+mt32.reverb.mode=auto
+mt32.reverb.time=5
+mt32.reverb.level=3
+mt32.partials=32
+
+[sblaster]
+sbtype=sb16
+sbbase=220
+irq=7
+dma=1
+hdma=5
+sbmixer=true
+oplmode=auto
+adlib force timer overflow on detect=true
+oplemu=default
+oplrate=44100
+hardwarebase=220
+force dsp auto-init=false
+force goldplay=false
+goldplay=false
+goldplay stereo=true
+dsp require interrupt acknowledge=auto
+dsp write busy delay=-1
+blaster environment variable=true
+sample rate limits=true
+instant direct dac=false
+stereo control with sbpro only=true
+dsp busy cycle rate=-1
+dsp busy cycle duty=-1
+io port aliasing=true
+
+[gus]
+gus=false
+gusrate=44100
+gusbase=240
+gusirq=5
+gusdma=3
+ultradir=C:\ULTRASND
+[innova]
+innova=false
+samplerate=44100
+sidbase=280
+quality=0
+
+[speaker]
+pcspeaker=true
+pcrate=44100
+tandy=auto
+tandyrate=44100
+disney=false
+ps1audio=off
+ps1audiorate=44100
+
+[joystick]
+joysticktype=auto
+timed=true
+autofire=false
+swap34=false
+buttonwrap=false
+
+[serial]
+serial1=dummy
+serial2=dummy
+serial3=disabled
+serial4=disabled
+
+[printer]
+printer=true
+dpi=360
+width=85
+height=110
+printoutput=png
+multipage=false
+docpath=.
+timeout=0
+
+[parallel]
+parallel1=disabled
+parallel2=disabled
+parallel3=disabled
+dongle=false
+
+[glide]
+glide=true
+lfb=full
+splash=true
+
+[dos]
+xms=true
+enable a20 on windows init=true
+zero memory on xms memory allocation=false
+ems=true
+zero memory on ems memory allocation=false
+ems system handle memory size=384
+umb=true
+umb start=0
+umb end=0
+kernel allocation in umb=false
+dynamic kernel allocation=false
+keep umb on boot=false
+keep private area on boot=false
+private area in umb=true
+automount=true
+int33=true
+int 13 extensions=true
+biosps2=true
+int15 mouse callback does not preserve registers=false
+keyboardlayout=auto
+dbcs=true
+filenamechar=true
+collating and uppercase=true
+files=127
+con device use int 16h to detect keyboard input=true
+zero memory on int 21h memory allocation=false
+
+[ipx]
+ipx=false
+
+[ne2000]
+ne2000=true
+nicbase=300
+nicirq=3
+macaddr=AC:DE:48:88:99:AA
+realnic=list
+
+[fdc, primary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, secondary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, tertiary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, quaternary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, quinternary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, sexternary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, septernary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[fdc, octernary]
+enable=false
+pnp=true
+irq=0
+io=0
+dma=-1
+int13fakev86io=false
+instant mode=false
+auto-attach to int 13h=true
+mode=ps2
+chip=82077aa
+
+[ide, primary]
+enable=true
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, secondary]
+enable=true
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, tertiary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, quaternary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, quinternary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, sexternary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, septernary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[ide, octernary]
+enable=false
+pnp=true
+irq=0
+io=0
+altio=0
+int13fakeio=false
+int13fakev86io=false
+enable pio32=false
+ignore pio32=false
+cd-rom spinup time=0
+cd-rom spindown timeout=0
+cd-rom insertion delay=0
+
+[autoexec]
+mount c $Target/..
+mount d $Target -t cdrom
+c:
+cd $Target
+play
+
+_Eof
+
+dosbox -conf $tempfn
+
