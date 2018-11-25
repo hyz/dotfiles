@@ -1,7 +1,8 @@
 #!/bin/bash
 
-Target="$1"
-[ -d "$Target" ] || eixt 1
+[ -d "$1" ] || eixt 1
+Target=`basename "$1"`
+cd "$1"/..
 
 tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 2
 TrapExit() {

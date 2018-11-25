@@ -4,6 +4,8 @@
 
     cargo run --features="winit glium" --release --example old_demo
 
+    cargo graph --optional-line-style dashed --optional-line-color red --optional-shape box --build-shape diamond --build-color green --build-line-color orange | dot -Tpng > graph.png
+
 ### mingw-w64
 
     cargo build -vv --target x86_64-pc-windows-gnu --release
@@ -27,3 +29,4 @@
 
     # OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl
 
+cargo +nightly install --git https://github.com/kbknapp/cargo-graph --force
