@@ -14,3 +14,7 @@ https://rustwasm.github.io/book/
     wasm-gc target/wasm32-unknown-unknown/release/hello_world.wasm -o hello_world.gc.wasm
     wasm-opt -Os hello_world.gc.wasm -o hello_world.gc.opt.wasm
 
+### https://rustwasm.github.io/book/game-of-life/hello-world.html
+
+    cargo generate --git https://github.com/rustwasm/wasm-pack-template
+

@@ -1,4 +1,8 @@
 
+    https://github.com/search?l=Rust&q=stars%3A%3E1&s=stars&type=Repositories
+
+    git remote get-url origin
+
     185.31.16.184 github.global.ssl.fastly.net
 
 ### .ssh/config
@@ -31,6 +35,12 @@
     git-proxy --help
     view ~/.gitconfig
 
+####
+
+    git config --global core.autocrlf input
+    git config --global core.autocrlf true # Windows
+
+
 ### http://stackoverflow.com/questions/610208/how-to-retrieve-a-single-file-from-specific-revision-in-git
 
     git show bde7984f89:mediatek/platform/mt6572/kernel/drivers/keypad/rckey.c > /tmp/rckey.c.bde7984f89
@@ -38,11 +48,6 @@
     git show $REV:$FILE
     git show somebranch:from/the/root/myfile.txt
     git show HEAD^^^:test/test.py
-
-###
-
-    git config --global core.autocrlf input
-    git config --global core.autocrlf true # Windows
 
 ### submodule
 ### http://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule

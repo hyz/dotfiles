@@ -1,4 +1,6 @@
 
+    pip install --user moviepy
+
 ### https://github.com/PeterDing/iScript
 
 ### https://github.com/google/yapf
