@@ -1,133 +1,172 @@
-https://trac.ffmpeg.org/wiki/TitleIndex
 
-http://www.ffmpeg.org/ffmpeg-devices.html#fbdev
+#### ffmpeg subclip, resize video
 
-https://wiki.archlinux.org/index.php/FFmpeg
+    ffmpeg -i a.mp4 -ss 00:10:09 -to 00:13:52 -c:v copy -c:a copy 801.1009-1352.mp4
+    ffmpeg -i 801.1009-1352.mp4 -filter:v scale=800:450 -c:a copy 801.1009-1352.800x450.mp4 
+
+### https://trac.ffmpeg.org/wiki/TitleIndex
+
+### http://www.ffmpeg.org/ffmpeg-devices.html#fbdev
+
+### https://wiki.archlinux.org/index.php/FFmpeg
+
 Screen cast
+
     ffmpeg -f x11grab -video_size 1920x1080 -i $DISPLAY -f alsa -i default -c:v ffvhuff -c:a flac test.mkv
     ffmpeg -f x11grab -s 1920x1080 -r 25 -i $DISPLAY   -f alsa -i default   -c:v libx264 -b:v 200k -s 1280x720 test.mp4
+
 Recording webcam
+
     ffmpeg -f v4l2 -s 640x480 -i /dev/video0 output.mpg
     ffmpeg -f alsa -i default -f v4l2 -s 640x480 -i /dev/video0 output.mpg
     ffmpeg -f alsa -i pulse -f v4l2 -s 640x480 -i /dev/video0 output.mpg
     ffmpeg -f alsa -i default -f v4l2 -s 640x480 -i /dev/video0 -acodec flac -vcodec libx264 output.mkv
 
-http://stackoverflow.com/questions/7574554/stream-video-from-ffmpeg-and-capture-with-opencv?rq=1
-  $ mkfifo stream_pipe
-  $ ffmpeg -f avi -i rtp://xxx.xxx.xxx.xxx:1234 -f avi -y out.avi > stream_pipe
-  $ ./cvcap.exe stream_pipe
-  cap.open("rtp://xxx.xxx.xxx.xxx:1234");
+### http://stackoverflow.com/questions/7574554/stream-video-from-ffmpeg-and-capture-with-opencv?rq=1
 
-http://trac.ffmpeg.org/wiki/Capture/Webcam
-  Windows:
+    $ mkfifo stream_pipe
+    $ ffmpeg -f avi -i rtp://xxx.xxx.xxx.xxx:1234 -f avi -y out.avi > stream_pipe
+    $ ./cvcap.exe stream_pipe
+
+    cap.open("rtp://xxx.xxx.xxx.xxx:1234");
+
+### http://trac.ffmpeg.org/wiki/Capture/Webcam
+
+Windows:
+
     ffmpeg -y -f dshow -i list
     ffmpeg -y -f vfwcap -i list
     ffmpeg -y -f vfwcap -r 25 -i 0 out.mp4
-  Linux:
+
+Linux:
+
     v4l2-ctl --list-devices
     ffmpeg -f v4l2 -list_formats all -i /dev/video0
     ffmpeg -f v4l2 -framerate 25 -video_size 640x480 -i /dev/video0 output.mkv
     v4l2-ctl -L
     v4l2-ctl -c <option>=<value>
-https://trac.ffmpeg.org/wiki/Capture/Desktop
-http://trac.ffmpeg.org/wiki/Encode/H.264
-    FFmpeg and H.264 Encoding Guide
 
+### https://trac.ffmpeg.org/wiki/Capture/Desktop
+### http://trac.ffmpeg.org/wiki/Encode/H.264
 
-http://blog.csdn.net/bless2015/article/details/50573783
-    FFMpeg读取摄像头数据流 
-    http://blog.csdn.net/bless2015/article/details/50574796
-    FFMpeg将YUV编码为H264 
+FFmpeg and H.264 Encoding Guide
 
-https://ffmpeg.zeranoe.com/builds/
-    windows prebuilt and External Libraries
+### http://blog.csdn.net/bless2015/article/details/50573783
 
-http://wiki.oz9aec.net/index.php/High_quality_screen_capture_with_Ffmpeg
+FFMpeg读取摄像头数据流 
+
+### http://blog.csdn.net/bless2015/article/details/50574796
+
+FFMpeg将YUV编码为H264 
+
+### https://ffmpeg.zeranoe.com/builds/
+
+windows prebuilt and External Libraries
+
+### http://wiki.oz9aec.net/index.php/High_quality_screen_capture_with_Ffmpeg
+
     ffmpeg -f x11grab -r 25 -s 1280x720 -i :0.0+0,24 -vcodec libx264 -vpre lossless_ultrafast -threads 0 video.mkv
 
-  The audio output can also be captured with gstreamer: 
+The audio output can also be captured with gstreamer: 
+
     gst-launch -e pulsesrc device="alsa_output.pci-0000_00_1b.0.analog-stereo.monitor" ! audioconvert ! \
                    lamemp3enc target=1 bitrate=128 cbr=true ! filesink location=output.mp3
-  where the device name is the one returned by
+
+where the device name is the one returned by
+
     pactl list | grep -A2 'Source #' | grep 'Name: ' | cut -d" " -f2
 
-https://git.ffmpeg.org/ffmpeg.git
+### https://git.ffmpeg.org/ffmpeg.git
+
     ./configure --help |grep -- '--list' 
-https://github.com/rdp/ffmpeg-windows-build-helpers
 
-http://phoronix.com/scan.php?page=news_item&px=MTg0NTY
-    Using NVIDIA's NVENC On Linux With FFmpeg
-https://trac.ffmpeg.org/wiki/HWAccelIntro
+### https://github.com/rdp/ffmpeg-windows-build-helpers
 
-http://stackoverflow.com/questions/6766333/capture-windows-screen-with-ffmpeg
+### http://phoronix.com/scan.php?page=news_item&px=MTg0NTY
+
+Using NVIDIA's NVENC On Linux With FFmpeg
+
+### https://trac.ffmpeg.org/wiki/HWAccelIntro
+
+### http://stackoverflow.com/questions/6766333/capture-windows-screen-with-ffmpeg
+
     ffmpeg -f gdigrab -framerate 10 -i desktop [output]
 
-http://www.ffmpeg.org/ffmpeg.html
-http://ffmpeg.org/ffmpeg-all.html#pipe
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
-  mplayer -vo fbdev2 ../o.mp4
+### http://www.ffmpeg.org/ffmpeg.html
+### http://ffmpeg.org/ffmpeg-all.html#pipe
 
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 |mplayer -vo fbdev2 -fps 30 - 
-  ffmpeg/ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
+    mplayer -vo fbdev2 ../o.mp4
+
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 |mplayer -vo fbdev2 -fps 30 - 
+    ffmpeg/ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
 
     ffmpeg -i source1.ts -codec copy -f mpegts -tables_version 0 udp://1.1.1.1:1111
     ffmpeg -i source1.ts -codec copy -f h264 udp://1.1.1.1:1111
 
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
-      netpipe-h264 192.168.2.115 |mplayer -vo fbdev2 -fps 60 -
-  ffmpeg/ffmpeg -f fbdev -i /dev/fb0 \
-      -an -c:v h264 -r 30 -s 1920x1080 -pix_fmt yuv420p -threads 4 -g 1 -f h264 pipe:1 \
-          2>/dev/null | netpipe-h264
-ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v h264 -crf 40 -preset ultrafast -tune zerolatency -g 1 -b 1000k -s vga -f h264 pipe:1 > 1
-ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an \
-    -vf crop=640:480:0:0 -s vga -c:v h264 -r 30 -pix_fmt yuv420p -g 1 -f h264 pipe:1 | netpipe-h264
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
+
+    netpipe-h264 192.168.2.115 |mplayer -vo fbdev2 -fps 60 -
+
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 \
+      -an -c:v h264 -r 30 -s 1920x1080 -pix_fmt yuv420p -threads 4 -g 1 -f h264 pipe:1 2>/dev/null | netpipe-h264
+
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v h264 -crf 40 -preset ultrafast -tune zerolatency -g 1 -b 1000k -s vga -f h264 pipe:1 > 1
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an \
+        -vf crop=640:480:0:0 -s vga -c:v h264 -r 30 -pix_fmt yuv420p -g 1 -f h264 pipe:1 | netpipe-h264
+
     sps->num_ref_frames: 0
 
-ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
-    -x264opts level=31:keyint=1:ref=1:trellis=0:bframes=0:no-mixed-refs:weightp=0:no-weightb:no-psy:sync-lookahead=1:aq-mode=0 \
-    -s 1920x1080 -pix_fmt yuv420p -f h264 pipe:1 | netpipe-h264
+    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
+        -x264opts level=31:keyint=1:ref=1:trellis=0:bframes=0:no-mixed-refs:weightp=0:no-weightb:no-psy:sync-lookahead=1:aq-mode=0 \
+        -s 1920x1080 -pix_fmt yuv420p -f h264 pipe:1 | netpipe-h264
+
+Play a file on framebuffer device /dev/fb0.
 
     ffmpeg -re -i INPUT -vcodec rawvideo -pix_fmt bgra -f fbdev /dev/fb0
-        Play a file on framebuffer device /dev/fb0.
 
-  ffmpeg -y -loglevel warning -f dshow -i video="screen-capture-recorder" \
+    ffmpeg -y -loglevel warning -f dshow -i video="screen-capture-recorder" \
       -vf crop=690:388:136:0 -r 30 -s 962x388 -threads 2 -vcodec libx264 -vpre baseline -vpre my_ffpreset -f flv rtmp:///live/myStream.sdp
 
-netpipe-h264 192.168.2.192 | ffmpeg/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 > o
-adb -s 0123456789ABCDEF shell '/data/netpipe 192.168.2.192 |/data/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 >/dev/null'
+    netpipe-h264 192.168.2.192 | ffmpeg/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 > o
+
+    adb -s 0123456789ABCDEF shell '/data/netpipe 192.168.2.192 |/data/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 >/dev/null'
 
 
-https://github.com/joeyblake/FFmpeg-Presets
-http://blog.csdn.net/vblittleboy/article/details/8474102
-    ffmpeg presets
+### https://github.com/joeyblake/FFmpeg-Presets
+### http://blog.csdn.net/vblittleboy/article/details/8474102
 
-http://trac.ffmpeg.org/wiki/CompilationGuide/Android
-https://github.com/WritingMinds/ffmpeg-android
-https://github.com/guardianproject/android-ffmpeg
+ffmpeg presets
 
-https://trac.ffmpeg.org/wiki/StreamingGuide
-https://trac.ffmpeg.org/wiki/Encode/H.264
+### http://trac.ffmpeg.org/wiki/CompilationGuide/Android
+### https://github.com/WritingMinds/ffmpeg-android
+### https://github.com/guardianproject/android-ffmpeg
 
-http://stackoverflow.com/questions/23289157/how-to-use-hardware-acceleration-with-ffmpeg
-http://stackoverflow.com/questions/5985273/using-ffmpeg-hwaccel-from-c
-http://trac.ffmpeg.org/wiki/HWAccelIntro
-    test hwaccel
+### https://trac.ffmpeg.org/wiki/StreamingGuide
+### https://trac.ffmpeg.org/wiki/Encode/H.264
+
+### http://stackoverflow.com/questions/23289157/how-to-use-hardware-acceleration-with-ffmpeg
+### http://stackoverflow.com/questions/5985273/using-ffmpeg-hwaccel-from-c
+### http://trac.ffmpeg.org/wiki/HWAccelIntro
+
+test hwaccel
+
     ffmpeg -hwaccel dxva2 -threads 1 -i INPUT -f null - -benchmark
     libavcodec/mediacodecdec_common.c # ff_h264_mediacodec_hwaccel
 
-http://blog.csdn.net/tttyd
+### http://blog.csdn.net/tttyd
 
-http://blog.csdn.net/feixiang_john/article/details/8562330
+### http://blog.csdn.net/feixiang_john/article/details/8562330
     AVC到HEVC 
 
-http://leixiaohua1020.github.io/
+### http://leixiaohua1020.github.io/
 
-~/ffmpeg/ffmpeg/ffmpeg -re -i 115.1920x1080.264 -an -c:v rawvideo -pix_fmt bgra -f fbdev /dev/fb0
+    ~/ffmpeg/ffmpeg/ffmpeg -re -i 115.1920x1080.264 -an -c:v rawvideo -pix_fmt bgra -f fbdev /dev/fb0
 
-ffprobe -show_streams -i "file.mp4"
+    ffprobe -show_streams -i "file.mp4"
 
-https://github.com/mpenkov/ffmpeg-tutorial
-http://dranger.com/ffmpeg/tutorial01.html
+### https://github.com/mpenkov/ffmpeg-tutorial
+### http://dranger.com/ffmpeg/tutorial01.html
 

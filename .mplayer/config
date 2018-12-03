@@ -8,8 +8,8 @@ slang=zh,en
 stop-xscreensaver=1
 zoom=1
 #if your graphic card support opengl , you can use vo=gl2
-vo=vdpau
-vo=xv
+#vo=vdpau
+#vo=xv
 #vc=ffmpeg12vdpau,ffwmv3vdpau,ffvc1vdpau,ffh264vdpau,ffodivxvdpau
 # vc=ffmpeg12vdpau,ffwmv3vdpau,ffvc1vdpau,ffh264vdpau,ffodivxvdpau,
 

@@ -1,5 +1,7 @@
 
-https://yarnpkg.com/lang/en/docs/migrating-from-npm/
+yarn run build --mode production
+
+### https://yarnpkg.com/lang/en/docs/migrating-from-npm/
 
 ### https://github.com/yarnpkg/yarn
 

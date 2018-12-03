@@ -6,7 +6,7 @@ set guifont=Monaco\ 14
 set guioptions=
 set ts=4 sw=4 expandtab ai nocp nowrap
 
-colorscheme desert " desert desert256 inkpot gardener tango desert elflord wombat256 
+colorscheme jellybeans " desert desert256 murphy inkpot gardener tango elflord wombat256 
 if &diff
     colorscheme jellybeans
 endif
@@ -182,9 +182,9 @@ set hidden
 """ rust
 """ https://github.com/ivanceras/rust-vim-setup
 let g:rustfmt_autosave = 1
-let g:racer_cmd = "$HOME/.cargo/bin/racer"
+"let g:racer_cmd = "$HOME/.home/cargo/bin/racer"
 let g:racer_experimental_completer = 1
-let g:ycm_rust_src_path="$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
+let g:ycm_rust_src_path="$HOME/.home/rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
 
 """ python
 let g:pymode_python = 'python3'
