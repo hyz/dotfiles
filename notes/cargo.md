@@ -8,12 +8,16 @@
 
 ### mingw-w64
 
-    cargo build -vv --target x86_64-pc-windows-gnu --release
+    cargo build -vv --release --target x86_64-pc-windows-gnu
 
 ### cargo web
 
-    cargo web build --release --target wasm32-unknown-unknown
-    ## cargo web start --target-webasm --release --host 0
+    cargo +nightly web start --release --target wasm32-unknown-unknown --host 0 --example demo
+    cargo +nightly web build --release --target wasm32-unknown-unknown --host 0 --example demo
+
+### cargo install
+
+    cargo +nightly install --git https://github.com/kbknapp/cargo-graph --force
 
 ### musl static linked
 
@@ -29,4 +33,3 @@
 
     # OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl
 
-cargo +nightly install --git https://github.com/kbknapp/cargo-graph --force

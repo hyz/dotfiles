@@ -55,18 +55,19 @@ endif
 set history=1000
 cnoremap <C-L> <Up>
 
-"" #pathogen https://github.com/tpope/vim-pathogen
-""  mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+""" https://github.com/tpope/vim-pathogen
+""" mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
 "execute pathogen#infect()
 "" #vim-go https://github.com/fatih/vim-go
 ""  git clone https://github.com/fatih/vim-go.git ~/.vim/bundle/vim-go
 ""  :GoInstallBinaries
 
-"" #Vundle https://github.com/VundleVim/Vundle.vim
-""  git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+""" https://github.com/VundleVim/Vundle.vim
+""" git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'vim-scripts/fcitx.vim'
 Plugin 'w0rp/ale'
 Plugin 'jremmen/vim-ripgrep'
 Plugin 'Valloric/YouCompleteMe'
@@ -81,18 +82,19 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'mxw/vim-jsx'
 Plugin 'pangloss/vim-javascript'
 "Plugin 'moll/vim-node'
-Plugin 'junegunn/fzf'
+"Plugin 'junegunn/fzf'
 """ { 'dir': '~/.fzf', 'do': './install --all' }
-Plugin 'junegunn/fzf.vim'
+"Plugin 'junegunn/fzf.vim'
 "Plugin 'autozimu/LanguageClient-neovim'
 """ { 'branch': 'next', 'do': 'bash install.sh', }
 "Plugin 'python-mode/python-mode'
-Plugin 'amoffat/snake'
+"Plugin 'amoffat/snake'
 "Plugin 'vimim/vimim'
+"Plugin 'vim-scripts/VimIM'
 Plugin 'plasticboy/vim-markdown'
-Plugin 'vim-scripts/VimIM'
-Plugin 'vim-scripts/fcitx.vim'
 Plugin 'suan/vim-instant-markdown'
+""cargo install skim
+Plugin 'lotabout/skim.vim'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
@@ -101,19 +103,20 @@ call vundle#end()
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
 " :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
 
-"""https://github.com/junegunn/vim-plug
+""" https://github.com/junegunn/vim-plug
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
 "
 "call plug#begin('~/.vim/plugged')
 "Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
-"Plug 'junegunn/fzf'
 "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+"junegunn/fzf
+"Plug 'lotabout/skim', { 'dir': '~/.skim', 'do': './install' }
 "call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
 
-"""https://github.com/autozimu/LanguageClient-neovim
+""" https://github.com/autozimu/LanguageClient-neovim
 """ cd .vim/bundle/LanguageClient-neovim && bash install.sh
 set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 
