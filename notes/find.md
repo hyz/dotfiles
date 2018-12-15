@@ -1,6 +1,7 @@
 
     find * -type d -name node_modules -prune
     find * -type d -prune
+    find . -maxdepth 3 \( -name '.??*' \) -prune -false -o -name rust-by-examples -print
 
 ### find
 
