@@ -155,10 +155,6 @@ awk -F'\t' '{print $(NF-2)}' lis |less
 sort -t$'\t' -k3 -nr file.txt
 http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
-### time
-
-    hwclock --systohc --utc
-
 ### ctags
 
     ctags --c-kinds=+px `find $(pwd) -type f -name "*.[ch]*" |grep -v win`

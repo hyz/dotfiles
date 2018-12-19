@@ -2,20 +2,27 @@
 man CURLOPT_SSL_CTX_FUNCTION
 
 ### http://blog.csdn.net/chary8088/article/details/22950843
- libcurl使用认证证书 https认证 
+
+libcurl使用认证证书 https认证 
+
 ### http://blog.csdn.net/xulei364132789/article/details/44650757
- 使用libcurl库编写HTTP客户端(包括GET/POST/HTTPS) 
+
+使用libcurl库编写HTTP客户端(包括GET/POST/HTTPS) 
 
 http://www.cnblogs.com/xuxinkun/p/5417836.html
+
     curl: (60) Peer's Certificate has expired.
+
     ntpdate pool.ntp.org
 
 http://blog.csdn.net/BatmanBruceWayne/article/details/50317043
 
 http://blog.csdn.net/chinainvent/article/details/5775786
- curl -k --cert client.pem --key key.pem https://www.xxxx.com
+
+    curl -k --cert client.pem --key key.pem https://www.xxxx.com
 
 http://www.oschina.net/question/231885_163798
-    curl忽略证书获取https内容 
+
+curl忽略证书获取https内容 
 
 
