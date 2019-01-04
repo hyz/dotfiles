@@ -19,12 +19,12 @@ fi
 if [ $# -ge 1 ] ; then
     for x in $* ; do
         if [ -d "$x" ] ; then
-            /bin/bash $0 `find "$x" -maxdepth 1 -type f -iname README.md`
+            /bin/bash $0 `find "$x" -maxdepth 1 -type f -iname "README*"`
         elif [ -r "$x" ] ; then
             /bin/bash $0 "$x"
         fi
     done
 else
-    /bin/bash $0 `find * -maxdepth 1 -type f -iname README.md`
+    /bin/bash $0 `find * -maxdepth 1 -type f -iname "README*"`
 fi
 

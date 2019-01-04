@@ -17,6 +17,7 @@ fi
   #exec startx
 #fi
 if [[ -o login ]]; then
+    true
 fi
 
 case "`uname -s`" in
@@ -157,7 +158,7 @@ fi
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 export CARGO_HOME="$DevHome/cargo" RUSTUP_HOME="$DevHome/rustup"
 export GOPATH=$DevHome/go
-PATH="$CARGO_HOME/bin:$PATH"
+PATH="$CARGO_HOME/bin:$GOPATH/bin:$PATH"
 
 export PATH
 

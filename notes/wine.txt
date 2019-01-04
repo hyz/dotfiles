@@ -1,5 +1,5 @@
 
-LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
+    LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
 
 ### http://askubuntu.com/questions/177192/how-do-i-create-a-32-bit-wine-prefix
 
@@ -9,9 +9,15 @@ LANG=zh_CN.UTF-8 wine Frozen\ Throne.exe -opengl
     WINEPREFIX="$HOME/.wine/win32" WINEARCH=win32 winetricks vcrun2012
 
 ### winetricks
+
     winetricks dlls list
     winetricks dlls riched20
 
+    pacman -Sy wine lib32-alsa-lib
+    pacman -Sy lib32-libpulse
 
-pacman -Sy wine lib32-alsa-lib
+
+### https://askubuntu.com/questions/278912/mount-an-iso-image-in-wine
+
+    cdemu
 
