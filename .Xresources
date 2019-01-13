@@ -14,12 +14,12 @@ xterm*rightScrollBar: true
 xterm*loginshell: true
 xterm*cursorBlink: true
 xterm*background: black
-xterm*foreground: gray
+xterm*foreground: lightgray
 xterm.borderLess: true
 xterm.cursorBlink: true
 xterm*colorUL: yellow
 xterm*colorBD: white
-!font and locale
+!### font and locale
 xterm*locale: true
 xterm.utf8: true
 xterm*utf8Title: true
@@ -34,46 +34,46 @@ xterm*xftAntialias: true
 !xterm*onXClicks: 4
 !#xterm*on2Clicks: regex [a-zA-Z0-9_.:_\-\/]+
 ! xterm*on4Clicks: regex [^(){}\[\]]+
-!===
+!###
 !xterm*cutNewLine: false
 !xterm*cutToBeginningOfLine: false
 !xterm*charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 XTerm*VT100.cutNewLine: false
 XTerm*VT100.cutToBeginningOfLine: false
 XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
-!=== fix alt key input
+!### fix alt key input
 !!!xterm*eightBitInput: false
 !!!xterm*altSendsEscape: true
-!=== print color and bold/underline attributes
+!### print color and bold/underline attributes
 !!!xterm*printAttributes: 2
 !!!xterm*printerCommand: cat > ~/xtermdump
-!----------------------------------------------------------------------------wjy
 
+!### Tango color scheme
+!*xterm*color0: #2e3436
+!*xterm*color1: #cc0000
+!*xterm*color2: #4e9a06
+!*xterm*color3: #c4a000
+!*xterm*color4: #3465a4
+!*xterm*color5: #75507b
+!*xterm*color6: #0b939b
+!*xterm*color7: #d3d7cf
+!*xterm*color8: #555753
+!*xterm*color9: #ef2929
+!*xterm*color10: #8ae234
+!*xterm*color11: #fce94f
+!*xterm*color12: #729fcf
+!*xterm*color13: #ad7fa8
+!*xterm*color14: #00f5e9
+!*xterm*color15: #eeeeec
+!#----------------------------------------------------------------------------wjy
 
-!-- Tango color scheme
-*xterm*color0: #2e3436
-*xterm*color1: #cc0000
-*xterm*color2: #4e9a06
-*xterm*color3: #c4a000
-*xterm*color4: #3465a4
-*xterm*color5: #75507b
-*xterm*color6: #0b939b
-*xterm*color7: #d3d7cf
-*xterm*color8: #555753
-*xterm*color9: #ef2929
-*xterm*color10: #8ae234
-*xterm*color11: #fce94f
-*xterm*color12: #729fcf
-*xterm*color13: #ad7fa8
-*xterm*color14: #00f5e9
-*xterm*color15: #eeeeec
-
-! - http://www.leninlee.cn/?p=376
+!## http://www.leninlee.cn/?p=376
 !Xft.dpi:96
 !fontforge.FontView.FontFamily:wenquanyi bitmap song
 URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=18:antialias=True
 URxvt*xftAntialias: true
 !URxvt.background: rgba:0000/0000/0000/cccc
+!URxvt*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=True:hinting=True:hintstyle=hintfull
 URxvt*background: black
 !URxvt.depth: 32
 !Rxvt.geometry:192×144
@@ -113,4 +113,9 @@ URxvt.transparency: 0
 !    <Key>Return: string(" &\n exit\n")
 
 ! Super_L/0xffeb Return/0xff0d
+
+Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*background: black
+Alacritty*foreground: lightgray
 

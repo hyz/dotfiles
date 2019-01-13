@@ -16,10 +16,12 @@ if [ $# -eq 1 -a -f "$1" ] ; then
     exit
 fi
 
+#echo "$*;;\t [ $# -eq 1 -a -f \"$1\" ]"
+
 if [ $# -ge 1 ] ; then
     for x in $* ; do
         if [ -d "$x" ] ; then
-            /bin/bash $0 `find "$x" -maxdepth 1 -type f -iname "README*"`
+            find "$x" -maxdepth 1 -type f -iname "README*" | xargs -I{} /bin/bash $0 "{}"
         elif [ -r "$x" ] ; then
             /bin/bash $0 "$x"
         fi

@@ -95,6 +95,7 @@ Plugin 'plasticboy/vim-markdown'
 Plugin 'suan/vim-instant-markdown'
 ""cargo install skim
 Plugin 'lotabout/skim.vim'
+Plugin 'ryym/vim-riot'
 call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
