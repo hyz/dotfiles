@@ -113,8 +113,8 @@ notrunc prevent truncation when writing into a file (replace part-of-file). This
 
 ### find & cpio
 
-http://en.wikipedia.org/wiki/Cpio
-http://www.thegeekstuff.com/2010/08/cpio-utility/
+- http://en.wikipedia.org/wiki/Cpio
+- http://www.thegeekstuff.com/2010/08/cpio-utility/
 
     find 0nodes \( -name '.*' -o -name old -o -name "urdl*" \) -prune -o -name "*.[hc]*" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
     find 0nodes/* -maxdepth 0 -type f ! -name "*.gch" |cpio -o | gzip -c |ssh w243 "cat > 0nodes.cpio.gz-$(date +%F)"
