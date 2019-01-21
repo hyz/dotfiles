@@ -1,0 +1,11 @@
+
+if ip link show hp0 ; then
+    ip link del hp0
+fi
+
+ip link add hp0 type wireguard
+ip addr add 10.0.0.1 peer 10.0.0.2 dev hp0
+wg set hp0 private-key wg.genkey peer XXX allowed-ips 10.0.0.2/32
+
+wg-nat-hole-punching-client-example A.B.C.D hp0
+

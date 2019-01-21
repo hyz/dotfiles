@@ -133,7 +133,8 @@ if [ -d "$ANDROID_NDK" ]; then
     PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi
 
-for x in /usr/local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin /opt/bin ; do
+# $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin
+for x in /usr/local/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin /opt/bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
@@ -145,6 +146,7 @@ if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
     #    NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
     #fi
     #export NODE_PATH
+    true
 fi
 
 if uname -r |grep Microsoft 2>/dev/null ; then
@@ -158,7 +160,8 @@ fi
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 export CARGO_HOME="$DevHome/cargo" RUSTUP_HOME="$DevHome/rustup"
 export GOPATH=$DevHome/go
-PATH="$CARGO_HOME/bin:$GOPATH/bin:$PATH"
+export DENO_DIR=$DevHome/deno
 
+PATH="$CARGO_HOME/bin:$GOPATH/bin:$DENO_DIR/bin:$PATH"
 export PATH
 

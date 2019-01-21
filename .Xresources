@@ -104,7 +104,7 @@ URxvt.color14: lightblue1
 URxvt.color15: #dbeff9
 URxvt.preeditType: Root
 ! URxvt.transparency: 255
-URxvt.transparency: 0
+URxvt.transparency: 155
 ! URxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
 ! URxvt.menu:/etc/X11/rxvt.menu
 
