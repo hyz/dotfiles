@@ -49,22 +49,22 @@ XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 !!!xterm*printerCommand: cat > ~/xtermdump
 
 !### Tango color scheme
-!*xterm*color0: #2e3436
-!*xterm*color1: #cc0000
-!*xterm*color2: #4e9a06
-!*xterm*color3: #c4a000
-!*xterm*color4: #3465a4
-!*xterm*color5: #75507b
-!*xterm*color6: #0b939b
-!*xterm*color7: #d3d7cf
-!*xterm*color8: #555753
-!*xterm*color9: #ef2929
-!*xterm*color10: #8ae234
-!*xterm*color11: #fce94f
-!*xterm*color12: #729fcf
-!*xterm*color13: #ad7fa8
-!*xterm*color14: #00f5e9
-!*xterm*color15: #eeeeec
+XTerm*color0: #2e3436
+Xterm*color1: #cc0000
+Xterm*color2: #4e9a06
+Xterm*color3: #c4a000
+Xterm*color4: #3465a4
+Xterm*color5: #75507b
+Xterm*color6: #0b939b
+Xterm*color7: #d3d7cf
+Xterm*color8: #555753
+Xterm*color9: #ef2929
+Xterm*color10: #8ae234
+Xterm*color11: #fce94f
+Xterm*color12: #729fcf
+Xterm*color13: #ad7fa8
+Xterm*color14: #00f5e9
+Xterm*color15: #eeeeec
 !#----------------------------------------------------------------------------wjy
 
 !## http://www.leninlee.cn/?p=376
@@ -114,8 +114,7 @@ URxvt.transparency: 155
 
 ! Super_L/0xffeb Return/0xff0d
 
-Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
-Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
 Alacritty*background: black
 Alacritty*foreground: lightgray
-

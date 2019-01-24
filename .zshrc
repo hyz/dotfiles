@@ -59,7 +59,11 @@ alias grep='grep --color=auto'
 alias df='df -Th'
 
 if uname -r |grep Microsoft 2>/dev/null ; then
-else
+    true
+fi
+
+if which lsd &>/dev/null ; then
+    true #alias ls='lsd'
 fi
     if ls -d --color=auto >/dev/null 2>&1 ; then
         alias ls='ls -F --color=auto'
@@ -67,6 +71,7 @@ fi
         # export CLICOLOR=1
         alias ls='ls -F' # alias ls='ls -F --color=auto'
     fi
+
 alias ll='ls -l'
 
 #
