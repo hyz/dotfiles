@@ -1,19 +1,57 @@
-#!/bin/sh
+#!/bin/bash
+## workspace Downloads Music Movies Pictures Documents Desktop
 
-/bin/cat << @EOF | sudo /bin/bash -
+die() {
+    xcode=$?
+    echo >&2 $*
+    exit $xcode
+}
 
-#echo "\$(pwd) SUDO_USER=\$SUDO_USER"
+if [[ "`id -ru`" = 0 ]] ; then
+    finalize() {
+        [ $? -eq 0 ] || umount .home
+    }
+    trap finalize INT TERM EXIT
 
-mount .home || exit 1
+    echo >&2 -e "$* \t: $(id) \tSUDO_USER=$SUDO_USER \t: $(pwd) "
 
-#for x in workspace Downloads Music Movies Pictures Documents
-for x in workspace ; do
-    if [ -d ".home/\$x" ]; then
-        echo ".home/\$x \$x"
-        [ -d "\$x" ] || sudo -u \$SUDO_USER -- mkdir \$x
-        mount -o bind .home/\$x \$x
-    fi
+    for xd in $* ; do
+        xs=`basename $xd`
+        echo >&2 "bind: .home/$xs $xd"
+        mount -o bind .home/$xs $xd || exit # die ".home/$xs $xd"
+    done
+
+    exit
+fi
+
+DEST=${DEST:-.}
+ARGS=`getopt -o t:V --long target-directory:,help,version -- $@` || exit 1
+
+eval set -- "$ARGS" # ; echo "$@"
+while true ; do
+    case "$1" in
+        -t|--target-directory) DEST="${2%/}" ; shift 2 ;;
+        -V|--version) Version ; exit ;;
+        --help) Help ; exit ;;
+        --) shift ; break ;;
+        *) die "$@" ; exit 1 ;;
+    esac
+done
+[ -d "$DEST" ] || die "$DEST"
+#echo >&2 -e "DIR: $DEST \t--: $*"
+
+sudo mount .home || exit
+trap 'sudo umount .home' INT TERM EXIT
+
+for xd in $* ; do
+    xs=`basename $xd`
+    [ -d ".home/$xs" ] || die $BASH_LINENO ".home/$xs"
+    [ -d "$xd" ] || mkdir $xd || die $BASH_LINENO "$xd"
 done
 
-@EOF
+exec sudo DEST=$DEST /bin/bash $0 $*
+
+#/bin/cat << @EoF | sudo /bin/bash -
+#    Should not reachable
+#@EoF
 
