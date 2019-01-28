@@ -8,7 +8,7 @@ tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 2
 TrapExit() {
     /bin/rm -f $tempfn
 }
-trap TrapExit EXIT
+trap TrapExit EXIT INT TERM
 
 cat << _Eof > $tempfn
 [sdl]

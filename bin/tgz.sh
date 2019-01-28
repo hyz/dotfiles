@@ -1,7 +1,8 @@
 #!/bin/bash
 
 die() {
-    echo $* ; exit 1 ;
+    xcode=$?
+    echo $* ; exit $xcode ;
 }
 
 DEST=${DEST:-.}
