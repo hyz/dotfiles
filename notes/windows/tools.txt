@@ -1,8 +1,10 @@
 
 ### http://superuser.com/questions/259791/how-can-i-use-the-shutdown-command-to-hibernate-the-computer-in-x-hours
+
     shutdown -s -t 36000
 
 ### mintty.bat
+
     @start mintty E:\cygwin64\bin\zsh.exe --login -i -
 
 # shexview-x64
@@ -10,14 +12,27 @@
 # Tcpview.exe
 
 ### Win-R
+
     msinfo32
     dxdiag
 
 ### CMD.exe
+
     systeminfo
 
 ### http://stackoverflow.com/questions/48198/how-can-you-find-out-which-process-is-listening-on-a-port-on-windows
+
     resmon.exe
     netstat
     Tcpview # https://technet.microsoft.com/en-us/sysinternals/bb897437.aspx
+
+
+### Virtual CD-ROM
+
+https://github.com/sysprogs/WinCDEmu
+
+Virtual CD-ROM Control Panel
+https://www.microsoft.com/en-us/download/details.aspx?id=38780
+
+https://www.raymond.cc/blog/10-free-software-to-mount-cd-or-dvd-iso-image-file-as-virtual-drives/
 

@@ -1,6 +1,9 @@
 
-    $ createuser --interactive
-    $ psql -c "create database wood OWNER wood"
+    $ sudo -iu postgres -- initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'
+    $ sudo -iu postgres -- createuser --interactive
+    $ sudo -iu postgres -- psql -c "create database wood OWNER wood"
+    $ psql -c "\l"
+    $ psql wood -c "\d"
 
     psql <<< "SELECT version()"
     psql <<< "\list"

@@ -1,6 +1,8 @@
 
     cargo install -f diesel_cli --no-default-features --features postgres
-    diesel --database-url 'postgres:///wood' print-schema
+
+    diesel --database-url postgres:///`date +decor%y%m%d` database reset
+    diesel --database-url postgres:///`date +decor%y%m%d` print-schema
 
     diesel setup
     diesel migration generate warelis
