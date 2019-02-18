@@ -105,15 +105,6 @@ fi
 #export ANT_HOME=/usr/share/apache-ant
 #export ANT_ROOT=/bin
 
-###
-#if [ -d "$HOME/cargo" ]; then
-#    export CARGO_HOME=$HOME/cargo
-#    PATH=$PATH:$CARGO_HOME/bin
-#fi
-#if which rustc ; then
-    #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
-#fi
-
 #PATH=$PATH:/sbin:/usr/sbin
 
 ANDROID_SDK=/opt/android-sdk
@@ -150,17 +141,26 @@ if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
 fi
 
 if uname -r |grep Microsoft 2>/dev/null ; then
-    DevHome=/mnt/d/home
-elif [ -d "$HOME/.home" ] ; then
-    DevHome="$HOME/.home"
-else
-    DevHome="$HOME/workspace"
+    workspace=/mnt/d/workspace
+else #elif [ -d "$HOME/workspace" ] ; then
+    workspace="$HOME/workspace"
 fi
-
+if [ -d "$workspace" ]; then
+    GOPATH=$workspace/go
+    DENO_DIR=$workspace/deno
+    CARGO_HOME=$workspace/cargo
+    RUSTUP_HOME=$workspace/rustup
+    export GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
+fi
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
-export CARGO_HOME="$DevHome/cargo" RUSTUP_HOME="$DevHome/rustup"
-export GOPATH=$DevHome/go
-export DENO_DIR=$DevHome/deno
+###
+#if [ -d "$HOME/cargo" ]; then
+#    export CARGO_HOME=$HOME/cargo
+#    PATH=$PATH:$CARGO_HOME/bin
+#fi
+#if which rustc ; then
+    #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
+#fi
 
 PATH="$CARGO_HOME/bin:$GOPATH/bin:$DENO_DIR/bin:$PATH"
 export PATH
