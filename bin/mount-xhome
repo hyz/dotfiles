@@ -1,15 +1,14 @@
 #!/bin/bash
-## workspace Downloads Music Movies Pictures Documents Desktop
+## $XHOME Downloads Music Movies Pictures Documents Desktop
 
 die() {
     xcode=$?
     echo >&2 $*
     exit $xcode
 }
-
 if [[ "`id -ru`" = 0 ]] ; then
     finalize() {
-        [ $? -eq 0 ] || umount workspace
+        [ $? -eq 0 ] || umount $XHOME
     }
     trap finalize INT TERM EXIT
 
@@ -17,12 +16,15 @@ if [[ "`id -ru`" = 0 ]] ; then
 
     for xd in $* ; do
         xs=`basename $xd`
-        echo >&2 "bind: workspace/$xs $xd"
-        mount -o bind workspace/$xs $xd || exit # die "workspace/$xs $xd"
+        echo >&2 "bind: $XHOME/$xs $xd"
+        mount -o bind $XHOME/$xs $xd || exit # die "$XHOME/$xs $xd"
     done
 
     exit
 fi
+
+echo "XHOME=$XHOME"
+[ -d "$XHOME" ] || die "'$XHOME'"
 
 DEST=${DEST:-.}
 ARGS=`getopt -o t:V --long target-directory:,help,version -- $@` || exit 1
@@ -40,12 +42,12 @@ done
 [ -d "$DEST" ] || die "$DEST"
 #echo >&2 -e "DIR: $DEST \t--: $*"
 
-sudo mount workspace || exit
-trap 'sudo umount workspace' INT TERM EXIT
+sudo mount $XHOME || exit
+trap 'sudo umount $XHOME' INT TERM EXIT
 
 for xd in $* ; do
     xs=`basename $xd`
-    [ -d "workspace/$xs" ] || die $BASH_LINENO "workspace/$xs"
+    [ -d "$XHOME/$xs" ] || die $BASH_LINENO "$XHOME/$xs"
     [ -d "$xd" ] || mkdir $xd || die $BASH_LINENO "$xd"
 done
 

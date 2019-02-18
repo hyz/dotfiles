@@ -141,17 +141,18 @@ if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
 fi
 
 if uname -r |grep Microsoft 2>/dev/null ; then
-    workspace=/mnt/d/workspace
-else #elif [ -d "$HOME/workspace" ] ; then
-    workspace="$HOME/workspace"
+    XHOME=/mnt/d/home
+elif [ -d /xhome ] ; then
+    XHOME=/xhome
+else
+    XHOME=$HOME/home
 fi
-if [ -d "$workspace" ]; then
-    GOPATH=$workspace/go
-    DENO_DIR=$workspace/deno
-    CARGO_HOME=$workspace/cargo
-    RUSTUP_HOME=$workspace/rustup
-    export GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
-fi
+GOPATH=$XHOME/go
+DENO_DIR=$XHOME/deno
+CARGO_HOME=$XHOME/cargo
+RUSTUP_HOME=$XHOME/rustup
+export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
+
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
 #if [ -d "$HOME/cargo" ]; then
