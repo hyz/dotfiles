@@ -26,8 +26,8 @@ Mouse   1  W   M 	Move-or-Raise
 Key  	q      A  MS 	Quit
 key 	q      A  M 	Restart
 
-key 	Return A  M 	Exec exec urxvtc -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
-key 	x      A  MS 	Exec exec urxvtc -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
+key 	Return A  M 	Exec exec urxvtc -tn xterm -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
+key 	x      A  MS 	Exec exec urxvtc -tn xterm -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
 Key 	x      A  M 	Exec exec bashrun
 Key 	p      A  M 	Exec exec rofi -show run
 

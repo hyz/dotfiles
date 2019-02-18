@@ -5,6 +5,8 @@
     $ psql -c "\l"
     $ psql wood -c "\d"
 
+    pg_dump --data-only --column-inserts `date +decor%y%m%d` -t entitys
+
     psql <<< "SELECT version()"
     psql <<< "\list"
     psql -c "\l+"
@@ -195,3 +197,7 @@ This works with psql > 9.2.
 ///.env
 DATABASE_URL=postgres:///dbname
 
+
+### SELECT & UNION & SUBQUERY
+
+    psql `date +mydb%y%m%d` -c "select id,name from entitys where id IN ((select id from entitys where id<=8 limit 3) UNION (select id from entitys where id>8 order by id limit 3) ) order by id"

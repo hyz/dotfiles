@@ -128,6 +128,7 @@ alias tmux='tmux -2'
 # limit coredumpsize 0
 
 alias v=view.sh b='cargo build --release' r='cargo run --release' rex='cargo run --release --example'
+alias gp=git-pull.sh
 date
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
