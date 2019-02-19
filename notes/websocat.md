@@ -21,3 +21,13 @@ https://github.com/vi/websocat
 
     > nc 172.16.5.4 8908 # echo client
 
+### jsonrpc
+
+### 
+
+	$ websocat ws://echo.websocket.org
+
+	$ websocat -s 1234
+	$ websocat ws://127.0.0.1:1234/
+
+

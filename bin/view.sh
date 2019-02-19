@@ -5,28 +5,41 @@ die() {
     exit 1
 }
 
-if [ $# -eq 1 -a -f "$1" ] ; then
-    if [ -r "$1" ] ; then
-        if which bat >/dev/null ; then
-            bat "$1"
-        else
-            cat "$1"
-        fi
+view() {
+    [ -r "$1" ] || die "!readable: '$1'"
+    if which bat >/dev/null ; then
+        bat "$1"
+    else
+        cat "$1"
     fi
+}
+
+if [ $# -eq 0 ] ; then
+    cnt=0 exec /bin/bash $0 .
+fi
+
+if [ $# -eq 1 ] ; then
+    if [ -f "$1" ]; then
+        view $1
+        exit
+    fi
+
+    cnt=0
+    for x in `find $* -maxdepth 1 -type f -iname "README*"` ; do
+        view $x
+        cnt=$(( $cnt + 1 ))
+    done
+
+    if [ $cnt -eq 0 ]; then
+        lsd $*
+    fi
+
     exit
 fi
 
-#echo "$*;;\t [ $# -eq 1 -a -f \"$1\" ]"
+[ $# -gt 1 ] || die "should not reach"
 
-if [ $# -ge 1 ] ; then
-    for x in $* ; do
-        if [ -d "$x" ] ; then
-            find "$x" -maxdepth 1 -type f -iname "README*" | xargs -I{} /bin/bash $0 "{}"
-        elif [ -r "$x" ] ; then
-            /bin/bash $0 "$x"
-        fi
-    done
-else
-    /bin/bash $0 `find * -maxdepth 1 -type f -iname "README*"`
-fi
+for x in $* ; do
+    cnt=0 /bin/bash $0 $x
+done
 
