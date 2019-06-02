@@ -22,7 +22,7 @@ install archlinux from archlinux
     mount /dev/XXX /mnt # root(/) partition
     ...
     pacman -Ql arch-install-scripts
-    pacstrap /mnt base grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
+    pacstrap /mnt base sudo grub vim efibootmgr dialog wpa_supplicant arch-install-scripts
     mkswap /dev/XXX
     swapon /dev/XXX
     ...
@@ -104,12 +104,19 @@ https://wiki.archlinux.org/index.php/Persistent_block_device_naming
 
     bcdedit /set "{bootmgr}" path "\EFI\path\to\app.efi"
 
-### abs https://wiki.archlinux.org/index.php/Arch_Build_System
+### ABS https://wiki.archlinux.org/index.php/Arch_Build_System
 
-    svn checkout svn://svn.archlinux.org/packages/openssl-1.0
+https://www.archlinux.org/svn/
 
     svn checkout --depth=empty svn://svn.archlinux.org/packages
+    cd packages
+    svn update <your-package-name>
+
     svn checkout --depth=empty svn://svn.archlinux.org/community
+    cd community
+    svn update wine
+
+    svn checkout svn://svn.archlinux.org/packages/openssl-1.0
 
 https://linuxtoy.org/archives/archlinux-pkgbuild-aur-and-abs.html
 Archlinux 的灵魂──PKGBUILD、AUR 和 ABS (1) 

@@ -124,5 +124,21 @@ elif which ssh-agent ; then
 fi
 
 export EDITOR=vim
+if uname -r |grep Microsoft 2>/dev/null ; then
+    XHOME=/mnt/d/home
+elif [ -d /xhome ] ; then
+    XHOME=/xhome
+else
+    XHOME=$HOME/home
+fi
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+export NOTION_HOME="$XHOME/notion"
+[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
+
+export PATH="${NOTION_HOME}/bin:$PATH"
+
+# Wasmer
+export WASMER_DIR="/home/wood/.wasmer"
+[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"  # This loads wasmer

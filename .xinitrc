@@ -13,16 +13,16 @@ xrdb -merge .Xresources
 xset -b
 xset +fp ~/.local/share/fonts
 
-unclutter -root -idle 2 &
-
 fcitx -d
+unclutter &
+dunst &
+#echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
 #ibus-daemon -d -x
 
 #mpd
 
-pgrep -x redshift &>/dev/null || redshift -r &>/dev/null &
-
-urxvtd -q -f -o
+redshift -r &>/dev/null &
+pgrep -x urxvtd &>/dev/null || urxvtd -q -f -o
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
 # xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4

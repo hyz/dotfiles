@@ -70,7 +70,7 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-scripts/fcitx.vim'
 Plugin 'w0rp/ale'
 Plugin 'jremmen/vim-ripgrep'
-Plugin 'Valloric/YouCompleteMe'
+"Plugin 'Valloric/YouCompleteMe'
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plugin 'vim-scripts/a.vim'
 "Plugin 'rhysd/rust-doc.vim'

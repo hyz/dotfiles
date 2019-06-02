@@ -33,3 +33,9 @@ https://rustwasm.github.io/book/game-of-life/hello-world.html
 
     npm init wasm-app www
 
+
+wasm-nm -z pkg/dodrio_todomvc_bg.wasm | sort -n -u -r | rustfilt | head
+
+
+twiggy garbage  pkg/dodrio_todomvc_bg.wasm
+

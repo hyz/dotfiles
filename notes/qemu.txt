@@ -1,24 +1,58 @@
 
+    export QEMU_AUDIO_DRV=spice
+
+    qemu-system-x86_64 -name Windows -enable-kvm -machine type=pc,accel=kvm,vmport=off \
+        -cpu host -smp 8,sockets=1,cores=4,threads=2 -m 4G -k en-us \
+        -rtc clock=host,base=localtime \
+        -acpitable sig=SLIC,file=${SLIC} \
+        -net nic,model=virtio,macaddr=${Mac} -net user,hostname=vmw \
+        -device qemu-xhci,id=xhci -device usb-host,vendorid=0x04f2,productid=0xb61e \
+        -drive file=${hd0},index=0,media=disk,format=host_device,if=virtio \
+        -boot order=c \
+        \
+        -cdrom ~/VM/virtio-win.iso \
+        -vga qxl -daemonize \
+        -spice port=${SPICE_PORT},disable-ticketing  -usbdevice tablet \
+        -soundhw hda \
+        -device virtio-serial -chardev spicevmc,id=vdagent,name=vdagent \
+        -device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
+
+    exec spicy --title Windows 127.0.0.1 -p ${SPICE_PORT}
+
+https://wiki.archlinux.org/index.php/QEMU
+
+### virtio https://github.com/virtio-win/kvm-guest-drivers-windows
+http://www.linux-kvm.org/page/WindowsGuestDrivers
+https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
+https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso
+
 ### boot grub in same disk
     qemu-system-x86_64 -enable-kvm -machine type=pc,accel=kvm -cpu host -m 4G -smp 2 -sdl -display sdl -vga std \
         -acpitable sig=SLIC,file=/sys/firmware/acpi/tables/SLIC \
         -drive file=/dev/sda,index=0,media=disk,format=host_device,if=virtio
 
-        # -drive file=/boot/bootmgr.vhd,index=1,media=disk,format=raw,if=virtio -boot order=d
+    -drive file=/boot/bootmgr.vhd,index=1,media=disk,format=raw,if=virtio -boot order=d
+
+### usb-passthrough https://bugzilla.redhat.com/show_bug.cgi?id=949505
+
+https://bugs.launchpad.net/ubuntu/+source/libvirt/+bug/1815588
+
+    -device usb-ehci,id=ehci -device usb-host,vendorid=0x04f2,productid=0xb61e
+
+    > lsusb
+    ...
+    Bus 001 Device 004: ID 04f2:b61e Chicony Electronics Co., Ltd
+
+    > sudo chgrp kvm /dev/bus/usb/001/004
 
 ### https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
 
 ### http://chuansong.me/n/1271580847916
     virtio-gps
     x86_64-softmmu/qemu-system-x86_64 -m 4G --enable-kvm -cpu host -smp 2 \
-        -usb -usbdevice tablet \
         -vga virtio \
         -drive file=/home/test.img,if=virtio \
         -spice gl=on,unix,addr=/home/spice.sock,disable-ticketing
-
-    # lsusb
-    #   Bus 002 Device 004: ID 13fd:1040 Initio Corporation
-    # kvm -usb -usbdevice host:13fd:1040 ...
 
 ### share folder
 http://smilejay.com/2012/11/how-to-mount-a-qcow2-image/
@@ -94,9 +128,8 @@ ip tuntap del tap0 mode tap
 
 ###
 -cdrom /mnt/WindowsXP.SP2.iso
--soundhw ac97 -net nic,model=virtio -net user
 
-qemu-system-i386 -enable-kvm -boot c -drive file=/blah/winxp.img,media=disk,if=virtio,cache=none -m 1500 -localtime -usb -usbdevice tablet -sdl -vga std -no-frame -name xp -net user,smb=/blah/shared -net nic,model=rtl8139 -daemonize
+qemu-system-i386 -enable-kvm -boot c -drive file=/blah/winxp.img,media=disk,if=virtio,cache=none -m 1500 -localtime -sdl -vga std -no-frame -name xp -net user,smb=/blah/shared -net nic,model=rtl8139 -daemonize
 
 ### qemu efi bios
 http://unix.stackexchange.com/questions/52996/how-to-boot-efi-kernel-using-qemu-kvm
@@ -126,9 +159,11 @@ https://lists.gnu.org/archive/html/qemu-devel/2011-03/msg03080.html
       --target-list=x86_64-linux-user,i386-linux-user,x86_64-softmmu
 
 https://bbs.archlinux.org/viewtopic.php?id=162768
-  KVM VGA-Passthrough using the new vfio-vga support in kernel =>3.9
+
+KVM VGA-Passthrough using the new vfio-vga support in kernel =>3.9
 
 http://blog.csdn.net/zoomdy/article/details/50954190
+
     dd if=/dev/zero of=usbdisk.img bs=512 count=102400
     mkfs.ext2 usbdisk.img
 
@@ -138,31 +173,33 @@ http://blog.csdn.net/zoomdy/article/details/50954190
     (qemu) device_del my_usb_disk
 
 
-apt-get install qemu-kvm
-apt-get install bridge-utils user-mode-linux # tun/tap
+    apt-get install qemu-kvm
+    apt-get install bridge-utils user-mode-linux # tun/tap
 
-uml-utilities
+    uml-utilities
 
 ### kvm -curses -serial stdio -m 2048M -hda /dev/sda5 -boot c -net nic -net user
 
 ### kvm, archlinux guest, ubuntu12.04 host
-> cat /etc/issue
-Ubuntu 12.04.5 LTS \n \l
->
-> qemu-system-x86_64 --version                                                            ~
-QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellard
->
-> wget .../archlinux-2016.08-1-archboot-network.iso
->
-> sudo chgrp kvm /dev/sda5
-> parted /dev/sda5
->>> mklabel msdos
->>> mkpart primary ext3 ... ...
->>> mkpart primary linux-swap ... ...
->
+
+    > cat /etc/issue
+    Ubuntu 12.04.5 LTS \n \l
+    >
+    > qemu-system-x86_64 --version                                                            ~
+    QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellard
+    >
+    > wget .../archlinux-2016.08-1-archboot-network.iso
+    >
+    > sudo chgrp kvm /dev/sda5
+    > parted /dev/sda5
+    >>> mklabel msdos
+    >>> mkpart primary ext3 ... ...
+    >>> mkpart primary linux-swap ... ...
+    >
 
 ### http://smilejay.com/2013/12/qemu-kvm-install-guest-in-text-mode/
 ### http://smilejay.com/2012/08/kvm-no-graphics/
+
     mount -o loop CentOS-6.4-x86_64-minimal.iso /mnt
     qemu-system-x86_64 --enable-kvm -m 1G -smp 2 -bios /usr/local/share/qemu/bios.bin \
         -hda vdisk-hda.img -cdrom CentOS-6.4-x86_64-minimal.iso \
@@ -172,40 +209,45 @@ QEMU emulator version 1.0 (qemu-kvm-1.0), Copyright (c) 2003-2008 Fabrice Bellar
 ### iPAX + MBR/msdos + syslinux + arch/kernel-nomodeset
 
 ### boot with archlinux-2016.08-1-archboot-network.iso
-> kvm -curses -serial stdio -m 2048M -hda /dev/sda5 \
-    -cdrom archlinux-2016.08-1-archboot-network.iso -boot d -net nic -net user
-Ctrl-B
-... exit
-... <Ctrl-N>
-... <Tab>
-... ... ... kernel ... nomodeset initrd....
-                       ^^^^^^^^^
-... <Enter>
+
+    > kvm -curses -serial stdio -m 2048M -hda /dev/sda5 \
+        -cdrom archlinux-2016.08-1-archboot-network.iso -boot d -net nic -net user
+    Ctrl-B
+    ... exit
+    ... <Ctrl-N>
+    ... <Tab>
+    ... ... ... kernel ... nomodeset initrd....
+                           ^^^^^^^^^
+    ... <Enter>
 
 ### syslinux nomodeset
-> cat /boot/syslinux/syslinux.cfg                                  ~
-PATH /boot/syslinux
 
-PROMPT 1
-TIMEOUT 100
-ONTIMEOUT arch
+    > cat /boot/syslinux/syslinux.cfg                                  ~
 
-LABEL arch
-  LINUX /boot/vmlinuz-linux
-  APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
-  INITRD /boot/intel-ucode.img,/boot/initramfs-linux.img
+    PATH /boot/syslinux
 
-LABEL arch-fallback
-  LINUX /boot/vmlinuz-linux
-  APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
-  INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
+    PROMPT 1
+    TIMEOUT 100
+    ONTIMEOUT arch
 
+    LABEL arch
+      LINUX /boot/vmlinuz-linux
+      APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
+      INITRD /boot/intel-ucode.img,/boot/initramfs-linux.img
+
+    LABEL arch-fallback
+      LINUX /boot/vmlinuz-linux
+      APPEND root=UUID=e2ce3e18-1136-4c36-915a-32c27cd816d8 rootfstype=ext3 rw rootflags=rw,relatime,data=ordered cgroup_disable=memory nomodeset
+      INITRD /boot/intel-ucode.img,/boot/initramfs-linux-fallback.img
 
 ### vnc + TigerVNC
 ### https://github.com/TigerVNC/tigervnc/releases
+
     kvm -enable-kvm -vnc :0 -m 2G -hda /dev/sda6 -cdrom u.iso -boot d -net nic -net user
 
 ### https://wiki.gentoo.org/wiki/QEMU/Windows_guest
+https://www.spice-space.org/download.html
+
     #!/bin/sh
     SPICE_PORT=5924
     qemu-system-x86_64 -enable-kvm -daemonize \
@@ -221,14 +263,16 @@ LABEL arch-fallback
         -device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
         "$@"
     exec spicy --title Windows 127.0.0.1 -p ${SPICE_PORT}
+
 ###
+
     #!/bin/sh
     SPICE_PORT=5924
     qemu-system-x86_64 -enable-kvm -daemonize \
         -cpu host \
         -drive file=WindowsVM.img,if=virtio \
         -net nic -net user,hostname=windowsvm \
-        -m 1G \
+        -m 4G \
         -vga qxl \
         -spice port=${SPICE_PORT},disable-ticketing \
         -usbdevice tablet \

@@ -2,12 +2,6 @@
 ### https://en.wikipedia.org/wiki/GNU_GRUB
 ### https://wiki.archlinux.org/index.php/GRUB
 
-grub-install --boot-directory=/mnt/boot --target=i386-pc --recheck --debug /dev/sdx
-grub-install --target=i386-pc --recheck --debug /dev/sdx
-grub-mkconfig -o /boot/grub/grub.cfg
-
-grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=grub --boot-directory=esp --debug
-
 ### https://wiki.gentoo.org/wiki/GRUB2
 
     menuentry "Custom Super Bootloader Example" {
@@ -40,4 +34,19 @@ efibootmgr -v
         linux16 /wimboot
         initrd16 newc:bootmgr:(hd0,gpt1)/bootmgr newc:bcd:(hd0,gpt1)/Boot/BCD
     }
+
+
+### https://unix.stackexchange.com/questions/289034/how-to-create-a-bootable-flash-that-can-boot-as-both-bios-and-uefi
+
+    parted /dev/sdX -- mktable gpt
+    parted /dev/sdX -- mkpart biosgrub fat32 1MiB 4MiB
+    parted /dev/sdX -- mkpart efi fat32 4MiB 200MiB
+    parted /dev/sdX -- set 1 bios_grub on
+    parted /dev/sdX -- set 2 esp on
+    mkfs.vfat -F 32 -n EFI /dev/sdX2
+
+    mkdir /tmp/new-boot && mount /dev/sdX2 /tmp/new-boot
+    grub-install --removable --no-nvram --efi-directory=/tmp/new-boot/ --boot-directory=/tmp/new-boot/ --target=x86_64-efi
+    grub-install --removable --no-nvram --efi-directory=/tmp/new-boot/ --boot-directory=/tmp/new-boot/ --target=i386-efi
+    grub-install --removable --boot-directory=/tmp/new-boot/ --target=i386-pc /dev/sdX
 

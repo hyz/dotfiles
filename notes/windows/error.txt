@@ -1,0 +1,12 @@
+
+### 0x000000e
+
+    bootrec /FixMbr 
+    bootrec /FixBoot 
+    bootrec /ScanOs 
+    bootrec /RebuildBcd 
+
+- https://www.wintips.org/fix-a-required-device-isnt-connected-or-cant-be-accessed-0x000000e-on-windows-10-8-8-1/
+- https://answers.microsoft.com/en-us/windows/forum/windows_10-update/your-pcdevice-needs-to-be-repaired/94dd3a87-779b-445f-8eb8-8fee1e95cff5
+- https://neosmart.net/wiki/0xc000000e-the-boot-selection-failed/
+

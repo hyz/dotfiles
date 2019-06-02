@@ -39,4 +39,8 @@
     scrot -s -d 5 
     scrot -e 'mv $f ~/screenshots'
 
+### notification
+
+	dunst &
+	notify-send -u critical "hello world"
 

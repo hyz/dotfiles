@@ -3,7 +3,8 @@
 cd /opt/android/ndk/
 
 build/tools/make_standalone_toolchain.py --help
-build/tools/make_standalone_toolchain.py --arch=arm --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
+build/tools/make_standalone_toolchain.py --arch=arm   --api=17 --stl=gnustl --install-dir=/opt/android/17-arm-gcc-4.9
+build/tools/make_standalone_toolchain.py --arch arm64 --api 26 --install-dir /opt/android/toolchain/arm64api26
 
 bash build/tools/make-standalone-toolchain.sh --install-dir=/opt/android/17-arm-gcc-4.9 --arch=armeabi-v7a --platform=android-17 --toolchain=arm-linux-androideabi-4.9
 

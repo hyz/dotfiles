@@ -2,6 +2,7 @@
 # see /usr/share/doc/bash/examples/startup-files for examples.
 # the files are located in the bash-doc package.
 
+export LANG=en_US.UTF-8
 # the default umask is set in /etc/login.defs
 #umask 022
 

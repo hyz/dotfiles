@@ -1,5 +1,9 @@
 
-pacman -S mingw-w64
+    pacman -S mingw-w64
+
+### https://stackoverflow.com/questions/1993673/what-is-the-equivalent-of-linuxs-ldd-on-windows
+
+    x86_64-w64-mingw32-objdump -p target/x86_64-pc-windows-gnu/release/examples/sample.exe |less
 
 ### https://github.com/jrfonseca/drmingw
     Dr. Mingw is a Just-in-Time (JIT) debugger
@@ -50,4 +54,5 @@ pacman -S mingw-w64
     wget -c https://www.openssl.org/source/openssl-1.0.2l.tar.gz
     ./Configure --prefix=../3rdparty/openssl-1.0.2j-32bit-release-static-VS2015 mingw no-shared no-idea no-mdc2 no-rc5
     make depend && make && make install
+
 

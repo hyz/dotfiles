@@ -93,9 +93,6 @@ fi
 #    export COCOS_CONSOLE_ROOT
 #fi
 
-#if [ -d "/opt/android/studio/bin" ]; then
-#    PATH=$PATH:/opt/android/studio/bin
-#fi
 #if [ -d "/opt/gradle-2.12/bin" ]; then
 #    export GRADLE_HOME=/opt/gradle-2.12
 #    PATH=$PATH:/opt/gradle-2.12/bin
@@ -123,22 +120,25 @@ if [ -d "$ANDROID_NDK" ]; then
 
     PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
 fi
+#if [ -x "/opt/android/studio/bin/studio.sh" ]; then
+#    PATH=$PATH:/opt/android/studio/bin
+#fi
 
 # $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin
-for x in /usr/local/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin /opt/bin ; do
+for x in /usr/local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
 
-if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
-    #if [ x"$NODE_PATH" = x ] ; then
-    #NODE_PATH="$HOME/.config/yarn/global/node_modules"
-    #else
-    #    NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
-    #fi
-    #export NODE_PATH
-    true
-fi
+#if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
+#    #if [ x"$NODE_PATH" = x ] ; then
+#    #NODE_PATH="$HOME/.config/yarn/global/node_modules"
+#    #else
+#    #    NODE_PATH="$NODE_PATH:$HOME/.config/yarn/global/node_modules"
+#    #fi
+#    #export NODE_PATH
+#    true
+#fi
 
 if uname -r |grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/d/home
@@ -151,7 +151,9 @@ GOPATH=$XHOME/go
 DENO_DIR=$XHOME/deno
 CARGO_HOME=$XHOME/cargo
 RUSTUP_HOME=$XHOME/rustup
-export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
+WASMER_DIR=$XHOME/wasmer
+
+export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME WASMER_DIR
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -163,6 +165,9 @@ export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
     #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 #fi
 
-PATH="$CARGO_HOME/bin:$GOPATH/bin:$DENO_DIR/bin:$PATH"
-export PATH
+export NOTION_HOME="$XHOME/notion"
+[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
+#PATH="${NOTION_HOME}/bin:$PATH"
 
+PATH="$CARGO_HOME/bin:$WASMER_DIR/bin:$DENO_DIR/bin:$PATH"
+export PATH

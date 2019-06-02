@@ -83,14 +83,15 @@ http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=
 ### dd
 ### http://www.kwx.gd/CentOSApp/CentOS-dd.html
 
-    dd if=mbr.2T-gpt of=/tmp/mbr-x
+    dd if=mbr.2T-gpt of=/tmp/mbr-x conv=notrunc
+
+    dd if=/dev/sdb2 of=/dev/sdb bs=4M status=progress
 
     dd if=mbr.2T-gpt of=/tmp/mbr-x bs=4M count=1 conv=notrunc oflag=append
 
 notrunc prevent truncation when writing into a file (replace part-of-file). This has no effect on a block device
 
     dd if=/dev/zero of=test bs=64k count=4k oflag=dsync
-
 
 ### xxd
 
@@ -190,5 +191,4 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
     rg -t java --files |grep -vE '(test|3rdparty|Crypto)' > java.files
     rg -t cpp --files |grep -vE '(test|3rdparty|Crypto)' > cpp.files
-
 

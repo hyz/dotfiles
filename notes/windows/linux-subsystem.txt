@@ -1,4 +1,9 @@
 
+### https://www.v2ex.com/amp/t/356158
+
+    mount -t drvfs '\\ser\share' /mnt/share
+    mount -t devfs 'c:\Users' /mnt/users
+
 ### https://github.com/Microsoft/WSL/issues/2578
 
 Location of WSL rootfs filesystem

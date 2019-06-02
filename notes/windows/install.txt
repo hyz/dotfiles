@@ -1,54 +1,72 @@
 
-### https://wzyboy.im/post/1049.html
-    # 确认当前硬盘情况
+### diskpart - https://wzyboy.im/post/1049.html
+
+- 确认当前硬盘情况
+
     DISKPART> list disk
-    # 假设系统硬盘为 Disk 0 （Windows 将安装于此）
-    # Windows PE 所在的盘为 Disk 1 （请忽略）
-    # 过会儿要创建的 VHD 为 Disk 2 （Windows 启动文件将安装于此）
+
+- 假设系统硬盘为 Disk 0 （Windows 将安装于此）, Windows PE 所在的盘为 Disk 1 （请忽略）, 过会儿要创建的 VHD 为 Disk 2 （Windows 启动文件将安装于此）
+
     DISKPART> select disk 0
     DISKPART> list partition
     DISKPART> select partition 4
     DISKPART> format label="Windows 8.1" quick
     DISKPART> assign letter=c
-    # 以上命令格式化要安装 Windows 的分区并分配卷标 C:
-    # 接下来创建并挂载 VHD
+
+- 以上命令格式化要安装 Windows 的分区并分配卷标 C: , 接下来创建并挂载 VHD
+
     DISKPART> create vdisk file=c:\bootmgr.vhd maximum=32 type=fixed
     DISKPART> attach vdisk
-    # 然后在 VHD 里创建并激活分区。offset 不是必须的，但是我喜欢
+
+- 然后在 VHD 里创建并激活分区。offset 不是必须的，但是我喜欢
+
     DISKPART> select disk 2
     DISKPART> create partition primary offset=1024
     DISKPART> active
     DISKPART> format label=bootmgr quick
-    # 分配一个卷标 B:
+
+- 分配一个卷标 B:
+
     DISKPART> assign letter=b
-    # 退出 diskpart
+
+- 退出 diskpart
+
     DISKPART> exit
 
-    ### 解压文件，注意根据实际情况选择 index，此处为 1
+- 解压文件，注意根据实际情况选择 index，此处为 1
+
     X:\> imagex /apply install.wim 1 c:
-    # dism 的等效命令是：（长多了）
+
+- dism 的等效命令是：（长多了）
+
     X:\> dism /Apply-Image /ImageFile:install.wim /Index:1 /ApplyDir:C:\
-    # 写入启动代码和启动文件
+
+- 写入启动代码和启动文件
+
     X:\> bootsect /nt60 b: /mbr
     X:\> bcdboot c:\Windows /s b:
 
 ### http://reboot.pro/topic/19516-hack-bootmgr-to-boot-windows-in-bios-to-gpt/page-2#entry184489
 
-### slmgr
-slmgr.vbs -ilc NAME.XRM-MS # with the asus certificate and then do a
-slmgr.vbs -ipk XXXX-XXXX # the slp key..
-slmgr.vbs -dli #to see if it worked..
+### slmgr - activation
+
+    slmgr.vbs -ilc NAME.XRM-MS # with the asus certificate and then do a
+    slmgr.vbs -ipk XXXX-XXXX # the slp key..
+    slmgr.vbs -dli #to see if it worked..
+    slmgr.vbs -dlv
 
 ### http://bootableusb.net/install-windows-7-usb-drive-easy-way/
-C:\> DISKPART
-LIST DISK
-SELECT DISK X
-CREATE PARTITION PRIMARY
-SELECT PARTITION 1
-ACTIVE
-FORMAT FS=NTFS
-ASSIGN
-EXIT
 
-C:\> BOOTSECT.EXE /NT60 X:
+    C:\> DISKPART
+
+    LIST DISK
+    SELECT DISK X
+    CREATE PARTITION PRIMARY
+    SELECT PARTITION 1
+    ACTIVE
+    FORMAT FS=NTFS
+    ASSIGN
+    EXIT
+
+    C:\> BOOTSECT.EXE /NT60 X:
 

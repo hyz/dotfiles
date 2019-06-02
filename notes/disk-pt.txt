@@ -1,0 +1,19 @@
+
+### parted -- https://wiki.archlinux.org/index.php/Parted
+
+    > parted -ms /dev/sdb print                                                                                             ~ 7:54
+    BYT;
+    /dev/sdb:240GB:scsi:512:512:msdos:Netac MobileDataStar:;
+    1:68.2MB:115GB:115GB:ntfs::boot;
+    2:115GB:180GB:64.4GB:::;
+    3:180GB:231GB:51.5GB:::;
+    4:231GB:240GB:8602MB:ext4::;
+
+### gdisk & sgdisk -- https://wiki.archlinux.org/index.php/Gdisk#Backup_and_restore_partition_table
+
+Using sgdisk you can create a binary backup consisting of 
+the protective MBR, the main GPT header, the backup GPT header, and one copy of the partition table
+
+    sgdisk -b=sgdisk-sda.bin /dev/sda # backup
+    sgdisk -l=sgdisk-sda.bin /dev/sda # restore
+

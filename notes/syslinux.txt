@@ -1,20 +1,20 @@
 
 ### https://wiki.archlinux.org/index.php/Syslinux
+
     #64         1050615
-    Your boot partition, on which you plan to install Syslinux, must contain a FAT, ext2, ext3, ext4, or Btrfs file system
-    https://wiki.archlinux.org/index.php/Syslinux#No_Default_or_UI_found_on_some_computers
+
+Your boot partition, on which you plan to install Syslinux, must contain a FAT, ext2, ext3, ext4, or Btrfs file system
+https://wiki.archlinux.org/index.php/Syslinux#No_Default_or_UI_found_on_some_computers
 
     mkfs.msdos -F 16 /dev/sdb1 ; mount /dev/sdb1 /mnt/u -o uid=1000
-    mkfs.ext2 /dev/sdb1 ; mount /dev/sdb1 /mnt/u
+    # mkfs.ext2 /dev/sdb1 ; mount /dev/sdb1 /mnt/u
 
     syslinux-install_update -i -a -m -c /mnt/
-    ---
 
     mkdir /mnt/u/syslinux
     cp /usr/lib/syslinux/bios/*.c32 /mnt/u/syslinux/
     extlinux --install /mnt/u/syslinux
     dd bs=440 count=1 if=/usr/lib/syslinux/bios/mbr.bin of=/dev/sdb
-    ---
 
     vim /mnt/u/syslinux/syslinux.cfg
 
