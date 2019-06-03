@@ -171,9 +171,18 @@ netctl
     pacman -S dnsutils
     pacman -S net-tools
 
+### https://wiki.archlinux.org/index.php/Archiso
+
+    cp -r /usr/share/archiso/configs/releng myiso
+    cd myiso
+    ...
+    ./build.sh -v
+
+    ...
+    # rm -v work/build.make_*
+
 https://wiki.archlinux.org/index.php/Installation_guide
 https://wiki.archlinux.org/index.php/Install_from_existing_Linux#From_a_host_running_another_Linux_distribution
 http://mirrors.163.com/archlinux/iso/ archlinux-bootstrap-2016.11.01-x86_64.tar.gz
-https://wiki.archlinux.org/index.php/Archiso
 https://wiki.archlinux.org/index.php/Archboot
 

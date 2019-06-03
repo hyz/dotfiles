@@ -55,13 +55,6 @@ endif
 set history=1000
 cnoremap <C-L> <Up>
 
-""" https://github.com/tpope/vim-pathogen
-""" mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
-"execute pathogen#infect()
-"" #vim-go https://github.com/fatih/vim-go
-""  git clone https://github.com/fatih/vim-go.git ~/.vim/bundle/vim-go
-""  :GoInstallBinaries
-
 """ https://github.com/VundleVim/Vundle.vim
 """ git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -77,7 +70,6 @@ Plugin 'jremmen/vim-ripgrep'
 Plugin 'rust-lang/rust.vim'
 Plugin 'timonv/vim-cargo'
 Plugin 'racer-rust/vim-racer'
-"Plugin 'fatih/vim-go'
 "Plugin 'godlygeek/tabular'
 Plugin 'mxw/vim-jsx'
 Plugin 'pangloss/vim-javascript'
@@ -92,7 +84,6 @@ Plugin 'pangloss/vim-javascript'
 "Plugin 'vimim/vimim'
 "Plugin 'vim-scripts/VimIM'
 Plugin 'plasticboy/vim-markdown'
-Plugin 'suan/vim-instant-markdown'
 ""cargo install skim
 Plugin 'lotabout/skim.vim'
 Plugin 'ryym/vim-riot'
@@ -107,13 +98,50 @@ call vundle#end()
 """ https://github.com/junegunn/vim-plug
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 " vim +PlugInstall +q
-"
-"call plug#begin('~/.vim/plugged')
+
+" https://github.com/euclio/vim-markdown-composer
+function! BuildComposer(info)
+  if a:info.status != 'unchanged' || a:info.force
+    if has('nvim')
+      !cargo build --release
+    else
+      !cargo build --release --no-default-features --features json-rpc
+    endif
+  endif
+endfunction
+function! BuildYCM(info)
+  " info is a dictionary with 3 fields
+  " - name:   name of the plugin
+  " - status: 'installed', 'updated', or 'unchanged'
+  " - force:  set on PlugInstall! or PlugUpdate!
+  if a:info.status == 'installed' || a:info.force
+    !./install.py
+  endif
+endfunction
+
+call plug#begin('~/.vim/plugged')
+"Plug 'suan/vim-instant-markdown'
+Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
+
 "Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
 "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+
 "junegunn/fzf
 "Plug 'lotabout/skim', { 'dir': '~/.skim', 'do': './install' }
-"call plug#end()
+"Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+
+"Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }
+
+"Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
+
+"Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+
+"Plug 'junegunn/vim-easy-align'
+
+"Plug 'fatih/vim-go', { 'tag': '*' }
+"Plug 'nsf/gocode', { 'tag': 'v.20150303', 'rtp': 'vim' }
+
+call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
 

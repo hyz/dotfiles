@@ -1,4 +1,10 @@
 
+### http://www.tenuser.com/config/boot/bcd.htm
+
+Remove an boot entry
+
+    msconfig
+
 ### http://superuser.com/questions/259791/how-can-i-use-the-shutdown-command-to-hibernate-the-computer-in-x-hours
 
     shutdown -s -t 36000
@@ -25,7 +31,6 @@
     resmon.exe
     netstat
     Tcpview # https://technet.microsoft.com/en-us/sysinternals/bb897437.aspx
-
 
 ### Virtual CD-ROM
 
