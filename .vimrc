@@ -141,6 +141,8 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 "Plug 'fatih/vim-go', { 'tag': '*' }
 "Plug 'nsf/gocode', { 'tag': 'v.20150303', 'rtp': 'vim' }
 
+Plug 'lervag/vimtex'
+
 call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
