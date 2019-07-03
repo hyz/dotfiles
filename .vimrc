@@ -57,37 +57,10 @@ cnoremap <C-L> <Up>
 
 """ https://github.com/VundleVim/Vundle.vim
 """ git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-Plugin 'VundleVim/Vundle.vim'
-Plugin 'vim-scripts/fcitx.vim'
-Plugin 'w0rp/ale'
-Plugin 'jremmen/vim-ripgrep'
-"Plugin 'Valloric/YouCompleteMe'
-""" cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
-"Plugin 'vim-scripts/a.vim'
-"Plugin 'rhysd/rust-doc.vim'
-Plugin 'rust-lang/rust.vim'
-Plugin 'timonv/vim-cargo'
-Plugin 'racer-rust/vim-racer'
-"Plugin 'godlygeek/tabular'
-Plugin 'mxw/vim-jsx'
-Plugin 'pangloss/vim-javascript'
-"Plugin 'moll/vim-node'
-"Plugin 'junegunn/fzf'
-""" { 'dir': '~/.fzf', 'do': './install --all' }
-"Plugin 'junegunn/fzf.vim'
-"Plugin 'autozimu/LanguageClient-neovim'
-""" { 'branch': 'next', 'do': 'bash install.sh', }
-"Plugin 'python-mode/python-mode'
-"Plugin 'amoffat/snake'
-"Plugin 'vimim/vimim'
-"Plugin 'vim-scripts/VimIM'
-Plugin 'plasticboy/vim-markdown'
-""cargo install skim
-Plugin 'lotabout/skim.vim'
-Plugin 'ryym/vim-riot'
-call vundle#end()
+"set rtp+=~/.vim/bundle/Vundle.vim
+"call vundle#begin()
+"Plugin 'VundleVim/Vundle.vim'
+"call vundle#end()
 " vim +PluginInstall +qall
 """Brief help
 " :PluginList       - lists configured plugins
@@ -120,6 +93,34 @@ function! BuildYCM(info)
 endfunction
 
 call plug#begin('~/.vim/plugged')
+Plug 'vim-scripts/fcitx.vim'
+Plug 'w0rp/ale'
+Plug 'jremmen/vim-ripgrep'
+"Plug 'vim-scripts/a.vim'
+"Plug 'rhysd/rust-doc.vim'
+Plug 'rust-lang/rust.vim'
+Plug 'timonv/vim-cargo'
+Plug 'racer-rust/vim-racer'
+"Plug 'godlygeek/tabular'
+Plug 'mxw/vim-jsx'
+Plug 'pangloss/vim-javascript'
+"Plug 'moll/vim-node'
+"Plug 'junegunn/fzf'
+""" { 'dir': '~/.fzf', 'do': './install --all' }
+"Plug 'junegunn/fzf.vim'
+"Plug 'autozimu/LanguageClient-neovim'
+""" { 'branch': 'next', 'do': 'bash install.sh', }
+"Plug 'python-mode/python-mode'
+"Plug 'amoffat/snake'
+"Plug 'vimim/vimim'
+"Plug 'vim-scripts/VimIM'
+Plug 'plasticboy/vim-markdown'
+""cargo install skim
+Plug 'lotabout/skim.vim'
+Plug 'ryym/vim-riot'
+
+"""
+
 "Plug 'suan/vim-instant-markdown'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 
@@ -130,6 +131,7 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 "Plug 'lotabout/skim', { 'dir': '~/.skim', 'do': './install' }
 "Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
+""" cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }
 
 "Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
