@@ -29,3 +29,8 @@
 ### https://stackoverflow.com/questions/4052690/how-to-call-wine-dll-from-python-on-linux
 
 https://stackoverflow.com/questions/84269/using-component-object-model-com-on-non-microsoft-platforms
+
+### https://askubuntu.com/questions/197320/enable-mic-in-wine-alsa-pulseaudio
+
+    WINENOPULSE=1 wine a.exe
+
