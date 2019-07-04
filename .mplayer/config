@@ -17,7 +17,7 @@ zoom=1
 #vo=gl
 #vo=vaapi
 #va=vaapi
-ao=pulse
+#ao=pulse
 # ao=oss
 ontop=1
 #good exclude H264 Video codec

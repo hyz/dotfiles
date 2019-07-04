@@ -92,15 +92,27 @@ function! BuildYCM(info)
   endif
 endfunction
 
+if executable('rls')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'rls',
+        \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
+        \ 'workspace_config': {'rust': {'clippy_preference': 'on'}},
+        \ 'whitelist': ['rust'],
+        \ })
+endif
+
 call plug#begin('~/.vim/plugged')
+Plug 'prabirshrestha/async.vim'
+Plug 'prabirshrestha/vim-lsp'
+
 Plug 'vim-scripts/fcitx.vim'
-Plug 'w0rp/ale'
+"Plug 'w0rp/ale'
 Plug 'jremmen/vim-ripgrep'
 "Plug 'vim-scripts/a.vim'
 "Plug 'rhysd/rust-doc.vim'
 Plug 'rust-lang/rust.vim'
 Plug 'timonv/vim-cargo'
-Plug 'racer-rust/vim-racer'
+"Plug 'racer-rust/vim-racer'
 "Plug 'godlygeek/tabular'
 Plug 'mxw/vim-jsx'
 Plug 'pangloss/vim-javascript'
@@ -114,7 +126,7 @@ Plug 'pangloss/vim-javascript'
 "Plug 'amoffat/snake'
 "Plug 'vimim/vimim'
 "Plug 'vim-scripts/VimIM'
-Plug 'plasticboy/vim-markdown'
+"Plug 'plasticboy/vim-markdown'
 ""cargo install skim
 Plug 'lotabout/skim.vim'
 Plug 'ryym/vim-riot'
