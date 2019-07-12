@@ -6,7 +6,7 @@
 #PROMPT=$'%{\e[36m%}%~%{\e[0m%} %% '
 #RPROMPT=$'%(0?..%?%)) %{\e[36m%}%n%{\e[35m%}@%{\e[34m%}%M %{\e[33m%}%T%{\e[0m%}'
 
-#fpath+=~/.zfunc
+fpath+=~/.zfunc
 autoload -U compinit promptinit
 compinit
 promptinit

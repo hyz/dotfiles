@@ -102,17 +102,19 @@ if executable('rls')
 endif
 
 call plug#begin('~/.vim/plugged')
+"" http://rls.booyaa.wtf/#vim8
+Plug 'rust-lang/rust.vim'
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+"Plug 'rhysd/rust-doc.vim'
+Plug 'racer-rust/vim-racer'
+Plug 'timonv/vim-cargo'
 
 Plug 'vim-scripts/fcitx.vim'
 "Plug 'w0rp/ale'
 Plug 'jremmen/vim-ripgrep'
-"Plug 'vim-scripts/a.vim'
-"Plug 'rhysd/rust-doc.vim'
-Plug 'rust-lang/rust.vim'
-Plug 'timonv/vim-cargo'
-"Plug 'racer-rust/vim-racer'
 "Plug 'godlygeek/tabular'
 Plug 'mxw/vim-jsx'
 Plug 'pangloss/vim-javascript'
@@ -130,8 +132,6 @@ Plug 'pangloss/vim-javascript'
 ""cargo install skim
 Plug 'lotabout/skim.vim'
 Plug 'ryym/vim-riot'
-
-"""
 
 "Plug 'suan/vim-instant-markdown'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
@@ -163,7 +163,7 @@ call plug#end()
 
 """ https://github.com/autozimu/LanguageClient-neovim
 """ cd .vim/bundle/LanguageClient-neovim && bash install.sh
-set runtimepath+=~/.vim/bundle/LanguageClient-neovim
+"set runtimepath+=~/.vim/bundle/LanguageClient-neovim
 
 "cnoremap <Esc>b <S-Left>
 "cnoremap <Esc>w <S-Right>

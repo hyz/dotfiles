@@ -44,6 +44,7 @@ install archlinux from archlinux
     ln -sf /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime
     locale-gen
 
+    ## https://wiki.archlinux.org/index.php/Systemd-boot
     bootctl --path=/boot install
     bootctl update
 
@@ -56,10 +57,10 @@ install archlinux from archlinux
     #       vimdiff /esp/EFI/grub/grub.cfg /boot/grub/grub.cfg
     mkinitcpio -p linux
 
-    pacman -S gnupg pass syslinux dosfstools parted gptfdisk ntfs-3g mtools tmux pacman-contrib
+    pacman -S gnupg pass syslinux dosfstools parted gptfdisk ntfs-3g mtools tmux pacman-contrib lm_sensors
     pacman -S net-tools keychain base-devel wireguard-tools git rsync 
-    pacman -S xorg-server xterm fvwm xdg-util rxvt-unicode gparted bashrun rofi redshift unclutter \
-        xdotool xorg-xmessage xorg-xev xorg-xwininfo xorg-xprop xorg-xmag \
+    pacman -S xorg-server xterm fvwm sx xorg-xinit xdg-utils rxvt-unicode gparted bashrun rofi redshift unclutter \
+        xorg-xmessage xorg-xev xorg-xwininfo xorg-xprop xorg-xmag \
         feh scrot imagemagick mplayer \
         alsa-utils mpd mpc
     pacman -S fcitx-rime fcitx-gtk3 fcitx-qt5 fcitx-configtool sdcv
@@ -68,8 +69,8 @@ install archlinux from archlinux
     pacman -S qemu dosbox wine
     pacman -S code yarn pandoc cmake
 
-    netctl enable etnernet-dhcp
-    systemctl enable netctl-auto@ethernet-dhcp
+    systemctl enable dhcpcd@ens11.service
+        systemctl enable netctl-auto@ethernet-dhcp
     systemctl enable sshd
 
     passwd
