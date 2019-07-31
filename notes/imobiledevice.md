@@ -21,3 +21,12 @@ Decodes iPhone manifest and backup created by idevicebackup2
 
 https://github.com/libimobiledevice/libimobiledevice/issues/68
 
+
+https://github.com/libimobiledevice/libimobiledevice/issues/445#issuecomment-274207920
+idevicepair unpair
+idevicepair pair
+
+mkdir ~/Desktop/iOSmount
+ifuse ~/Desktop/iOSmount
+
+sudo umount ~/Desktop/iOSmount

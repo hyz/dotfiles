@@ -1,10 +1,10 @@
 #!/bin/bash
 
-[ -d "$1" ] || eixt 1
 Target=`basename "$1"`
-cd "$1"/..
+cd "$1"/.. || exit 1
+[ -d "$Target" ] && [ ${Target:0:1} != . ] || exit 3
 
-tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 2
+tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 5
 TrapExit() {
     /bin/rm -f $tempfn
 }
