@@ -1,8 +1,9 @@
 
 export LANG=en_US.UTF-8
 
-#export GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS="@im=ibus"
+export XIM=fcitx XIM_PROGRAM=fcitx
 export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
+#export GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS="@im=ibus"
 
 #export GDK_SCALE=2 # 4k GTK3
 #export QT_AUTO_SCREEN_SCALE_FACTOR=0 # QT5 no auto scale
@@ -22,7 +23,7 @@ dunst &
 #mpd
 
 redshift -r &>/dev/null &
-pgrep -x urxvtd &>/dev/null || urxvtd -q -f -o
+#pgrep -x urxvtd &>/dev/null || urxvtd -q -f -o
 
 #xcompmgr -fF -I-.002 -O-.003 -D1 &
 # xcompmgr -Ss -n -Cc -fF -I-10 -O-10 -D1 -t-3 -l-4 -r4

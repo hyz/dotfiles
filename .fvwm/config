@@ -26,8 +26,8 @@ Mouse   1  W   M 	Move-or-Raise
 Key  	q      A  MS 	Quit
 key 	q      A  M 	Restart
 
-key 	Return A  M 	Exec exec urxvtc -tn xterm -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
-key 	x      A  MS 	Exec exec urxvtc -tn xterm -geometry 144x44-0+0 -e /usr/bin/zsh --login -i
+key 	Return A  M 	Exec exec xterm -geometry 96x24-0+0 -e /usr/bin/zsh --login -i
+key 	x      A  MS 	Exec exec xterm -geometry 96x24-0+0 -e /usr/bin/zsh --login -i
 Key 	x      A  M 	Exec exec bashrun
 Key 	p      A  M 	Exec exec rofi -show run
 
@@ -55,7 +55,7 @@ Key 	2         A  M 	GotoDesk 0 1
 Key 	3         A  M 	GotoDesk 0 2
 Key 	0         A  M 	GotoDesk 0 3
 Key 	Print	  A  N 	Exec import /tmp/_i.png && feh /tmp/_i.png
-Key 	Super_L   A  A 	Exec exec rofi -show window -lines 9 -width 32 -location 3
+Key 	Alt_R   A  A 	Exec exec rofi -show window -lines 9 -width 32 -location 3
 
 Style bashrun 	GrabFocus, !Title, Sticky, PositionPlacement -0 +0, HilightBorderColorset 8, Layer 6
 
