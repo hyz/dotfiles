@@ -1,6 +1,7 @@
 
 export LANG=en_US.UTF-8
 
+export XIM=fcitx XIM_PROGRAM=fcitx
 #export GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS="@im=ibus"
 export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
 

@@ -23,6 +23,8 @@ Choosing where to install
 
     rustup install nightly-x86_64-pc-windows-gnu
 
+    RUSTUP_DIST_SERVER=https://dev-static.rust-lang.org rustup update stable
+
 ### https://wiki.archlinux.org/index.php/Rust
 
     rustup toolchian uninstall stable-x86_64-unknown-linux-gnu

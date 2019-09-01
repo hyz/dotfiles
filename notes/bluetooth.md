@@ -1,0 +1,3 @@
+
+	systemctl restart bluetooth
+	bluetoothctl
