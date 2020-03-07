@@ -1,6 +1,7 @@
 
     https://github.com/search?l=Rust&q=stars%3A%3E1&s=stars&type=Repositories
 
+    git clone --depth=1 ssh://192.168.9.24/xhome/flutter/samples/.git samples
     git remote get-url origin
 
     185.31.16.184 github.global.ssl.fastly.net

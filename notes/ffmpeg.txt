@@ -1,4 +1,31 @@
 
+### https://www.jianshu.com/p/2a824f13b2af
+
+- 合并音频和视频
+
+    ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental output.mp4
+
+- 获取视频中的音频
+
+    ffmpeg -i input.mp4 -vn -y -acodec copy output.m4a
+
+### ffmpeg Capture video & audio
+
+- http://trac.ffmpeg.org/wiki/Capture/Desktop
+- https://blog.csdn.net/byc6352/article/details/94593762
+
+使用x11grab, 上面的参数，指的是从屏幕的左上角（x=100, y=200）的位置，录制分辨率为1024×768的视频。
+
+    ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 v-out.mp4
+
+可以使用ALSA同时录制声音
+
+    ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 -f alsa -ac 2 -i hw:0 av-out.mkv
+
+也可以使用Pulse声音输入设备
+
+    ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 -f pulse -ac 2 -i default av-out.mkv
+
 #### ffmpeg subclip, resize video
 
     ffmpeg -i a.mp4 -ss 00:10:09 -to 00:13:52 -c:v copy -c:a copy 801.1009-1352.mp4
@@ -170,3 +197,7 @@ test hwaccel
 ### https://github.com/mpenkov/ffmpeg-tutorial
 ### http://dranger.com/ffmpeg/tutorial01.html
 
+
+ffmpeg -i $filename -strict -2 -vf crop=270:360:1:60 270x360.mp4
+
+## https://www.jianshu.com/p/0819ac4205fd

@@ -1,9 +1,2 @@
-/*
-.config/fcitx
-
-!.gitconfig
-!notes
-
-!.config
-!.local
-
+/target
+**/*.rs.bk

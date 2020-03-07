@@ -7,6 +7,52 @@
     adb install bin/HelloCpp-debug.apk
     adb uninstall org.cocos2dx.hellocpp
 
+### https://developer.android.google.cn/studio/command-line/avdmanager
+
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
+    touch ~/.android/repositories.cfg
+    env |rg ANDROID
+    which sdkmanager ; which avdmanager
+
+    emulator -webcam-list
+    emulator -accel-check
+
+    sdkmanager --verbose --list
+    sdkmanager --verbose "system-images;android-25;google_apis_playstore;x86"
+
+    avdmanager list device
+    avdmanager list targets
+    avdmanager list avd
+    avdmanager create avd -n test -k "system-images;android-25;google_apis;x86"
+    avdmanager create avd -n nexus6p -k "system-images;android-25;google_apis_playstore;x86" -b x86 -c 2048M -f
+
+    sdkmanager --verbose "system-images;android-19;default;x86"
+    avdmanager create avd -n test -k "system-images;android-19;default;x86" -b x86 -c 256M -d 7 -f
+    cd $ANDROID_HOME/tools && ./emulator -avd test -wipe-data &
+
+    ls ~/.android/avd/
+    avdmanager delete avd -n test
+
+- https://developer.android.google.cn/studio/command-line/avdmanager
+- https://developer.android.google.cn/studio/run/emulator-commandline.html
+- https://developer.android.google.cn/studio/run/emulator-acceleration#accel-graphics
+- https://developer.android.google.cn/studio/command-line/sdkmanager
+- https://stackoverflow.com/questions/46606287/not-able-to-create-avd-using-command-line
+
+### Making /opt/android-sdk group-writeable
+
+    # groupadd android-sdk
+    # gpasswd -a <user> android-sdk
+
+Set an access control list to let members of the newly created group write into the android-sdk folder. As running sdkmanager can also create new files, set the ACL as default ACL. the X in the default group entry means "allow execution if executable by the owner (or anyone else)"
+
+    # setfacl -R -m g:android-sdk:rwx /opt/android-sdk
+    # setfacl -d -m g:android-sdk:rwX /opt/android-sdk
+
+Re-login or as <user> log your terminal in to the newly created group:
+
+    $ newgrp android-sdk
+
 ### ant
 
     # ant -Dsdk.dir=path/to/android/sdk/root/dir -Dtarget=targeted-android-sdk-version

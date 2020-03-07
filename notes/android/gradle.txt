@@ -1,4 +1,35 @@
 
+    ./gradlew --console verbose assembleDebug
+
+### https://maven.aliyun.com/mvn/view
+
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter' }
+    //maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    //maven { url 'https://jitpack.io' }
+    //maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
+
+
+### https://stackoverflow.com/questions/8938994/gradlew-behind-a-proxy
+### https://docs.gradle.org/current/userguide/build_environment.html#sec:accessing_the_web_via_a_proxy
+
+- gradle.properties
+- $HOME/.gradle/gradle.properties
+
+    systemProp.http.proxyHost=192.168.9.24
+    systemProp.http.proxyPort=8118
+    systemProp.http.proxyUser=userid
+    systemProp.http.proxyPassword=password
+    systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+
+Configuring an HTTPS proxy using gradle.properties
+
+    systemProp.https.proxyHost=192.168.9.24
+    systemProp.https.proxyPort=8118
+    systemProp.https.proxyUser=userid
+    systemProp.https.proxyPassword=password
+    systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+
 ### https://gradle.org/docs#getting-started
     gradle tasks
     gradle components
@@ -11,4 +42,11 @@
 ### http://tools.android.com/tech-docs/new-build-system/user-guide
 
 ### https://en.wikipedia.org/wiki/Gradle
+
+
+###
+
+android/gradlew -Pverbose=true -Ptarget=$PWD/lib/main.dart -Ptrack-widget-creation=true -Pfilesystem-scheme=org-dartlang-root -Ptarget-platform=android-x86 assembleDebug
+
+
 

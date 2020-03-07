@@ -12,5 +12,5 @@ echo
 
 date
 env
-$HOME/bin/my-notify &
+#$HOME/bin/my-notify &
 

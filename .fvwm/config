@@ -6,6 +6,27 @@ DesktopSize 1x1
 Style * TitleAtLeft, ClickToFocus
 Style RightPanel NeverFocus
 
+## https://fvwmforums.org/wiki/Tips/FvwmStartup/
+## http://www.fvwm.org/documentation/manpages/FvwmCommand.html
+
+AddtoFunc InitFunction
+##+ I exec exec  /usr/local/bin/fvwm-root -r $[fvwm_img]/.current-background
+##+ I exec exec  xscreensaver -no-splash
+##+ PipeRead     "mkdir $[fvwm_tmp]"
++ I Exec fcitx -d
++ I Exec xmodmap ~/.Xmodmap
+##+ I exec exec synapse
+#+ I exec nm-applet
+#+ I Exec volumeicon
+#+ I Exec parcellite
+#+ I Exec ~/bin/wallpapers.sh
+#+ I Exec conky
+#+ I Exec stalonetray
++ I Exec dunst
+#+ I Exec redshift -r
+#+ I Exec unclutter
+#+ I Exec guake
+
 ## http://fvwmforums.org/wiki/Tips/AutoHidingWindows/
 #AddToFunc StartFunction I Module FvwmAuto FvwmAutohide -menter enter_handler
 

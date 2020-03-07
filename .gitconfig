@@ -20,3 +20,8 @@
 #	proxy = 127.0.0.1:8787
 #[core]
 #	gitproxy = git-proxy
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

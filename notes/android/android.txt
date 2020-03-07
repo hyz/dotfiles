@@ -1,77 +1,91 @@
+
+    wget http://dl-ssl.google.com/android/repository/platform-29_r04.zip
+    wget http://dl.google.com/android/repository/platform-29_r04.zip
+
 # http://stackoverflow.com/questions/2453949/android-emulator-how-to-monitor-network-traffic
+
 Run emulator -tcpdump emulator.cap -avd my_avd to write all the emulator's traffic to a local file on your PC
 
 # unlock/root
-http://forum.xda-developers.com/showthread.php?t=1766475
-http://www.wugfresh.com/nrt/
-http://lifehacker.com/5789397/the-always-up-to-date-guide-to-rooting-any-android-phone
+
+    http://forum.xda-developers.com/showthread.php?t=1766475
+    http://www.wugfresh.com/nrt/
+    http://lifehacker.com/5789397/the-always-up-to-date-guide-to-rooting-any-android-phone
 
 # emulator IMEI
+
 android-sdk-path/tools/emulator
+
 1. 用二进制编辑器打开它
 2. 搜索 +CGSN字符串， 后面跟着15个数字的IMEI
-###
-### IMEI 357470005665264
-### SMSC +8613800762500
-### IMSI 460004702975466
-### 
-### SMSC +8613800762500
-### IMEI 358407020209040
-### IMSI 460004702975466
+
+    > IMEI 357470005665264
+    > SMSC +8613800762500
+    > IMSI 460004702975466
+    > 
+    > SMSC +8613800762500
+    > IMEI 358407020209040
+    > IMSI 460004702975466
 
 
 # emulator root
+
 http://forum.xda-developers.com/showthread.php?t=1731095
+
 #
-emulator -avd MyAndroid -partition-size 2047 -no-snapshot-load -verbose
-...
-adb shell mount -o rw,remount -t yaffs2 /dev/block/mtdblock0 /system
-adb push su /system/xbin/
-adb push busybox /system/xbin/
-adb shell chmod 06755 /system/xbin/su
-adb shell chmod 06755 /system/xbin/busybox
-adb shell busybox rm -R /data/*
-adb shell busybox ls /data
-adb shell busybox ls /data
-adb push gapps-ics-20120317-signed/system /system
-adb shell busybox cp -a /system/* /data/
+
+    emulator -avd MyAndroid -partition-size 2047 -no-snapshot-load -verbose
+    ...
+    adb shell mount -o rw,remount -t yaffs2 /dev/block/mtdblock0 /system
+    adb push su /system/xbin/
+    adb push busybox /system/xbin/
+    adb shell chmod 06755 /system/xbin/su
+    adb shell chmod 06755 /system/xbin/busybox
+    adb shell busybox rm -R /data/*
+    adb shell busybox ls /data
+    adb shell busybox ls /data
+    adb push gapps-ics-20120317-signed/system /system
+    adb shell busybox cp -a /system/* /data/
 
 # Where -u stands for --no-ui, -a stands for --all and -t stands for --filter.
 # http://stackoverflow.com/questions/17963508/how-to-install-android-sdk-build-tools-on-the-command-line
 #
+
 ### Downloading SDK Platform Android 3.1, API 12, revision 3
 # http://stackoverflow.com/questions/4681697/is-there-a-way-to-automate-the-android-sdk-installation
-$ android --help list sdk
+
+    $ android --help list sdk
 
        Usage:
-       android [global options] list sdk [action options]
-       Global options:
-  -h --help       : Help on a specific command.
-  -v --verbose    : Verbose mode, shows errors, warnings and all messages.
-     --clear-cache: Clear the SDK Manager repository manifest cache.
-  -s --silent     : Silent mode, shows errors only.
+           android [global options] list sdk [action options]
+           Global options:
+      -h --help       : Help on a specific command.
+      -v --verbose    : Verbose mode, shows errors, warnings and all messages.
+         --clear-cache: Clear the SDK Manager repository manifest cache.
+      -s --silent     : Silent mode, shows errors only.
 
-                   Action "list sdk":
-  Lists remote SDK repository.
-Options:
-  -o --obsolete  : Deprecated. Please use --all instead.
-  -a --all       : Lists all available packages (including obsolete and
-                   installed ones)
-     --proxy-host: HTTP/HTTPS proxy host (overrides settings if defined)
-     --proxy-port: HTTP/HTTPS proxy port (overrides settings if defined)
-  -s --no-https  : Uses HTTP instead of HTTPS (the default) for downloads.
-  -e --extended  : Displays extended details on each package
-  -u --no-ui     : Displays list result on console (no GUI) [Default: true]
+                       Action "list sdk":
+      Lists remote SDK repository.
+    Options:
+      -o --obsolete  : Deprecated. Please use --all instead.
+      -a --all       : Lists all available packages (including obsolete and
+                       installed ones)
+         --proxy-host: HTTP/HTTPS proxy host (overrides settings if defined)
+         --proxy-port: HTTP/HTTPS proxy port (overrides settings if defined)
+      -s --no-https  : Uses HTTP instead of HTTPS (the default) for downloads.
+      -e --extended  : Displays extended details on each package
+      -u --no-ui     : Displays list result on console (no GUI) [Default: true]
 
-$ tools/android list sdk --all --extended > /tmp/list-sdk
-$ tools/android update sdk --no-ui --filter platform-tools,android-19,extra-android-support
-$ tools/android update sdk --no-https --no-ui -a --filter tools,platform-tools,build-tools-19.1.0,android-10
+    $ tools/android list sdk --all --extended > /tmp/list-sdk
+    $ tools/android update sdk --no-ui --filter platform-tools,android-19,extra-android-support
+    $ tools/android update sdk --no-https --no-ui -a --filter tools,platform-tools,build-tools-19.1.0,android-10
 
 
-$ ls -1 /opt/android-sdk
-add-ons/
-build-tools/
-platforms/
-platform-tools/
-tools/
+    $ ls -1 /opt/android-sdk
+
+    add-ons/
+    build-tools/
+    platforms/
+    platform-tools/
+    tools/
 

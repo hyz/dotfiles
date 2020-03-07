@@ -91,7 +91,7 @@ install archlinux from archlinux
     rsync -vaR .config/*.{conf,json} .config/rslsync /mnt/home/wood/
     rsync -vaR .local/*.json /mnt/home/wood/
     rsync -vr  .stardict /mnt/home/wood/
-    pacman -Qe > /mnt/home/wood/pacman-Qe
+    pacman -Qe > /tmp/pacman-Qe
 
 #### reboot
 

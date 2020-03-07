@@ -14,9 +14,9 @@ xrdb -merge .Xresources
 xset -b
 xset +fp ~/.local/share/fonts
 
-fcitx -d
+#fvwm: fcitx -d
 unclutter &
-dunst &
+#dunst &
 #echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
 #ibus-daemon -d -x
 
@@ -46,7 +46,7 @@ pgrep -x urxvtd &>/dev/null || urxvtd -q -f -o
 # xmodmap -pke > ~/.Xmodmap
 # xmodmap -pm
 # xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
-[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
+#fvwm: [[ -f $HOME/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
 #exec 
 for x in fvwm openbox dwm enlightenment_start xmonad ; do
@@ -78,5 +78,6 @@ exec startfluxbox
 #export LANGUAGE="en_US.UTF-8"
 #export LC_CTYPE="en_US.UTF-8"
 
-exec $your_window_manager
+exec $mywm
+
 

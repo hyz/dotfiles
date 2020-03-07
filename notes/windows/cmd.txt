@@ -13,3 +13,10 @@
     C:\Users\wood>chcp
     活动代码页: 936
 
+### powershell
+
+    ls env:
+    ls env:P*
+    $env:Path
+
+

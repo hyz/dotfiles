@@ -112,6 +112,7 @@ if [[ -d "$ANDROID_SDK" ]] ; then
 
     PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
 fi
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 
 ANDROID_NDK=/opt/android-ndk
 if [ -d "$ANDROID_NDK" ]; then
@@ -153,7 +154,7 @@ CARGO_HOME=$XHOME/cargo
 RUSTUP_HOME=$XHOME/rustup
 WASMER_DIR=$XHOME/wasmer
 
-export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME WASMER_DIR
+export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -165,9 +166,16 @@ export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME WASMER_DIR
     #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 #fi
 
-export NOTION_HOME="$XHOME/notion"
-[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
+#export NOTION_HOME="$XHOME/notion"
+#[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
 #PATH="${NOTION_HOME}/bin:$PATH"
 
-PATH="$CARGO_HOME/bin:$WASMER_DIR/bin:$DENO_DIR/bin:$PATH"
+PATH="$CARGO_HOME/bin:$DENO_DIR/bin:$PATH"
+if [ -x /opt/google/chrome/chrome ] ; then
+    PATH="$PATH:/opt/google/chrome"
+fi
 export PATH
+
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+

@@ -68,3 +68,6 @@ Client Setup:
     bin/wg-nat-hole-punching-client-example <SERVER-IP> hp0
     ping 10.0.0.1
 
+
+systemctl restart wg-quick@wg0
+
