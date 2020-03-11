@@ -149,12 +149,12 @@ else
     XHOME=$HOME/home
 fi
 GOPATH=$XHOME/go
-DENO_DIR=$XHOME/deno
+#DENO_DIR=$XHOME/deno
 CARGO_HOME=$XHOME/cargo
 RUSTUP_HOME=$XHOME/rustup
 WASMER_DIR=$XHOME/wasmer
 
-export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
+export XHOME GOPATH CARGO_HOME RUSTUP_HOME
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -170,12 +170,11 @@ export XHOME GOPATH DENO_DIR CARGO_HOME RUSTUP_HOME
 #[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
 #PATH="${NOTION_HOME}/bin:$PATH"
 
-PATH="$CARGO_HOME/bin:$DENO_DIR/bin:$PATH"
+PATH="$CARGO_HOME/bin:/opt/flutter/bin:$PATH"
 if [ -x /opt/google/chrome/chrome ] ; then
     PATH="$PATH:/opt/google/chrome"
 fi
 export PATH
 
-export PUB_HOSTED_URL=https://pub.flutter-io.cn
-export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+export PUB_HOSTED_URL=https://pub.flutter-io.cn FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 
