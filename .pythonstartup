@@ -32,5 +32,10 @@
 # # anything not deleted (sys and os) will remain in the interpreter session
 # del atexit, readline, rlcompleter, save_history, hisfile
 
-import os, sys, re
+import os, sys, re, glob
+
+#for fp in glob.glob('../*/__init__.py'):
+#    dp,_ = os.path.split(fp)
+#    sys.path.append(dp)
+#sys.path.append('..')
 

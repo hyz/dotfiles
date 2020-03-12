@@ -1,65 +1,89 @@
 #!/usr/bin/env python3
 import sys
 from itertools import combinations
-
 _Result = 24
 
-add = lambda x,y: x+y ; add.__name__ = '+' #lambda x,y: '{}+{}'.format(x,y)
-sub = lambda x,y: x-y ; sub.__name__ = '-' #lambda x,y: '{}-{}'.format(x,y)
-mul = lambda x,y: x*y ; mul.__name__ = '*' #lambda x,y: '{}*{}'.format(x,y)
-def div(x,y): #div = lambda x,y: x/y
-    if y==0: return None
+
+def add(x, y): return x+y
+
+
+add.__name__ = '+'  # lambda x,y: '{}+{}'.format(x,y)
+
+
+def sub(x, y): return x-y
+
+
+sub.__name__ = '-'  # lambda x,y: '{}-{}'.format(x,y)
+
+
+def mul(x, y): return x*y
+
+
+mul.__name__ = '*'  # lambda x,y: '{}*{}'.format(x,y)
+
+
+def div(x, y):  # div = lambda x,y: x/y
+    if y == 0:
+        return None
     return x/y
-div.__name__ = '/' #lambda x,y: '{}/{}'.format(x,y)
+
+
+div.__name__ = '/'  # lambda x,y: '{}/{}'.format(x,y)
+
 
 def walk(res, lis):
     if len(lis) == 1:
         z, e = lis[0]
         if z == _Result:
-            res.append( e )
+            res.append(e)
         return res
     dups = set()
-    for (x,xe),(y,ye) in combinations(lis, 2):
-        if (x,y) in dups:
+    for (x, xe), (y, ye) in combinations(lis, 2):
+        if (x, y) in dups:
             continue
-        dups.add((x,y))
+        dups.add((x, y))
         li = lis[:]
-        li.remove((x,xe)) ; li.remove((y,ye))
-        for f in add,sub,mul,div:
-            z = f(x,y) ; e = (z,f,xe,ye)
+        li.remove((x, xe))
+        li.remove((y, ye))
+        for f in add, sub, mul, div:
+            z = f(x, y)
+            e = (z, f, xe, ye)
             if z != None:
-                walk(res, [(z,e)] + li)
+                walk(res, [(z, e)] + li)
             ###
-            if f(y,x) == f(x,y):
+            if f(y, x) == f(x, y):
                 continue
-            y,ye, x,xe = x,xe, y,ye
+            y, ye, x, xe = x, xe, y, ye
             ###
-            z = f(x,y) ; e = (z,f,xe,ye)
+            z = f(x, y)
+            e = (z, f, xe, ye)
             if z != None:
-                walk(res, [(z,e)] + li)
+                walk(res, [(z, e)] + li)
     return res
-
 # import fractions
 # print( fractions.Fraction(2,4) )
+
+
 def print_results(res):
-    def e_str(z,f,x,y):
+    def e_str(z, f, x, y):
         def _str(o):
             if type(o) == int:
-                return str(o) # '% 2d' % o
+                return str(o)  # '% 2d' % o
             return '(' + e_str(*o) + ')'
         return ' '.join([_str(x), f.__name__, _str(y)])
     for e in res:
-        #print(e)
-        print( e_str(*e), '=', e[0] )
+        # print(e)
+        print(e_str(*e), '=', e[0])
+
 
 def main(lis):
-    res = walk([], list(zip(lis,lis)))
+    res = walk([], list(zip(lis, lis)))
     if res:
         print('有些算法:')
         print_results(res)
         print('--- --- 共有算法数量:', len(res))
     else:
-        print('没有[', ' '.join([ str(x) for x in lis ]), ']24点的算法')
+        print('没有[', ' '.join([str(x) for x in lis]), ']24点的算法')
 
-main([ int(x) for x in sys.argv[1:] ])
 
+main([int(x) for x in sys.argv[1:]])

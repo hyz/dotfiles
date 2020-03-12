@@ -22,3 +22,14 @@ fi
 
 #export PATH="$HOME/.cargo/bin:$PATH"
 
+ANDROID_SDK=/opt/android-sdk
+if [[ -d "$ANDROID_SDK" ]] ; then
+    #ANDROID_SDK_HOME=$ANDROID_SDK
+    ANDROID_HOME=$ANDROID_SDK
+    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
+
+    PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
+fi
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
+
+source /home/wood/.config/broot/launcher/bash/br

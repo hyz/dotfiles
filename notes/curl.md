@@ -1,4 +1,6 @@
 
+    curl -C - -LO http://...
+
 ### ...
 
 Test direct proxying with cURL:

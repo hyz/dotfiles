@@ -134,11 +134,13 @@ fi
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-export NOTION_HOME="$XHOME/notion"
-[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
+#export NOTION_HOME="$XHOME/notion"
+#[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
 
-export PATH="${NOTION_HOME}/bin:$PATH"
+#export PATH="${NOTION_HOME}/bin:$PATH"
 
 # Wasmer
-export WASMER_DIR="/home/wood/.wasmer"
-[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"  # This loads wasmer
+#export WASMER_DIR="/home/wood/.wasmer"
+#[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"  # This loads wasmer
+
+source /home/wood/.config/broot/launcher/bash/br

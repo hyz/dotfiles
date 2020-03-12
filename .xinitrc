@@ -14,9 +14,9 @@ xrdb -merge .Xresources
 xset -b
 xset +fp ~/.local/share/fonts
 
-fcitx -d
+#fvwm: fcitx -d
 unclutter &
-dunst &
+#dunst &
 #echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
 #ibus-daemon -d -x
 

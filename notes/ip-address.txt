@@ -1,3 +1,7 @@
 
-http://www.whatismyip.com/my-ip-information
+    curl https://ifconfig.co
+
+    proxychains curl http://ifconfig.co
+
+### http://www.whatismyip.com/my-ip-information
 

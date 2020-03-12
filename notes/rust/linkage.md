@@ -1,8 +1,13 @@
 
-RUSTFLAGS="-Ctarget-feature=-crt-static"
-RUSTFLAGS="-Clinker=musl-gcc"
-CC="musl-gcc -fPIC -pie"
-OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl --bin ssserver
+    RUSTFLAGS="-Ctarget-feature=-crt-static"
+    RUSTFLAGS="-Clinker=musl-gcc"
+    CC="musl-gcc -fPIC -pie"
+    OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl --bin ssserver
+
+    RUSTFLAGS="-Ctarget-feature=-crt-static" RUSTFLAGS="-L/usr/lib/musl/lib" CC="musl-gcc -fPIC -pie" \
+    OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 \
+    SODIUM_STATIC=1 SODIUM_LIB_DIR=/usr/lib/musl/lib SODIUM_INCLUDE_DIR=/usr/lib/musl/include \
+    cargo build --release --target x86_64-unknown-linux-musl --bin sss...
 
 ### https://internals.rust-lang.org/t/static-binary-support-in-rust/2011/61
 
@@ -28,3 +33,4 @@ The above snippet guarantees that the default linking priority of -l flag is ove
 NOTE: If MyLib2 depends on MyLib1, then MyLib1 is dynamically linked too, regardless of -Wl,-Bstatic (i.e. it is ignored in this case). To prevent this you would have to link MyLib2 statically too.
 
 ### https://wiki.archlinux.org/index.php/Rust#Windows
+

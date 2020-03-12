@@ -21,11 +21,13 @@ $ export LIBS='-lstdc++ -lsupc++'
 
 ./configure --prefix=$(pwd)/build-x86 --host=x86 --disable-shared --disable-xmp --disable-nls
 
-### https://wiki.archlinux.org/index.php/android
+### https://wiki.archlinux.org/index.php/Android
     AUR:
+        ncurses5-compat-libs lib32-ncurses5-compat-libs
         android-platform
         android-sdk
         android-sdk-platform-tools
         android-sdk-build-tools
+
 ### https://wiki.archlinux.org/index.php/MTP
 

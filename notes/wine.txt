@@ -4,6 +4,10 @@
     pacman -Sy wine lib32-alsa-lib
     pacman -Sy lib32-libpulse
 
+    winetricks settings sound=alsa
+    winetricks settings sound=pulse
+    winetricks settings list | grep sound
+
 ### https://wiki.archlinux.org/index.php/Wine
 
 ### http://askubuntu.com/questions/177192/how-do-i-create-a-32-bit-wine-prefix
@@ -33,4 +37,5 @@ https://stackoverflow.com/questions/84269/using-component-object-model-com-on-no
 ### https://askubuntu.com/questions/197320/enable-mic-in-wine-alsa-pulseaudio
 
     WINENOPULSE=1 wine a.exe
+
 

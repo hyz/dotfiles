@@ -31,7 +31,7 @@ if [ $# -eq 1 ] ; then
     done
 
     if [ $cnt -eq 0 ]; then
-        lsd $*
+        find $* -type f
     fi
 
     exit
