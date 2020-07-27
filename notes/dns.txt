@@ -1,3 +1,6 @@
+
+    https://www.cnblogs.com/cobbliu/category/443082.html
+
 ### name servers
 
 Google
@@ -40,4 +43,5 @@ DNSPod DNS+：★★★★★（推荐）
 
     sudo ~wood/bin/dnscrypt-proxy -a 0.0.0.0 --daemonize
     sudo /opt/sbin/dnscrypt-proxy --daemonize --resolver-name=4armed --local-address=0.0.0.0:53
+
 

@@ -18,16 +18,24 @@ https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 install archlinux from archlinux
 
 #### host
+https://wiki.archlinux.org/index.php/Installation_guide
+https://wiki.archlinux.org/index.php/System_backup
+https://wiki.archlinux.org/index.php/Rsync#As_a_backup_utility
+https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
 
     mkfs.ext4 -L Arch /dev/sdX1 ; mount /dev/sdX1 /mnt # root(/) partition
     mkdir /mnt/boot /mnt/home
     mkfs.vfat -F 32 -n EFI /dev/sdX2 ; mount /dev/sdXX /mnt/boot # /mnt/boot
     mkfs.ext4 -L Home /dev/sdX3 ; mount /dev/sdX3 /mnt/home # /home partition
     mkswap /dev/sdX4 ; swapon /dev/sdX4
+    e2label /dev/sdX1 '/' # root=LABEL=/ rw
 
     pacman -Ql arch-install-scripts
+
     vim /etc/pacman.d/mirrorlist
-    pacstrap /mnt base sudo grub vim efibootmgr dialog wpa_supplicant arch-install-scripts zsh openssh riggrep bat
+    pacstrap /mnt base parted openssh dhcpcd netctl wpa_supplicant dialog net-tools sudo vim arch-install-scripts
+        grub syslinux
+        efibootmgr zsh git rsync keychain riggrep bat
 
     genfstab -pU /mnt | tee /mnt/etc/fstab
     cp /etc/netctl/XXX /mnt/etc/netctl/
@@ -57,8 +65,9 @@ install archlinux from archlinux
     #       vimdiff /esp/EFI/grub/grub.cfg /boot/grub/grub.cfg
     mkinitcpio -p linux
 
-    pacman -S gnupg pass syslinux dosfstools parted gptfdisk ntfs-3g mtools tmux pacman-contrib lm_sensors
-    pacman -S net-tools keychain base-devel wireguard-tools git rsync 
+    pacman -S gnupg pass dosfstools gptfdisk ntfs-3g mtools tmux pacman-contrib lm_sensors
+    pacman -S base-devel man-db man-pages
+        wireguard-tools 
     pacman -S xorg-server xterm fvwm sx xorg-xinit xdg-utils rxvt-unicode gparted bashrun rofi redshift unclutter \
         xorg-xmessage xorg-xev xorg-xwininfo xorg-xprop xorg-xmag \
         feh scrot imagemagick mplayer \
@@ -70,7 +79,8 @@ install archlinux from archlinux
     pacman -S code yarn pandoc cmake
 
     systemctl enable dhcpcd@ens11.service
-        systemctl enable netctl-auto@ethernet-dhcp
+        netctl enable ethernet-static # systemctl enable netctl
+        #! systemctl enable netctl-auto@ethernet-dhcp
     systemctl enable sshd
 
     passwd

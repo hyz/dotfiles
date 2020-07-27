@@ -32,4 +32,3 @@ if [[ -d "$ANDROID_SDK" ]] ; then
 fi
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 
-source /home/wood/.config/broot/launcher/bash/br
