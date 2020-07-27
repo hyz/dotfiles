@@ -1,3 +1,24 @@
 
-	systemctl restart bluetooth
-	bluetoothctl
+
+    lsmod |grep blue
+    journalctl -b | grep Bluetooth
+    lspci -k -s 02:00.0
+
+
+	systemctl restart bluetooth.service
+    systemctl status  bluetooth.service
+    rfkill
+    rfkill unblock bluetooth
+
+    bluetoothctl list
+    bluetoothctl devices
+    bluetoothctl paired-devices
+    bluetoothctl info XX:YY:ZZ:...
+
+    bluetoothctl default-agent
+    bluetoothctl connect XX:YY:ZZ:...
+
+    bluetoothctl show
+
+    bluetoothctl disconnect
+
