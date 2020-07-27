@@ -30,5 +30,16 @@ if [[ -d "$ANDROID_SDK" ]] ; then
 
     PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
 fi
+
+XHOME=/xhome
+
+# [[ -n "$CARGO_HOME" ]] && [[ -d "$CARGO_HOME/bin" ]] ; then
+if [[ -d "$XHOME" ]] ; then
+    CARGO_HOME=$XHOME/cargo
+    RUSTUP_HOME=$XHOME/rustup
+    PATH=$PATH:$CARGO_HOME/bin
+fi
+export XHOME CARGO_HOME RUSTUP_HOME
+
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 
