@@ -1,7 +1,11 @@
 #!/bin/bash
 
+
+WorkDir="$1"/..
 Target=`basename "$1"`
-cd "$1"/.. || exit 1
+shift
+
+cd $WorkDir || exit 1
 [ -d "$Target" ] && [ ${Target:0:1} != . ] || exit 3
 
 tempfn=$(mktemp "/tmp/dosbox-XXXXX.conf") || exit 5
@@ -513,5 +517,5 @@ play
 
 _Eof
 
-dosbox -conf $tempfn
+dosbox-x -conf $tempfn $*
 

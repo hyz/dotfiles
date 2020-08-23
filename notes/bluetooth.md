@@ -1,4 +1,5 @@
 
+## https://wiki.archlinux.org/index.php/Bluetooth
 
     lsmod |grep blue
     journalctl -b | grep Bluetooth
@@ -21,4 +22,5 @@
     bluetoothctl show
 
     bluetoothctl disconnect
+
 
