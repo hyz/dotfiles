@@ -3,5 +3,12 @@
 
     https://github.com/FelisCatus/SwitchyOmega/wiki/GFWList
 
-http://chromedriver.chromium.org/downloads
+## chromedriver
+
+    http://chromedriver.chromium.org/downloads
+    https://sites.google.com/a/chromium.org/chromedriver
+
+
+    https://chromedriver.storage.googleapis.com/index.html
+    http://npm.taobao.org/mirrors/chromedriver/
 

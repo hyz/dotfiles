@@ -192,3 +192,14 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
     rg -t java --files |grep -vE '(test|3rdparty|Crypto)' > java.files
     rg -t cpp --files |grep -vE '(test|3rdparty|Crypto)' > cpp.files
 
+
+mv --no-clobber -vt ../Audience/tmp tmp/*.mp3
+
+perl-rename --dry-run 's/\.MP3/.mp3/' *.MP3
+
+rmlint
+
+perl-rename 's/ *\(20\d+-\d+-\d+ \d+_\d+_\d+ [AP]M\)//' ~/Downloads/*.html
+
+perl-rename 's/投资者(\d)\.mp3/投资者0$1.mp3/' *.mp3
+
