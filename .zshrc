@@ -21,6 +21,13 @@ else
     export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
 fi
 
+## https://github.com/NerdyPepper/pista
+#autoload -Uz add-zsh-hook
+#_pista_prompt() {
+# PROMPT="$(pista -z)"   # `pista -zm` for the miminal variant
+#}
+#add-zsh-hook precmd _pista_prompt
+
 export HISTSIZE=10000
 export SAVEHIST=1000
 export HISTFILE=$HOME/.zhistory
@@ -72,7 +79,7 @@ fi
         alias ls='ls -F' # alias ls='ls -F --color=auto'
     fi
 
-alias ll='ls -l'
+alias ll='ls -trl'
 
 #
 #
@@ -132,6 +139,4 @@ alias gp=git-pull.sh
 date
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-
 #source /home/wood/.config/broot/launcher/bash/br

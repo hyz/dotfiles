@@ -25,3 +25,11 @@
         #XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
     # /etc/wgetrc
 
+### https://forum.manjaro.org/t/pacman-error-unrecognized-archive-format/121517
+
+    curl -LO https://pkgbuild.com/~eschwartz/repo/x86_64-extracted/pacman-static
+    chmod +x pacman-static
+    sudo ./pacman-static -Syyu
+
+    git clone https://aur.archlinux.org/pacman-static.git
+

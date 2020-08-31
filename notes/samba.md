@@ -41,3 +41,18 @@ https://www.samba.org/samba/docs/using_samba/ch08.html
     veto files = /.*/*.bmp/*.jpg/*.png/*.gif/
 
 
+
+### troubles shoot
+
+    ls -ld /
+    stat /
+
+https://www.linuxquestions.org/questions/linux-server-73/samba-fails-failed-to-create-pipe-directory-4175664191/
+
+    ExecStartPre=/bin/mkdir /run/samba
+
+
+https://forums.centos.org/viewtopic.php?t=65876
+
+    systemd-tmpfiles --create /usr/lib/tmpfiles.d/samba.conf
+

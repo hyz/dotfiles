@@ -1,8 +1,9 @@
 
-https://wiki.archlinux.org/index.php/Bluetooth_headset
-https://wiki.archlinux.org/index.php/Bluetooth#Audio
-https://wiki.archlinux.org/index.php/PulseAudio
+    https://wiki.archlinux.org/index.php/Bluetooth_headset
+    https://wiki.archlinux.org/index.php/Bluetooth#Audio
+    https://wiki.archlinux.org/index.php/PulseAudio
 
+## https://wiki.archlinux.org/index.php/Bluetooth
 
     lsmod |grep blue
     journalctl -b | grep Bluetooth
