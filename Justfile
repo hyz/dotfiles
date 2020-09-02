@@ -49,9 +49,9 @@ sshfs:
 	mount -t sshfs n234:/xhome /xhome
 
 bluetooth:
-	#!/bin/sudo /bin/bash
+	#!/bin/bash
 	bluetoothctl disconnect
-	systemctl restart bluetooth.service
+	/bin/sudo systemctl restart bluetooth.service
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
 
 ftp-share:
