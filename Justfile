@@ -49,12 +49,14 @@ sshfs:
 	mount -t sshfs n234:/xhome /xhome
 
 bluetooth:
-	systemctl restart bluetooth.service
+	#!/bin/sudo /bin/bash
 	bluetoothctl disconnect
+	systemctl restart bluetooth.service
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
 
-ftpbind:
-	#!/bin/bash
-	#sudo mount -o bind /home/library/Music /home/ftp/Music
-	#sudo mount -o bind /home/samba/Audience /home/ftp/Audience
+ftp-share:
+	#!/bin/sudo /bin/bash
+	mount -o bind /home/library/Music /home/ftp/Music
+	mount -o bind /home/samba/Audience /home/ftp/Audience
+	systemctl restart bftpd.service
 
