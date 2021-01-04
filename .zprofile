@@ -144,7 +144,7 @@ done
 XHOME=/xhome
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/d/home
-elif [ -d /xhome/cargo ] ; then
+elif [ -d /xhome/bin ] ; then
     XHOME=/xhome
 else
     XHOME=$HOME/xhome
@@ -181,5 +181,4 @@ export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export PATH
 
-source $HOME/.config/broot/launcher/bash/br
 

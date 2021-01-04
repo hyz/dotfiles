@@ -161,6 +161,8 @@ Plug 'chemzqm/wxapp.vim'
 Plug 'mattn/emmet-vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
+Plug 'mcchrish/nnn.vim'
+
 call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
@@ -276,7 +278,8 @@ if filereadable(expand("~/.vim/bundle/snake/plugin/snake.vim"))
     source ~/.vim/bundle/snake/plugin/snake.vim
 endif
 
-""" rust // https://github.com/ivanceras/rust-vim-setup
+""" rust
+""" https://github.com/ivanceras/rust-vim-setup
 let g:rustfmt_autosave = 1
 "let g:racer_cmd = "$HOME/.home/cargo/bin/racer"
 "let g:racer_experimental_completer = 1

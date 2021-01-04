@@ -47,9 +47,9 @@ Mouse   1  W   M 	Move-or-Raise
 Key  	q      A  MS 	Quit
 key 	q      A  M 	Restart
 
-key 	Return A  M 	Exec exec xterm -geometry 96x24-0+0 -e /usr/bin/zsh --login -i
+key 	Return A  M 	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
 #key 	Return A  M 	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
-key 	x      A  MS 	Exec exec xterm -geometry 96x24-0+0 -e /usr/bin/zsh --login -i
+key 	x      A  MS 	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
 #key 	x      A  MS 	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
 
 Key 	x      A  M 	Exec exec bashrun
