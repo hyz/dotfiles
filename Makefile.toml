@@ -1,0 +1,236 @@
+
+
+[config]
+default_to_workspace = false
+min_version = "0.32.1"
+
+[config.modify_core_tasks]
+private = true
+namespace = "default"
+
+[env]
+RUST_RECURSION_COUNT = "0"
+
+[tasks.all]
+description = "Build Seed and examples"
+dependencies = [] # ["build", "build_examples"]
+
+[tasks.build]
+description = "Build only Seed"
+command = "cargo"
+args = ["build"]
+
+[tasks.build_release]
+extend = "build"
+description = "Build only Seed in relase mode"
+args = ["build", "--release"]
+
+[tasks.start]
+description = "Start chosen example. Ex: 'cargo make start counter'"
+command = "cargo"
+args = ["make", "--cwd", "./examples/${@}", "start"]
+
+[tasks.start_release]
+extend = "start"
+description = "Start chosen example in release mode. Ex: 'cargo make start counter'"
+args = ["make", "--cwd", "./examples/${@}", "start_release"]
+
+[tasks.start_server]
+description = "Start server of chosen example (only a few have one). Ex: 'cargo make start_server websocket'"
+command = "cargo"
+args = ["make", "--cwd", "./examples/${@}", "start_server"]
+
+[tasks.start_server_release]
+extend = "start_server"
+description = "Start server of chosen example (only a few have one) in release mode. Ex: 'cargo make start_server websocket'"
+args = ["make", "--cwd", "./examples/${@}", "start_server_release"]
+
+[tasks.default_build]
+description = "Build with wasm-pack"
+command = "wasm-pack"
+args = ["build", "--target", "web", "--out-name", "package", "--dev"]
+dependencies = ["default::install-wasm-pack"]
+
+[tasks.default_build_release]
+extend = "default_build"
+description = "Build with wasm-pack in release mode"
+args = ["build", "--target", "web", "--out-name", "package", "--release"]
+
+[tasks.default_start]
+description = "Build and start microserver"
+install_crate = { crate_name = "microserver", binary = "microserver", test_arg = "-h" }
+command = "microserver"
+args = ["--port", "8000"]
+dependencies = ["build"]
+
+[tasks.default_start_release]
+extend = "default_start"
+description = "Build and start microserver in release mode"
+dependencies = ["build_release"]
+
+##############################################################
+[tasks.duckscript-example]
+script_runner = "@duckscript"
+script = [
+'''
+task_name = get_env CARGO_MAKE_CURRENT_TASK_NAME
+echo The currently running cargo make task is: ${task_name}
+
+# since all env vars are auto loaded as duckscript variables by cargo-make
+# you can access them directly
+echo The currently running cargo make task is: ${CARGO_MAKE_CURRENT_TASK_NAME}
+
+cd .. # this changes cargo-make current working directory (cargo-make will revert to original directory after script execution)
+pwd
+set_env CARGO_MAKE_CURRENT_TASK_NAME tricking_cargo_make
+'''
+]
+
+
+[tasks.run-task-from-duckscript]
+script_runner = "@duckscript"
+script = [
+'''
+echo first invocation of echo1 task:
+cm_run_task echo1
+echo second invocation of echo1 task:
+cm_run_task echo1
+
+echo running task: echo2:
+cm_run_task echo2
+'''
+]
+
+[tasks.echo1]
+command = "echo"
+args = ["1"]
+
+[tasks.echo2]
+command = "echo"
+args = ["2"]
+
+[tasks.cargo-script]
+env = { "CARGO_MAKE_RUST_SCRIPT_PROVIDER" = "cargo-script" }
+script_runner = "@rust"
+script = [
+'''
+fn main() {
+    println!("test");
+}
+'''
+]
+
+[tasks.cargo-play]
+env = { "CARGO_MAKE_RUST_SCRIPT_PROVIDER" = "cargo-play" }
+script_runner = "@rust"
+script = [
+'''
+fn main() {
+    println!("test");
+}
+'''
+]
+
+[tasks.varargs]
+# script_runner = "@duckscript"
+command = "echo"
+args = [ "args are:", "-o=${@}" ]
+
+[tasks.merge-1]
+script_runner = "@duckscript"
+script = [
+'''
+# set_env SPRITES_LIST ${@}
+echo SPRITES_LIST: ${SPRITES_LIST}
+pwd
+cm_run_task merge-v1
+'''
+]
+
+## cargo make merge-1 -e SPRITES_LIST=..\imgs\tesla\tesla1.txt -e OUTFILE=tesla.png
+## cargo run --bin list -- tella | python merge-v.py tmp.png
+[tasks.merge-v1]
+description = "Populate styles"
+script_runner = "python"
+script_extension = "py"
+env = { STYLES_ENDPOINT = "css_properties.json", STYLE_NAMES_FILE = "styles/style_names.rs" }
+script = [
+'''
+import sys, os
+import numpy as np
+from PIL import Image
+
+def merge(images, outfile):
+    min_img_shape = sorted([(np.sum(i.size), i.size) for i in images])[0][1]
+    img_merge = np.vstack(
+        (np.asarray(i.resize(min_img_shape, Image.ANTIALIAS)) for i in images))
+    img_merge = Image.fromarray(img_merge)
+    img_merge.save(outfile)
+
+def images(images, basedir):
+    images = filter(lambda e:e, map(str.strip, images) )
+    images = list(images)
+    print(images, sep='\n') #; sys.exit(0)
+    return [ Image.open( os.path.join(basedir, it.replace('\\','/')) ) for it in images ]
+
+def envargs():
+	# return sys.stdin, "."
+	infile = os.getenv("SPRITES_LIST")
+	assert infile, "-e SPRITES_LIST=..."
+	outfile = os.getenv("OUTFILE", infile+".png") #os.path.splitext(infile)[0] + ".png"
+	return open(infile), os.path.dirname(infile), outfile
+
+#print(os.getcwd(), "${STYLES_ENDPOINT}")
+infile, basedir, outfile = envargs()
+images = images(infile, basedir)
+merge(images, outfile)
+
+'''
+]
+
+#$ cat filelist.txt
+# file 1.mp3
+# file 2.mp3
+# file 3.mp3
+#
+#ffmpeg-concat:
+#	ffmpeg -f concat -i filelist.txt -c copy output.mp3
+
+[tasks.ffmpeg-concat]
+description = "ffmpeg concat"
+script_runner = "python"
+script_extension = "py"
+env = { INPUT_FILES = "input.txt", OUTPUT_FILE = "output" }
+script = [
+'''
+import sys, os
+
+def convert(infilename, outfilename):
+	with open(infilename) as f:
+		fs = filter(lambda e:e, map(str.strip, f) )
+		fs = list(fs)
+		print(*fs, sep='\n') #; sys.exit(0)
+		_, ext = os.path.splitext(fs[0])
+		lis = []
+		for i,f in enumerate(fs):
+			lis.append(f"{i}{ext}")
+			os.link(f, os.path.join("tmp",lis[-1]))
+		xfn = "tmp/input-files.txt" #os.path.join("tmp", infilename)
+		with open(xfn, "w") as xf:
+			print( *map(lambda p: f"file {p}", lis), sep="\n", file=xf)
+			return xfn, f"{outfilename}{ext}"
+		#return [ Image.open( os.path.join(basedir, it.replace('\\','/')) ) for it in images ]
+
+def main(infilename, outfilename):
+	infilename, outfilename = convert(infilename, outfilename)
+	print(f"ffmpeg -f concat -i {infilename} -c copy {outfilename}")
+	os.system(f"ffmpeg -f concat -i {infilename} -c copy {outfilename}")
+
+ifn = os.getenv("INPUT_FILES")
+ofn = os.getenv("OUTPUT_FILE")
+assert os.path.exists(ifn) and ofn, f"{ifn} {ofn}\n\tcargo make ffmpeg-concat -e INPUT_FILES=... -e OUT_FILE=...\n"
+main(ifn, ofn)
+
+'''
+]
+

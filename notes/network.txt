@@ -31,7 +31,3 @@
 ### http://stackoverflow.com/questions/3755208/measuring-time-difference-between-networked-devices?rq=1
 ### http://stackoverflow.com/questions/8682702/how-to-calculate-packet-time-from-latency-and-bandwidth
 
-### http://stackoverflow.com/questions/1694144/can-two-applications-listen-to-the-same-port?noredirect=1&lq=1
-
-    iptables -m statistic --mode random --probability 0.5
-

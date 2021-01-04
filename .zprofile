@@ -104,7 +104,7 @@ fi
 
 #PATH=$PATH:/sbin:/usr/sbin
 
-ANDROID_SDK=/opt/android-sdk
+ANDROID_SDK=/xhome/sdk/android-sdk
 if [[ -d "$ANDROID_SDK" ]] ; then
     #ANDROID_SDK_HOME=$ANDROID_SDK
     ANDROID_HOME=$ANDROID_SDK
@@ -114,7 +114,7 @@ if [[ -d "$ANDROID_SDK" ]] ; then
 fi
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 
-ANDROID_NDK=/opt/android-ndk
+ANDROID_NDK=/xhome/sdk/android-ndk
 if [ -d "$ANDROID_NDK" ]; then
     ANDROID_NDK_HOME=$ANDROID_NDK
     export ANDROID_NDK ANDROID_NDK_HOME
@@ -141,20 +141,22 @@ done
 #    true
 #fi
 
-if uname -r |grep Microsoft 2>/dev/null ; then
+XHOME=/xhome
+if uname -r | /bin/grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/d/home
-elif [ -d /xhome ] ; then
+elif [ -d /xhome/cargo ] ; then
     XHOME=/xhome
 else
-    XHOME=$HOME/home
+    XHOME=$HOME/xhome
 fi
-GOPATH=$XHOME/go
-#DENO_DIR=$XHOME/deno
+XSDK=$XHOME/sdk
+DENO_DIR=$XHOME/deno
+DENO_INSTALL_ROOT=$DENO_DIR
 CARGO_HOME=$XHOME/cargo
 RUSTUP_HOME=$XHOME/rustup
 WASMER_DIR=$XHOME/wasmer
-
-export XHOME GOPATH CARGO_HOME RUSTUP_HOME
+GOPATH=$XHOME/go
+FLUTTER_HOME=$XSDK/flutter
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -166,15 +168,18 @@ export XHOME GOPATH CARGO_HOME RUSTUP_HOME
     #export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 #fi
 
-#export NOTION_HOME="$XHOME/notion"
+#export NOTION_HOME="$XHOME/node/notion"
 #[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
 #PATH="${NOTION_HOME}/bin:$PATH"
 
-PATH="$CARGO_HOME/bin:/opt/flutter/bin:$PATH"
-if [ -x /opt/google/chrome/chrome ] ; then
-    PATH="$PATH:/opt/google/chrome"
-fi
+PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
+
+if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
+
+export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL_ROOT
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export PATH
 
-export PUB_HOSTED_URL=https://pub.flutter-io.cn FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+source $HOME/.config/broot/launcher/bash/br
 

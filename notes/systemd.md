@@ -91,3 +91,76 @@ https://jason.the-graham.com/2013/03/06/how-to-use-systemd-timers/
 
 
 https://wiki.archlinux.org/index.php/Systemd-boot
+
+
+### cat /lib/systemd/system/sss.service
+
+    [Unit]
+    Description=sss
+    Documentation=
+    After=network.target
+
+    [Service]
+    Type=simple
+    Environment="LANG=en_US.UTF-8"
+    #LimitNOFILE=32768
+    #User=wood
+    #WorkingDirectory=/home/wood
+    ExecStart=/usr/local/bin/sss -c /etc/sss-config.json
+
+    [Install]
+    WantedBy=multi-user.target
+
+
+### cat /lib/systemd/system/kcps.service 
+
+    [Unit]
+    Description=kcps
+    Documentation=
+    After=network.target
+
+    [Service]
+    Type=simple
+    Environment="LANG=en_US.UTF-8"
+    #LimitNOFILE=32768
+    #User=wood
+    #WorkingDirectory=/home/wood
+    ExecStart=/usr/local/bin/kcps -c /etc/kcps.json
+
+    [Install]
+    WantedBy=multi-user.target
+
+### cat /etc/kcps.json 
+    {
+        "listen": ":18908",
+        "target": "127.0.0.1:31974",
+        "key": "xxxxxxxxxxxxxxxxx",
+        "crypt": "aes-128",
+        "mode": "fast2",
+        "mtu": 1350,
+        "sndwnd": 1024,
+        "rcvwnd": 1024,
+        "datashard": 70,
+        "parityshard": 30,
+        "dscp": 46,
+        "nocomp": true,
+        "acknodelay": false,
+        "nodelay": 0,
+        "interval": 40,
+        "resend": 0,
+        "nc": 0,
+        "sockbuf": 4194304,
+        "keepalive": 10
+    }
+
+### cat /etc/sss-config.json 
+    {
+        "server":"127.0.0.1",
+        "server_port":31974,
+        "local_address":"127.0.0.1",
+        "local_port":31974,
+        "password":"xxxxxxxxxxxxxxxxxxx",
+        "timeout":600,
+        "method":"aes-256-cfb"
+    }
+

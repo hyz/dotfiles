@@ -1,19 +1,20 @@
 
+    $ initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data --auth-local trust
     $ sudo -iu postgres -- initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'
     $ sudo -iu postgres -- createuser --interactive
     $ sudo -iu postgres -- psql -c "create database wood OWNER wood"
-    $ psql -c "\l"
-    $ psql wood -c "\d"
+    $ psql -c \\l
+    $ psql wood -c \\d
 
     pg_dump --data-only --column-inserts `date +decor%y%m%d` -t entitys
 
     psql <<< "SELECT version()"
-    psql <<< "\list"
-    psql -c "\l+"
-    psql -c "\dt"
+    psql <<< \\list
+    psql -c \\l+
+    psql -c \\dt
 
-    psql -c "\conninfo"
-    psql -c "\? variables"
+    psql -c \\conninfo
+    psql -c \\? variables
 
 ### db admin, backup/restore
 

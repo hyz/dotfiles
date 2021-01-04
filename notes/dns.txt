@@ -45,3 +45,7 @@ DNSPod DNS+：★★★★★（推荐）
     sudo /opt/sbin/dnscrypt-proxy --daemonize --resolver-name=4armed --local-address=0.0.0.0:53
 
 
+
+https://dnsleaktest.com/what-is-a-dns-leak.html
+https://dnsleaktest.com/what-is-transparent-dns-proxy.html
+

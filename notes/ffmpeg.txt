@@ -1,4 +1,13 @@
 
+### ffmpeg concat files
+
+    $ cat filelist.txt
+    file 1.mp3
+    file 2.mp3
+    file 3.mp3
+
+	ffmpeg -f concat -i filelist.txt -c copy output.mp3
+
 ### https://www.jianshu.com/p/2a824f13b2af
 
 - 合并音频和视频
@@ -201,3 +210,4 @@ test hwaccel
 ffmpeg -i $filename -strict -2 -vf crop=270:360:1:60 270x360.mp4
 
 ## https://www.jianshu.com/p/0819ac4205fd
+ffmpeg -i video.mp4 frame%04d.png

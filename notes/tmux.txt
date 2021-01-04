@@ -1,5 +1,13 @@
 
-https://blog.bugsnag.com/tmux-and-vim/
+### https://blog.bugsnag.com/tmux-and-vim/
 
+    export LS_COLORS="$(vivid generate molokai)" ; tmux attach || tmux -2
+
+### https://stackoverflow.com/questions/11832199/tmux-set-g-mouse-mode-on-doesnt-work
+
+    set -g mouse on
+
+    `Shift`
+    press shift before selecting or pasting
 
 https://fpdownload.macromedia.com/pub/flashplayer/pdc/32.0.0.330/install_flash_player_32_plugin.msi

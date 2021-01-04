@@ -10,6 +10,7 @@ default:
 help:
 	@ echo 'export LS_COLORS="$(vivid generate molokai)"'
 
+# just xsearch-dbup /home/library/yy/dsky库存表/20-1126.xlsx
 xsearch-dbup FILE:
 	#xf-parse -f code-name {{FILE}}
 	xf-parse -f code-name --host tyun {{FILE}}
@@ -21,9 +22,10 @@ update_code-name +FILES:
 	bat code-name
 	@rg '^Updated' /tmp/update_code-name.log || true
 
-stone-story:
-	curlftpfs 192.168.9.55 ~/mnt/Music
-	ln -sf ~/mnt/Music/foobar2000\ Music\ Folder/stone-story .
+ftpfs:
+	[ -d /tmp/Music ] || mkdir /tmp/Music
+	curlftpfs 192.168.1.14 /tmp/Music
+	#ln -sf ~/mnt/Music/foobar2000\ Music\ Folder/stone-story .
 
 bin BIN_F:
 	RUSTFLAGS="-Ctarget-feature=-crt-static" RUSTFLAGS="-L/usr/lib/musl/lib" CC="musl-gcc -fPIC -pie" \
@@ -49,14 +51,56 @@ sshfs:
 	mount -t sshfs n234:/xhome /xhome
 
 bluetooth:
-	#!/bin/bash
-	bluetoothctl disconnect
 	/bin/sudo systemctl restart bluetooth.service
+	bluetoothctl disconnect
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
 
-ftp-share:
+
+# $ cat filelist.txt
+# file 1.mp3
+# file 2.mp3
+# file 3.mp3
+# 
+ffmpeg-concat:
+	ffmpeg -f concat -i filelist.txt -c copy output.mp3
+
+####!/usr/bin/env just --working-directory . --justfile
+# vim: set ft=make :
+
+env:
 	#!/bin/sudo /bin/bash
-	mount -o bind /home/library/Music /home/ftp/Music
-	mount -o bind /home/samba/Audience /home/ftp/Audience
+	env
+
+ftpd:
+	#!/bin/sudo /bin/bash
+	#mount -o bind /home/samba/Audience /home/ftp/Audience
+	#mount -o bind /home/library/Music /home/ftp/Music
+	#mount -o bind /home/library/Wealth财富.投资.博弈.金融.经济 /home/ftp/Wealth
+	#mount -o bind /home/library/Knowledge知识.知无知.脑意识.人性.人类学.逻辑学.哲学 /home/ftp/Knowledge
+	#mount -o bind /home/library/Interpersonal人际.心理.沟通.社交.形象标签 /home/ftp/Interpersonal
+	#mount -o bind /home/library/Literature文学.历史.艺术.人文.信仰 /home/ftp/Literature
+	#mount -o bind /home/library/Language语言.英语.汉语.日.西班牙 /home/ftp/Language
+	#mount -o bind /home/library/Education /home/ftp/Education
+	#mount -o bind /home/library/Lessions /home/ftp/Music/Lessions
+ftp-mount:
+	#!/bin/sudo /bin/bash
+	#!/bin/sudo --chdir /home/ftp /bin/bash
+	cd /home/ftp
+	for x in `find ???* -maxdepth 1 -type d` ; do
+		src=`find ../library -maxdepth 1 -type d -name "$x*"`
+		echo "$src $x"
+		[ -d "$x" -a -d "$src" ] || continue
+		mount -o bind "$src" "$x"
+	done
+
+ftp-restart:
+	#!/bin/sudo /bin/bash
 	systemctl restart bftpd.service
+	netstat -ntlp
+
+ftp-bind-share:
+	#!/bin/sudo /bin/bash
+	#mount -o bind /home/library/Music /home/ftp/Music
+	#mount -o bind /home/samba/Audience /home/ftp/Audience
+	#systemctl restart bftpd.service
 

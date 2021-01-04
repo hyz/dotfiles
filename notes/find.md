@@ -1,4 +1,6 @@
 
+    fd -d4 -td -Ig target
+
     find * -type d -name node_modules -prune
     find * -type d -prune
     find . -maxdepth 3 \( -name '.??*' \) -prune -false -o -name rust-by-examples -print
@@ -25,4 +27,5 @@
     sudo find . ! -user 1007 -exec chown -h build: '{}' \;
 
 ### find src -type f -perm \/111
+
 

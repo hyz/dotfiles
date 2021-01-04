@@ -123,8 +123,8 @@ google() {
 [ ! -f "$HOME/.pythonstartup" ] || export PYTHONSTARTUP=$HOME/.pythonstartup
 
 
-#alias tmux='TERM=xterm-256color tmux'
-alias tmux='tmux -2'
+alias tmux='TERM=xterm-256color tmux -2'
+#alias tmux='tmux -2'
 
 ##alias for cnpm
 #alias cnpm="npm --registry=https://registry.npm.taobao.org \
@@ -140,3 +140,5 @@ date
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 #source /home/wood/.config/broot/launcher/bash/br
+
+source /home/wood/.config/broot/launcher/bash/br

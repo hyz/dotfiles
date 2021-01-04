@@ -67,10 +67,14 @@ unset color_prompt force_color_prompt
 case "$TERM" in
 xterm*|rxvt*)
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    export TERM=xterm-256color
     ;;
 *)
     ;;
 esac
+
+#export TERM=xterm LS_COLORS="$(vivid generate molokai)"
+#export TERM=Screen-256 LS_COLORS="$(vivid generate molokai)"
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -143,3 +147,5 @@ fi
 #export WASMER_DIR="/home/wood/.wasmer"
 #[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"  # This loads wasmer
 
+
+#source e/home/wood/.config/broot/launcher/bash/br

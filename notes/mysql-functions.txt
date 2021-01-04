@@ -1183,7 +1183,6 @@ Related stories
    [116]ios
    [117]iperf
    [118]ipmi
-   [119]iptables
    [120]ipv6
    [121]irix
    [122]javascript
@@ -1451,7 +1450,6 @@ References
  116. http://www.pantz.org/tags/ios.html
  117. http://www.pantz.org/tags/iperf.html
  118. http://www.pantz.org/tags/ipmi.html
- 119. http://www.pantz.org/tags/iptables.html
  120. http://www.pantz.org/tags/ipv6.html
  121. http://www.pantz.org/tags/irix.html
  122. http://www.pantz.org/tags/javascript.html

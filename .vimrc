@@ -82,15 +82,15 @@ function! BuildComposer(info)
     endif
   endif
 endfunction
-function! BuildYCM(info)
-  " info is a dictionary with 3 fields
-  " - name:   name of the plugin
-  " - status: 'installed', 'updated', or 'unchanged'
-  " - force:  set on PlugInstall! or PlugUpdate!
-  if a:info.status == 'installed' || a:info.force
-    !./install.py
-  endif
-endfunction
+" function! BuildYCM(info)
+"   " info is a dictionary with 3 fields
+"   " - name:   name of the plugin
+"   " - status: 'installed', 'updated', or 'unchanged'
+"   " - force:  set on PlugInstall! or PlugUpdate!
+"   if a:info.status == 'installed' || a:info.force
+"     !./install.py
+"   endif
+" endfunction
 
 if executable('rls')
     au User lsp_setup call lsp#register_server({
@@ -109,7 +109,7 @@ Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 "Plug 'rhysd/rust-doc.vim'
-Plug 'racer-rust/vim-racer'
+"Plug 'racer-rust/vim-racer'
 Plug 'timonv/vim-cargo'
 
 Plug 'vim-scripts/fcitx.vim'
@@ -130,7 +130,7 @@ Plug 'pangloss/vim-javascript'
 "Plug 'vim-scripts/VimIM'
 "Plug 'plasticboy/vim-markdown'
 ""cargo install skim
-Plug 'lotabout/skim.vim'
+"Plug 'lotabout/skim.vim'
 Plug 'ryym/vim-riot'
 
 "Plug 'suan/vim-instant-markdown'
@@ -269,19 +269,18 @@ filetype plugin indent on
 syntax on
 set hidden
 
-""" rust
-""" https://github.com/ivanceras/rust-vim-setup
-let g:rustfmt_autosave = 1
-"let g:racer_cmd = "$HOME/.home/cargo/bin/racer"
-let g:racer_experimental_completer = 1
-let g:ycm_rust_src_path="$HOME/.home/rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
-
 """ python
 let g:pymode_python = 'python3'
 "let g:ycm_python_binary_path = 'python'
 if filereadable(expand("~/.vim/bundle/snake/plugin/snake.vim"))
     source ~/.vim/bundle/snake/plugin/snake.vim
 endif
+
+""" rust // https://github.com/ivanceras/rust-vim-setup
+let g:rustfmt_autosave = 1
+"let g:racer_cmd = "$HOME/.home/cargo/bin/racer"
+"let g:racer_experimental_completer = 1
+"let g:ycm_rust_src_path="$HOME/.home/rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
 
 ""autocmd BufRead *.rs :setlocal tags=./rusty-tags.vi;/
 ""autocmd BufWrite *.rs :silent! exec "!rusty-tags vi --quiet --start-dir=" . expand('%:p:h') . "&" <bar> redraw!

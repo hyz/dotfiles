@@ -1,34 +1,42 @@
 
 ### https://wiki.archlinux.org/index.php/GNU_Parted#Resizing_Partitions
 
-        (parted) resizepart number end
-        # resize2fs /dev/sdaX size
+    # unmount /dev/sdxX
 
-    To shrink the filesystem on the partition:
-        # resize2fs /dev/sdaX size
-        (parted) resizepart number end
+    (parted) resizepart number end
+
+    # e2fsck -f /dev/sdxX
+    # resize2fs /dev/sdxX [size]
+
+To shrink the filesystem on the partition:
+
+    # unmount /dev/sdxX
+    # e2fsck -f /dev/sdxX
+    # resize2fs /dev/sdxX size
+
+    (parted) resizepart number end
 
 ### https://wiki.archlinux.org/index.php/GNU_Parted
 
-(parted) unit s
-(parted) print free
-Model: ADATA USB Flash Drive (scsi)
-Disk /dev/sdd: 30869504s
-Sector size (logical/physical): 512B/512B
-Partition Table: gpt
-Disk Flags:
+    (parted) unit s
+    (parted) print free
+    Model: ADATA USB Flash Drive (scsi)
+    Disk /dev/sdd: 30869504s
+    Sector size (logical/physical): 512B/512B
+    Partition Table: gpt
+    Disk Flags:
 
-Number  Start      End        Size       File system  Name                  Flags
-        34s        39s        6s         Free Space
- 1      40s        409639s    409600s    fat32        EFI System Partition  boot, esp
- 2      409640s    23847135s  23437496s  hfs+         MacUSB
-        23847136s  30869470s  7022335s   Free Space
+    Number  Start      End        Size       File system  Name                  Flags
+            34s        39s        6s         Free Space
+     1      40s        409639s    409600s    fat32        EFI System Partition  boot, esp
+     2      409640s    23847135s  23437496s  hfs+         MacUSB
+            23847136s  30869470s  7022335s   Free Space
 
-(parted) mkpart primary ext3 23848960s -1s
-Warning: You requested a partition from 23848960s to 30869503s (sectors 23848960..30869503).
-The closest location we can manage is 23848960s to 30869470s (sectors 23848960..30869470).
-Is this still acceptable to you?
-Yes/No? y
+    (parted) mkpart primary ext3 23848960s -1s
+    Warning: You requested a partition from 23848960s to 30869503s (sectors 23848960..30869503).
+    The closest location we can manage is 23848960s to 30869470s (sectors 23848960..30869470).
+    Is this still acceptable to you?
+    Yes/No? y
 
 === === ===
 wood@arch> sudo parted /dev/sda unit chs print free
@@ -203,4 +211,5 @@ Number  Start      End        Size      File system     Name                  Fl
         215858MiB  215859MiB  1.00MiB   Free Space
 10      215859MiB  238475MiB  22616MiB  fat32           X                     msftdata
         238475MiB  238475MiB  0.16MiB   Free Space
+
 

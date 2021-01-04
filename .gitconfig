@@ -4,10 +4,10 @@
 [color]
 	status = auto
 	branch = auto
-[diff]
-    external = git_vimdiff.sh
-[pager]
-    diff =
+#[diff]
+#    external = git_vimdiff.sh
+#[pager]
+#diff =
 
 #[push]
 #	default = simple
@@ -25,5 +25,18 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
 [pull]
 	rebase = false
+
+[core]
+    pager = delta
+
+[delta]
+    plus-color = "#012800"
+    minus-color = "#340001"
+    syntax-theme = Monokai Extended
+
+[interactive]
+    diffFilter = delta --color-only
+
