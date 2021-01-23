@@ -1,15 +1,17 @@
 
+    cargo sweep -i
+
     cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name myw1
-
     cargo install --git https://github.com/derniercri/snatch.git --branch devel
-
 
     LIBGL_ALWAYS_SOFTWARE=1 cargo run --release
     LIBGL_ALWAYS_SOFTWARE=1 cargo run -p stylish_webrender --example demo --release
 
     cargo run --features="winit glium" --release --example old_demo
-
     cargo graph --optional-line-style dashed --optional-line-color red --optional-shape box --build-shape diamond --build-color green --build-line-color orange | dot -Tpng > graph.png
+
+    cargo install-update --all --list
+    cargo generate --git https://github.com/rustwasm/wasm-pack-template --name sim
 
 ### mingw-w64
 
@@ -38,6 +40,4 @@
 
     # OPENSSL_STATIC=1 OPENSSL_INCLUDE_DIR=/usr/lib/musl/include OPENSSL_LIB_DIR=/usr/lib/musl/lib PKG_CONFIG_ALLOW_CROSS=1 SODIUM_STATIC=yes SODIUM_LIB_DIR=/usr/lib/musl/lib cargo build --release --target x86_64-unknown-linux-musl
 
-cargo install-update --all --list
 
-cargo generate --git https://github.com/rustwasm/wasm-pack-template --name sim

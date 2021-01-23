@@ -31,7 +31,7 @@ Xephyr is a nested X server that runs as an X application.
 
     pacman -S xorg-server-xephyr
 
-    Xephyr -br -ac -noreset -screen 800x600 :1
+    Xephyr -br -ac -noreset -screen 1440x1080 :1
     DISPLAY=:1 src/tilewm
     DISPLAY=:1 xterm
 

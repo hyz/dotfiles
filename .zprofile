@@ -144,7 +144,7 @@ done
 XHOME=/xhome
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/d/home
-elif [ -d /xhome/bin ] ; then
+elif [ -d /xhome ] ; then
     XHOME=/xhome
 else
     XHOME=$HOME/xhome

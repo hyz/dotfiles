@@ -1,6 +1,6 @@
 
-    $ screen -e^jj -Rd
-    $
+    SHELL=`which zsh` screen -e^jj -Rd
+    screen -e^jj -Rd
 
     : register x hello-world
     : paste x
@@ -12,4 +12,5 @@
 ### Cannot make directory '/run/screen': Permission denied
 
     SCREENDIR=$HOME/.screen screen -e^jj -Rd
+
 

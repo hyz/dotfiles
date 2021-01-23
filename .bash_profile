@@ -48,8 +48,8 @@ done
 
 XHOME=/xhome
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
-    XHOME=/mnt/d/home
-elif [ -d /xhome/cargo ] ; then
+    XHOME=/mnt/e/home
+elif [ -d /xhome ] ; then
     XHOME=/xhome
 else
     XHOME=$HOME/xhome

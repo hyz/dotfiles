@@ -52,3 +52,6 @@ yarn ts-node-dev src/index.ts
 yarn webpack --mode=development
 yarn ts-node-dev src/main.ts
 yarn info
+
+yarn info babel-loader |rg '(version|latest)'
+

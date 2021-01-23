@@ -110,7 +110,7 @@ command = "echo"
 args = ["2"]
 
 [tasks.cargo-script]
-env = { "CARGO_MAKE_RUST_SCRIPT_PROVIDER" = "cargo-script" }
+env = { CARGO_MAKE_RUST_SCRIPT_PROVIDER = "cargo-script" }
 script_runner = "@rust"
 script = [
 '''
@@ -121,7 +121,7 @@ fn main() {
 ]
 
 [tasks.cargo-play]
-env = { "CARGO_MAKE_RUST_SCRIPT_PROVIDER" = "cargo-play" }
+env = { CARGO_MAKE_RUST_SCRIPT_PROVIDER = "cargo-play" }
 script_runner = "@rust"
 script = [
 '''
@@ -145,6 +145,42 @@ echo SPRITES_LIST: ${SPRITES_LIST}
 pwd
 cm_run_task merge-v1
 '''
+]
+
+[tasks.rg]
+script_runner = "@shell"
+script = ['''
+rg -uw setTimeout src
+rg -uw onRespawn src
+'''
+]
+
+[tasks.exdeps]
+script_runner = "python"
+script_extension = "py"
+script = ["""
+import subprocess, shlex, tempfile
+
+def popen(cmd, stdin=None):
+    return subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stdin=stdin, encoding='utf-8')
+
+with popen('''rg -u '^\s*import' src''') as xp1:
+    with popen('''tee all-imports''', stdin=xp1.stdout) as xp2:
+        #tmpf = io.StringIO()
+        with tempfile.TemporaryFile(mode='w+t') as tmpf:
+            for line in xp2.stdout:
+                line = line.strip().replace('"', "'")
+                if "'" in line:
+                    _, d, _ = line.split("'", 2)
+                    if not d.startswith("."):
+                        print(f"{d}\t{line}", file=tmpf)
+            tmpf.seek(0)
+            with popen('''awk '{print $1}' ''', stdin=tmpf) as xp3:
+                with popen('''sort ''', stdin=xp3.stdout) as xp4:
+                    with popen('''uniq ''', stdin=xp4.stdout) as xp5:
+                        for line in xp5.stdout:
+                            print(line.strip())
+"""
 ]
 
 ## cargo make merge-1 -e SPRITES_LIST=..\imgs\tesla\tesla1.txt -e OUTFILE=tesla.png

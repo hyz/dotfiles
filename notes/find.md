@@ -1,4 +1,5 @@
 
+    fd -d3 -tf -Ig Cargo.toml |xargs rg tile
     fd -d4 -td -Ig target
 
     find * -type d -name node_modules -prune
@@ -27,5 +28,6 @@
     sudo find . ! -user 1007 -exec chown -h build: '{}' \;
 
 ### find src -type f -perm \/111
+
 
 

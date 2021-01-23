@@ -11,3 +11,7 @@ https://stackoverflow.com/questions/2961635/using-awk-to-print-all-columns-from-
 
     awk +ACTIVE |tail +4 |awk '{$2=$3="";print $0}' |column -t
 
+
+echo "Here is a 1234 String" |awk -v FS='(is|String)' '{print $2}'
+
+rg 'Entity()' runtime.log |awk -v FS='"instance":"' '{print $2}' |awk -F\" '{print $1}' |sort -rn

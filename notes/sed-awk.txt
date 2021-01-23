@@ -1,9 +1,19 @@
 
+### https://github.com/chmln/sd
+
+    pacman -S sd
+    echo "hello with /path/" | sd "(\w+).*(/.*/)" '$2 $1'
+    rg '"width"' logfile.txt | sd '.*"(width)":(\d+).*"(height)":(\d+).*' '$1*$3 $2*$4'
+
 ### http://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed?rq=1
+
 ### http://stackoverflow.com/questions/16414410/delete-empty-lines-using-sed
-sed '/^\s*$/d'
+
+    sed '/^\s*$/d'
 
 ### http://stackoverflow.com/questions/5410757/delete-lines-in-a-text-file-that-containing-a-specific-string
-# To directly modify the file (and create a backup):
-sed -i.bak '/pattern to match/d' ./infile
+
+To directly modify the file (and create a backup):
+
+    sed -i.bak '/pattern to match/d' ./infile
 

@@ -1,20 +1,64 @@
 
-    $ initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data --auth-local trust
-    $ sudo -iu postgres -- initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'
-    $ sudo -iu postgres -- createuser --interactive
-    $ sudo -iu postgres -- psql -c "create database wood OWNER wood"
-    $ psql -c \\l
-    $ psql wood -c \\d
+    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data --auth-local trust
+    sudo -iu postgres -- initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'
+
+    sudo systemctl start postgresql.service
+
+    sudo -iu postgres -- createuser --interactive
+    sudo -iu postgres -- psql -c "create database wood OWNER wood"
+
+    createdb mydb1
+
+    psql -c \\l
+    psql wood -c \\d
+
 
     pg_dump --data-only --column-inserts `date +decor%y%m%d` -t entitys
 
     psql <<< "SELECT version()"
     psql <<< \\list
     psql -c \\l+
-    psql -c \\dt
 
     psql -c \\conninfo
     psql -c \\? variables
+
+    cat >> /tmp/mytab1.sql <<_EoF
+    CREATE TABLE mytab1(
+       ID INT PRIMARY KEY     NOT NULL,
+       NAME           TEXT    NOT NULL,
+       AGE            INT     NOT NULL,
+       ADDRESS        CHAR(50),
+       SALARY         REAL
+    );
+_EoF
+
+    psql -d mydb1 -f /tmp/mytab1.sql
+    psql -d mydb1 -c \\dt
+    psql -d mydb1 -c \\d\ mytab1
+
+    psql postgresql://wood@localhost/mydb1
+
+### sqlx/sqlx-cli/README.md
+
+    sqlx database create
+    sqlx database drop
+
+    sqlx migrate run
+
+    sqlx migrate add <name>
+
+    cargo sqlx prepare
+
+
+### https://wiki.archlinux.org/index.php/PostgreSQL#Upgrading_PostgreSQL
+    
+    cd /var/lib/postgres
+    sudo mv data olddata
+    sudo mkdir data tmp
+    sudo chown postgres:postgres data tmp
+
+    sudo -iu postgres -- initdb ......
+    ...
 
 ### db admin, backup/restore
 
