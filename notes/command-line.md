@@ -1,4 +1,8 @@
 
+### https://github.com/lotabout/rargs
+
+    ls *.bak | rargs -p '(.*)\.bak' mv {0} {1}
+
 ### http://www.commandlinefu.com/commands/browse/sort-by-votes
 
 ### http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable

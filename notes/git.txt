@@ -15,6 +15,35 @@
     $ ssh -vT git-oopx
     $ git clone git-oopx:oopx/test.git
 
+### https://stackoverflow.com/questions/2100907/how-to-remove-delete-a-large-file-from-commit-history-in-git-repository
+
+    git lola --name-status
+
+    git filter-branch --prune-empty -d /dev/shm/scratch \
+        --index-filter "git rm --cached -f --ignore-unmatch oops.iso" \
+        --tag-name-filter cat -- --all
+
+    git update-ref -d refs/original/refs/heads/master
+    git reflog expire --expire=now --all
+    git gc --prune=now
+
+### https://stackoverflow.com/questions/292357/what-is-the-difference-between-git-pull-and-git-fetch
+
+In the simplest terms, git pull does a git fetch followed by a git merge.
+
+### https://stackoverflow.com/questions/2003505/how-do-i-delete-a-git-branch-locally-and-remotely
+
+Note that in most cases the remote name is origin
+
+    git push -d <remote_name> <branch_name> # remote_name = origin
+    git branch -d <branch_name>
+
+### https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
+
+You can undo git add before commit with
+
+    git rm --cached <file> # git reset <file>
+
 ### man git |grep GIT_SSH
 
 ### https://github.com/libgit2/pygit2
@@ -29,6 +58,8 @@
 ### http://cms-sw.github.io/tutorial-proxy.html
 ### http://stackoverflow.com/questions/783811/getting-git-to-work-with-a-proxy-server
 ### http://stackoverflow.com/questions/128035/how-do-i-pull-from-a-git-repository-through-an-http-proxy
+
+    mv myrepo/.git myrepo.git ; cd myrepo.git ; git config --bool core.bare true
 
     git config --global http.proxy socks5://localhost:1080
     git config --global core.gitproxy "git-proxy"

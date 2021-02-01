@@ -104,3 +104,6 @@ ftp-bind-share:
 	#mount -o bind /home/samba/Audience /home/ftp/Audience
 	#systemctl restart bftpd.service
 
+analyzer:
+	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
+

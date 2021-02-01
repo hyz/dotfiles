@@ -270,3 +270,62 @@ main(ifn, ofn)
 '''
 ]
 
+[tasks.copy-yew-static-to-dist]
+command = "cargo"
+args = ["make", "recur-tree-copy_rs", "src-yew/static", "dist" ]
+
+[tasks.recur-tree-copy_rs]
+###https://github.com/sagiegurari/cargo-make/tree/0.12.0#usage-task-command-script-task-examplerust
+script_runner = "@rust"
+script_extension = "rs"
+script = ["""#[allow(non_snake_case)]
+use std::fs;
+use std::path::{Path, PathBuf};
+
+fn main() -> std::io::Result<()> {
+    //println!("args  :: {:?}", std::env::args().skip(1).collect::<std::vec::Vec<_>>());
+    let arg1 = std::env::args().nth(1).expect("SRC");//var("SRCDIR_");
+    let arg2 = std::env::args().nth(2).expect("DEST");//var("DESTDIR_");
+    let src = Path::new(&arg1);
+    let dest = PathBuf::from(&arg2);
+
+    if !src.exists() {
+        panic!("not exists: {}", src.display());
+    }
+    let dest = if !arg1.ends_with("/") && arg2.ends_with("/") {
+        let dest = dest.join(src.file_name().unwrap());
+        fs::create_dir_all(&dest).expect("dest");
+        dest
+    } else {
+        dest
+    };
+    if dest.canonicalize()?.starts_with(src.canonicalize()?) {
+        panic!("**dangerous**: `{}` '{}'", src.display(), dest.display());
+    }
+
+    println!("{:?} -> {:?}", src.canonicalize(), dest.canonicalize() );
+    recur_copy_tree(src, dest)
+}
+
+fn recur_copy_tree(path1: &Path, path2: PathBuf) -> std::io::Result<()> {
+    for entry in fs::read_dir(path1)? {
+        let entry = entry?;
+        let meta = entry.metadata()?;
+        let path = entry.path();
+        let dest = path2.join(path.file_name().unwrap());
+        if meta.is_dir() || meta.is_file() {
+            println!("{} -> {}", path.display(), dest.display());
+            if meta.is_dir() {
+                fs::create_dir_all(&dest).expect("create dest dir");
+                recur_copy_tree(&path, dest)?;
+            } else {
+                fs::copy(path, dest).unwrap(); //std::io::copy
+            }
+        } else {
+            eprintln!("!!!skip {}: {:?}", path.display(), meta.file_type());
+        }
+    }
+    Ok(())
+}
+"""]
+

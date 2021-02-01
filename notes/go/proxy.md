@@ -11,3 +11,13 @@ go mod vendor
 
 https://blog.csdn.net/cwcmcw/article/details/107347245
 
+
+go env -w GOPROXY=https://goproxy.cn
+
+
+https://blog.csdn.net/fly910905/article/details/104255701
+
+GOPROXY=https://mirrors.aliyun.com/goproxy/
+
+
+GOPROXY=https://goproxy.io

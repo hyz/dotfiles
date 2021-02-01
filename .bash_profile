@@ -41,7 +41,7 @@ if [ -d "$ANDROID_NDK" ]; then
 fi
 
 
-for x in /usr/local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
+for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done

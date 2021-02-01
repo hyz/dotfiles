@@ -53,3 +53,7 @@
 	dunst &
 	notify-send -u critical "hello world"
 
+
+xclip /etc/apt/sources.list
+xclip -o
+

@@ -5,10 +5,14 @@
 
 ## chromedriver
 
+    chromedriver.exe --allowed-ips 192.168.1.24
+
+    curl -LO https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_win32.zip
+
+    https://chromedriver.storage.googleapis.com/index.html
+
     http://chromedriver.chromium.org/downloads
     https://sites.google.com/a/chromium.org/chromedriver
 
-
-    https://chromedriver.storage.googleapis.com/index.html
     http://npm.taobao.org/mirrors/chromedriver/
 
