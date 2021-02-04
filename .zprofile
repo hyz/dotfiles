@@ -104,33 +104,6 @@ fi
 
 #PATH=$PATH:/sbin:/usr/sbin
 
-ANDROID_SDK=/xhome/sdk/android-sdk
-if [[ -d "$ANDROID_SDK" ]] ; then
-    #ANDROID_SDK_HOME=$ANDROID_SDK
-    ANDROID_HOME=$ANDROID_SDK
-    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
-
-    PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
-fi
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
-
-ANDROID_NDK=/xhome/sdk/android-ndk
-if [ -d "$ANDROID_NDK" ]; then
-    ANDROID_NDK_HOME=$ANDROID_NDK
-    export ANDROID_NDK ANDROID_NDK_HOME
-
-    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
-fi
-#if [ -x "/opt/android/studio/bin/studio.sh" ]; then
-#    PATH=$PATH:/opt/android/studio/bin
-#fi
-
-# $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin
-for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
-    [ -d "$x" ] || continue
-    PATH=$PATH:$x
-done
-
 #if [ -d "$HOME/.config/yarn/global/node_modules" ]; then
 #    #if [ x"$NODE_PATH" = x ] ; then
 #    #NODE_PATH="$HOME/.config/yarn/global/node_modules"
@@ -143,9 +116,11 @@ done
 
 XHOME=/xhome
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
-    XHOME=/mnt/d/home
+    XHOME=/mnt/e/home
 elif [ -d /xhome ] ; then
     XHOME=/xhome
+elif [ -d /opt/x ] ; then
+    XHOME=/opt/x
 else
     XHOME=$HOME/xhome
 fi
@@ -157,6 +132,8 @@ RUSTUP_HOME=$XHOME/rustup
 WASMER_DIR=$XHOME/wasmer
 GOPATH=$XHOME/go
 FLUTTER_HOME=$XSDK/flutter
+ANDROID_SDK=$XHOME/sdk/android-sdk
+ANDROID_NDK=$XHOME/sdk/android-ndk
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -172,7 +149,28 @@ FLUTTER_HOME=$XSDK/flutter
 #[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"
 #PATH="${NOTION_HOME}/bin:$PATH"
 
+if [[ -d "$ANDROID_SDK" ]] ; then
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
+    #ANDROID_SDK_HOME=$ANDROID_SDK
+    ANDROID_HOME=$ANDROID_SDK
+    export ANDROID_SDK ANDROID_HOME #ANDROID_SDK_HOME
+    PATH=$PATH:$ANDROID_SDK/tools/bin:$ANDROID_SDK/platform-tools:$ANDROID_SDK/tools
+fi
+if [ -d "$ANDROID_NDK" ]; then
+    ANDROID_NDK_HOME=$ANDROID_NDK
+    export ANDROID_NDK ANDROID_NDK_HOME
+    PATH=$PATH:$ANDROID_NDK #:$ANDROID_NDK/standalone/toolchain/android-12/bin
+fi
+
+for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/yarn/global/node_modules/.bin ; do
+    [ -d "$x" ] || continue
+    PATH=$PATH:$x
+done
 PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
+
+#if [ -x "/opt/android/studio/bin/studio.sh" ]; then
+#    PATH=$PATH:/opt/android/studio/bin
+#fi
 
 if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 

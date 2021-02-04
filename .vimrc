@@ -104,10 +104,10 @@ endif
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
 Plug 'rust-lang/rust.vim'
-Plug 'prabirshrestha/async.vim'
-Plug 'prabirshrestha/vim-lsp'
-Plug 'prabirshrestha/asyncomplete.vim'
-Plug 'prabirshrestha/asyncomplete-lsp.vim'
+"Plug 'prabirshrestha/async.vim'
+"Plug 'prabirshrestha/vim-lsp'
+"Plug 'prabirshrestha/asyncomplete.vim'
+"Plug 'prabirshrestha/asyncomplete-lsp.vim'
 "Plug 'rhysd/rust-doc.vim'
 "Plug 'racer-rust/vim-racer'
 Plug 'timonv/vim-cargo'
@@ -116,7 +116,7 @@ Plug 'vim-scripts/fcitx.vim'
 "Plug 'w0rp/ale'
 Plug 'jremmen/vim-ripgrep'
 "Plug 'godlygeek/tabular'
-Plug 'mxw/vim-jsx'
+"Plug 'mxw/vim-jsx'
 Plug 'pangloss/vim-javascript'
 "Plug 'moll/vim-node'
 "Plug 'junegunn/fzf'
@@ -129,8 +129,6 @@ Plug 'pangloss/vim-javascript'
 "Plug 'vimim/vimim'
 "Plug 'vim-scripts/VimIM'
 "Plug 'plasticboy/vim-markdown'
-""cargo install skim
-"Plug 'lotabout/skim.vim'
 Plug 'ryym/vim-riot'
 
 "Plug 'suan/vim-instant-markdown'
@@ -140,12 +138,12 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 
 "junegunn/fzf
+""cargo install skim
 "Plug 'lotabout/skim', { 'dir': '~/.skim', 'do': './install' }
 "Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 
 """ cd .vim/bundle/YouCompleteMe && ./install.py --rust-completer --clang-completer --system-libclang --system-boost
 "Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }
-
 "Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
 "Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
@@ -157,7 +155,7 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 
 Plug 'lervag/vimtex'
 
-Plug 'chemzqm/wxapp.vim'
+"Plug 'chemzqm/wxapp.vim'
 Plug 'mattn/emmet-vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 

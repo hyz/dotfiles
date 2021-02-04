@@ -31,3 +31,5 @@
 
 
 
+fd -d4 -tf -IF zsh
+
