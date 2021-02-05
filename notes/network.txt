@@ -1,4 +1,6 @@
 
+    ip addr show dev lo
+
 ### https://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html
 
     ifconfig eth0:1 192.168.9.172/24

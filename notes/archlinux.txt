@@ -13,11 +13,13 @@ https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_6)
 Minimal instructions for installing arch linux on an UEFI system with full system encryption using dm-crypt and luks
 
 ### https://wiki.archlinux.org/index.php/Installation_guide
+
 https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 
 install archlinux from archlinux
 
 #### host
+
 https://wiki.archlinux.org/index.php/Installation_guide
 https://wiki.archlinux.org/index.php/System_backup
 https://wiki.archlinux.org/index.php/Rsync#As_a_backup_utility
@@ -33,9 +35,10 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
     pacman -Ql arch-install-scripts
 
     vim /etc/pacman.d/mirrorlist
-    pacstrap /mnt base parted openssh dhcpcd netctl wpa_supplicant dialog net-tools sudo vim arch-install-scripts
+    pacstrap /mnt base linux linux-firmware
+        parted openssh dhcpcd netctl wpa_supplicant dialog net-tools sudo vim
         grub syslinux
-        efibootmgr zsh git rsync keychain riggrep bat
+        efibootmgr zsh git rsync keychain ripgrep bat
 
     genfstab -pU /mnt | tee /mnt/etc/fstab
     cp /etc/netctl/XXX /mnt/etc/netctl/
@@ -44,6 +47,9 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
     vimdiff {,/mnt}/etc/grub.d/40_custom
 
     diff {,/mnt}/etc/pacman.d/mirrorlist
+
+    wood> rsync -a .git /mnt/home/wood/
+
     arch-chroot /mnt
 
 #### chroot
@@ -55,6 +61,7 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
     ## https://wiki.archlinux.org/index.php/Systemd-boot
     bootctl --path=/boot install
     bootctl update
+    vim /boot/syslinux/syslinux.cfg # root=LABEL=/ rw
 
     mkdir /esp ; mount /dev/nvme0n1p1 /esp
     grub-install --target=i386-pc --recheck /dev/sdX
@@ -101,7 +108,7 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
     rsync -vaR .config/*.{conf,json} .config/rslsync /mnt/home/wood/
     rsync -vaR .local/*.json /mnt/home/wood/
     rsync -vr  .stardict /mnt/home/wood/
-    pacman -Qe > /tmp/pacman-Qe
+    pacman -Qe > /mnt/home/wood/pacman-Qe
 
 #### reboot
 
