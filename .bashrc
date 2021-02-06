@@ -147,5 +147,4 @@ fi
 #export WASMER_DIR="/home/wood/.wasmer"
 #[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"  # This loads wasmer
 
-
 #source e/home/wood/.config/broot/launcher/bash/br

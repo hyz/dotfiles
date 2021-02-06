@@ -103,6 +103,7 @@ endif
 
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
+Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
 "Plug 'prabirshrestha/async.vim'
 "Plug 'prabirshrestha/vim-lsp'
@@ -153,13 +154,13 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 "Plug 'fatih/vim-go', { 'tag': '*' }
 "Plug 'nsf/gocode', { 'tag': 'v.20150303', 'rtp': 'vim' }
 
-Plug 'lervag/vimtex'
+"Plug 'lervag/vimtex'
 
 "Plug 'chemzqm/wxapp.vim'
-Plug 'mattn/emmet-vim'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+"Plug 'mattn/emmet-vim'
+"Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
-Plug 'mcchrish/nnn.vim'
+"Plug 'mcchrish/nnn.vim'
 
 call plug#end()
 

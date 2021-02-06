@@ -5,10 +5,13 @@
 
 ## https://wiki.archlinux.org/index.php/Bluetooth
 
+    pacman -S pulseaudio-bluetooth pavucontrol pulseaudio-alsa pulseaudio-zeroconf
+    systemctl --user enable pulseaudio
+    systemctl --user start pulseaudio
+
     lsmod |grep blue
     journalctl -b | grep Bluetooth
     lspci -k -s 02:00.0
-
 
 	systemctl restart bluetooth.service
     systemctl status  bluetooth.service
@@ -19,14 +22,15 @@
     bluetoothctl power on
     bluetoothctl default-agent
 
+    bluetoothctl scan on
     bluetoothctl devices
-    bluetoothctl paired-devices
-
-    bluetoothctl info XX:YY:ZZ:...
     bluetoothctl trust XX:YY:ZZ:..
-    bluetoothctl connect XX:YY:ZZ:...
-
+    bluetoothctl info XX:YY:ZZ:...
     bluetoothctl show
+
+    bluetoothctl pair XX:YY:..
+    bluetoothctl paired-devices
+    bluetoothctl connect XX:YY:ZZ:...
 
     bluetoothctl disconnect
 
