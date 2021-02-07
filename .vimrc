@@ -162,6 +162,8 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 
 "Plug 'mcchrish/nnn.vim'
 
+"Plug 'michaelb/sniprun', {'do': 'bash install.sh'}
+
 call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===

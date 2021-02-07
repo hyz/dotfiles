@@ -164,7 +164,7 @@ import subprocess, shlex, tempfile
 def popen(cmd, stdin=None):
     return subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stdin=stdin, encoding='utf-8')
 
-with popen('''rg -u '^\s*import' src''') as xp1:
+with popen('''rg -u '^import' src''') as xp1:
     with popen('''tee all-imports''', stdin=xp1.stdout) as xp2:
         #tmpf = io.StringIO()
         with tempfile.TemporaryFile(mode='w+t') as tmpf:
@@ -236,7 +236,7 @@ merge(images, outfile)
 description = "ffmpeg concat"
 script_runner = "python"
 script_extension = "py"
-env = { INPUT_FILES = "input.txt", OUTPUT_FILE = "output" }
+env = { INLIS = "input.txt", OUTPUT = "output" }
 script = [
 '''
 import sys, os
@@ -262,9 +262,9 @@ def main(infilename, outfilename):
 	print(f"ffmpeg -f concat -i {infilename} -c copy {outfilename}")
 	os.system(f"ffmpeg -f concat -i {infilename} -c copy {outfilename}")
 
-ifn = os.getenv("INPUT_FILES")
-ofn = os.getenv("OUTPUT_FILE")
-assert os.path.exists(ifn) and ofn, f"{ifn} {ofn}\n\tcargo make ffmpeg-concat -e INPUT_FILES=... -e OUT_FILE=...\n"
+ifn = os.getenv("INLIS")
+ofn = os.getenv("OUTPUT")
+assert os.path.exists(ifn) and ofn, f"{ifn} {ofn}\n\tcargo make ffmpeg-concat -e INLIS=... -e OUTPUT=...\n"
 main(ifn, ofn)
 
 '''
