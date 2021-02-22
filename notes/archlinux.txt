@@ -43,7 +43,7 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
     genfstab -pU /mnt | tee /mnt/etc/fstab
     cp /etc/netctl/XXX /mnt/etc/netctl/
 
-    vim /mnt/etc/{fstab,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
+    vim /mnt/etc/{fstab,default/grub,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
     vimdiff {,/mnt}/etc/grub.d/40_custom
 
     diff {,/mnt}/etc/pacman.d/mirrorlist
@@ -215,3 +215,5 @@ https://wiki.archlinux.org/index.php/Install_from_existing_Linux#From_a_host_run
 http://mirrors.163.com/archlinux/iso/ archlinux-bootstrap-2016.11.01-x86_64.tar.gz
 https://wiki.archlinux.org/index.php/Archboot
 
+
+p7zip unzip
