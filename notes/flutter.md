@@ -16,3 +16,4 @@ https://flutterchina.club/get-started/install/
 
 https://flutter.dev/community/china
 
+export CHROME_EXECUTABLE=`which chromium`

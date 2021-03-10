@@ -1,6 +1,7 @@
 
-    fd -d3 -tf -Ig Cargo.toml |xargs rg tile
-    fd -d4 -td -Ig target
+    fd -Id3 -e rs |xargs rg bezier # -x rg bezier
+    fd -Id3 -tf -g Cargo.toml |xargs rg tile
+    fd -Id3 -td -g target
 
     find * -type d -name node_modules -prune
     find * -type d -prune

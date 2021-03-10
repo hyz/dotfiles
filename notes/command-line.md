@@ -198,10 +198,13 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
     mv --no-clobber -vt ../Audience/tmp tmp/*.mp3
 
-    rmlint
+    rmlint # dup
 
     perl-rename -i 's/ *\(\d+-\d+-\d+ \d+_\d+_\d+ [AP]M\)//' *.html
     perl-rename -i 's/ *\(\d+_\d+_\d+ \d+_\d+_\d+ [AP]M\)//' *.html
     perl-rename -i --dry-run 's/\.MP3/.mp3/' *.MP3
     perl-rename -i 's/投资者(\d)\.mp3/投资者0$1.mp3/' *.mp3
 
+
+
+xargs -d\\n rm -f < czka.dup

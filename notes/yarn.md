@@ -83,3 +83,4 @@ yarn info babel-loader |rg '(version|latest)'
     npm set node_inspector_cdnurl https://npm.taobao.org/mirrors/node-inspector && \
     npm cache clean --force
 
+yarn config set ignore-engines true

@@ -34,4 +34,18 @@
 
     bluetoothctl disconnect
 
+### ---
 
+    rfkill block bluetooth
+    systemctl stop bluetooth.service
+    rfkill unblock bluetooth
+    /usr/lib/bluetooth/bluetoothd -n -d
+
+    bluetoothctl show
+
+    rfkill list all
+    dmesg | grep -i hci0
+
+systemctl --user restart pipewire-pulse.service
+
+systemctl --user enable pipewire-media-session.service

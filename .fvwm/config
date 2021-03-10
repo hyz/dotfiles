@@ -14,7 +14,7 @@ AddtoFunc InitFunction
 ##+ I exec exec  xscreensaver -no-splash
 ##+ PipeRead     "mkdir $[fvwm_tmp]"
 + I Exec fcitx -d
-+ I Exec xmodmap ~/.Xmodmap
+#+ I Exec xmodmap ~/.Xmodmap
 ##+ I exec exec synapse
 #+ I exec nm-applet
 #+ I Exec volumeicon

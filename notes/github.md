@@ -53,3 +53,10 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
     然后可以继续刚刚命令行的步骤了。
 
 
+
+git config --global http.sslVerify false
+
+git config --global --add remote.origin.proxy ""
+
+git config --global --unset-all remote.origin.proxy
+

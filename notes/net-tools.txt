@@ -1,13 +1,14 @@
 
+### https://whatismyipaddress.com/hostname-ip
+### http://whatismyipaddress.com/
+
 ### https://github.com/acgotaku/BaiduExporter
 
     aria2c --conf-path $HOME/BaiduExporter/aria2c/aria2.conf
 
 ### https://github.com/txthinking/brook
 
-### https://github.com/fatedier/frp
-
-frpc & frps
+### frpc & frps: https://github.com/fatedier/frp
 
 ### https://github.com/cyfdecyf/cow
 
@@ -23,7 +24,11 @@ curl -L git.io/cow > /tmp/cow.sh ; vim ~/.cow/rc
 ### bftpd
 
     pacman -S bftpd
-    bftpd -c .config/bftpd.conf -D
+
+    sudo bftpd -d
+    sudo bftpd -D -c .config/bftpd.conf
+
+    curlftpfs 192.168.1.234 /home/ftp
 
 ### https://github.com/v2ray
 ### https://github.com/oldj/SwitchHosts
@@ -63,8 +68,6 @@ http://fanqiangba.blogspot.com/2017/04/goproxytls13-http2.html
 
 Android手机 Fiddler HTTP代理抓包 
 http://www.telerik.com/fiddler
-
-### http://whatismyipaddress.com/
 
 ### https://github.com/Leask/Flora_Pac
 
@@ -114,27 +117,28 @@ http://www.linuxjournal.com/content/use-ssh-create-http-proxy#comment-336098
 
 
 
-https://www.ipaddress.com/
+
+### https://www.ipaddress.com/
+
+    185.199.108.153 github.io 
+    185.199.109.153
+    185.199.110.153
+    185.199.111.153
+
+    199.232.96.133 raw.githubusercontent.com
 
 
-199.232.96.133 raw.githubusercontent.com
+    > ping raw.githubusercontent.com
 
+    PING raw.githubusercontent.com (127.0.0.1) 56(84) bytes of data.
+    64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.021 ms
+    64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.070 ms
+    64 bytes from localhost (127.0.0.1): icmp_seq=3 ttl=64 time=0.070 ms
 
-ping raw.githubusercontent.com                                      /xhome/browser.addons.webdriver/tauri-yew-web-sys-example 5:11
-PING raw.githubusercontent.com (127.0.0.1) 56(84) bytes of data.
-64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.021 ms
-64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.070 ms
-64 bytes from localhost (127.0.0.1): icmp_seq=3 ttl=64 time=0.070 ms
+    > ping github.io
 
+    PING github.io(localhost (::1)) 56 data bytes
+    64 bytes from localhost (::1): icmp_seq=1 ttl=64 time=0.026 ms
+    64 bytes from localhost (::1): icmp_seq=2 ttl=64 time=0.076 ms
+    64 bytes from localhost (::1): icmp_seq=3 ttl=64 time=0.076 ms
 
-ping github.io                                                      /xhome/browser.addons.webdriver/tauri-yew-web-sys-example 5:58
-PING github.io(localhost (::1)) 56 data bytes
-64 bytes from localhost (::1): icmp_seq=1 ttl=64 time=0.026 ms
-64 bytes from localhost (::1): icmp_seq=2 ttl=64 time=0.076 ms
-64 bytes from localhost (::1): icmp_seq=3 ttl=64 time=0.076 ms
-
-github.io
-185.199.108.153
-185.199.109.153
-185.199.110.153
-185.199.111.153

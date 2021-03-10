@@ -46,7 +46,7 @@ redshift -r &>/dev/null &
 # xmodmap -pke > ~/.Xmodmap
 # xmodmap -pm
 # xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
-[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
+#[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
 #exec 
 for x in fvwm openbox dwm enlightenment_start xmonad ; do

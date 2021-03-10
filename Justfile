@@ -71,27 +71,17 @@ env:
 	#!/bin/sudo /bin/bash
 	env
 
-ftpd:
-	#!/bin/sudo /bin/bash
-	#mount -o bind /home/samba/Audience /home/ftp/Audience
-	#mount -o bind /home/library/Music /home/ftp/Music
-	#mount -o bind /home/library/Wealth财富.投资.博弈.金融.经济 /home/ftp/Wealth
-	#mount -o bind /home/library/Knowledge知识.知无知.脑意识.人性.人类学.逻辑学.哲学 /home/ftp/Knowledge
-	#mount -o bind /home/library/Interpersonal人际.心理.沟通.社交.形象标签 /home/ftp/Interpersonal
-	#mount -o bind /home/library/Literature文学.历史.艺术.人文.信仰 /home/ftp/Literature
-	#mount -o bind /home/library/Language语言.英语.汉语.日.西班牙 /home/ftp/Language
-	#mount -o bind /home/library/Education /home/ftp/Education
-	#mount -o bind /home/library/Lessions /home/ftp/Music/Lessions
 ftp-mount:
 	#!/bin/sudo /bin/bash
 	#!/bin/sudo --chdir /home/ftp /bin/bash
 	cd /home/ftp
-	for x in `find ???* -maxdepth 1 -type d` ; do
-		src=`find ../library -maxdepth 1 -type d -name "$x*"`
+	for x in `/bin/find ???* -maxdepth 1 -type d` ; do
+		src=`/bin/find ../library -maxdepth 1 -type d -name "$x*"`
 		echo "$src $x"
 		[ -d "$x" -a -d "$src" ] || continue
 		mount -o bind "$src" "$x"
 	done
+	# Knowledge Lessions Audience Music Interpersonal Literature Language Education Wealth
 
 ftp-restart:
 	#!/bin/sudo /bin/bash

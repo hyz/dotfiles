@@ -2,3 +2,5 @@
 https://wiki.archlinux.org/index.php/Music_Player_Daemon
 
 systemctl --user restart mpd
+
+MPD_HOST=/tmp/mpd.socket mpc add $PWD/...mp3
