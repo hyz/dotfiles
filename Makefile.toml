@@ -1,23 +1,112 @@
 
 [config]
-default_to_workspace = false
 min_version = "0.32.1"
+#default_to_workspace = false
 
 [config.modify_core_tasks]
 private = true
 namespace = "default"
 
 [env]
+CARGO_MAKE_PROFILE="production"
 RUST_RECURSION_COUNT = "0"
+ENV_DIR = {source="${CARGO_MAKE_PROFILE}", default_value = "debug", mapping = {production = "release"}}
+TARGET_DIR = {value = "target", condition = {env_not_set = ["CARGO_TARGET_DIR"]}}
+BIN_DIR = "${TARGET_DIR}/${CARGO_MAKE_RUST_TARGET_TRIPLE}/${ENV_DIR}"
+WASM_PATH = "${BIN_DIR}/${CARGO_MAKE_CRATE_NAME}.wasm"
+#CARGO_PROFILE = "dev"
+#TARGET_DIR = "target"
+MANIFEST_DIR = "${CARGO_MAKE_WORKING_DIRECTORY}"
+
+[env.production]
+CARGO_RELEASE_ARGS = "--release"
+MY_FOO = "--prod"
+[env.development]
+MY_FOO = "--dev"
+
+[tasks.echo-development]
+condition = { profiles = [ "development" ] }
+command = "date"
+[tasks.echo-production]
+condition = { profiles = [ "production" ] }
+command = "date"
+
+[tasks.show-env]
+command = "env"
+[tasks.bash-env]
+script = """#!/bin/bash -c env"""
+[tasks.rust-env]
+script_runner = "@rust"
+script = ["""
+fn main() {
+    for (key, value) in std::env::vars() {
+        println!("{}: {}", key, value);
+    }
+}
+"""]
+
+[tasks.watch-args-example]
+command = "echo"
+args = [ "Triggered by watch" ]
+watch = { postpone = true, no_git_ignore = true, ignore_pattern = "examples/files/*", watch = ["./docs/"] }
+
+[tasks.basic-http-server]
+install_crate = {crate_name = "basic-http-server", binary = "basic-http-server", test_arg="--help"}
+
+[tasks.wasm-bindgen-cli]
+install_crate = {crate_name = "wasm-bindgen-cli", binary = "wasm-bindgen", test_arg="--help"}
+
+[tasks.cargo-build-web]
+args = ["build", "--target", "wasm32-unknown-unknown", "--features", "web", "@@split(CARGO_RELEASE_ARGS, )"]
+command = "cargo"
+
+[tasks.build-wasm]
+args = ["--out-dir", "${TARGET_DIR}", "--out-name", "wasm", "--target", "web", "--no-typescript", "${WASM_PATH}"]
+command = "wasm-bindgen"
+dependencies = ["cargo-build-web", "wasm-bindgen-cli"]
+
+[tasks.build-wasm-bundled]
+args = ["--out-dir", "${TARGET_DIR}", "--out-name", "wasm", "--target", "bundler", "--no-typescript", "${WASM_PATH}"]
+command = "wasm-bindgen"
+dependencies = ["cargo-build-web", "wasm-bindgen-cli"]
+
+[tasks.build-native]
+args = ["build", "--features", "native", "@@split(CARGO_RELEASE_ARGS, )"]
+command = "cargo"
+
+[tasks.run]
+command = "${TARGET_DIR}/${ENV_DIR}/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}"
+dependencies = ["build-native"]
+
+[tasks.wasm-serve]
+command = "basic-http-server"
+args = ["-x"]
+dependencies = ["build-wasm", "basic-http-server"]
+
+[tasks.test]
+disabled = true
+
+[tasks.default]
+dependencies = [ "echo1", "ls" ] # ["build", "build_examples"]
+#dependencies = [ "build" , "copy-dlls" ]
+script_runner = "@duckscript"
+script = '''
+pwd
+cd rust
+pwd
+cm_run_task rust-env
+'''
+# cargo make --disable-check-for-updates --cwd rust --makefile ../Makefile.toml  rust-env
+
 
 [tasks.all]
 description = "Build Seed and examples"
 dependencies = [] # ["build", "build_examples"]
 
 [tasks.build]
-description = "Build only Seed"
+description = "cargo +nightly -Z unstable-options build --out-dir ..."
 command = "cargo"
-args = ["build"]
+args = ["+nightly", "-Z","unstable-options", "build", "--out-dir", "lib/${CARGO_MAKE_RUST_TARGET_TRIPLE}"]
 
 [tasks.build_release]
 extend = "build"
@@ -66,6 +155,9 @@ dependencies = ["build"]
 extend = "default_start"
 description = "Build and start microserver in release mode"
 dependencies = ["build_release"]
+
+[tasks.hello-world-from-script-file-absolute-path]
+script = { file = "${CARGO_MAKE_WORKING_DIRECTORY}/script.sh", absolute_path = true }
 
 ##############################################################
 [tasks.duckscript-example]
@@ -123,27 +215,10 @@ fn main() {
 command = "echo"
 args = [ "args are:", "-o=${@}" ]
 
-[tasks.merge-1]
+[tasks.ls]
 script_runner = "@duckscript"
-script = ['''
-# set_env SPRITES_LIST ${@}
-echo SPRITES_LIST: ${SPRITES_LIST}
-pwd
-cm_run_task merge-v1
-'''
-]
+script = '''ls '''
 
-[tasks.bash-env]
-script_runner = "/bin/bash"
-script = """
-env
-"""
-[tasks.date-pwd]
-script_runner = "/bin/bash"
-script = [
-"""date""",
-"""pwd""",
-]
 [tasks.shell-rg]
 script_runner = "@shell"
 script = ['''
@@ -160,7 +235,14 @@ for x in `/bin/find ???* -prune -type d` ; do
     src=`/bin/find ../library/* -prune -type d -name "$x*"`
     echo "mount -o bind $src $x"
     [ -d "$x" -a -d "$src" ] || continue
-    #mount -o bind "$src" "$x"
+    mount -o bind "$src" "$x"
+done
+"""
+[tasks.ftp-umount]
+script = """#!/bin/sudo /bin/bash
+cd /home/ftp
+for x in `/bin/find ???* -prune -type d` ; do
+    umount "$x"
 done
 """
 
@@ -192,6 +274,15 @@ with popen('''rg -u '^import' src''') as xp1:
 """
 ]
 
+[tasks.merge-1]
+script_runner = "@duckscript"
+script = ['''
+# set_env SPRITES_LIST ${@}
+echo SPRITES_LIST: ${SPRITES_LIST}
+pwd
+cm_run_task merge-v1
+'''
+]
 ## cargo make merge-1 -e SPRITES_LIST=..\imgs\tesla\tesla1.txt -e OUTFILE=tesla.png
 ## cargo run --bin list -- tella | python merge-v.py tmp.png
 [tasks.merge-v1]
@@ -246,8 +337,7 @@ description = "ffmpeg concat"
 script_runner = "python"
 script_extension = "py"
 env = { INLIS = "input.txt", OUTPUT = "output" }
-script = [
-'''
+script = ['''
 import sys, os
 
 def convert(infilename, outfilename):
@@ -293,11 +383,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn main() -> std::io::Result<()> {
-    let arg1 = std::env::args().nth(1).expect("... <src> <dest>");
-    let arg2 = std::env::args().nth(2).expect("... <src> <dest>");
-
-    let src = Path::new(&arg1);
-    let mut dest = PathBuf::from(&arg2);
+    let mut args = std::env::args_os().skip(1).map(PathBuf::from);
+    let src = args.next().expect("... <src> <dest>"); //Path::new(&arg1);
+    let mut dest = args.next().expect("... <src> <dest>"); // PathBuf::from(&arg2);
 
     if !src.exists() {
         panic!("not exists: {}", src.display());
@@ -340,6 +428,43 @@ fn safe_check(src: PathBuf, dest: PathBuf) {
 }
 """]
 
+[tasks.copy-dlls]
+#cp ./target/x86_64-pc-windows-msvc/release/*.dll ./lib/x86_64-pc-windows-msvc/
+command = "cargo"
+args = ["make", "copyfiles2", "${BIN_DIR}/*.dll", "lib/${CARGO_MAKE_RUST_TARGET_TRIPLE}" ]
+
+[tasks.copyfiles2]
+script_runner = "@rust"
+script_extension = "rs"
+script = ["""// cargo-deps: anyhow, glob
+extern crate anyhow;
+extern crate glob;
+use anyhow::Result;
+use std::path::{Path, PathBuf};
+
+fn copy2<P: AsRef<Path>, S: AsRef<str>>(pat: S, dir: P) -> Result<()> {
+    for entry in glob::glob(pat.as_ref())? {
+        let path = entry?;
+        let dest = dir.as_ref().join(path.file_name().unwrap());
+        println!("{:?}", path.display()); // path.metadata()?.file_type();
+        std::fs::copy(&path, &dest)?;
+    }
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let mut args = std::env::args_os().skip(1);
+    let pat = args.next().expect("... <pattern> <dest>");
+    let dest = args
+        .next()
+        .map(PathBuf::from)
+        .expect("... <pattern> <dest>"); //Path::new(&arg1);
+
+    //safe_check(src.canonicalize()?, dest.canonicalize()?);
+    copy2(pat.to_string_lossy(), dest)
+}
+"""]
+
 [tasks.smb]
 ###https://github.com/sagiegurari/cargo-make/tree/0.12.0#usage-task-command-script-task-examplerust
 script_runner = "@rust"
@@ -362,28 +487,40 @@ use std::path::{Path, PathBuf};
 type Result = std::result::Result<(), Box<dyn std::error::Error>>;
 
 const RDONLY_TPLSTR: &'static str = r##"[{{short}}]
-comment = {{name}}
-path = {{full}}
-writable = no
-browseable = yes
-public = yes
-read only = yes
-only guest = yes
+   comment = {{name}}
+   path = {{full}}
+   writable = no
+   browseable = yes
+   public = yes
+   read only = yes
+   only guest = yes
 "##;
 
 fn main() -> Result {
-    let arg1 = std::env::args().nth(1).unwrap_or("/home/library".into());
-    let src = Path::new(&arg1);
-    if !src.exists() {
-        panic!("not exists: {}", src.display());
+    let mut args = std::env::args_os().skip(1).map(PathBuf::from);
+    let topdir = args.next().unwrap_or("/home/library".into());
+    let cfghdr = topdir.join("smb.conf");
+    let cfghdr = args.next().unwrap_or(cfghdr);
+
+    if !topdir.exists() {
+        panic!("not exists: {}", topdir.display());
     }
 
     let mut reg = handlebars::Handlebars::new();
-    reg.register_template_string("rdonly", RDONLY_TPLSTR)?;
+    reg.register_template_string("ENTPL_A", RDONLY_TPLSTR)?;
 
-    list_entries(src, |ser| {
-        println!("{}", reg.render("rdonly", ser)?);
-        Ok(())
+    let mut hf = fs::File::open(cfghdr)?;
+    std::io::copy(&mut hf, &mut std::io::stdout())?;
+
+    list_entries(&topdir, |data| {
+        if matches!(
+            data["short"].as_str(),
+            Some("Incoming") | Some("opt") | Some("lost") | Some("Library")
+        ) {
+            return Ok(());
+        }
+        reg.render_to_write("ENTPL_A", &data, std::io::stdout())
+            .map_err(From::from)
     })
 }
 

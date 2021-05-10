@@ -17,3 +17,12 @@ To directly modify the file (and create a backup):
 
     sed -i.bak '/pattern to match/d' ./infile
 
+    sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+
+    sed -n '/^[[:space:]]*url[[:space:]]*=/s/https:/git:/p' bevy/.git/config
+
+### sed http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=1
+
+    sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' 
+    sed -i 's/\x00/\n/g' cxx.files
+

@@ -77,13 +77,6 @@ http://www.catonmat.net/blog/ten-awk-tips-tricks-and-pitfalls/
 
     (printf "PERM LINKS OWNER GROUP SIZE MONTH DAY HH:MM/YEAR NAME\n" ; ls -l | sed 1d) | column -t
 
-### sed
-
-http://stackoverflow.com/questions/1251999/sed-how-can-i-replace-a-newline-n?rq=1
-
-    sed ':a;N;$!ba;s/\n/ /g' # sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' 
-    sed -i 's/\x00/\n/g' cxx.files
-
 ### dd
 ### http://www.kwx.gd/CentOSApp/CentOS-dd.html
 
@@ -205,6 +198,7 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
     perl-rename -i --dry-run 's/\.MP3/.mp3/' *.MP3
     perl-rename -i 's/投资者(\d)\.mp3/投资者0$1.mp3/' *.mp3
 
+    xargs -d\\n rm -f < czka.dup
 
+    fd -aI -e downloading |xargs -d\\n -I{} rm -vf "{}"
 
-xargs -d\\n rm -f < czka.dup

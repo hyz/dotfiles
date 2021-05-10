@@ -84,3 +84,4 @@ yarn info babel-loader |rg '(version|latest)'
     npm cache clean --force
 
 yarn config set ignore-engines true
+https://registry.yarnpkg.com

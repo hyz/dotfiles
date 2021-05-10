@@ -1,4 +1,5 @@
 
+
     https://github.com/search?l=Rust&q=stars%3A%3E1&s=stars&type=Repositories
 
     git clone --depth=1 ssh://192.168.9.24/xhome/flutter/samples/.git samples
@@ -6,7 +7,16 @@
 
     git status |rg modified |awk '{print $2}' |cpio -vpud tmp/
 
+### branches
+
+    git checkout -B XYZ
+    git push -u origin XYZ
+
+    git clone gitee-oopx:oopx/godot.git -b XYZ XYZ
+    git checkout -b XYZ origin/XYZ
+
 ### /etc/hosts
+
 https://github.com.ipaddress.com/
 https://fastly.net.ipaddress.com/github.global.ssl.fastly.net
 
@@ -165,4 +175,5 @@ How to know which branch a “git log” commit belongs to?
     git log --stat
 
     git diff --name-only SHA1 SHA2
+
 

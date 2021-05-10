@@ -16,7 +16,7 @@ done
 
 #test -d .git || die "not found: .git"
 echo "+++ `pwd`: `git remote get-url origin`"
-git pull && git submodule update --init --recursive
+git pull --rebase && git submodule update --init --recursive
 echo "--- `pwd`"
 echo
 exit

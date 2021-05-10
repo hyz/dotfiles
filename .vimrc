@@ -103,6 +103,8 @@ endif
 
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
+Plug 'morhetz/gruvbox'
+"Plug 'altercation/vim-colors-solarized'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
 "Plug 'prabirshrestha/async.vim'
@@ -164,6 +166,12 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
 
 "Plug 'michaelb/sniprun', {'do': 'bash install.sh'}
 
+if has('win32') || has('win64')
+"  Plug 'kitagry/asyncomplete-tabnine.vim', { 'do': 'powershell.exe .\install.ps1' }
+else
+"  Plug 'kitagry/asyncomplete-tabnine.vim', { 'do': './install.sh' }
+endif
+
 call plug#end()
 
 """ Put your non-Plugin stuff after this line === === ===
@@ -171,6 +179,17 @@ call plug#end()
 """ https://github.com/autozimu/LanguageClient-neovim
 """ cd .vim/bundle/LanguageClient-neovim && bash install.sh
 "set runtimepath+=~/.vim/bundle/LanguageClient-neovim
+
+"" tabnine
+" call asyncomplete#register_source(asyncomplete#sources#tabnine#get_source_options({
+" \ 'name': 'tabnine',
+" \ 'allowlist': ['*'],
+" \ 'completor': function('asyncomplete#sources#tabnine#completor'),
+" \ 'config': {
+" \   'line_limit': 1000,
+" \   'max_num_result': 20,
+" \  },
+" \ }))
 
 "cnoremap <Esc>b <S-Left>
 "cnoremap <Esc>w <S-Right>
@@ -255,6 +274,7 @@ let g:user_emmet_settings = {
 \ },
 \}
 
+
 """
 "let g:EclimDisabled=1
 
@@ -302,4 +322,5 @@ au FileType rust nmap <leader>gd <Plug>(rust-doc)
 "nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 command W :execute ':silent w !sudo tee % > /dev/null' | :edit!
+
 

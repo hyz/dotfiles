@@ -13,8 +13,8 @@ help:
 # just xsearch-dbup /home/library/yy/dsky库存表/20-1126.xlsx
 xsearch-dbup FILE:
 	#xf-parse -f code-name {{FILE}}
-	xf-parse -f code-name --host tyun {{FILE}}
-	ssh tyun 'psql myt1 -c "SELECT COUNT(*) FROM warelis"'
+	xf-parse -f code-name --host dskydb {{FILE}}
+	ssh dskydb 'psql myt1 -c "SELECT COUNT(*) FROM warelis"'
 
 update_code-name +FILES:
 	update_code-name {{FILES}} >code-name.$(date +%m%d) 2>/tmp/update_code-name.log

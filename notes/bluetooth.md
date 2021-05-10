@@ -49,3 +49,7 @@
 systemctl --user restart pipewire-pulse.service
 
 systemctl --user enable pipewire-media-session.service
+
+### ---
+
+    PULSE_SERVER=tcp:192.168.1.24 mplayer -vo null ...

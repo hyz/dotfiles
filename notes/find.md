@@ -1,4 +1,7 @@
 
+    fd -d4 -tf -IF zsh
+    fd -aI -em4a >> .../opt/mpd/playlists/qh.m3u 
+
     fd -Id3 -e rs |xargs rg bezier # -x rg bezier
     fd -Id3 -tf -g Cargo.toml |xargs rg tile
     fd -Id3 -td -g target
@@ -31,6 +34,4 @@
 ### find src -type f -perm \/111
 
 
-
-fd -d4 -tf -IF zsh
 

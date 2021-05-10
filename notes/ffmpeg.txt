@@ -1,4 +1,18 @@
 
+    ls -lSr
+    ffprobe ...some.mp4
+
+    ln -sf ...some.mp4 input
+    ffmpeg -i input -map 0:a -c:a copy "`readlink input`.m4a"
+
+    ffmpeg -ss 00:33:00 -t 180       -i input -map 0:a -c:a copy output.mp3
+    ffmpeg -ss 00:33:00 -to 00:36:00 -i input -map 0:a -c:a copy output.mp3
+
+### https://stackoverflow.com/questions/9913032/how-can-i-extract-audio-from-video-with-ffmpeg
+
+    ffmpeg -i vid.avi -map 0:a audio.wav -map 0:v onlyvideo.avi
+    ffmpeg -i input.avi -map 0:a -c:a copy output.m4a
+
 ### ffmpeg concat files
 
     $ cat filelist.txt
@@ -206,8 +220,18 @@ test hwaccel
 ### https://github.com/mpenkov/ffmpeg-tutorial
 ### http://dranger.com/ffmpeg/tutorial01.html
 
-
-ffmpeg -i $filename -strict -2 -vf crop=270:360:1:60 270x360.mp4
+    ffmpeg -i $filename -strict -2 -vf crop=270:360:1:60 270x360.mp4
 
 ## https://www.jianshu.com/p/0819ac4205fd
-ffmpeg -i video.mp4 frame%04d.png
+
+    ffmpeg -i video.mp4 frame%04d.png
+
+
+
+fd -aI -e mp4 |while read mp4 ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+
+for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+
+fd -aI -e mp4 |xargs -d\\n -I{} rm -f "{}"
+for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && rm -vf "$mp4" ;done

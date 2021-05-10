@@ -142,3 +142,20 @@ http://www.linuxjournal.com/content/use-ssh-create-http-proxy#comment-336098
     64 bytes from localhost (::1): icmp_seq=2 ttl=64 time=0.076 ms
     64 bytes from localhost (::1): icmp_seq=3 ttl=64 time=0.076 ms
 
+### you-get
+https://www.cnblogs.com/michaelcjl/p/12520049.html
+
+    you-get -o . 'https://www.bili****.com/video/BV1GJ411U7t9?p=2'
+
+    python3 -m pip install --upgrade you_get
+
+    import sys
+    from you_get import common as you
+    directory = '/data/Download'
+    url = 'https://www.bili****.com/video/av93104638?p=1'
+    sys.argv = ['you-get', '-o', directory, url, '-l']
+    you.main()
+
+### youtube-dl
+https://www.cnblogs.com/michaelcjl/p/12521985.html
+

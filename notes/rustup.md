@@ -1,10 +1,15 @@
 
-### https://github.com/rust-lang-nursery/rustup.rs/blob/master/README.md#installation
+### https://github.com/rust-lang/rustup/blob/master/doc/src/installation/index.md
 
 Choosing where to install
 
     CARGO_HOME
     RUSTUP_HOME
+
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+
+    rustup toolchain install nightly --allow-downgrade --profile minimal --component clippy
 
 ### https://github.com/rust-lang-nursery/rustup.rs
 
@@ -13,13 +18,15 @@ Choosing where to install
     rustup update
     rustup show
 
-    rustup target list
     rustup toolchain list
+    rustup target list
+    rustup component list
 
     rustup target add x86_64-pc-windows-gnu
     rustup target add arm-linux-androideabi
 	rustup target add --toolchain nightly wasm32-unknown-wasi
     rustup target remove ...
+    rustup component remove --toolchain nightly --target x86_64-unknown-linux-gnu rls
 
     rustup install nightly-x86_64-pc-windows-gnu
 

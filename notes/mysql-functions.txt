@@ -1,3 +1,4 @@
+
 http://www.pantz.org/software/mysql/mysqlcommands.html
 
    #[1]Pantz.org RSS Feed
@@ -55,8 +56,7 @@ Show all data in a table.
 
    mysql> SELECT * FROM [table name];
 
-Returns the columns and column information pertaining to the designated
-table.
+Returns the columns and column information pertaining to the designated table.
 
    mysql> show columns from [table name];
 
@@ -69,26 +69,22 @@ Show all records containing the name "Bob" AND the phone number '3444444'.
    mysql> SELECT * FROM [table name] WHERE name = "Bob" AND phone_number =
    '3444444';
 
-Show all records not containing the name "Bob" AND the phone number '3444444'
-order by the phone_number field.
+Show all records not containing the name "Bob" AND the phone number '3444444' order by the phone_number field.
 
    mysql> SELECT * FROM [table name] WHERE name != "Bob" AND phone_number
    = '3444444' order by phone_number;
 
-Show all records starting with the letters 'bob' AND the phone number
-'3444444'.
+Show all records starting with the letters 'bob' AND the phone number '3444444'.
 
    mysql> SELECT * FROM [table name] WHERE name like "Bob%" AND
    phone_number = '3444444';
 
-Show all records starting with the letters 'bob' AND the phone number
-'3444444' limit to records 1 through 5.
+Show all records starting with the letters 'bob' AND the phone number '3444444' limit to records 1 through 5.
 
    mysql> SELECT * FROM [table name] WHERE name like "Bob%" AND
    phone_number = '3444444' limit 1,5;
 
-Use a regular expression to find records. Use "REGEXP BINARY" to force
-case-sensitivity. This finds any record beginning with a.
+Use a regular expression to find records. Use "REGEXP BINARY" to force case-sensitivity. This finds any record beginning with a.
 
    mysql> SELECT * FROM [table name] WHERE rec RLIKE "^a";
 
@@ -115,8 +111,7 @@ Join tables on common columns.
    lookup.personid=person.personid=statement to join birthday in person
    table with primary illustration id;
 
-Creating a new user. Login as root. Switch to the MySQL db. Make the user.
-Update privs.
+Creating a new user. Login as root. Switch to the MySQL db. Make the user.  Update privs.
 
    # mysql -u root -p
    mysql> use mysql;
@@ -129,16 +124,13 @@ Change a users password from unix shell.
    # [mysql dir]/bin/mysqladmin -u username -h hostname.blah.org -p
    password 'new-password'
 
-Change a users password from MySQL prompt. Login as root. Set the password.
-Update privs.
+Change a users password from MySQL prompt. Login as root. Set the password.  Update privs.
 
    # mysql -u root -p
    mysql> SET PASSWORD FOR 'user'@'hostname' = PASSWORD('passwordhere');
    mysql> flush privileges;
 
-Recover a MySQL root password. Stop the MySQL server process. Start again
-with no grant tables. Login to MySQL as root. Set new password. Exit MySQL
-and restart MySQL server.
+Recover a MySQL root password. Stop the MySQL server process. Start again with no grant tables. Login to MySQL as root. Set new password. Exit MySQL and restart MySQL server.
 
    # /etc/init.d/mysql stop
    # mysqld_safe --skip-grant-tables &
@@ -159,17 +151,14 @@ Update a root password.
 
    # mysqladmin -u root -p oldpassword newpassword
 
-Allow the user "bob" to connect to the server from localhost using the
-password "passwd". Login as root. Switch to the MySQL db. Give privs. Update
-privs.
+Allow the user "bob" to connect to the server from localhost using the password "passwd". Login as root. Switch to the MySQL db. Give privs. Update privs.
 
    # mysql -u root -p
    mysql> use mysql;
    mysql> grant usage on *.* to bob@localhost identified by 'passwd';
    mysql> flush privileges;
 
-Give user privilages for a db. Login as root. Switch to the MySQL db. Grant
-privs. Update privs.
+Give user privilages for a db. Login as root. Switch to the MySQL db. Grant privs. Update privs.
 
    # mysql -u root -p
    mysql> use mysql;
@@ -227,8 +216,7 @@ Load a CSV file into a table.
    name] FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
    (field1,field2,field3);
 
-Dump all databases for backup. Backup file is sql commands to recreate all
-db's.
+Dump all databases for backup. Backup file is sql commands to recreate all db's.
 
    # [mysql dir]/bin/mysqldump -u root -ppassword --opt
    >/tmp/alldatabases.sql
@@ -1267,7 +1255,6 @@ Related stories
    [201]scsi
    [202]seagate
    [203]seatools
-   [204]sed
    [205]sendmail
    [206]sgi
    [207]shell
@@ -1534,7 +1521,6 @@ References
  201. http://www.pantz.org/tags/scsi.html
  202. http://www.pantz.org/tags/seagate.html
  203. http://www.pantz.org/tags/seatools.html
- 204. http://www.pantz.org/tags/sed.html
  205. http://www.pantz.org/tags/sendmail.html
  206. http://www.pantz.org/tags/sgi.html
  207. http://www.pantz.org/tags/shell.html
