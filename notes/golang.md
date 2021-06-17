@@ -54,3 +54,6 @@
 
 ### https://github.com/tmrts/go-patterns
 
+
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.io,direct

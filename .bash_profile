@@ -27,26 +27,34 @@ fi
 
 #export PATH="$HOME/.cargo/bin:$PATH"
 
-XHOME=/xhome
+XHOME=
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
-    XHOME=/mnt/e/home
-elif [ -d /xhome ] ; then
+    XHOME=/mnt/i/home
+elif [ -d /xhome/bin ] ; then
     XHOME=/xhome
-elif [ -d /opt/x ] ; then
+elif [ -d /opt/x/bin ] ; then
     XHOME=/opt/x
-else
+elif [ -d $HOME/xhome ] ; then
     XHOME=$HOME/xhome
 fi
-XSDK=$XHOME/sdk
-DENO_DIR=$XHOME/deno
-DENO_INSTALL_ROOT=$DENO_DIR
-CARGO_HOME=$XHOME/cargo
-RUSTUP_HOME=$XHOME/rustup
-WASMER_DIR=$XHOME/wasmer
-GOPATH=$XHOME/go
-FLUTTER_HOME=$XSDK/flutter
-ANDROID_SDK=$XHOME/sdk/android-sdk
-ANDROID_NDK=$XHOME/sdk/android-ndk
+if [ -n "$XHOME" ] ; then
+    XSDK=$XHOME/sdk
+    DENO_DIR=$XHOME/deno
+    DENO_INSTALL_ROOT=$DENO_DIR
+    CARGO_HOME=$XHOME/cargo
+    RUSTUP_HOME=$XHOME/rustup
+    WASMER_DIR=$XHOME/wasmer
+    GOPATH=$XHOME/go
+    FLUTTER_HOME=$XSDK/flutter
+    ANDROID_SDK=$XHOME/sdk/android-sdk
+    ANDROID_NDK=$XHOME/sdk/android-ndk
+else
+    alias rustup=/bin/echo
+    alias cargo=/bin/echo
+    alias go=/bin/echo
+    alias flutter=/bin/echo
+    alias deno=/bin/echo
+fi
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###

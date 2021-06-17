@@ -159,3 +159,6 @@ https://www.cnblogs.com/michaelcjl/p/12520049.html
 ### youtube-dl
 https://www.cnblogs.com/michaelcjl/p/12521985.html
 
+
+# tar xf net.downloadhelper.coapp-1.6.3-1_amd64.tar.gz -C ~
+# ~/net.downloadhelper.coapp-1.6.3/bin/net.downloadhelper.coapp-linux-64 install --user

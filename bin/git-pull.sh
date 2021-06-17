@@ -15,9 +15,10 @@ while [ ! -d .git ] ; do
 done
 
 #test -d .git || die "not found: .git"
-echo "+++ `pwd`: `git remote get-url origin`"
+origin="`git remote get-url origin`"
+echo "#=== `pwd`    $origin"
 git pull --rebase && git submodule update --init --recursive
-echo "--- `pwd`"
+echo "#~~~ `pwd`    $origin"
 echo
 exit
 

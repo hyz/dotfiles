@@ -1,22 +1,51 @@
+
+## https://imagemagick.org/script/command-line-processing.php
+
+## geometry
+
+https://legacy.imagemagick.org/script/command-line-processing.php#geometry
+
+## crop
+
+    convert -crop 100%x50% a.png +repage  a%d.png
+
+https://legacy.imagemagick.org/discourse-server/viewtopic.php?t=10027
+https://legacy.imagemagick.org/Usage/crop/
+https://legacy.imagemagick.org/script/command-line-options.php?#crop
+
+## resize
+
 http://askubuntu.com/questions/135477/how-can-i-scale-all-images-in-a-folder-to-the-same-width
 http://superuser.com/questions/290656/combine-multiple-images-using-imagemagick
 http://www.imagemagick.org/Usage/montage/
 http://www.howtogeek.com/109369/how-to-quickly-resize-convert-modify-images-from-the-linux-terminal/
 
-convert example.png -resize 28x38 example.png
-convert example.png -resize 28x38! example.png
-convert *.png *.gif +append output.png
+    convert example.png -resize 28x38 example.png
+    convert example.png -resize 28x38! example.png
+    convert *.png *.gif +append output.png
 
-montage 1.png 2.png 3.png \
-        1.png 2.png 3.png \
-        1.png 2.png 3.png \
-    -mode concatenate -tile 3x -geometry +1+1 3x3.png
-    -mode concatenate -tile 3x -geometry +1+1 -background none 3x3.png
+    montage 1.png 2.png 3.png \
+            1.png 2.png 3.png \
+            1.png 2.png 3.png \
+        -mode concatenate -tile 3x -geometry +1+1 3x3.png
+        -mode concatenate -tile 3x -geometry +1+1 -background none 3x3.png
 
 #28x38
 
-convert x.png -quality 100 -resize 640 PNG8:/tmp/x.png
+    convert x.png -quality 100 -resize 640 PNG8:/tmp/x.png
 
 ### http://stackoverflow.com/questions/2336522/png-vs-gif-vs-jpeg-vs-svg-when-best-to-use?rq=1
     png gif jpeg svg
+
+## python wand
+
+    from wand.image import Image
+
+    with Image(filename="big_image.jpg") as img:
+    for i,h in enumerate( range(0, img.height, 256) ):
+        for w in range(0, img.width, 256):
+            w_end = w + 256
+            h_end = h + 256
+            with img[w:w_end, h:h_end] as chunk:
+                chunk.save(filename='tiles_{0}.jpg'.format(i))
 
