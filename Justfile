@@ -22,6 +22,9 @@ update_code-name +FILES:
 	bat code-name
 	@rg '^Updated' /tmp/update_code-name.log || true
 
+serve-dir DIR:
+	static-web-server -a 0.0.0.0 -p 8080 -z=true -d {{DIR}}
+
 ftpfs:
 	[ -d /tmp/Music ] || mkdir /tmp/Music
 	curlftpfs 192.168.1.14 /tmp/Music
@@ -71,17 +74,20 @@ env:
 	#!/bin/sudo /bin/bash
 	env
 
-ftp-mount:
+initial-setup:
 	#!/bin/sudo /bin/bash
 	#!/bin/sudo --chdir /home/ftp /bin/bash
+	mount /xhome
+	##PATH=$PATH:/xhome/cargo/bin cargo mk ftp-mount
 	cd /home/ftp
-	for x in `/bin/find ???* -maxdepth 1 -type d` ; do
-		src=`/bin/find ../library -maxdepth 1 -type d -name "$x*"`
-		echo "$src $x"
+	echo "$SHELL `pwd` `id` $LOGNAME "
+	for x in `/bin/find ???* -prune -type d` ; do
+		src=`/bin/find ../library/* -prune -type d -name "$x*"`
+		echo "mount -o bind $src $x"
 		[ -d "$x" -a -d "$src" ] || continue
 		mount -o bind "$src" "$x"
 	done
-	# Knowledge Lessions Audience Music Interpersonal Literature Language Education Wealth
+	bftpd -d
 
 ftp-restart:
 	#!/bin/sudo /bin/bash

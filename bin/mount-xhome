@@ -1,5 +1,12 @@
-#!/bin/bash
+#!/bin/sudo /bin/bash
 ## $XHOME Downloads Music Movies Pictures Documents Desktop
+
+mount /xhome
+bftpd -d
+
+zsh --login - <<< 'cargo mk ftp-mount'
+
+exit
 
 die() {
     xcode=$?
