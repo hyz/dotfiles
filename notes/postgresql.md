@@ -1,26 +1,23 @@
 
-    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 -D /var/lib/postgres/data --auth-local trust
-    sudo -iu postgres -- initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'
+    systemctl start postgresql.service
+    sudo -iu postgres -- initdb -D /var/lib/postgres/data --locale=en_US.UTF-8 -E UTF8 --auth-local trust
+    sudo -iu postgres -- initdb -D /var/lib/postgres/data --locale=en_US.UTF-8
 
-    sudo systemctl start postgresql.service
+    sudo -iu postgres -- dropdb --if-exists $USER
+    sudo -iu postgres -- dropuser --if-exists $USER
+    sudo -iu postgres -- createuser --interactive $USER
+    sudo -iu postgres -- createdb -O $USER $USER
+    sudo -iu postgres -- psql -c "CREATE DATABASE $USER OWNER $USER"
 
-    sudo -iu postgres -- createuser --interactive
-    sudo -iu postgres -- psql -c "create database wood OWNER wood"
-
-    createdb mydb1
-
-    psql -c \\l
-    psql wood -c \\d
-
-
-    pg_dump --data-only --column-inserts `date +decor%y%m%d` -t entitys
+    CREATE USER realworld WITH PASSWORD 'realworld';
+    CREATE DATABASE realworld OWNER realworld; GRANT ALL PRIVILEGES ON DATABASE realworld TO realworld;
+    psql -U realworld mydb -f mydb.sql
 
     psql <<< "SELECT version()"
-    psql <<< \\list
-    psql -c \\l+
-
     psql -c \\conninfo
     psql -c \\? variables
+
+    psql -l # psql -c \\l # psql <<< \\list # psql -c \\l+
 
     cat >> /tmp/mytab1.sql <<_EoF
     CREATE TABLE mytab1(
@@ -36,7 +33,23 @@ _EoF
     psql -d mydb1 -c \\dt
     psql -d mydb1 -c \\d\ mytab1
 
-    psql postgresql://wood@localhost/mydb1
+    psql postgresql://$USER@localhost/mydb1
+
+### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql
+
+    psql mydb -c "DROP SCHEMA public CASCADE;"
+    psql mydb -c "CREATE SCHEMA public;"
+    psql mydb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+    psql mydb -c "GRANT ALL ON SCHEMA public TO postgres;"
+    psql mydb -c "GRANT ALL ON SCHEMA public TO public;"
+
+    DROP DATABASE realworld;
+    CREATE DATABASE realworld WITH OWNER = postgres ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+    CREATE DATABASE realworld WITH TEMPLATE mydb OWNER dbuser;
+
+    host=/run/postgresql user=root dbname=mydb sslmode=disable # UNIX socket
+    postgres+unix:/run/postgresql/mydb
 
 ### sqlx/sqlx-cli/README.md
 
@@ -62,11 +75,12 @@ _EoF
 
 ### db admin, backup/restore
 
+    pg_dump --data-only --column-inserts `date +decor%y%m%d` -t entitys
+
     sudo -iu postgres -- pg_dump --column-inserts --data-only mydb -t mytab > /tmp/mytab
 
     pg_dump mydb --schema-only |tee mydb.sql > db/mydb.sql.$(date +%m%d%H%M)
     vim mydb.sql
-    dropdb mydb ; createdb -O root mydb && psql mydb -f mydb.sql
 
     pg_dump --schema-only mydb -t tab1 |tee tab1.sql > db/tab1.sql.$(date +%m%d%H%M)
     psql mydb -c '\d+ tab1'
@@ -160,22 +174,6 @@ You have four choices regarding the password prompt:
 
     ALTER TABLE statis_xequip ALTER game1 SET DEFAULT 0
 
-### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql
-
-    psql mydb -c "DROP SCHEMA public CASCADE;"
-    psql mydb -c "CREATE SCHEMA public;"
-    psql mydb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-
-    psql mydb -c "GRANT ALL ON SCHEMA public TO postgres;"
-    psql mydb -c "GRANT ALL ON SCHEMA public TO public;"
-
-    DROP DATABASE newdb;
-    CREATE DATABASE newdb WITH OWNER = postgres ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
-    CREATE DATABASE newdb WITH TEMPLATE mydb OWNER dbuser;
-
-    host=/run/postgresql user=root dbname=mydb sslmode=disable # UNIX socket
-    postgres+unix:/run/postgresql/mydb
-
 ### https://stackoverflow.com/questions/15644152/list-tables-in-a-postgresql-schema
 Schema
 
@@ -246,3 +244,4 @@ DATABASE_URL=postgres:///dbname
 ### SELECT & UNION & SUBQUERY
 
     psql `date +mydb%y%m%d` -c "select id,name from entitys where id IN ((select id from entitys where id<=8 limit 3) UNION (select id from entitys where id>8 order by id limit 3) ) order by id"
+

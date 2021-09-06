@@ -103,6 +103,8 @@ endif
 
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
+Plug 'andymass/vim-matchup'
+Plug 'evanleck/vim-svelte', {'branch': 'main'}
 Plug 'morhetz/gruvbox'
 "Plug 'altercation/vim-colors-solarized'
 Plug 'cespare/vim-toml'
@@ -222,6 +224,8 @@ call plug#end()
 "		endif
 "		set csverb
 "endif
+
+let g:loaded_matchit = 1
 
 """ VimIM - https://github.com/vim-scripts/VimIM
 "let g:vimim_one_key=0

@@ -33,3 +33,8 @@ curl -o/dev/null -s -w'%{time_namelookup}::%{time_connect}::%{time_starttransfer
 
     http://www.51testing.com/html/14/175414-248200.html
 
+
+    xh post http://x.rs/auth/v1/login username=XXX password=XXX
+    xh --bearer XXX get http://x.rs/dummy/v1/user
+
+https://ip.taobao.com/index  

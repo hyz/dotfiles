@@ -1,4 +1,7 @@
 
+    systemctl restart wg-quick@wg0
+
+### https//github.com/angristan/wireguard-install
 ### https://www.wireguard.com/install/
 
 ubuntu
@@ -20,8 +23,8 @@ debian
 
 ### https://github.com/aturl/... /WireGuard/WireGuard_VPN_Tunnel.md
 
-    wg genkey | tee privatekey | wg pubkey > publickey | wg genpsk > presharedkey
-    wg pubkey <wg.genkey
+    wg genkey |tee PRIVATE-KEY | wg pubkey | wg genpsk > PRESHARED-KEY
+    wg pubkey < PRIVATE-KEY
 
 ### https://github.com/alokhan/wireguard/blob/master/command
 
@@ -29,7 +32,8 @@ Server setup:
 
     ip link add dev wg0 type wireguard
     ip address add dev wg0 192.168.2.1 peer 192.168.2.2
-    sudo wg set wg0 listen-port 1122 peer publickeypeer allowed-ips 192.168.2.0/2
+
+    sudo wg set wg0 listen-port 1122 peer PUBLIC-KEY-PEER allowed-ips 192.168.2.0/2
     ip link set up dev wg0
 
     sudo iptables -A FORWARD -i eth0 -o wg0 -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -69,5 +73,5 @@ Client Setup:
     ping 10.0.0.1
 
 
-systemctl restart wg-quick@wg0
 
+wg show

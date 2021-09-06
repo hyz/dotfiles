@@ -60,3 +60,5 @@ git config --global --add remote.origin.proxy ""
 
 git config --global --unset-all remote.origin.proxy
 
+
+export GITHUB_TOKEN=...

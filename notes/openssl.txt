@@ -19,3 +19,5 @@ https://github.com/jedisct1/libsodium
 
     CC="musl-gcc -fPIC -pie" ./configure --prefix=/usr/lib/musl --disable-shared
 
+
+export ROCKET_SECRET_KEY="`openssl rand -base64 32`"

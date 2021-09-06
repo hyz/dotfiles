@@ -2,9 +2,17 @@
 ## $XHOME Downloads Music Movies Pictures Documents Desktop
 
 mount /xhome
-bftpd -d
 
-zsh --login - <<< 'cargo mk ftp-mount'
+#zsh --login - <<< 'cargo mk ftp-mount'
+cd /home/ftp
+echo "$SHELL `pwd` `id` $LOGNAME "
+for x in `/bin/find ???* -prune -type d` ; do
+    src=`/bin/find ../library/* -prune -type d -name "$x*"`
+    echo "mount -o bind $src $x"
+    [ -d "$x" -a -d "$src" ] || continue
+    mount -o bind "$src" "$x"
+done
+bftpd -d
 
 exit
 

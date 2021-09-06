@@ -1,4 +1,6 @@
 
+    cargo generate --git godot-rust-template --name rusdot-myex1
+
     cargo sweep -i
 
     cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name myw1
@@ -26,6 +28,9 @@
 
     cargo +nightly install --git https://github.com/kbknapp/cargo-graph --force
 
+    cargo install XXX... --features dotenv
+    cargo install XXX... --no-default-features --features postgresql
+
 ### musl static linked
 
     - pacman -S musl
@@ -42,4 +47,6 @@
 
 
 
-cargo generate --git godot-rust-template --name rusdot-myex1
+RUST_LOG=tower_http=debug,key_value_store=trace  cargo watch -x run
+
+cargo deps --all-deps | dot -Tpng > deps.png

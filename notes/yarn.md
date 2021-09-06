@@ -85,3 +85,5 @@ yarn info babel-loader |rg '(version|latest)'
 
 yarn config set ignore-engines true
 https://registry.yarnpkg.com
+
+yarn set version latest

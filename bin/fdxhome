@@ -1,0 +1,4 @@
+#!/bin/bash
+
+fd --min-depth 2 -d2 -iI $* /xhome |rg -i $1
+

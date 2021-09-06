@@ -41,3 +41,6 @@ Maybe *memory-leak* will happend in this mode..
 
     curl --connect-timeout 2 -x 127.0.0.1:8118 http://google.com
 
+
+curl -x "http://127.0.0.1:3128" "http://httpbin.org/ip" 
+curl -x "socks5://127.0.0.1:1080" "https://www.google.com"

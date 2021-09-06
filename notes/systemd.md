@@ -164,3 +164,4 @@ https://wiki.archlinux.org/index.php/Systemd-boot
         "method":"aes-256-cfb"
     }
 
+systemctl --user list-unit-files

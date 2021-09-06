@@ -1,4 +1,11 @@
 
+    fd -Id4 up.sql -p migrations
+    fd up.sql -p migrations
+    fd up.sql migrations
+    fd . migrations
+    fd -e sql . migrations
+    fd -e rs . src
+
     fd -d4 -tf -IF zsh
     fd -aI -em4a >> .../opt/mpd/playlists/qh.m3u 
 
@@ -35,3 +42,5 @@
 
 
 
+
+fd -Id3 -e ts . ../ |xargs rg -w export

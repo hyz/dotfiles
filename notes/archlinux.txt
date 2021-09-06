@@ -217,3 +217,5 @@ https://wiki.archlinux.org/index.php/Archboot
 
 
 p7zip unzip
+
+rate-mirrors --save=/tmp/mirrors arch --max-delay=21600

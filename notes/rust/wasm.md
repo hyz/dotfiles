@@ -7,9 +7,11 @@
     https://rustwasm.github.io/2018/10/01/this-week-in-rust-wasm-008.html
     https://rustwasm.github.io/2018/09/04/this-week-in-rust-wasm-007.html
 
-### https://rustwasm.github.io/wasm-pack/book/commands/build.html
+### https://github.com/rustwasm/wasm-pack/blob/master/docs/src/commands/build.md
 
-wasm-pack build --target ...
+    wasm-pack build --target ...
+
+        --target <target>        Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
 
 Option	Usage	Description
 

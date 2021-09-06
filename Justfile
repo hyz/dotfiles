@@ -58,7 +58,6 @@ bluetooth:
 	bluetoothctl disconnect
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
 
-
 # $ cat filelist.txt
 # file 1.mp3
 # file 2.mp3
@@ -89,6 +88,13 @@ initial-setup:
 	done
 	bftpd -d
 
+privoxy:
+	#!/bin/sudo /bin/bash
+	#WG_QUICK_USERSPACE_IMPLEMENTATION=boringtun WG_SUDO=1 wg-quick up wg0
+	systemctl restart wg-quick@wg0
+	sslocal -dc .local/sss-config_ext.json
+	systemctl restart privoxy.service
+
 ftp-restart:
 	#!/bin/sudo /bin/bash
 	systemctl restart bftpd.service
@@ -102,4 +108,7 @@ ftp-bind-share:
 
 analyzer:
 	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
+
+mirrorlist:
+	rate-mirrors arch
 

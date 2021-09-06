@@ -1,4 +1,6 @@
 
+    rate-mirrors arch
+
     pacman -Rs libxfont
     pacman -Qo /usr/bin/ssh
 
@@ -32,4 +34,5 @@
     sudo ./pacman-static -Syyu
 
     git clone https://aur.archlinux.org/pacman-static.git
+
 

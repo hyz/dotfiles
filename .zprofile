@@ -126,8 +126,9 @@ elif [ -d $HOME/xhome ] ; then
 fi
 if [ -n "$XHOME" ] ; then
     XSDK=$XHOME/sdk
-    DENO_DIR=$XHOME/deno
-    DENO_INSTALL_ROOT=$DENO_DIR
+    DENO_DIR=$XHOME/deno/.cache
+    DENO_INSTALL=$DENO_DIR
+    DENO_INSTALL_ROOT=$DENO_INSTALL
     CARGO_HOME=$XHOME/cargo
     RUSTUP_HOME=$XHOME/rustup
     WASMER_DIR=$XHOME/wasmer
@@ -183,7 +184,7 @@ PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
 
 if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 
-export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL_ROOT
+export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export PATH

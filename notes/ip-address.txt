@@ -1,7 +1,10 @@
 
+    curl http://httpbin.org/ip
     curl https://ifconfig.co
 
-    proxychains curl http://ifconfig.co
+    curl ifconfig.co/city
 
 ### http://www.whatismyip.com/my-ip-information
+
+### https://www.ip138.com/
 

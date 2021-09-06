@@ -139,3 +139,7 @@ alias gp=git-pull.sh
 date
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+eval "`mcfly init zsh`"
+export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
+

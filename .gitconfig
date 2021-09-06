@@ -40,3 +40,7 @@
 [interactive]
     diffFilter = delta --color-only
 
+[hub]
+	protocol = git
+[init]
+	defaultBranch = main
