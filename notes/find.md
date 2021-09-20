@@ -1,4 +1,7 @@
 
+    fd -tf -ejs . .build |xargs ls -hl
+    fd -Id3 -ets . ../ |xargs rg -w export
+
     fd -Id4 up.sql -p migrations
     fd up.sql -p migrations
     fd up.sql migrations
@@ -43,4 +46,3 @@
 
 
 
-fd -Id3 -e ts . ../ |xargs rg -w export

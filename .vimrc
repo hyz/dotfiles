@@ -119,7 +119,7 @@ Plug 'timonv/vim-cargo'
 
 Plug 'vim-scripts/fcitx.vim'
 "Plug 'w0rp/ale'
-Plug 'jremmen/vim-ripgrep'
+"-- Plug 'jremmen/vim-ripgrep'
 "Plug 'godlygeek/tabular'
 "Plug 'mxw/vim-jsx'
 Plug 'pangloss/vim-javascript'

@@ -1,5 +1,5 @@
 
-yarn run build --mode production
+    yarn run build --mode production
 
 ### https://yarnpkg.com/lang/en/docs/migrating-from-npm/
 
@@ -8,7 +8,6 @@ yarn run build --mode production
     yarn run serve --host 0.0.0.0
 
     curl -o- -L https://yarnpkg.com/install.sh | bash
-    yarn global add create-react-app
 
     ls -l ~/.yarn/bin
     export PATH=$PATH:$HOME/.yarn/bin
@@ -18,7 +17,6 @@ Fast, reliable, and secure dependency management. https://yarnpkg.com
     yarn versions
     yarn info webpack
 
-    yarn global add create-react-native-app
     yarn add @swc/core @swc/cli --dev
     yarn global add exp
 
@@ -31,30 +29,27 @@ Fast, reliable, and secure dependency management. https://yarnpkg.com
 
     yarn config set yarn-offline-mirror .yarn-offline-mirror
 
-
-yarn outdated
-yarn upgrade --latest
-yarn bin
-yarn list
-yarn run env
+    yarn outdated
+    yarn upgrade --latest
+    yarn bin
+    yarn list
+    yarn run env
 
 https://classic.yarnpkg.com/en/docs/cli/run/
 
-yarn config get registry
-yarn config set registry https://registry.yarnpkg.com
-yarn config set registry https://registry.npm.taobao.org/
+    yarn config get registry
+    yarn config set registry https://registry.yarnpkg.com
+    yarn config set registry https://registry.npm.taobao.org/
 
-npm config set registry https://registry.npm.taobao.org/
-npm config get registry
+    npm config set registry https://registry.npm.taobao.org/
+    npm config get registry
 
-
-yarn ts-node-dev src/index.ts
-yarn webpack --mode=development
-yarn ts-node-dev src/main.ts
-yarn info
-
-yarn info babel-loader |rg '(version|latest)'
-
+    yarn ts-node-dev src/index.ts
+    yarn webpack --mode=development
+    yarn ts-node-dev src/main.ts
+    yarn info
+    yarn info webpack
+    yarn info babel-loader |rg '(version|latest)'
 
 ## Yarn
 
@@ -70,7 +65,7 @@ yarn info babel-loader |rg '(version|latest)'
     yarn config set node_inspector_cdnurl https://npm.taobao.org/mirrors/node-inspector --global
 
 ## Npm
-￼
+
     npm set registry https://registry.npm.taobao.org && \
     npm set disturl https://npm.taobao.org/dist && \
     npm set sass_binary_site https://npm.taobao.org/mirrors/node-sass && \
@@ -83,7 +78,18 @@ yarn info babel-loader |rg '(version|latest)'
     npm set node_inspector_cdnurl https://npm.taobao.org/mirrors/node-inspector && \
     npm cache clean --force
 
-yarn config set ignore-engines true
+    yarn config set ignore-engines true
+
 https://registry.yarnpkg.com
 
-yarn set version latest
+    yarn set version latest
+    yarn set version berry
+    yarn dlx @yarnpkg/sdks
+    yarn dlx @yarnpkg/sdks vscode
+
+## create-react-app https://create-react-app.dev/docs/getting-started/#selecting-a-template
+
+    https://www.npmjs.com/search?q=cra-template-*
+
+    yarn create react-app --template ...
+

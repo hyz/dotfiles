@@ -1,4 +1,11 @@
 
+    GITHUB_TOKEN=...  hub create hyzex1
+
+    git clone -o seed -b main --single-branch git://github.com/kriasoft/react-starter-kit exa1
+
+    git config --global http.sslVerify false
+    git config --global --add remote.origin.proxy ""
+    git config --global --unset-all remote.origin.proxy
 
 ### git.oschina.net
 
@@ -54,11 +61,3 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
 
 
 
-git config --global http.sslVerify false
-
-git config --global --add remote.origin.proxy ""
-
-git config --global --unset-all remote.origin.proxy
-
-
-export GITHUB_TOKEN=...
