@@ -1,4 +1,5 @@
 
+    git clone --depth 1 file:///$PWD ../myex`date +%y%m%d`
 
     https://github.com/search?l=Rust&q=stars%3A%3E1&s=stars&type=Repositories
 
@@ -175,5 +176,6 @@ How to know which branch a “git log” commit belongs to?
     git log --stat
 
     git diff --name-only SHA1 SHA2
+
 
 

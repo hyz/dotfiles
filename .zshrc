@@ -80,8 +80,9 @@ fi
     fi
 
 alias ll='ls -trl'
+#alias rg='rg --ignore-file=.ignore'
+alias fdx=fdxhome
 
-#
 #
 alias svndiff='svn diff --diff-cmd wsvndiff'
 
@@ -143,3 +144,7 @@ date
 eval "`mcfly init zsh`"
 export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
 
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+
+function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 

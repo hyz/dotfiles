@@ -20,3 +20,5 @@ http://askubuntu.com/questions/173220/how-do-i-change-the-font-or-the-font-size-
 http://askubuntu.com/questions/97469/what-is-the-default-debian-ubuntu-console-tty-font-called?rq=1
     /bin/setfont /usr/share/consolefonts/Lat2-VGA32x16.psf.gz
 
+pacman -Ql fontconfig
+pacman -Ql fontconfig |rg -w bin

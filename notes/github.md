@@ -17,9 +17,14 @@
 
     git clone https://gh.api.99988866.xyz/https://github.com/unicode-org/icu4x
 
-    git clone --recursive -j8 https://ghproxy.com/https://github.com/SSBMTonberry/tileson
+    git clone --recursive -j8 https://ghproxy.com/https://github.com/unicode-org/icu4x
 
     https://octoverse.github.com/
+
+more proxy
+
+    https://ghproxy.com/https://github.com/hyz/...
+    https://download.fastgit.org/hyz/...
 
 ### awesome
 
@@ -59,5 +64,12 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
 
     然后可以继续刚刚命令行的步骤了。
 
+
+
+
+### github.com.cnpmjs.org
+
+    https://github.com/sminez/roc 
+    https://github.com.cnpmjs.org/sminez/roc/
 
 

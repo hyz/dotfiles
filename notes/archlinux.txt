@@ -1,4 +1,6 @@
 
+    dd bs=4M if=path/to/archlinux-version-x86_64.iso of=/dev/sdx conv=fsync oflag=direct status=progress
+
 ### https://github.com/linrunner/TLP
 
 advanced power management for linux
@@ -219,3 +221,4 @@ https://wiki.archlinux.org/index.php/Archboot
 p7zip unzip
 
 rate-mirrors --save=/tmp/mirrors arch --max-delay=21600
+

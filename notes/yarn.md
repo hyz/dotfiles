@@ -1,5 +1,26 @@
 
+
+    PUPPETEER_DOWNLOAD_HOST=https://storage.googleapis.com.cnpmjs.org yarn   # puppeteer
     yarn run build --mode production
+
+### yarn version berry
+
+https://registry.yarnpkg.com
+
+    # yarn set version latest
+    yarn set version berry
+    yarn dlx @yarnpkg/sdks
+    yarn dlx @yarnpkg/sdks vscode
+
+.yarnrc.yml
+
+    npmRegistryServer: "https://registry.npm.taobao.org"
+
+yarn-up-all
+
+    yarn plugin import https://github.com/e5mode/yarn-up-all/releases/latest/download/index.js
+    yarn up-all
+
 
 ### https://yarnpkg.com/lang/en/docs/migrating-from-npm/
 
@@ -51,13 +72,16 @@ https://classic.yarnpkg.com/en/docs/cli/run/
     yarn info webpack
     yarn info babel-loader |rg '(version|latest)'
 
-## Yarn
+## Yarn config -- set, get, delete, list, current
+
+    yarn config list
 
     yarn config set registry https://registry.npm.taobao.org --global
     yarn config set disturl https://npm.taobao.org/dist --global
     yarn config set sass_binary_site https://npm.taobao.org/mirrors/node-sass --global
     yarn config set electron_mirror https://npm.taobao.org/mirrors/electron/ --global
     yarn config set puppeteer_download_host https://npm.taobao.org/mirrors --global
+    yarn config set puppeteer_download_host https://storage.googleapis.com.cnpmjs.org --global
     yarn config set chromedriver_cdnurl https://npm.taobao.org/mirrors/chromedriver --global
     yarn config set operadriver_cdnurl https://npm.taobao.org/mirrors/operadriver --global
     yarn config set phantomjs_cdnurl https://npm.taobao.org/mirrors/phantomjs --global
@@ -80,16 +104,11 @@ https://classic.yarnpkg.com/en/docs/cli/run/
 
     yarn config set ignore-engines true
 
-https://registry.yarnpkg.com
-
-    yarn set version latest
-    yarn set version berry
-    yarn dlx @yarnpkg/sdks
-    yarn dlx @yarnpkg/sdks vscode
-
 ## create-react-app https://create-react-app.dev/docs/getting-started/#selecting-a-template
 
     https://www.npmjs.com/search?q=cra-template-*
 
     yarn create react-app --template ...
+
+
 
