@@ -1,6 +1,4 @@
 
-    dd bs=4M if=path/to/archlinux-version-x86_64.iso of=/dev/sdx conv=fsync oflag=direct status=progress
-
 ### https://github.com/linrunner/TLP
 
 advanced power management for linux
@@ -19,6 +17,16 @@ Minimal instructions for installing arch linux on an UEFI system with full syste
 https://wiki.archlinux.org/index.php/Installing_Arch_Linux_on_a_USB_key
 
 install archlinux from archlinux
+
+### grub boot archlinux
+
+    set root=(hd1,gpt3)
+    linux /boot/vmlinux... root=LABEL=uarch ro
+    initrd /boot/init...
+    boot
+
+    ... ...
+    mount -o remount,rw /
 
 #### host
 
@@ -44,6 +52,7 @@ https://wiki.archlinux.org/index.php/Full_system_backup_with_SquashFS
 
     genfstab -pU /mnt | tee /mnt/etc/fstab
     cp /etc/netctl/XXX /mnt/etc/netctl/
+    cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/
 
     vim /mnt/etc/{fstab,default/grub,hostname,locale.gen,hosts} #/etc/locale.conf, /etc/vconsole.conf
     vimdiff {,/mnt}/etc/grub.d/40_custom

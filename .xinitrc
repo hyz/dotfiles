@@ -49,7 +49,7 @@ redshift -r &>/dev/null &
 #[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
 #exec 
-for x in fvwm openbox dwm enlightenment_start xmonad ; do
+for x in penrose fvwm openbox dwm enlightenment_start xmonad ; do
     which $x 2>/dev/null && exec $x
 done
 # exec ck-launch-session gnome-session

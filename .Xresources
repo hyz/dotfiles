@@ -114,7 +114,7 @@ URxvt.transparency: 155
 
 ! Super_L/0xffeb Return/0xff0d
 
-!Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
-!Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
-!Alacritty*background: black
-!Alacritty*foreground: lightgray
+Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*background: black
+Alacritty*foreground: lightgray

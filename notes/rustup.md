@@ -21,6 +21,7 @@ Choosing where to install
     rustup toolchain list
     rustup target list
     rustup component list
+    rustup toolchain list
 
     rustup target add x86_64-pc-windows-gnu
     rustup target add arm-linux-androideabi

@@ -112,3 +112,7 @@ analyzer:
 mirrorlist:
 	rate-mirrors arch
 
+cifs:
+	#!/bin/sudo /bin/bash
+	mount -t cifs //192.168.11.234/yysmb /mnt/cifs -o gid=1000,uid=1000
+
