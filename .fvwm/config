@@ -40,48 +40,49 @@ AddToFunc Resize-or-Raise I Raise
 + D Lower
 
 ##### # Mouse
-Mouse   2  W   M 	Resize-or-Raise
-Mouse   1  W   M 	Move-or-Raise
+Mouse   2  W      M 	Resize-or-Raise
+Mouse   1  W      M 	Move-or-Raise
 
 ##### # Key
-Key  	q      A  MS 	Quit
-key 	q      A  M 	Restart
+Key		BackSpace	W	MC	Quit
+key		grave		A	MC	Restart
 
-key 	Return A  M 	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
-#key 	Return A  M 	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
-key 	x      A  MS 	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
-#key 	x      A  MS 	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
+key		Return		A	M	Exec exec xterm -geometry 137x23-0+0 -e ~/bin/xterm.sh
+#key 	x			A	MS	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
+#key 	x			A	MS	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
+#key 	Return		A	M	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
 
-Key 	x      A  M 	Exec exec bashrun
-Key 	p      A  M 	Exec exec rofi -show run
+Key 	semicolon	A	M	Exec exec rofi -show run
+#Key 	p			A	M	Exec exec rofi -show run
+Key		x			A	M	Exec exec bashrun
 
-Key 	Up     A  M 	Pick AnimatedMove keep 0p
-Key 	Left   A  M 	Pick AnimatedMove 0p keep
-Key 	Down   A  M 	Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
-Key 	Right  A  M 	Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
+Key		Up			A	M	Pick AnimatedMove keep 0p
+Key		Left		A	M	Pick AnimatedMove 0p keep
+Key		Down		A	M	Pick PipeRead "echo AnimatedMove keep $$(($[vp.height] - $[w.height]))p"
+Key		Right		A	M	Pick PipeRead "echo AnimatedMove $$(($[vp.width] - $[w.width]))p keep"
 
-Key 	j      A  M 	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
-Key 	k      A  M 	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
-Key 	Tab    A  M 	Exec exec rofi -show window
-Key 	c      A  M 	Pick Close
-Key 	F4     A  M 	Pick Close
-Key 	i      A  M 	Iconify
-Key 	i      A  MS 	All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
-Key 	z      A  M 	Pick Resize
-Key 	m      A  MS 	Pick Maximize 100 0
-Key 	m      A  M 	Pick Maximize 0 100
-Key 	m      A  CM 	Pick Move
+Key		j			A	M	Prev (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key		k			A	M	Next (CurrentPage, AcceptsFocus, !Iconic) EWMHActivateWindowFunc
+Key		Tab			A	M	Exec exec rofi -show window
+Key		c			A	M	Pick Close
+Key		F4			A	M	Pick Close
+Key		i			A	M	Iconify
+Key		i			A	MS	All (AcceptsFocus CurrentPage !Iconic !Shaded) Thumbnail
+Key		z			A	M	Pick Resize
+Key		m			A	MS	Pick Maximize 100 0
+Key		m			A	M	Pick Maximize 0 100
+Key		m			A	CM	Pick Move
 
-#Key 	Page_Down A  4 	GotoDesk -1
-#Key 	Page_Up	  A  4 	GotoDesk +1
-Key 	1         A  M 	GotoDesk 0 0
-Key 	2         A  M 	GotoDesk 0 1
-Key 	3         A  M 	GotoDesk 0 2
-Key 	0         A  M 	GotoDesk 0 3
-Key 	Print	  A  N 	Exec import /tmp/_i.png && feh /tmp/_i.png
+#Key 	Page_Down	A	4	GotoDesk -1
+#Key 	Page_Up		A	4	GotoDesk +1
+Key 	1			A	M	GotoDesk 0 0
+Key 	2			A	M	GotoDesk 0 1
+Key 	3			A	M	GotoDesk 0 2
+Key 	0			A	M	GotoDesk 0 3
+Key 	Print		A	N	Exec import /tmp/_capture.png && feh /tmp/_capture.png
 
-#Key 	Super_L   A  A 	Exec exec rofi -show window -lines 9 -width 32 -location 3
-Key 	Alt_R	  A  A 	Exec exec rofi -show window -lines 9 -width 32 -location 3
+#Key 	Super_L		A	A	Exec exec rofi -show window -lines 9 -width 32 -location 3
+Key 	Alt_R		A	A	Exec exec rofi -show window -lines 9 -width 32 -location 3
 
 Style bashrun 	GrabFocus, !Title, Sticky, PositionPlacement -0 +0, HilightBorderColorset 8, Layer 6
 

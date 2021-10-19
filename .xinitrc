@@ -12,7 +12,7 @@ export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
 #setxkbmap -option terminate:ctrl_alt_bksp
 xrdb -merge .Xresources
 xset -b
-xset +fp ~/.local/share/fonts
+xset +fp $HOME/.local/share/fonts
 
 #fvwm: fcitx -d
 unclutter &
@@ -35,7 +35,7 @@ redshift -r &>/dev/null &
 #conky &
 
 ## http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
-# ~/.keymap
+# $HOME/.keymap
 #$ xmodmap -pk | grep Lock
 # 9    	0xff1b (Escape)	0x0000 (NoSymbol)	0xff1b (Escape)	
 # 66    	0xffe5 (Caps_Lock)	0x0000 (NoSymbol)	0xffe5 (Caps_Lock)	
@@ -43,12 +43,16 @@ redshift -r &>/dev/null &
 # 78    	0xff14 (Scroll_Lock)	0x0000 (NoSymbol)	0xff14 (Scroll_Lock)	
 # xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
 ## https://wiki.archlinux.org/index.php/Xmodmap
-# xmodmap -pke > ~/.Xmodmap
+# xmodmap -pke > $HOME/.Xmodmap
 # xmodmap -pm
 # xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
-#[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
-#exec 
+xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+[[ -f $HOME/.Xmodmap ]] && xmodmap $HOME/.Xmodmap
+
+# xcape -e 'Control_L=Escape'
+
+which $XWM && exec $XWM
 for x in penrose fvwm openbox dwm enlightenment_start xmonad ; do
     which $x 2>/dev/null && exec $x
 done

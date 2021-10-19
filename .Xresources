@@ -38,9 +38,9 @@ xterm*xftAntialias: true
 !xterm*cutNewLine: false
 !xterm*cutToBeginningOfLine: false
 !xterm*charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
-XTerm*VT100.cutNewLine: false
-XTerm*VT100.cutToBeginningOfLine: false
-XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
+! XTerm*VT100.cutNewLine: false
+! XTerm*VT100.cutToBeginningOfLine: false
+! XTerm*VT100.charClass: 33:48,35:48,37:48,42:48,45-47:48,64:48,95:48,126:48
 !### fix alt key input
 !!!xterm*eightBitInput: false
 !!!xterm*altSendsEscape: true
@@ -67,46 +67,46 @@ Xterm*color14: #00f5e9
 Xterm*color15: #eeeeec
 !#----------------------------------------------------------------------------wjy
 
-!## http://www.leninlee.cn/?p=376
-!Xft.dpi:96
-!fontforge.FontView.FontFamily:wenquanyi bitmap song
-URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=18:antialias=True
-URxvt*xftAntialias: true
-!URxvt.background: rgba:0000/0000/0000/cccc
-!URxvt*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=True:hinting=True:hintstyle=hintfull
-URxvt*background: black
-!URxvt.depth: 32
-!Rxvt.geometry:192×144
-!URxvt.foreground: antiquewhite
-URxvt.foreground: lightgray
-URxvt.colorBD: yellow
-URxvt.colorUL: green
-URxvt.scrollBar: Fault
-URxvt.scrollBar_right: True
-URxvt.scrollBar_floating: True
-URxvt.scrollstyle: next
-URxvt.saveLines: 10000
-URxvt.color0: black
-URxvt.color1: red3
-URxvt.color2: springgreen
-URxvt.color3: wheat3
-URxvt.color4: navy
-URxvt.color5: magenta4
-URxvt.color6: steelblue1
-URxvt.color7: gray85
-URxvt.color8: gray10
-URxvt.color9: SkyBlue3
-URxvt.color10: chartreuse3
-URxvt.color11: lightgoldenrod2
-URxvt.color12: SkyBlue1
-URxvt.color13: pink1
-URxvt.color14: lightblue1
-URxvt.color15: #dbeff9
-URxvt.preeditType: Root
-! URxvt.transparency: 255
-URxvt.transparency: 155
-! URxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
-! URxvt.menu:/etc/X11/rxvt.menu
+! !## http://www.leninlee.cn/?p=376
+! !Xft.dpi:96
+! !fontforge.FontView.FontFamily:wenquanyi bitmap song
+! URxvt.font: xft:Monaco:pixelsize=18:antialias=True,xft:Microsoft YaHei:pixelsize=18:antialias=True
+! URxvt*xftAntialias: true
+! !URxvt.background: rgba:0000/0000/0000/cccc
+! !URxvt*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=True:hinting=True:hintstyle=hintfull
+! URxvt*background: black
+! !URxvt.depth: 32
+! !Rxvt.geometry:192×144
+! !URxvt.foreground: antiquewhite
+! URxvt.foreground: lightgray
+! URxvt.colorBD: yellow
+! URxvt.colorUL: green
+! URxvt.scrollBar: Fault
+! URxvt.scrollBar_right: True
+! URxvt.scrollBar_floating: True
+! URxvt.scrollstyle: next
+! URxvt.saveLines: 10000
+! URxvt.color0: black
+! URxvt.color1: red3
+! URxvt.color2: springgreen
+! URxvt.color3: wheat3
+! URxvt.color4: navy
+! URxvt.color5: magenta4
+! URxvt.color6: steelblue1
+! URxvt.color7: gray85
+! URxvt.color8: gray10
+! URxvt.color9: SkyBlue3
+! URxvt.color10: chartreuse3
+! URxvt.color11: lightgoldenrod2
+! URxvt.color12: SkyBlue1
+! URxvt.color13: pink1
+! URxvt.color14: lightblue1
+! URxvt.color15: #dbeff9
+! URxvt.preeditType: Root
+! ! URxvt.transparency: 255
+! URxvt.transparency: 155
+! ! URxvt.font:xft:Vera Sans YuanTi Mono :size=10,xft:Monospace:size=10
+! ! URxvt.menu:/etc/X11/rxvt.menu
 
 !!# http://fvwmforums.org/wiki/Tips/XTermRunDialogue/
 !fvwm-run-dialog.VT100*translations: #override \n\
@@ -114,7 +114,8 @@ URxvt.transparency: 155
 
 ! Super_L/0xffeb Return/0xff0d
 
-Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
-Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=17:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
 Alacritty*background: black
 Alacritty*foreground: lightgray
+
