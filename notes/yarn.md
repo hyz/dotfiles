@@ -112,3 +112,5 @@ https://classic.yarnpkg.com/en/docs/cli/run/
 
 
 
+
+yarn create electron-app electron-ts-webpack --template=typescript-webpack

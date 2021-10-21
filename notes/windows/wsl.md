@@ -7,3 +7,7 @@
     wsl --mount \\.\PHYSICALDRIVE2 --partition 1
     cd /mnt/wsl/PHYSICALDRIVE2p1
 
+    wsl.exe  --shutdown
+    wsl.exe  --list --running
+    wsl.exe  --list --all
+

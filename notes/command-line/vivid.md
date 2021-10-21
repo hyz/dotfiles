@@ -1,11 +1,14 @@
 
+    vivid themes
+    vivid preview jellybeans
+
     LS_COLORS="$(vivid generate molokai)" zsh --login -i
 
     pacman -S vivid
     export LS_COLORS="$(vivid generate molokai)"
     export LS_COLORS="`vivid generate snazzy`" 
 
-https://github.com/sharkdp/vivid
+### themes https://github.com/sharkdp/vivid
 
     ayu.yml
     jellybeans.yml
@@ -15,3 +18,4 @@ https://github.com/sharkdp/vivid
     snazzy.yml
     solarized-dark.yml
     solarized-light.yml
+
