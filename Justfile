@@ -1,6 +1,10 @@
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
 
+named:
+	#!/bin/sudo /bin/bash
+	exec named.trust-dns -z named -c named/named.toml
+
 hello:
 	@echo hello
 

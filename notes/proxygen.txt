@@ -1,14 +1,14 @@
 
-git clone https://github.com/no1msd/mstch 
-    mkdir -p mstch/b && cd b
-    cmake CMAKE_INSTALL_PREFIX=/usr ..
+    git clone https://github.com/no1msd/mstch 
+        mkdir -p mstch/b && cd b
+        cmake CMAKE_INSTALL_PREFIX=/usr ..
 
-pacman -Sy google-glog gtest snappy zstd gperf
+    pacman -Sy google-glog gtest snappy zstd gperf
 
 https://aur.archlinux.org/fbthrift-git.git
 https://aur.archlinux.org/folly-git.git
 https://aur.archlinux.org/wangle-git.git
 https://aur.archlinux.org/double-conversion.git
 
-makepkg --skipinteg -s
+    makepkg --skipinteg -s
 

@@ -148,3 +148,7 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 
 
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
+
+alias jq-package-scripts='jql \"scripts\" package.json'
+
+eval "$(atuin init zsh)"

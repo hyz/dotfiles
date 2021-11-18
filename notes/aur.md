@@ -1,4 +1,5 @@
 
+
     gpg --recv-keys --keyserver hkp://pgp.mit.edu 1D1F0DC78F173680
     gpg --keyserver pgp.mit.edu --recv-keys 85F345DD59683006
 
@@ -17,4 +18,6 @@ kcptun-git-v20161111.r1.g754b4a7-1-x86_64.pkg.tar.xz
 ### PKGBUILD
 
     source=("$pkgname"::'git+file:///xhome/windows.desktop/vcpkg/.git'      ...)
+    source=("$pkgname::git+ssh://localhost/xhome/tcpip.dns.email/trust-dns")
+
 

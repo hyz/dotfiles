@@ -549,3 +549,4 @@ fn list_entries<F: Fn(&'_ serde_json::Value) -> Result>(src_dir: &Path, f: F) ->
 
 """]
 
+sudo named.trust-dns -znamed -c named/named.toml

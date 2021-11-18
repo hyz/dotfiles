@@ -1,4 +1,6 @@
 
+    fdx webpack | xargs fd package.json |xargs rg 'node.*serve'
+
     fd -tf -ejs . .build |xargs ls -hl
     fd -Id3 -ets . ../ |xargs rg -w export
 

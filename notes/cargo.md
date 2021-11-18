@@ -50,3 +50,21 @@
 RUST_LOG=tower_http=debug,key_value_store=trace  cargo watch -x run
 
 cargo deps --all-deps | dot -Tpng > deps.png
+
+https://rsproxy.cn/
+
+[source.crates-io]
+              replace-with = 'rsproxy'
+
+              [source.rsproxy]
+              registry = "https://rsproxy.cn/crates.io-index"
+
+              [registries.rsproxy]
+              index = "https://rsproxy.cn/crates.io-index"
+
+              [net]
+              git-fetch-with-cli = true
+
+
+export RUSTUP_DIST_SERVER="https://rsproxy.cn"
+              export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"

@@ -1,4 +1,6 @@
 
+    shutdown -h 00:00
+
 ### https://github.com/lotabout/rargs
 
     ls *.bak | rargs -p '(.*)\.bak' mv {0} {1}
