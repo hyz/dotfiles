@@ -12,6 +12,8 @@ for x in `/bin/find ???* -prune -type d` ; do
     [ -d "$x" -a -d "$src" ] || continue
     mount -o bind "$src" "$x"
 done
+
+shutdown -c ; shutdown -h 00:10
 bftpd -d
 
 exit

@@ -20,4 +20,18 @@ kcptun-git-v20161111.r1.g754b4a7-1-x86_64.pkg.tar.xz
     source=("$pkgname"::'git+file:///xhome/windows.desktop/vcpkg/.git'      ...)
     source=("$pkgname::git+ssh://localhost/xhome/tcpip.dns.email/trust-dns")
 
+### aur.archlinux.../rua example
+
+PKGBILD
+
+    #url='https://github.com/vn971/rua'
+    #source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vn971/rua/archive/v${pkgver}.tar.gz")
+    ...
+    prepare() {
+        rsync -r /xhome/commandline/rua/ "${pkgname}-${pkgver}"
+    }
+
+makepkg
+
+    makepkg --skippgpcheck --skipinteg 
 

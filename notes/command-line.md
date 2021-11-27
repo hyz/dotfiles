@@ -204,3 +204,5 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
     fd -aI -e downloading |xargs -d\\n -I{} rm -vf "{}"
 
+
+install -Dm755 target/release/systemd-boot-friend-rs /usr/local/bin/systemd-boot-friend
