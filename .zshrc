@@ -15,8 +15,14 @@ prompt walters
 # cat /usr/share/zsh/functions/Prompts/prompt_walters_setup
 if [[ "$TERM" = "dumb" ]]; then
     export PROMPT="%(?..[%?] )%n@%m:%~> "
+elif [[ -n "$SSH_CONNECTION" ]] ; then
+    IPAddr=`echo $SSH_CONNECTION | cut -d' ' -f3 | cut -d. -f3-`
+    export  PROMPT="%(?..[%?] )%n@${IPAddr}> "
+    export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
 else
-    IPAddr=`ip addr show dev $(ip route |/bin/grep -Po '^default.*dev \K\w+') |/bin/grep -Po '\s+inet \d+.\d+.\d+.\K\d+'`
+    #IPAddr=`ip addr show dev $(ip route |/bin/grep -Po '^default.*dev \K\w+') |/bin/grep -Po '\s+inet \d+.\d+.\d+.\K\d+'`
+    # SSH_CONNECTION=192.168.11.24 51538 192.168.11.121 22
+    IPAddr=`localhost`
     export  PROMPT="%(?..[%?] )%n@${IPAddr}> "
     export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
 fi
@@ -80,8 +86,11 @@ fi
     fi
 
 alias ll='ls -trl'
+alias ydcv='ydcv-rs'
+alias feh='feh -.F'
 #alias rg='rg --ignore-file=.ignore'
 alias fdx=fdxhome
+alias gc='git-https2git  clone --depth 1' fdx=fdxhome
 
 #
 alias svndiff='svn diff --diff-cmd wsvndiff'
@@ -137,12 +146,9 @@ alias tmux='TERM=xterm-256color tmux -2'
 
 alias v=view.sh b='cargo build' r='cargo run' rex='cargo run --example'
 alias gp=git-pull.sh
-date
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-eval "`mcfly init zsh`"
-export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
@@ -151,4 +157,8 @@ function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 }
 
 alias jq-package-scripts='jql \"scripts\" package.json'
 
-eval "$(atuin init zsh)"
+#eval "`mcfly init zsh`"
+#export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
+#eval "$(atuin init zsh)"
+
+date

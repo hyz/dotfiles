@@ -1,5 +1,6 @@
 
     shutdown -h 00:00
+    shutdown --no-wall -h 00:10
 
 ### https://github.com/lotabout/rargs
 
@@ -200,9 +201,11 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
     perl-rename -i --dry-run 's/\.MP3/.mp3/' *.MP3
     perl-rename -i 's/投资者(\d)\.mp3/投资者0$1.mp3/' *.mp3
 
-    xargs -d\\n rm -f < czka.dup
+    xargs -d\\n file < /tmp/czk
+    xargs -d\\n rm -f < /tmp/czk
 
     fd -aI -e downloading |xargs -d\\n -I{} rm -vf "{}"
 
 
 install -Dm755 target/release/systemd-boot-friend-rs /usr/local/bin/systemd-boot-friend
+

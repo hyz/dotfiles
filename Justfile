@@ -120,3 +120,17 @@ cifs:
 	#!/bin/sudo /bin/bash
 	mount -t cifs //192.168.11.234/yysmb /mnt/cifs -o gid=1000,uid=1000
 
+schedule:
+	#!/bin/sudo /bin/bash
+	shutdown -c
+	shutdown --no-wall -h 00:10
+
+gerbera DIR:
+	#!/bin/sudo -u gerbera /bin/bash
+	#sudo -u gerbera -- /bin/gerbera -c /etc/gerbera/config.xml --add-file /home/library/...
+	systemctl stop gerbera
+	/bin/gerbera -c /etc/gerbera/config.xml --add-file {{DIR}}
+
+capture:
+	menyoki capture --mouse jpg --quality 75 save /tmp/menyoki.jpg
+

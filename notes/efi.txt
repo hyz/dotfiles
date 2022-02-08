@@ -1,27 +1,32 @@
 
-### https://wiki.archlinux.org/index.php/Systemd-boot
-### https://wiki.archlinux.org/index.php/EFISTUB
+### https://wiki.archlinux.org/title/USB_flash_installation_medium#Using_basic_command_line_utilities
+https://wiki.archlinux.org/index.php/Systemd-boot
+https://wiki.archlinux.org/index.php/EFISTUB
 
-    dd bs=4M if=archlinux-2017.08.01-x86_64.iso of=/dev/sdb status=progress
+    dd bs=4M if=archlinux-2022.02.01-x86_64.iso of=/dev/sdX conv=fsync oflag=direct status=progress
 
 ### efibootmgr
-pacman -Sy efibootmgr # efivar
-efibootmgr --help
-efibootmgr
-efibootmgr -v
-efibootmgr -b 3 -B
-efibootmgr -l "\EFI\grub\BOOTX64.efi" -L "grub" -c
-efibootmgr -o 0,1,6
+
+    pacman -Sy efibootmgr # efivar
+    efibootmgr --help
+    efibootmgr
+    efibootmgr -v
+    efibootmgr -b 3 -B
+    efibootmgr -l "\EFI\grub\BOOTX64.efi" -L "grub" -c
+    efibootmgr -o 0,1,6
 
 ### uefi boot usb-disk arch linux, PARTLABEL
-\EFI\Arch\vmlinuz-linux root=PARTLABEL=Arch initrd=/EFI/Arch/initramfs-linux.img
-[OR]
-/EFI/Arch/vmlinuz-linux root=PARTLABEL=Arch rw add_efi_memmap initrd=/EFI/Arch/initramfs-linux.img
+
+    \EFI\Arch\vmlinuz-linux root=PARTLABEL=Arch initrd=/EFI/Arch/initramfs-linux.img
+    [OR]
+    /EFI/Arch/vmlinuz-linux root=PARTLABEL=Arch rw add_efi_memmap initrd=/EFI/Arch/initramfs-linux.img
 
 ### https://www.douban.com/note/244514051/
+
     Install Win7 - UEFI & GPT
 
 ### https://wiki.archlinux.org/index.php/GRUB#UEFI_systems
+
     grub-install --target=x86_64-efi --efi-directory=$esp --bootloader-id=grub --modules="part_gpt part_msdos"
 
     cp /boot/efi/EFI/grub/grubx64.efi /boot/efi/EFI/boot/bootx64.efi
@@ -36,4 +41,5 @@ efibootmgr -o 0,1,6
             chainloader /EFI/Microsoft/Boot/bootmgfw.efi
         }
     fi
+
 

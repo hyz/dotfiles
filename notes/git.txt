@@ -153,8 +153,26 @@ https://github.com/search?l=C%2B%2B&q=stars%3A%3E1&s=stars&type=Repositories
 
     git clone file:////<host>/<share>/<path>
 
+### git tags
 ### http://stackoverflow.com/questions/1064499/how-to-get-a-list-of-all-git-tags
 ### http://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
+
+    git tag -n ; git tag -l "v1.*"
+    git show v1.0
+    git fetch --tags
+    git describe --tags $(git rev-list --tags --max-count=1)
+
+    git tag v1.1
+    git tag v1.1 1c0f75af2474e -m 'my build tag'
+    git tag -d v1.1
+
+    git checkout v1.1 -b feature-bugfix-v1.1
+
+    git clone .../sozu/ -b v1.1 myb-v1.1
+
+    git merge $(git describe --tags $(git rev-list --tags --max-count=1))
+
+    git push origin --tags
 
     git tag -n
     git show-ref --tags -d

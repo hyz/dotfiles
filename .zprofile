@@ -133,7 +133,7 @@ if [ -n "$XHOME" ] ; then
     RUSTUP_HOME=$XHOME/rustup
     WASMER_DIR=$XHOME/wasmer
     GOPATH=$XHOME/go
-    FLUTTER_HOME=$XSDK/flutter
+    FLUTTER_HOME=/opt/flutter # $XSDK/flutter
     ANDROID_SDK=$XHOME/sdk/android-sdk
     ANDROID_NDK=$XHOME/sdk/android-ndk
 else

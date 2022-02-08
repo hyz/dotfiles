@@ -28,8 +28,11 @@ PKGBILD
     #source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vn971/rua/archive/v${pkgver}.tar.gz")
     ...
     prepare() {
-        rsync -r /xhome/commandline/rua/ "${pkgname}-${pkgver}"
+        echo "`pwd` == $srcdir"
+        git clone -b main .../sozu/ "${pkgname}-${pkgver}"
     }
+        # git clone --depth 1 -b master /xhome/linux.qemu.os.distro/paru "${pkgname}-${pkgver}"
+        # rsync -r .../rua/ "${pkgname}-${pkgver}"
 
 makepkg
 

@@ -1,11 +1,23 @@
 
+    xclip /etc/apt/sources.list
+    xclip -o
+
     xwininfo -root
     xprop
     xev
     xset b off
 
-    feh -. *.jpg
+    feh -.F *.jpg
     find -type f | feh -dF -f -
+
+### screenshot
+
+    menyoki capture --mouse jpg --quality 75 save /tmp/menyoki.jpg
+    menyoki capture --mouse
+    menyoki capture --root --countdown 5    # 5seconds
+    menyoki capture --select # action-keys <KEYS>    Set the action keys [default: LAlt-S,LAlt-Enter]
+
+    shotgun `hacksaw -f '-i %i -g %g'` /tmp/shotgun.png
 
 ### https://wiki.archlinux.org/index.php/Xmodmap
 
@@ -53,7 +65,4 @@
 	dunst &
 	notify-send -u critical "hello world"
 
-
-xclip /etc/apt/sources.list
-xclip -o
 

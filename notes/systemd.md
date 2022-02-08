@@ -165,3 +165,37 @@ https://wiki.archlinux.org/index.php/Systemd-boot
     }
 
 systemctl --user list-unit-files
+
+loginctl list-users
+loginctl show-user wood
+timedatectl
+timedatectl list-timezones
+timedatectl set-timezone America/New_York
+timedatectl set-time YYYY-MM-DD
+timedatectl set-time HH:MM:SS
+
+http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html
+Systemd 入门教程：命令篇
+作者： 阮一峰
+
+systemctl list-dependencies nginx.service
+systemctl list-dependencies --all nginx.service
+
+### Target
+
+Target 是一组 Unit 。启动某个 Target，Systemd 会启动里面所有的 Unit。
+Target 概念类似传统的sysv init启动模式里 RunLevel 的概念，跟 Target 的作用很类似。
+不同的是，RunLevel 是互斥的，不可能多个 RunLevel 同时启动，但是多个 Target 可以同时启动。
+
+    # 查看当前系统的所有 Target
+    $ systemctl list-unit-files --type=target
+
+    # 查看一个 Target 包含的所有 Unit
+    $ systemctl list-dependencies multi-user.target
+
+    # 查看启动时的默认 Target
+    $ systemctl get-default
+
+    # 设置启动时的默认 Target
+    $ sudo systemctl set-default multi-user.target
+

@@ -21,14 +21,14 @@ https://www.samba.org/samba/docs/using_samba/ch09.html
 
 ### https://wiki.archlinux.org/index.php/samba
 
-    $ smbclient -L 192.168.1.155 -U%
+    $ smbclient -L 192.168.11.234 -U%
     $ smbclient -c 'ls' //localhost/public -U wood
 
 ### mount
 
-    $ sudo mount -t cifs //192.168.1.11/sales /mnt/cifs -o username=shareuser,password=sharepassword,domain=nixcraft
+    $ sudo mount -t cifs //192.168.11.234/sales /mnt/cifs -o username=wood,password=sharepassword,domain=nixcraft
     $ ##,uid=username,gid=usergroup
-    $ sudo mount.cifs //192.168.1.155/smb cifs -o username=administrator,uid=1000
+    $ sudo mount.cifs //192.168.11.234/smb cifs -o username=administrator,uid=1000
 
 ### ubuntu
 
