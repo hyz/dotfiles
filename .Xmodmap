@@ -1,9 +1,18 @@
 
-clear Lock
+!#$ xmodmap -pk | grep Lock
+! 9    	0xff1b (Escape)	0x0000 (NoSymbol)	0xff1b (Escape)	
+! 66    	0xffe5 (Caps_Lock)	0x0000 (NoSymbol)	0xffe5 (Caps_Lock)	
+! 77    	0xff7f (Num_Lock)	0x0000 (NoSymbol)	0xff7f (Num_Lock)	
+! 78    	0xff14 (Scroll_Lock)	0x0000 (NoSymbol)	0xff14 (Scroll_Lock)	
+! > evtest
+! Event code 58 (KEY_CAPSLOCK)
+! Event code 66 (KEY_F8)
+! ...
+!clear Lock
 !remove Lock = Caps_Lock
+!keycode 66 = Escape
 
-keycode 66 = Escape
-pointer = 3 2 1
+!pointer = 3 2 1
 !!pointer = 1 2 3 5 4 7 6 8 9 10
 
 !! https://wiki.archlinux.org/index.php/Xmodmap
@@ -26,3 +35,5 @@ pointer = 3 2 1
 ! !
 ! ! make a fake escape key (so we can map it with xcape)
 ! keycode 999 = Escape
+!
+

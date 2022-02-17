@@ -134,3 +134,5 @@ gerbera DIR:
 capture:
 	menyoki capture --mouse jpg --quality 75 save /tmp/menyoki.jpg
 
+#cat /etc/systemd/system/xremap.service
+

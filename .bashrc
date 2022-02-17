@@ -136,7 +136,7 @@ else
     XHOME=$HOME/home
 fi
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+#[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 #export NOTION_HOME="$XHOME/notion"
 #[ -s "$NOTION_HOME/load.sh" ] && \. "$NOTION_HOME/load.sh"

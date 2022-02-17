@@ -517,6 +517,6 @@ play
 
 _Eof
 
-dosbox -conf $tempfn $*
-#dosbox-x -conf $tempfn $*
+#dosbox -conf $tempfn $*
+dosbox-x -conf $tempfn $*
 

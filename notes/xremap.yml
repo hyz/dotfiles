@@ -1,0 +1,15 @@
+
+modmap:
+  - name: Global
+    remap:
+      # CapsLock/Ctrl_L -> Esc
+      BTN_LEFT: BTN_RIGHT
+      BTN_RIGHT: BTN_LEFT
+      CapsLock:
+        held: CTRL_L
+        alone: Esc
+
+keymap:
+    CTRL_L-ALT_L-Return:
+        launch: [ "xterm","-geometry","137x23-0+0","-e","~/bin/exec-zsh.sh" ]
+

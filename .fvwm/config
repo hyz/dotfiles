@@ -13,8 +13,10 @@ AddtoFunc InitFunction
 ##+ I exec exec  /usr/local/bin/fvwm-root -r $[fvwm_img]/.current-background
 ##+ I exec exec  xscreensaver -no-splash
 ##+ PipeRead     "mkdir $[fvwm_tmp]"
-+ I Exec fcitx -d
-+ I Exec xmodmap ~/.Xmodmap
++ I Exec fcitx -r -d
+#+ I Exec xmodmap ~/.Xmodmap
++ I Exec xmodmap -e "pointer = 3 2 1"
++ I Exec setxkbmap -option caps:escape
 ##+ I exec exec synapse
 #+ I exec nm-applet
 #+ I Exec volumeicon
@@ -47,10 +49,10 @@ Mouse   1  W      M 	Move-or-Raise
 Key		BackSpace	W	MC	Quit
 key		grave		A	MC	Restart
 
-key		Return		A	M	Exec exec xterm -geometry 137x23-0+0 -e ~/bin/xterm.sh
-#key 	x			A	MS	Exec exec xterm -geometry 137x23-0+0 -e /usr/bin/zsh --login -i
-#key 	x			A	MS	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
-#key 	Return		A	M	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e /usr/bin/zsh --login -i
+key		Return		A	M	Exec exec xterm -geometry 137x23-0+0 -e ~/bin/exec-zsh.sh
+key 	x			A	MS	Exec exec xterm -geometry 137x23-0+0 -e ~/bin/exec-zsh.sh
+#key 	x			A	MS	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e ~/bin/exec-zsh.sh
+#key 	Return		A	M	Exec exec urxvtc -tn xterm -geometry 148x44-0+0 -e ~/bin/exec-zsh.sh
 
 Key 	semicolon	A	M	Exec exec rofi -show run
 #Key 	p			A	M	Exec exec rofi -show run

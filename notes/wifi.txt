@@ -1,3 +1,26 @@
 
 ### https://en.wikipedia.org/wiki/List_of_WLAN_channels
 
+
+wap_sup...
+# wpa_passphrase MyNetwork SuperSecretPassphrase > /etc/wpa_supplicant/wpa_supplicant-wlp5s0.conf
+
+country=CN
+update_config=1
+network={
+	ssid="SSID"
+	psk="Passwd"
+	key_mgmt=WPA-PSK
+	priority=9
+	id_str="identify which wifi is"
+}
+
+network={
+	ssid="SSID"
+	psk="Passwd"
+	key_mgmt=WPA-PSK
+	priority=8
+	id_str="identify which wifi is"
+}
+
+systemctl enable wpa_supplicant@wlp5s0

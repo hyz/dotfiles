@@ -115,7 +115,7 @@ Xterm*color15: #eeeeec
 ! Super_L/0xffeb Return/0xff0d
 
 Alacritty*font: xft:Monaco:style=Medium:bold:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
-Alacritty*boldFont: xft:robotomono:style=Medium:italic:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
+Alacritty*boldFont: xft:Monaco:style=Medium:italic:pixelsize=18:antialias=true:hinting=true:hintstyle=hintfull
 Alacritty*background: black
 Alacritty*foreground: lightgray
 

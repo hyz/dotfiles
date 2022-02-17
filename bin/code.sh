@@ -1,3 +1,3 @@
-#!/bin/bash --login
+#!/bin/bash
 
 exec code

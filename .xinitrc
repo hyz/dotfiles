@@ -45,15 +45,14 @@ redshift -r &>/dev/null &
 ## https://wiki.archlinux.org/index.php/Xmodmap
 # xmodmap -pke > $HOME/.Xmodmap
 # xmodmap -pm
-# xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 1 2 3 5 4"
-
-xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
-[[ -f $HOME/.Xmodmap ]] && xmodmap $HOME/.Xmodmap
+#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape" -e "pointer = 3 2 1"
+#xmodmap -e "remove Lock = Caps_Lock" -e "keysym Caps_Lock = Escape"
+#[[ -f $HOME/.Xmodmap ]] && xmodmap $HOME/.Xmodmap
 
 # xcape -e 'Control_L=Escape'
 
-which $XWM && exec $XWM
-for x in penrose fvwm openbox dwm enlightenment_start xmonad ; do
+which "$XWM" && exec "$XWM"
+for x in fvwm penrose openbox dwm enlightenment_start xmonad ; do
     which $x 2>/dev/null && exec $x
 done
 # exec ck-launch-session gnome-session

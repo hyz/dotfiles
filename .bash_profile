@@ -8,7 +8,15 @@ export LANG=en_US.UTF-8
 #umask 022
 
 if [ -z "$DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ]; then
+    export PATH
+    if which sway 2>/dev/null ; then
+        export MOZ_ENABLE_WAYLAND=1 SDL_VIDEODRIVER=wayland
+        exec sway
+    elif which startx 2>/dev/null ; then
     exec startx
+    elif which xinit 2>/dev/null ; then
+        exec xinit
+    fi
 fi
 
 export TERM=xterm-256color

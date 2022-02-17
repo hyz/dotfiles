@@ -53,3 +53,4 @@ Xephyr is a nested X server that runs as an X application.
 
     file ~/.xprofile
 
+XWM=fvwm startx
