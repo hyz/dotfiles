@@ -1,7 +1,8 @@
 
-    systemctl start postgresql.service
-    sudo -iu postgres -- initdb -D /var/lib/postgres/data --locale=en_US.UTF-8 -E UTF8 --auth-local trust
-    sudo -iu postgres -- initdb -D /var/lib/postgres/data --locale=en_US.UTF-8
+    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 \
+        --auth-local trust \
+        -D /var/lib/postgres/data
+    suddo systemctl start postgresql.service
 
     sudo -iu postgres -- dropdb --if-exists $USER
     sudo -iu postgres -- dropuser --if-exists $USER
