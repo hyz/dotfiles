@@ -20,9 +20,9 @@ elif [[ -n "$SSH_CONNECTION" ]] ; then
     export  PROMPT="%(?..[%?] )%n@${IPAddr}> "
     export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
 else
-    #IPAddr=`ip addr show dev $(ip route |/bin/grep -Po '^default.*dev \K\w+') |/bin/grep -Po '\s+inet \d+.\d+.\d+.\K\d+'`
+    IPAddr=`ip addr show dev $(ip route |/bin/grep -Po '^default.*dev \K\w+') |/bin/grep -Po '\s+inet \d+.\d+.\d+.\K\d+'`
     # SSH_CONNECTION=192.168.11.24 51538 192.168.11.121 22
-    IPAddr=`localhost`
+    #IPAddr=`localhost`
     export  PROMPT="%(?..[%?] )%n@${IPAddr}> "
     export RPROMPT="%~ %(t.Ding!.%D{%L:%M})"
 fi
