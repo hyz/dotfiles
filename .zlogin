@@ -3,13 +3,13 @@
 Zdbg="/tmp/._$USER/zsh.log" ; [ -z "$Zdbg" -o -e $Zdbg ] || /bin/env > $Zdbg
 [[ -n "$Zdbg" ]] && echo "#zlogin" >> $Zdbg
 
-if which keychain ; then
-    eval `keychain --agents ssh --eval $(find .ssh/*id_[dr]sa)`
+if which keychain &>/dev/null ; then
+    eval `keychain -q --agents ssh --eval $(find .ssh/*id_[dr]sa)`
     ## find .ssh/id_rsa* .ssh/*id_rsa ! -name "*pub"
     #for x in .ssh/*.id_[dr]sa ; do
     #    [ -r ".ssh/$x" ] && eval `keychain --eval $x`
     #done
-elif which ssh-agent ; then
+elif which ssh-agent &>/dev/null ; then
     # SSHAGENT=/usr/sbin/ssh-agent ; SSHAGENTARGS="-s"
     if [ -z "$SSH_AUTH_SOCK" ]; then
         eval `ssh-agent -s`
@@ -34,11 +34,11 @@ fi
 # [[ "$(tty)" = /dev/tty1 ]]
 if [ -z "$DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ]; then
     export PATH
-    if which sway 2>/dev/null ; then
+    if which sway &>/dev/null ; then
         exec sway
-    elif which startx 2>/dev/null ; then
+    elif which startx &>/dev/null ; then
         exec startx
-    elif which xinit 2>/dev/null ; then
+    elif which xinit &>/dev/null ; then
         exec xinit
     fi
 fi

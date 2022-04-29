@@ -1,59 +1,3 @@
-set nocompatible
-filetype off " filetype plugin indent on
-
-set t_Co=256
-set guifont=Monaco\ 14
-set guioptions=
-set ts=4 sw=4 expandtab ai nocp nowrap
-
-colorscheme jellybeans " desert desert256 murphy inkpot gardener tango elflord wombat256 
-if &diff
-    colorscheme jellybeans
-endif
-
-set hlsearch " incsearch
-" highlight Search ctermbg=Black ctermfg=Yellow
-highlight Search ctermbg=DarkGray ctermfg=Black
-
-set diffopt+=iwhite
-
-set dictionary=/usr/share/dict/words
-"set complete-=u
-set complete-=i
-set complete+=k
-
-" set completeopt=longest,menu
-" set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
-" set fileencodings=UTF-8,latin1,UTF-16BE,UTF-16,latin1,gb2312,gb18030,big5,euc-jp,euc-kr,iso8859-1
-set fileencodings=UTF-8
-set fileformats=unix,dos,mac
-"set path=.,..,*/,*/*/,include,../include,~/include,/usr/include,/usr/include/*/
-set path=.,..
-" set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
-" gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
-
-"set tags+=../tags,../../tags,~/.tags
-"set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
-
-" set cscopeprg=mlcscope
-
-" set makeprg=b2\ -j5
-
-"autocmd BufEnter * lcd %:p:h
-"autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
-
-"autocmd FileType python setlocal ts=4 | setlocal sw=4
-"autocmd FileType python compiler pyunit
-"autocmd FileType python setlocal nocindent ai
-"autocmd FileType python setlocal makeprg=python\ %
-
-"" jump to the last position when reopening a file
-if has("autocmd")
-    au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-endif
-
-set history=1000
-cnoremap <C-L> <Up>
 
 """ https://github.com/VundleVim/Vundle.vim
 """ git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
@@ -73,7 +17,7 @@ cnoremap <C-L> <Up>
 " vim +PlugInstall +q
 
 " https://github.com/euclio/vim-markdown-composer
-function! BuildComposer(info)
+function! BuildMdComposer(info)
   if a:info.status != 'unchanged' || a:info.force
     if has('nvim')
       !cargo build --release
@@ -91,15 +35,6 @@ endfunction
 "     !./install.py
 "   endif
 " endfunction
-
-if executable('rls')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'rls',
-        \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
-        \ 'workspace_config': {'rust': {'clippy_preference': 'on'}},
-        \ 'whitelist': ['rust'],
-        \ })
-endif
 
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
@@ -137,10 +72,12 @@ Plug 'pangloss/vim-javascript'
 Plug 'ryym/vim-riot'
 
 "Plug 'suan/vim-instant-markdown'
-Plug 'euclio/vim-markdown-composer', { 'do': function('BuildComposer') }
+Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMdComposer') }
 
 "Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
 "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+
+Plug 'NoahTheDuke/vim-just'
 
 "junegunn/fzf
 ""cargo install skim
@@ -174,7 +111,78 @@ else
 "  Plug 'kitagry/asyncomplete-tabnine.vim', { 'do': './install.sh' }
 endif
 
+"Plug 'wadackel/vim-dogrun'
+"Plug 'liuchengxu/vim-clap', { 'do': { -> clap#installer#force_download() } }
+"Plug 'liuchengxu/vim-clap', { 'do': has('win32') ? 'cargo build --release' : 'make' }
+
 call plug#end()
+
+
+filetype off " filetype plugin indent on
+set nocompatible
+set t_Co=256
+set guifont=Monaco\ 14
+set guioptions=
+set ts=4 sw=4 expandtab ai nocp nowrap
+
+set diffopt+=iwhite
+
+set dictionary=/usr/share/dict/words
+"set complete-=u
+set complete-=i
+set complete+=k
+
+" set completeopt=longest,menu
+" set fileencodings=utf-bom,UTF-8,gb2312,UTF-16BE,UTF-16,gb18030,big5,euc-jp,euc-kr,iso8859-1
+" set fileencodings=UTF-8,latin1,UTF-16BE,UTF-16,latin1,gb2312,gb18030,big5,euc-jp,euc-kr,iso8859-1
+set fileencodings=UTF-8
+set fileformats=unix,dos,mac
+"set path=.,..,*/,*/*/,include,../include,~/include,/usr/include,/usr/include/*/
+set path=.,..
+" set path=.,..,../..,~/include,/usr/include,/usr/include/c++/**3;/usr/include
+" gcc -v 2>&1 |grep includedir |cut -d  -f6 |cut -d= -f2 
+
+"set tags+=../tags,../../tags,~/.tags
+"set tags=tags,../tags,../../tags,../../../tags,~/include/tags,/usr/include/tags,~/view/boost/tags
+
+" set cscopeprg=mlcscope
+
+" set makeprg=b2\ -j5
+
+"autocmd BufEnter * lcd %:p:h
+"autocmd BufNewFile *.cc 0r $HOME/.vim/tpl.cc
+
+"autocmd FileType python setlocal ts=4 | setlocal sw=4
+"autocmd FileType python compiler pyunit
+"autocmd FileType python setlocal nocindent ai
+"autocmd FileType python setlocal makeprg=python\ %
+
+
+
+"" jump to the last position when reopening a file
+if has("autocmd")
+    au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+endif
+
+colorscheme jellybeans " dogrun desert desert256 murphy inkpot gardener tango elflord wombat256 
+if &diff
+    colorscheme jellybeans
+endif
+
+set hlsearch " incsearch
+" highlight Search ctermbg=Black ctermfg=Yellow
+highlight Search ctermbg=DarkGray ctermfg=Black
+set history=1000
+cnoremap <C-L> <Up>
+
+"if executable('rls')
+"    au User lsp_setup call lsp#register_server({
+"        \ 'name': 'rls',
+"        \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
+"        \ 'workspace_config': {'rust': {'clippy_preference': 'on'}},
+"        \ 'whitelist': ['rust'],
+"        \ })
+"endif
 
 """ Put your non-Plugin stuff after this line === === ===
 
@@ -326,5 +334,6 @@ au FileType rust nmap <leader>gd <Plug>(rust-doc)
 "nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 command W :execute ':silent w !sudo tee % > /dev/null' | :edit!
+
 
 

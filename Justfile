@@ -136,3 +136,16 @@ capture:
 
 #cat /etc/systemd/system/xremap.service
 
+ffmpeg:
+	ffmpeg -to 00:33:01 -i input.mp3 -c:a copy output.mp3
+	ffmpeg -ss 00:33:01 -i input.mp3 -c:a copy output.mp3
+
+
+rust-analyzer:
+	#mkdir -p ~/.local/bin
+	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /opt/bin/rust-analyzer
+	chmod +x /opt/bin/rust-analyzer
+
+nvim-listen DIR='/xhome/graphics/bevy_jam_1':
+	nvim --headless --listen 192.168.11.11:6666 +cd\ {{DIR}}
+

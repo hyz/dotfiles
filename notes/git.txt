@@ -197,3 +197,11 @@ How to know which branch a “git log” commit belongs to?
 
 
 
+
+git config --local --get remote.origin.url
+
+
+git checkout --orphan temp e41d7f633c45c46bd42e97cecf93204191d9e4c9
+git commit -m "Truncate history"
+git rebase --onto temp e41d7f633c45c46bd42e97cecf93204191d9e4c9 master
+

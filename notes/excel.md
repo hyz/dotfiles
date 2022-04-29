@@ -1,4 +1,8 @@
 
+    > docto -XL -f .\2204_A3-1_意城家品.xls -O out-xlsx -T xlWorkbookDefault
+
+    > libreoffice --convert-to xlsx my.xls --headless
+
 ### https://github.com/SheetJS/js-xlsx
 
 Browser file upload form element
@@ -20,6 +24,7 @@ Data from file input elements can be processed using the same FileReader API as 
     input_dom_element.addEventListener('change', handleFile, false);
 
 ### c++
+
     http://www.cnblogs.com/fullsail/archive/2012/12/28/2837952.html
     http://blog.csdn.net/fullsail/article/details/4067416
 
@@ -31,4 +36,8 @@ Data from file input elements can be processed using the same FileReader API as 
 ### https://stackoverflow.com/questions/9918646/how-to-convert-xls-to-xlsx
 
 ### https://stackoverflow.com/questions/151005/create-excel-xls-and-xlsx-file-from-c-sharp
+
+
+
+
 

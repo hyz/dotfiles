@@ -10,18 +10,23 @@ if [ $# -eq 0 ] ; then
 fi
 
 cd "$1" || die "cd: $1"
-while [ ! -d .git ] ; do
+if [ ! -d .git ] ; then
+    if [ ! -d ../.git ] ; then
+        die "not found: ...git"
+    fi
     cd .. || die "not found: .git"
-done
+fi
 
 #test -d .git || die "not found: .git"
 origin="`git remote get-url origin`"
 echo "#... `pwd`    $origin"
-git fetch -p #--rebase && git submodule update --init --recursive
-git merge # pull --rebase && git submodule update --init --recursive
+git fetch -p && git merge 
+#git fetch -p #--rebase && git submodule update --init --recursive
+#git merge # pull --rebase && git submodule update --init --recursive
 echo "#~~~ `pwd`    $origin"
 echo
-exit
+
+exit ###
 
 Found=
 for d in `find $* -type d -name .git -prune`; do
