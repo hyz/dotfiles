@@ -1,6 +1,14 @@
+
+    static-web-server -z=true -d=files
+
+https://ip.taobao.com/index  
+
 ### https://curl.haxx.se/docs/faq.html#How_do_I_tell_curl_to_follow_HTT
+
     curl faq
+
 ### http://stackoverflow.com/questions/3074288/get-url-after-redirect
+
     curl -Ls -o /dev/null -w %{url_effective} http://google.com
 
 thttpd -D -p 8000 -c "**.cgi"
@@ -37,4 +45,5 @@ curl -o/dev/null -s -w'%{time_namelookup}::%{time_connect}::%{time_starttransfer
     xh post http://x.rs/auth/v1/login username=XXX password=XXX
     xh --bearer XXX get http://x.rs/dummy/v1/user
 
-https://ip.taobao.com/index  
+
+

@@ -1,6 +1,11 @@
 
-http://blog.csdn.net/fengbingchun/article/details/38492061
-    Skia简介以及在Windows下编译操作步骤
+### generate, analyze, convert and manipulate colors
 
+    pastel random | pastel mix red | pastel lighten 0.2 | pastel format hex
+
+
+http://blog.csdn.net/fengbingchun/article/details/38492061
+
+    Skia简介以及在Windows下编译操作步骤
 
 

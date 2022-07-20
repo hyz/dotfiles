@@ -2,7 +2,7 @@
     sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 \
         --auth-local trust \
         -D /var/lib/postgres/data
-    suddo systemctl start postgresql.service
+    sudo systemctl start postgresql.service
 
     sudo -iu postgres -- dropdb --if-exists $USER
     sudo -iu postgres -- dropuser --if-exists $USER
@@ -10,9 +10,10 @@
     sudo -iu postgres -- createdb -O $USER $USER
     sudo -iu postgres -- psql -c "CREATE DATABASE $USER OWNER $USER"
 
-    CREATE USER realworld WITH PASSWORD 'realworld';
-    CREATE DATABASE realworld OWNER realworld; GRANT ALL PRIVILEGES ON DATABASE realworld TO realworld;
-    psql -U realworld mydb -f mydb.sql
+    psql -c "CREATE USER xun WITH PASSWORD '_Foo-Bar_'"
+    psql -c "CREATE DATABASE xapp OWNER xun"
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE xapp TO xun"
+    psql -U xun xapp -f xapp.sql
 
     psql <<< "SELECT version()"
     psql -c \\conninfo
@@ -35,6 +36,11 @@ _EoF
     psql -d mydb1 -c \\d\ mytab1
 
     psql postgresql://$USER@localhost/mydb1
+
+    sudo mv /var/lib/postgres/data /var/lib/postgres/olddata
+    sudo mkdir /var/lib/postgres/data /var/lib/postgres/tmp
+    sudo chown postgres:postgres /var/lib/postgres/data /var/lib/postgres/tmp
+    ...
 
 ### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql
 
