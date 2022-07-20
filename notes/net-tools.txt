@@ -1,4 +1,22 @@
 
+### ftp
+
+    unftp -v --root-dir /home/wood/Incoming --bind-address 0.0.0.0:2121 # --auth-pam-service=wood
+    unftp -v --root-dir=/home/wood/Incoming --bind-address=0.0.0.0:2121 # --auth-type=json --auth-json-path=credentials.json --usr-json-path
+=credentials.json
+
+    ncftpput -R -v -u "anonymous" 192.168.11.140 /foobar2000%20Music%20Folder/ ~/Incoming/北欧神话--多莱尔
+
+    ftp 192.168.0.1 #: anonymous
+
+ftp>
+
+    cd directory
+    lcd /home/user/yourdirectoryname
+    mget *.xls
+    mput *.xls
+    bye exit quit
+
 ### https://whatismyipaddress.com/hostname-ip
 ### http://whatismyipaddress.com/
 
@@ -28,7 +46,7 @@ curl -L git.io/cow > /tmp/cow.sh ; vim ~/.cow/rc
     sudo bftpd -d
     sudo bftpd -D -c .config/bftpd.conf
 
-    curlftpfs 192.168.1.234 /home/ftp
+    curlftpfs 192.168.11.11 /home/ftp
 
 ### https://github.com/v2ray
 ### https://github.com/oldj/SwitchHosts
@@ -162,3 +180,6 @@ https://www.cnblogs.com/michaelcjl/p/12521985.html
 
 # tar xf net.downloadhelper.coapp-1.6.3-1_amd64.tar.gz -C ~
 # ~/net.downloadhelper.coapp-1.6.3/bin/net.downloadhelper.coapp-linux-64 install --user
+
+
+

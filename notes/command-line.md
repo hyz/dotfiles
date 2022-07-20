@@ -204,6 +204,9 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
     xargs -d\\n file < /tmp/czk
     xargs -d\\n rm -f < /tmp/czk
 
+    file *.mp3 |rg M4A |awk -F: '{print $1}' |tee lis
+    xargs -d\\n perl-rename 's/.mp3$/.m4a/' < lis
+
     fd -aI -e downloading |xargs -d\\n -I{} rm -vf "{}"
 
 

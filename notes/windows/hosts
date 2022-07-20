@@ -1,10 +1,16 @@
 ﻿# /cygdrive/c/Windows/System32/drivers/etc
 # C:\Windows\System32\drivers\etc\hosts
 
-# 0.0.0.0     v.163.com
+172.16.1.1  www.salwyrr.com
+172.16.1.1  minecraft.net
+172.16.1.1  mc.163.com
+172.16.1.1  littleskin.cn
+172.16.1.1  lanzoui.com
+172.16.1.1  wws.lanzoui.com
 
+# 0.0.0.0     v.163.com
+0.0.0.0     www.bilibili.com
 0.0.0.0     v.sohu.com
-0.0.0.0     www.xiaohei.com
 0.0.0.0     www.tudou.com
 0.0.0.0     www.youku.com
 0.0.0.0     v.youku.com
@@ -22,6 +28,7 @@
 0.0.0.0     www.yunpp.com
 0.0.0.0     www.hunantv.com
 0.0.0.0     www.feixiangtv.com
+0.0.0.0     www.xiaohei.com
 
 0.0.0.0     www.7k7k.com
 0.0.0.0     www.uuuuu.com.cn
@@ -51,7 +58,6 @@
 0.0.0.0     www.8dou.com
 0.0.0.0     www.doyo.cn
 0.0.0.0     xiaoyouxi.2345.com
-0.0.0.0     www.bilibili.com
 0.0.0.0     xyx.lehou.com
 0.0.0.0     xyx.hao123.com
 0.0.0.0     www.2344.com
@@ -100,27 +106,27 @@
 #108.160.166.61 dropbox.com
 
 ###
-127.0.0.1 activate.adobe.com
-127.0.0.1 practivate.adobe.com
-127.0.0.1 ereg.adobe.com
-127.0.0.1 activate.wip3.adobe.com
-127.0.0.1 wip3.adobe.com
-127.0.0.1 3dns-3.adobe.com
-127.0.0.1 3dns-2.adobe.com
-127.0.0.1 adobe-dns.adobe.com
-127.0.0.1 adobe-dns-2.adobe.com
-127.0.0.1 adobe-dns-3.adobe.com
-127.0.0.1 ereg.wip3.adobe.com
-127.0.0.1 activate-sea.adobe.com
-127.0.0.1 wwis-dubc1-vip60.adobe.com
-127.0.0.1 activate-sjc0.adobe.com
+ activate.adobe.com
+ practivate.adobe.com
+ ereg.adobe.com
+ activate.wip3.adobe.com
+ wip3.adobe.com
+ 3dns-3.adobe.com
+ 3dns-2.adobe.com
+ adobe-dns.adobe.com
+ adobe-dns-2.adobe.com
+ adobe-dns-3.adobe.com
+ ereg.wip3.adobe.com
+ activate-sea.adobe.com
+ wwis-dubc1-vip60.adobe.com
+ activate-sjc0.adobe.com
 ### CC 2015
-127.0.0.1 lmlicenses.wip4.adobe.com
-127.0.0.1 lm.licenses.adobe.com
-127.0.0.1 na1r.services.adobe.com
-127.0.0.1 hlrcv.stage.adobe.com
-127.0.0.1 practivate.adobe.com 
-127.0.0.1 activate.adobe.com
+ lmlicenses.wip4.adobe.com
+ lm.licenses.adobe.com
+ na1r.services.adobe.com
+ hlrcv.stage.adobe.com
+ practivate.adobe.com 
+ activate.adobe.com
 ###
 
 # Copyright (c) 1993-2009 Microsoft Corp.
@@ -142,6 +148,7 @@
 #       38.25.63.10     x.acme.com              # x client host
 
 # localhost name resolution is handled within DNS itself.
-#	127.0.0.1       localhost
+#	       localhost
 #	::1             localhost
+
 

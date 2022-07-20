@@ -115,7 +115,7 @@ fi
 #fi
 
 XHOME=
-if uname -r | /bin/grep Microsoft 2>/dev/null ; then
+if uname -r | /bin/grep Microsoft &>/dev/null ; then
     XHOME=/mnt/i/home
 elif [ -d /xhome/bin ] ; then
     XHOME=/xhome

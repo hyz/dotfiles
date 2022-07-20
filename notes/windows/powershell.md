@@ -37,3 +37,4 @@ $env:Path = $newPath -join ';'
 
 ---
 $env:Path += ";SomeRandomPath"
+$env:Path += ";I:\bin\nvim-win64\bin"

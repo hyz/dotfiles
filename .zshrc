@@ -78,26 +78,24 @@ alias rm='rm -i'
 alias grep='grep --color=auto'
 alias df='df -Th'
 
-if uname -r |grep Microsoft 2>/dev/null ; then
+if uname -r |grep Microsoft &>/dev/null ; then
     true
 fi
 
 if which lsd &>/dev/null ; then
     true #alias ls='lsd'
 fi
-    if ls -d --color=auto >/dev/null 2>&1 ; then
-        alias ls='ls -F --color=auto'
-    else
-        # export CLICOLOR=1
-        alias ls='ls -F' # alias ls='ls -F --color=auto'
-    fi
+if ls -d --color=auto &>/dev/null ; then
+    alias ls='ls -F --color=auto'
+else
+    # export CLICOLOR=1
+    alias ls='ls -F' # alias ls='ls -F --color=auto'
+fi
 
 alias ll='ls -trl'
 alias ydcv='ydcv-rs'
 alias feh='feh -.F'
 #alias rg='rg --ignore-file=.ignore'
-alias fdx=fdxhome
-alias gc='git-https2git  clone --depth 1' fdx=fdxhome
 
 #
 alias svndiff='svn diff --diff-cmd wsvndiff'
@@ -115,11 +113,11 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 #alias dict='sdcv -0'
 dict() {
     echo $* >> $HOME/.dict_history
-    if which sdcv >/dev/null 2>&1; then
+    if which sdcv &>/dev/null ; then
         sdcv -0 "$1"
-    elif which ydcv >/dev/null 2>&1; then
+    elif which ydcv &>/dev/null ; then
         ydcv "$1"
-    elif which xdg-open >/dev/null 2>&1; then
+    elif which xdg-open &>/dev/null ; then
         xdg-open "http://dict.cn/$1"
     else
         grep "$1" /usr/share/dict/*
@@ -152,7 +150,7 @@ alias tmux='TERM=xterm-256color tmux -2'
 # limit coredumpsize 0
 
 alias v=view.sh b='cargo build' r='cargo run' rex='cargo run --example'
-alias gp=git-pull.sh
+alias gp=git-clone-or-pull gc=git-clone-or-pull fdx=fdxhome # gp=git-pull.sh gc='git-https2git  clone --depth 1'
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 

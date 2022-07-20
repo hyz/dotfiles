@@ -1,7 +1,8 @@
 
 
-    gpg --recv-keys --keyserver hkp://pgp.mit.edu 1D1F0DC78F173680
-    gpg --keyserver pgp.mit.edu --recv-keys 85F345DD59683006
+    gpg --keyserver hkp://pgp.mit.edu   --recv-keys <key>
+    gpg --keyserver pgp.mit.edu         --recv-keys <key>
+    gpg --keyserver keys.gnupg.net      --recv-keys <key>
 
     gpg2 --recv-key 93BDB53CD4EBC740
 
@@ -29,10 +30,9 @@ PKGBILD
     ...
     prepare() {
         echo "`pwd` == $srcdir"
-        git clone -b main .../sozu/ "${pkgname}-${pkgver}"
-    }
-        # git clone --depth 1 -b master /xhome/linux.qemu.os.distro/paru "${pkgname}-${pkgver}"
+        git clone -ls --depth 1 -b main .../sozu/ "${pkgname}-${pkgver}"
         # rsync -r .../rua/ "${pkgname}-${pkgver}"
+    }
 
 makepkg
 

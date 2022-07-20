@@ -90,3 +90,10 @@ https://stackoverflow.com/questions/2600783/how-does-the-vim-write-with-sudo-tri
     :w !sudo tee %
     :%!sudo tee %
 
+
+### nvim & neovide
+
+    I:\bin\neovide.exe --neovim-bin I:\bin\nvim-win64\bin\nvim.exe
+
+    C:\Users\wood\AppData\Local\nvim\init.vim
+

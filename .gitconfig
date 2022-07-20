@@ -44,3 +44,5 @@
 	protocol = git
 [init]
 	defaultBranch = main
+[safe]
+	directory = /xhome
