@@ -150,10 +150,13 @@ alias tmux='TERM=xterm-256color tmux -2'
 # limit coredumpsize 0
 
 alias v=view.sh b='cargo build' r='cargo run' rex='cargo run --example'
-alias gp=git-clone-or-pull gc=git-clone-or-pull fdx=fdxhome # gp=git-pull.sh gc='git-https2git  clone --depth 1'
+alias gp='git-clonepull pull' gc='git-clonepull clone'
+fdx() {
+    # gp=git-pull.sh gc='git-https2git  clone --depth 1'
+    destdir=`fdxhome $*` && cd "$destdir"
+}
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
 
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
 
@@ -168,3 +171,5 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+
+#source /home/wood/.config/broot/launcher/bash/br

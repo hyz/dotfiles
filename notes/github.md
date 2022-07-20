@@ -81,5 +81,5 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
     hub commit -m 'initial ...'
     GITHUB_TOKEN=...  hub create # Some-Exist-Dir
     GITHUB_TOKEN=...  hub create my-example
-    hub push -u origin HEAD
+    hub push -u origin HEAD # hub push --set-upstream origin main
 

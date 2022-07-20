@@ -38,3 +38,6 @@ makepkg
 
     makepkg --skippgpcheck --skipinteg 
 
+
+toml2json Cargo.toml |jaq -r .package.version
+toml2json Cargo.toml |jql -r '"package"."version"'

@@ -1,4 +1,6 @@
 
+    rg 'https://' */.git/config --files-with-matches
+
     rg -l @material-ui/core src |xargs sed -i 's|@material-ui/core|@mui/material|' 
 
 ### grep ip addr

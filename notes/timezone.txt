@@ -10,3 +10,8 @@ SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP)
 
 ###
 
+
+### zone,  mitsuhiko/when
+
+    when "now in vienna"
+

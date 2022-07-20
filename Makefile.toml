@@ -204,11 +204,15 @@ script = ["""
 //! envmnt = "*"
 //! ```
 fn main() {
-    let value = envmnt::get_or("PATH", "NO PATH VAR DEFINED");
-    println!("Path Value: {}", &value);
+    //let value = envmnt::get_or("PATH", "NO PATH VAR DEFINED");
+    //println!("Path Value: {}", &value);
+    println!("env:args: {:?}", std::env::args());
+    println!("env:[1..]: {:?}", std::env::args().skip(1));
 }
 """
 ]
+args = [ "_v_", "${@}" ]
+
 
 [tasks.varargs]
 # script_runner = "@duckscript"
@@ -549,4 +553,4 @@ fn list_entries<F: Fn(&'_ serde_json::Value) -> Result>(src_dir: &Path, f: F) ->
 
 """]
 
-sudo named.trust-dns -znamed -c named/named.toml
+
