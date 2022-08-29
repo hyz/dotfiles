@@ -15,7 +15,7 @@ AddtoFunc InitFunction
 ##+ PipeRead     "mkdir $[fvwm_tmp]"
 + I Exec fcitx -r -d
 #+ I Exec xmodmap ~/.Xmodmap
-+ I Exec xmodmap -e "pointer = 3 2 1"
+#+ I Exec xmodmap -e "pointer = 3 2 1"
 + I Exec setxkbmap -option caps:escape
 ##+ I exec exec synapse
 #+ I exec nm-applet
