@@ -173,3 +173,9 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 
 #source /home/wood/.config/broot/launcher/bash/br
+
+# pnpm
+#export PNPM_HOME="/home/wood/.local/share/pnpm"
+#export PATH="$PNPM_HOME:$PATH"
+# pnpm end
+

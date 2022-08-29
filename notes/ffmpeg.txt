@@ -1,4 +1,7 @@
 
+    > pacmd list-sources
+    > ffmpeg -vn -f pulse -i alsa_output......analog-stereo.monitor r1.wav
+
     ls -lSr
     ffprobe ...some.mp4
 
@@ -49,10 +52,11 @@
 
     ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 -f pulse -ac 2 -i default av-out.mkv
 
-#### ffmpeg subclip, resize video
+#### ffmpeg scale, crop, seek, length
 
-    ffmpeg -i a.mp4 -ss 00:10:09 -to 00:13:52 -c:v copy -c:a copy 801.1009-1352.mp4
-    ffmpeg -i 801.1009-1352.mp4 -filter:v scale=800:450 -c:a copy 801.1009-1352.800x450.mp4 
+    ffmpeg -i input -ss 00:10:09 -to 00:13:52 -c:v copy -c:a copy 801.1009-1352.mp4
+    ffmpeg -i input -filter:v scale=800:450 -c:a copy 801.1009-1352.800x450.mp4 
+    ffmpeg -i input -filter:v crop=1080:320:0:1300 -c:a copy output.mp4
 
 ### https://trac.ffmpeg.org/wiki/TitleIndex
 
@@ -145,31 +149,31 @@ Using NVIDIA's NVENC On Linux With FFmpeg
 ### http://www.ffmpeg.org/ffmpeg.html
 ### http://ffmpeg.org/ffmpeg-all.html#pipe
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
+    ffmpeg -f fbdev -i /dev/fb0 -framerate 30 -s vga -c:v h264 -pix_fmt yuv420p -an ../o.mp4
     mplayer -vo fbdev2 ../o.mp4
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 |mplayer -vo fbdev2 -fps 30 - 
-    ffmpeg/ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
+    ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -framerate 30 -s vga -pix_fmt yuv420p -an ../o.h264
+    ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -vstats -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 |mplayer -vo fbdev2 -fps 30 - 
+    ffmpeg -i o.h264 -vcodec copy -f h264 - |mplayer -vo fbdev2 -fps 22 - 
 
     ffmpeg -i source1.ts -codec copy -f mpegts -tables_version 0 udp://1.1.1.1:1111
     ffmpeg -i source1.ts -codec copy -f h264 udp://1.1.1.1:1111
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
+    ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 > ~/tmp/$(date +%M%H%d).264
+    ffmpeg -f fbdev -i /dev/fb0 -c:v h264 -g 1 -r 30 -s vga -pix_fmt yuv420p -an -f h264 pipe:1 | netpipe-h264
 
     netpipe-h264 192.168.2.115 |mplayer -vo fbdev2 -fps 60 -
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 \
+    ffmpeg -f fbdev -i /dev/fb0 \
       -an -c:v h264 -r 30 -s 1920x1080 -pix_fmt yuv420p -threads 4 -g 1 -f h264 pipe:1 2>/dev/null | netpipe-h264
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v h264 -crf 40 -preset ultrafast -tune zerolatency -g 1 -b 1000k -s vga -f h264 pipe:1 > 1
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an \
+    ffmpeg -f fbdev -i /dev/fb0 -an -c:v h264 -crf 40 -preset ultrafast -tune zerolatency -g 1 -b 1000k -s vga -f h264 pipe:1 > 1
+    ffmpeg -f fbdev -i /dev/fb0 -an \
         -vf crop=640:480:0:0 -s vga -c:v h264 -r 30 -pix_fmt yuv420p -g 1 -f h264 pipe:1 | netpipe-h264
 
     sps->num_ref_frames: 0
 
-    ffmpeg/ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
+    ffmpeg -f fbdev -i /dev/fb0 -an -c:v libx264 \
         -x264opts level=31:keyint=1:ref=1:trellis=0:bframes=0:no-mixed-refs:weightp=0:no-weightb:no-psy:sync-lookahead=1:aq-mode=0 \
         -s 1920x1080 -pix_fmt yuv420p -f h264 pipe:1 | netpipe-h264
 
@@ -180,9 +184,9 @@ Play a file on framebuffer device /dev/fb0.
     ffmpeg -y -loglevel warning -f dshow -i video="screen-capture-recorder" \
       -vf crop=690:388:136:0 -r 30 -s 962x388 -threads 2 -vcodec libx264 -vpre baseline -vpre my_ffpreset -f flv rtmp:///live/myStream.sdp
 
-    netpipe-h264 192.168.2.192 | ffmpeg/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 > o
+    netpipe-h264 192.168.2.192 | ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 > o
 
-    adb -s 0123456789ABCDEF shell '/data/netpipe 192.168.2.192 |/data/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 >/dev/null'
+    adb -s 0123456789ABCDEF shell '/data/netpipe 192.168.2.192 | /data/ffmpeg -f h264 -i pipe:0 -an -c:v copy -f h264 pipe:1 >/dev/null'
 
 
 ### https://github.com/joeyblake/FFmpeg-Presets
@@ -209,11 +213,12 @@ test hwaccel
 ### http://blog.csdn.net/tttyd
 
 ### http://blog.csdn.net/feixiang_john/article/details/8562330
-    AVC到HEVC 
+
+    AVC HEVC 
 
 ### http://leixiaohua1020.github.io/
 
-    ~/ffmpeg/ffmpeg/ffmpeg -re -i 115.1920x1080.264 -an -c:v rawvideo -pix_fmt bgra -f fbdev /dev/fb0
+    ffmpeg -re -i 115.1920x1080.264 -an -c:v rawvideo -pix_fmt bgra -f fbdev /dev/fb0
 
     ffprobe -show_streams -i "file.mp4"
 
@@ -222,16 +227,17 @@ test hwaccel
 
     ffmpeg -i $filename -strict -2 -vf crop=270:360:1:60 270x360.mp4
 
-## https://www.jianshu.com/p/0819ac4205fd
+### https://www.jianshu.com/p/0819ac4205fd
 
     ffmpeg -i video.mp4 frame%04d.png
 
+###
 
+    fd -aI -e mp4 |while read mp4 ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
 
-fd -aI -e mp4 |while read mp4 ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+    for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
 
-for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+    fd -aI -e mp4 |xargs -d\\n -I{} rm -f "{}"
+    for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
+    for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && rm -vf "$mp4" ;done
 
-fd -aI -e mp4 |xargs -d\\n -I{} rm -f "{}"
-for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
-for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && rm -vf "$mp4" ;done

@@ -59,3 +59,4 @@ http://oldj.net/article/text-to-image/
         return cropped_image
 
 
+lyon〉pip --default-timeout=60000 install -U pyxel

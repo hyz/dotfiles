@@ -28,3 +28,5 @@
     tail -f $K/../i51.log |grep --line-buffered -vE '(^kitpay 0 00000000|^wapfe notify|^app-boot|^ADE - OS|^i51|^KEL : Kit Path|^if do|^$)' |sed '/error/s/error/***error***/'
     tail -f $K/../i51.log |grep -i --line-buffered 'pay'
 
+
+rg --type-add "gd:*.gd" -t gd move_and_collide

@@ -21,14 +21,14 @@ https://www.samba.org/samba/docs/using_samba/ch09.html
 
 ### https://wiki.archlinux.org/index.php/samba
 
-    $ smbclient -L 192.168.11.234 -U%
-    $ smbclient -c 'ls' //localhost/public -U wood
+    $ smbclient -L 192.168.11.11 -U%
+    $ smbclient -c 'ls' //192.168.11.11/xhome -U%
 
 ### mount
 
-    $ sudo mount -t cifs //192.168.11.234/sales /mnt/cifs -o username=wood,password=sharepassword,domain=nixcraft
+    $ sudo mount -t cifs //192.168.11.11/sales /mnt/cifs -o username=wood,password=sharepassword,domain=nixcraft
     $ ##,uid=username,gid=usergroup
-    $ sudo mount.cifs //192.168.11.234/smb cifs -o username=administrator,uid=1000
+    $ sudo mount.cifs //192.168.11.11/xhome ~/mnt/cifs -o username=administrator,uid=1000
 
 ### ubuntu
 
@@ -55,4 +55,10 @@ https://www.linuxquestions.org/questions/linux-server-73/samba-fails-failed-to-c
 https://forums.centos.org/viewtopic.php?t=65876
 
     systemd-tmpfiles --create /usr/lib/tmpfiles.d/samba.conf
+
+### Windows
+
+powershell
+
+    Get-SmbServerConfiguration
 

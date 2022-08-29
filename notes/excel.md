@@ -1,7 +1,8 @@
 
     > docto -XL -f .\2204_A3-1_意城家品.xls -O out-xlsx -T xlWorkbookDefault
 
-    > libreoffice --convert-to xlsx my.xls --headless
+    > sudo pacman -Sy libreoffice-fresh
+    > libreoffice --headless --convert-to xlsx my.xls # pacman -S libreoffice-fresh
 
 ### https://github.com/SheetJS/js-xlsx
 
