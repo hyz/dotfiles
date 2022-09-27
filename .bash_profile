@@ -111,4 +111,3 @@ export DVM_DIR="/home/wood/.dvm"
 export PATH="$DENO_INSTALL/bin:$PATH"
 export PATH="$DVM_DIR/bin:$PATH"
 
-source /home/wood/.config/broot/launcher/bash/br

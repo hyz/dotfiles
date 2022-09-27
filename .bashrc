@@ -149,4 +149,3 @@ fi
 
 #source e/home/wood/.config/broot/launcher/bash/br
 
-source /home/wood/.config/broot/launcher/bash/br
