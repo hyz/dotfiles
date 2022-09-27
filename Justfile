@@ -62,13 +62,6 @@ bluetooth:
 	bluetoothctl disconnect
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
 
-# $ cat filelist.txt
-# file 1.mp3
-# file 2.mp3
-# file 3.mp3
-# 
-ffmpeg-concat:
-	ffmpeg -f concat -i filelist.txt -c copy output.mp3
 
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
@@ -133,10 +126,6 @@ capture:
 
 #cat /etc/systemd/system/xremap.service
 
-ffmpeg:
-	#ffmpeg -ss 00:01:01 -to 00:33:01 -i input.mp3 -c:a copy output.mp3
-	ffmpeg -ss 00:00:14 -to 00:22:36 -i input -map 0:a -c:a copy output.m4a
-
 #analyzer:
 	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
 get-analyzer:
@@ -151,8 +140,32 @@ nvim-listen DIR='/xhome/scripts/gitconfig-https2git':
 
 static-web-server:
 	static-web-server -g debug --host 0.0.0.0 --port 8080 --root ~/Incoming
+dufs:
+	dufs -A
+
+# $ cat filelist.txt
+# file 1.mp3
+# file 2.mp3
+# file 3.mp3
+# 
+ffmpeg-concat:
+	ffmpeg -f concat -i filelist.txt -c copy output.mp3
+
+ffmpeg:
+	#ffmpeg -ss 00:01:01 -to 00:33:01 -i input.mp3 -c:a copy output.mp3
+	ffmpeg -ss 00:00:14 -to 00:22:36 -i input -map 0:a -c:a copy output.m4a
 
 ffmpeg-record-alsa_output:
+	#pacmd list-sources
 	ffmpeg -vn -f pulse -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor r1.wav
 	ffmpeg -i r1.wav -vn -c:a aac -b:a 128k r1.m4a
+
+v2ray -config /xhome/proxy.vpn.tunnel.gfw/vmess2json/usamd.ptuu.tk.json
+python ../vmess2json/vmess2json.py "vmess://..."
+curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+https://proxy.yiun.xyz/
+wget https://v1.mk/XPdqsDi
+base64 -d XPdqsDi 
 

@@ -25,7 +25,8 @@ Choosing where to install
 
     rustup target add x86_64-pc-windows-gnu
     rustup target add arm-linux-androideabi
-	rustup target add --toolchain nightly wasm32-unknown-wasi
+	rustup target add wasm32-wasi
+	# rustup target add --toolchain nightly wasm32-unknown-wasi
     rustup target remove ...
     rustup component remove --toolchain nightly --target x86_64-unknown-linux-gnu rls
 

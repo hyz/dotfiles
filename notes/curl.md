@@ -44,3 +44,5 @@ Maybe *memory-leak* will happend in this mode..
 
 curl -x "http://127.0.0.1:3128" "http://httpbin.org/ip" 
 curl -x "socks5://127.0.0.1:1080" "https://www.google.com"
+
+LD_PRELOAD=libtsocks.so w3m ...
