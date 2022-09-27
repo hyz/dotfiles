@@ -7,8 +7,8 @@ die() {
 
 view() {
     [ -r "$1" ] || die "!readable: '$1'"
-    if which bat >/dev/null ; then
-        bat "$1"
+    if which mdcat >/dev/null ; then
+        mdcat -p "$1"
     else
         cat "$1"
     fi
