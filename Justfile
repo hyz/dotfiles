@@ -1,6 +1,9 @@
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
 
+projclean:
+	projclean node_modules@package.json target@Cargo.toml
+
 named:
 	#!/bin/sudo /bin/bash
 	exec named.trust-dns -z named -c named/named.toml
@@ -64,7 +67,6 @@ bluetooth:
 	/bin/sudo systemctl restart bluetooth.service
 	bluetoothctl disconnect
 	bluetoothctl connect 4C:F9:BE:6E:98:F2
-
 
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
