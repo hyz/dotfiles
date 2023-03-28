@@ -30,6 +30,7 @@
 
     cargo install XXX... --features dotenv
     cargo install XXX... --no-default-features --features postgresql
+    cargo install --no-default-features --features "sqlite,postgres"  diesel_cli
 
 ### musl static linked
 
@@ -68,3 +69,6 @@ https://rsproxy.cn/
 
 export RUSTUP_DIST_SERVER="https://rsproxy.cn"
               export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
+
+cargo expand --target=wasm32-unknown-unknown > expanded.rs
+

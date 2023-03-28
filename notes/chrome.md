@@ -5,9 +5,10 @@
 
 ## chromedriver
 
-    chromedriver.exe --allowed-ips 192.168.1.24
+    chromedriver.exe --allowed-ips 192.168.11.0
 
-    curl -LO https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_win32.zip
+    curl -LO https://chromedriver.storage.googleapis.com/107.0.5304.62/chromedriver_win32.zip
+    # https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_win32.zip
 
     https://chromedriver.storage.googleapis.com/index.html
 

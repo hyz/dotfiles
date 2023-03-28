@@ -39,8 +39,8 @@ endfunction
 call plug#begin('~/.vim/plugged')
 "" http://rls.booyaa.wtf/#vim8
 Plug 'andymass/vim-matchup'
-Plug 'evanleck/vim-svelte', {'branch': 'main'}
-Plug 'morhetz/gruvbox'
+"Plug 'evanleck/vim-svelte', {'branch': 'main'}
+"Plug 'morhetz/gruvbox'
 "Plug 'altercation/vim-colors-solarized'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
@@ -50,9 +50,9 @@ Plug 'rust-lang/rust.vim'
 "Plug 'prabirshrestha/asyncomplete-lsp.vim'
 "Plug 'rhysd/rust-doc.vim'
 "Plug 'racer-rust/vim-racer'
-Plug 'timonv/vim-cargo'
+"Plug 'timonv/vim-cargo'
 
-Plug 'vim-scripts/fcitx.vim'
+"Plug 'vim-scripts/fcitx.vim'
 "Plug 'w0rp/ale'
 "-- Plug 'jremmen/vim-ripgrep'
 "Plug 'godlygeek/tabular'
@@ -69,10 +69,10 @@ Plug 'pangloss/vim-javascript'
 "Plug 'vimim/vimim'
 "Plug 'vim-scripts/VimIM'
 "Plug 'plasticboy/vim-markdown'
-Plug 'ryym/vim-riot'
+"Plug 'ryym/vim-riot'
 
 "Plug 'suan/vim-instant-markdown'
-Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMdComposer') }
+"Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMdComposer') }
 
 "Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh', }
 "Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -164,7 +164,7 @@ if has("autocmd")
     au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
-colorscheme jellybeans " dogrun desert desert256 murphy inkpot gardener tango elflord wombat256 
+colorscheme desert " jellybeans dogrun desert desert256 murphy inkpot gardener tango elflord wombat256 
 if &diff
     colorscheme jellybeans
 endif

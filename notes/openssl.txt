@@ -1,5 +1,8 @@
 
+
     openssl rand -base64 6
+
+    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.rsa -out cert.pem
 
 ### musl & openssl-1.1.0h & OPENSSL_NO_ASYNC
 
@@ -21,3 +24,4 @@ https://github.com/jedisct1/libsodium
 
 
 export ROCKET_SECRET_KEY="`openssl rand -base64 32`"
+

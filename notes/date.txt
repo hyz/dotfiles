@@ -2,6 +2,7 @@
     cal -y 2000
     cal -yw
     date +%Y-%W
+    mkdir "`date +%y%b`"
 
 ### date
 
@@ -29,4 +30,5 @@ The  --date=STRING  is  a  mostly  free  format human readable date string such 
 
     $ TZ= date -d '2018-05-22 00:00:00' +%s                                                    ~/workspace/ssh 2:16
     1526947200
+
 

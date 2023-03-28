@@ -1,4 +1,6 @@
 
+ntfsclone --overwrite /dev/XXX /dev/sdd1
+
 ntfsclone --save-image --output vmware11-xp-usb-sdd1-partclone.ntfs /dev/sdd1
 ntfsclone --save-image --output /mnt/win10.ntfsclone /dev/loop0p1
 
@@ -40,9 +42,10 @@ If you make a mistake and don't have a partition table backup then you
 can recover the partition table by TestDisk or Parted's rescue mode.
 
 ### resize partition
-#1 https://ubuntuforums.org/showthread.php?t=1244058
+
+1. https://ubuntuforums.org/showthread.php?t=1244058
     fdisk
-#2 boot into windows10
+2. boot into windows10
     a) extend partition 1G
     b) shrink to what you want
 

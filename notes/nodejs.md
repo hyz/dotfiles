@@ -1,4 +1,6 @@
 
+    eval "$(fnm env --use-on-cd)"
+
 ### https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-debian-8
 
     sudo apt-get install build-essential cmake

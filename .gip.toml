@@ -1,0 +1,22 @@
+[[providers]]
+    name     = "ident.me"
+    ptype    = "IPv4"
+    protocol = "HttpPlane"
+    url      = "http://v4.ident.me/"
+    key      = []
+
+[[providers]]
+    name     = "test-ipv6"
+    ptype    = "IPv4"
+    protocol = "HttpJson"
+    url      = "http://ipv4.test-ipv6.com/ip/"
+    key      = ["ip"]
+    padding  = "callback"
+
+[[providers]]
+    name     = "opendns.com"
+    ptype    = "IPv4"
+    protocol = "Dns"
+    url      = "myip.opendns.com@resolver1.opendns.com"
+    key      = []
+

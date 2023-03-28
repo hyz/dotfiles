@@ -8,6 +8,9 @@ named:
 hello:
 	@echo hello
 
+mkdir:
+	mkdir "`date +%y%b`"
+
 default:
 	xsearch-dbup a.xlsx 2>/dev/null |tee a.txt |wc
 
@@ -127,11 +130,11 @@ capture:
 #cat /etc/systemd/system/xremap.service
 
 #analyzer:
-	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
+#	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
 get-analyzer:
 	#mkdir -p ~/.local/bin
-	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /opt/bin/rust-analyzer
-	chmod +x /opt/bin/rust-analyzer
+	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
+	chmod +x ~/.local/bin/rust-analyzer
 analyzer-from11:
 	rsync 11:/opt/bin/rust-analyzer /opt/bin
 
@@ -160,12 +163,17 @@ ffmpeg-record-alsa_output:
 	ffmpeg -vn -f pulse -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor r1.wav
 	ffmpeg -i r1.wav -vn -c:a aac -b:a 128k r1.m4a
 
-v2ray -config /xhome/proxy.vpn.tunnel.gfw/vmess2json/usamd.ptuu.tk.json
-python ../vmess2json/vmess2json.py "vmess://..."
-curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-https://proxy.yiun.xyz/
-wget https://v1.mk/XPdqsDi
-base64 -d XPdqsDi 
+___111:
+	v2ray -config /xhome/proxy.vpn.tunnel.gfw/vmess2json/usamd.ptuu.tk.json
+	python ../vmess2json/vmess2json.py "vmess://..."
+	curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+	curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+	curl -LO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+	https://proxy.yiun.xyz/
+	wget https://v1.mk/XPdqsDi
+	base64 -d XPdqsDi 
+
+sdc6:
+	#!/bin/sudo /bin/bash
+	mount /dev/sdc6 /home/library
 

@@ -13,9 +13,9 @@
 
 - generated my own keys:
 
-    #openssl req -new -x509 -newkey rsa:2048 -subj "/CN=my platform key/" -keyout PK.key -out PK.crt -days 3650 -nodes -sha256
-    #openssl req -new -x509 -newkey rsa:2048 -subj "/CN=my key exchange key/" -keyout KEK.key -out KEK.crt -days 3650 -nodes -sha256
-    #openssl req -new -x509 -newkey rsa:2048 -subj "/CN=my kernel signing key/" -keyout db.key -out db.crt -days 3650 -nodes -sha256
+    #openssl req -new -x509 -newkey rsa:2048 -days 3650 -nodes -sha256 -subj "/CN=my platform key/" -keyout PK.key -out PK.crt
+    #openssl req -new -x509 -newkey rsa:2048 -days 3650 -nodes -sha256 -subj "/CN=my key exchange key/" -keyout KEK.key -out KEK.crt
+    #openssl req -new -x509 -newkey rsa:2048 -days 3650 -nodes -sha256 -subj "/CN=my kernel signing key/" -keyout db.key -out db.crt
     #cert-to-efi-sig-list -g "$(uuidgen)" PK.crt PK.esl
     #sign-efi-sig-list -k PK.key -c PK.crt PK PK.esl PK.auth
 

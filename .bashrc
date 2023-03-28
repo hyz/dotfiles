@@ -136,6 +136,11 @@ else
     XHOME=$HOME/home
 fi
 
+# pnpm
+export PNPM_HOME="$XHOME/cache/pnpm"
+PATH="$PNPM_HOME:$PATH"
+# pnpm end
+
 #[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 #export NOTION_HOME="$XHOME/notion"
@@ -149,3 +154,4 @@ fi
 
 #source e/home/wood/.config/broot/launcher/bash/br
 
+export PATH

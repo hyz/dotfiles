@@ -1,4 +1,6 @@
 
+    fd -H -td \.git$
+
     fdx webpack | xargs fd package.json |xargs rg 'node.*serve'
 
     fd -tf -ejs . .build |xargs ls -hl
@@ -22,7 +24,20 @@
     find * -type d -prune
     find . -maxdepth 3 \( -name '.??*' \) -prune -false -o -name rust-by-examples -print
 
-### find
+### fd
+
+    fd -e php index -E rumenz  # -E, --exclude
+
+    fd -e jpg -x chmod 644 {}
+    fd -e jpg -x convert {} {.}.png
+
+    {} – 一个占位符，它将随着搜索结果的路径而改变（rumenz/uploads/01.jpg）。
+    {.}– 类似于{}，但不使用文件扩展名 (rumenz/uploads/01）。
+    {/}：将被搜索结果的基本名称替换的占位符 (01.jpg）。
+    {//}: 发现路径的父目录 (rumenz/uploads）。
+    {/.}: 只有基名，没有扩展名 (01）。
+
+### echechoofind
 
     find jni -type f ! -path "*/Crypto/*" \( -name "*.h" -o -name "*.cpp" \)
 
@@ -47,4 +62,6 @@
 
 
 
+
+    fd -0tf webpack |xargs -0 rg merge
 

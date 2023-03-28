@@ -174,8 +174,11 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 #source /home/wood/.config/broot/launcher/bash/br
 
-# pnpm
-#export PNPM_HOME="/home/wood/.local/share/pnpm"
-#export PATH="$PNPM_HOME:$PATH"
-# pnpm end
 
+
+# bun completions
+[ -s "/home/wood/.bun/_bun" ] && source "/home/wood/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

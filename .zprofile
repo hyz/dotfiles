@@ -176,7 +176,9 @@ for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
-PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
+
+PNPM_HOME="$XHOME/cache/pnpm"
+PATH=$PATH:$XHOME/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
 
 #if [ -x "/opt/android/studio/bin/studio.sh" ]; then
 #    PATH=$PATH:/opt/android/studio/bin
@@ -184,6 +186,7 @@ PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
 
 if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 
+export PNPM_HOME
 export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn

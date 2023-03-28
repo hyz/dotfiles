@@ -1,6 +1,8 @@
 #!/bin/bash
 
-fd --min-depth 2 -d2 -iI $* /xhome | sk -i -c 'rg --color=always --line-number -i "{}"'
+fd --min-depth 2 -d2 -iI $* /xhome \
+    | sk -i -c 'rg --color=always --line-number -i "{}"'
+
 #fd --min-depth 2 -d2 -iI $* /xhome |rg -i $1
 #cd `fd --min-depth 2 -d2 -iI $* /xhome |rg -i $1 |fzf`
 

@@ -51,3 +51,5 @@ Choosing where to install
     linker = "/usr/bin/x86_64-w64-mingw32-gcc"
     ar = "/usr/x86_64-w64-mingw32/bin/ar"
 
+
+rustup toolchain remove nightly-2022-08-23-x86_64-pc-windows-msvc

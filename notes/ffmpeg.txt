@@ -241,3 +241,8 @@ test hwaccel
     for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && continue; ffmpeg -i "$mp4" -map 0:a -c:a copy "$mp4.m4a" ||break ;done
     for mp4 in `fd -aI -e mp4` ;do test -f "$mp4.m4a" && rm -vf "$mp4" ;done
 
+### windows 
+
+    ffmpeg -list_devices true -f dshow -i dummy
+    ffmpeg -list_options true -f dshow -i video="Full HD 1080P PC Camera"
+

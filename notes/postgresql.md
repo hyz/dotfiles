@@ -1,7 +1,5 @@
 
-    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 \
-        --auth-local trust \
-        -D /var/lib/postgres/data
+    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 --auth-local trust -D /var/lib/postgres/data
     sudo systemctl start postgresql.service
 
     sudo -iu postgres -- dropdb --if-exists $USER
@@ -251,4 +249,31 @@ DATABASE_URL=postgres:///dbname
 ### SELECT & UNION & SUBQUERY
 
     psql `date +mydb%y%m%d` -c "select id,name from entitys where id IN ((select id from entitys where id<=8 limit 3) UNION (select id from entitys where id>8 order by id limit 3) ) order by id"
+
+
+psql xapp <<< "SELECT table_schema,table_name,table_type FROM information_schema.tables"
+
+psql xapp <<< "\d+ information_schema.tables"
+
+### https://wiki.archlinux.org/title/PostgreSQL#Upgrading_PostgreSQL
+    which pg_upgrade
+
+===   #!/bin/sudo /bin/bash
+
+    pacman -Qs postgresql-old-upgrade
+    #
+    sudo mv /var/lib/postgres/data /var/lib/postgres/data_old
+    sudo mkdir /var/lib/postgres/data /var/lib/postgres/tmp
+    sudo chown postgres:postgres /var/lib/postgres /var/lib/postgres/data /var/lib/postgres/tmp
+    #
+    sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 --auth-local trust -D /var/lib/postgres/data
+    #
+    # #shared_preload_libraries = 'timescaledb'
+    sudo vim /var/lib/postgres/data/postgresql.conf  /var/lib/postgres/data_old/postgresql.conf
+    #
+    sudo systemctl stop postgresql.service
+    sudo -iu postgres -- pg_upgrade -b /opt/pgsql-14/bin -B /usr/bin -d /var/lib/postgres/data_old -D /var/lib/postgres/    sudo systemctl start postgresql.service
+    #
+    psql -l
+
 

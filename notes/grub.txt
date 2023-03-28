@@ -1,4 +1,12 @@
 
+    insmod part_gpt
+    insmod part_msdos
+    insmod chain
+    set root=(hd1,gpt6)
+    chainloader /efi/grub/grubx64.efi
+    boot
+
+
 ### https://en.wikipedia.org/wiki/GNU_GRUB
 ### https://wiki.archlinux.org/index.php/GRUB
 
