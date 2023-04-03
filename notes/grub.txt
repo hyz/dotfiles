@@ -49,13 +49,16 @@
 
     parted /dev/sdX -- mktable gpt
     parted /dev/sdX -- mkpart biosgrub fat32 1MiB 4MiB
-    parted /dev/sdX -- mkpart efi fat32 4MiB 200MiB
+    parted /dev/sdX -- mkpart efi fat32 4MiB 160MiB
+
     parted /dev/sdX -- set 1 bios_grub on
+    parted /dev/sdX -- set 2 boot on
     parted /dev/sdX -- set 2 esp on
 
     mkfs.vfat -F 32 -n EFI /dev/sdX2
     umount /mnt
     mount /dev/sdX2 /mnt
+
     ;# grub-install --removable --boot-directory=/mnt --target=i386-pc /dev/sdX
     ;# grub-install --removable --boot-directory=/mnt --target=x86_64-pc /dev/sdX
     grub-install --removable --no-nvram --efi-directory=/mnt --boot-directory=/mnt --target=x86_64-efi /dev/sdX

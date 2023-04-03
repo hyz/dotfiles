@@ -1,4 +1,6 @@
 
+    fd -Hd2 .env
+
     fd -H -td \.git$
 
     fdx webpack | xargs fd package.json |xargs rg 'node.*serve'

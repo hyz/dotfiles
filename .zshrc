@@ -150,7 +150,8 @@ alias tmux='TERM=xterm-256color tmux -2'
 # limit coredumpsize 0
 
 alias v=view.sh b='cargo build' r='cargo run' rex='cargo run --example'
-alias gp='git-clonepull pull' gc='git-clonepull clone'
+alias gc='git-clonepull clone' gp='git-clonepull pull'
+alias clone='proxychains git-clonepull clone' pull='proxychains git-clonepull pull'
 fdx() {
     # gp=git-pull.sh gc='git-https2git  clone --depth 1'
     destdir=`fdxhome $*` && cd "$destdir"
@@ -161,6 +162,8 @@ fdx() {
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
 
 alias jq-package-scripts='jql \"scripts\" package.json'
+
+alias pnpm=/xhome/cache/pnpm/pnpm
 
 #eval "`mcfly init zsh`"
 #export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
