@@ -1,4 +1,6 @@
 
+    efibootmgr --create -b 7 --index 1 --disk /dev/nvme0n1 --part 1 --write-signature --loader /EFI/ubuntu/shimx64.efi --label "Ubuntu"
+
 ### security boot
 
     https://unix.stackexchange.com/questions/234129/sign-grub2-bootloader-to-enable-uefi-secure-boot

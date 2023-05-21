@@ -162,8 +162,7 @@ fdx() {
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
 
 alias jq-package-scripts='jql \"scripts\" package.json'
-
-alias pnpm=/xhome/cache/pnpm/pnpm
+#alias pnpm=$_CACHE/pnpm/pnpm
 
 #eval "`mcfly init zsh`"
 #export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true

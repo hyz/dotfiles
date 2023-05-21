@@ -125,8 +125,8 @@ elif [ -d $HOME/xhome ] ; then
     XHOME=$HOME/xhome
 fi
 if [ -n "$XHOME" ] ; then
-    XSDK=$XHOME/sdk
-    DENO_DIR=$XHOME/deno/.cache
+    XSDK=$XHOME/_local/sdk
+    DENO_DIR=$XHOME/_local/deno
     DENO_INSTALL=$DENO_DIR
     DENO_INSTALL_ROOT=$DENO_INSTALL
     CARGO_HOME=$XHOME/cargo
@@ -137,13 +137,14 @@ if [ -n "$XHOME" ] ; then
     ANDROID_SDK=$XHOME/sdk/android-sdk
     ANDROID_NDK=$XHOME/sdk/android-ndk
 else
+    XHOME=$HOME
     alias rustup=/bin/echo
     alias cargo=/bin/echo
     alias go=/bin/echo
     alias flutter=/bin/echo
     alias deno=/bin/echo
 fi
-
+export _CACHE="$XHOME/.cache" _LOCAL="$XHOME/.local" _CONFIG="$XHOME/.config"
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -177,8 +178,9 @@ for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/
     PATH=$PATH:$x
 done
 
-PNPM_HOME="$XHOME/cache/pnpm"
+PNPM_HOME="$_CACHE/pnpm"
 PATH=$PATH:$XHOME/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
+
 
 #if [ -x "/opt/android/studio/bin/studio.sh" ]; then
 #    PATH=$PATH:/opt/android/studio/bin

@@ -1,6 +1,9 @@
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
 
+zsh-login:
+	LS_COLORS="`vivid generate snazzy`" SHELL=`which zsh` exec /bin/zsh --login -i # ; tmux attach || tmux
+
 projclean:
 	projclean node_modules@package.json target@Cargo.toml
 
