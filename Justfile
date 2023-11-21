@@ -189,8 +189,8 @@ ffmpeg-record-alsa_output:
 ffmpeg-flv-to-mp4 Flv:
 	ln -sf {{Flv}} input && ffmpeg -i input -c:a copy -c:v copy {{Flv}}.mp4
 
+# just ffmpeg-ca 《简单的逻辑学》\*.mp4
 ffmpeg-ca First *Elses:
-	# just ffmpeg-ca 《简单的逻辑学》\*.mp4
 	fd -tf --glob '{{First}}' -x ffmpeg-ca-copy
 	#test -r "{{First}}"
 	#ffmpeg-ca-copy "{{First}}"
@@ -201,7 +201,7 @@ vararg *args:
 
 rename-file_mv FileName:
 	@test -f "{{FileName}}"
-	@mv "{{FileName}}" "{{replace_regex(FileName, '\s+', ',')}}"
+	@mv "{{FileName}}" "{{replace_regex(trim(FileName), '\s+', ',')}}"
 rename Pat:
 	fd -d1 -tf '{{Pat}}' -x just rename-file_mv
 

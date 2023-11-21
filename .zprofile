@@ -124,37 +124,25 @@ elif [ -d /opt/x/bin ] ; then
 elif [ -d $HOME/up ] ; then
     XHOME=$HOME/up
 fi
-if [ -n "$XHOME" ] ; then
-<<<<<<< HEAD
-    xLOCAL=$XHOME/_local
+export _CACHE="$XHOME/_cache" _LOCAL="$XHOME/_local" _CONFIG="$XHOME/_config"
+
+if [ -n "$_LOCAL" ] ; then
     # https://deno.land/manual/getting_started/setup_your_environment
-    DENO_DIR=$xLOCAL/deno
+    DENO_DIR=$_LOCAL/deno
     DENO_INSTALL_ROOT=$DENO_DIR
     #
-    CARGO_HOME=$xLOCAL/cargo
-    RUSTUP_HOME=$XHOME/_cache/rustup
+    CARGO_HOME=$_LOCAL/cargo
+    RUSTUP_HOME=$_CACHE/rustup
     #
-    WASMER_DIR=$xLOCAL/wasmer
+    WASMER_DIR=$_LOCAL/wasmer
     #
-    GOPATH=$xLOCAL/go
+    GOPATH=$_LOCAL/go
     #
-    FLUTTER_HOME=/opt/flutter # $xLOCAL/flutter
+    FLUTTER_HOME=/opt/flutter # $_LOCAL/flutter
     #
-    ANDROID_SDK=$xLOCAL/android-sdk
-    ANDROID_NDK=$xLOCAL/android-ndk
-=======
-    XSDK=$XHOME/_local/sdk
-    DENO_DIR=$XHOME/_local/deno
-    DENO_INSTALL=$DENO_DIR
-    DENO_INSTALL_ROOT=$DENO_INSTALL
-    CARGO_HOME=$XHOME/cargo
-    RUSTUP_HOME=$XHOME/rustup
-    WASMER_DIR=$XHOME/wasmer
-    GOPATH=$XHOME/go
-    FLUTTER_HOME=/opt/flutter # $XSDK/flutter
-    ANDROID_SDK=$XHOME/sdk/android-sdk
-    ANDROID_NDK=$XHOME/sdk/android-ndk
->>>>>>> refs/remotes/origin/master
+    _SDK=$_LOCAL/sdk
+    ANDROID_SDK=$_SDK/android-sdk
+    ANDROID_NDK=$_SDK/android-ndk
 else
     XHOME=$HOME
     alias rustup=/bin/echo
@@ -163,7 +151,6 @@ else
     alias flutter=/bin/echo
     alias deno=/bin/echo
 fi
-export _CACHE="$XHOME/.cache" _LOCAL="$XHOME/.local" _CONFIG="$XHOME/.config"
 
 #export RUST_SRC_PATH=$RUSTUP_HOME/rust-src
 ###
@@ -197,15 +184,11 @@ for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/
     PATH=$PATH:$x
 done
 
-<<<<<<< HEAD
-PNPM_HOME="$XHOME/_cache/pnpm"
-PATH=$PATH:$XHOME/_local/bin:$CARGO_HOME/bin:$PNPM_HOME
+PNPM_HOME="$_CACHE/pnpm"
+PATH=$PATH:$_LOCAL/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
 #:$FLUTTER_HOME/bin
 #:$DENO_DIR/bin
-=======
-PNPM_HOME="$_CACHE/pnpm"
-PATH=$PATH:$XHOME/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
->>>>>>> refs/remotes/origin/master
+
 
 
 #if [ -x "/opt/android/studio/bin/studio.sh" ]; then
