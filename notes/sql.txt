@@ -1,4 +1,8 @@
 
+    sqlite3 -table todo.db -- .show
+    sqlite3 -table todo.db -- .schema
+    sqlite3 -table todo.db -- 'select * from todos'
+
 ### https://stackoverflow.com/questions/2111384/sql-join-selecting-the-last-records-in-a-one-to-many-relationship
     SELECT c.*, p1.*
     FROM customer c

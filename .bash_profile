@@ -38,25 +38,30 @@ fi
 XHOME=
 if uname -r | /bin/grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/i/home
-elif [ -d /xhome/bin ] ; then
-    XHOME=/xhome
+elif [ -d /up/_local ] ; then
+    XHOME=/up
 elif [ -d /opt/x/bin ] ; then
     XHOME=/opt/x
-elif [ -d $HOME/xhome ] ; then
-    XHOME=$HOME/xhome
+elif [ -d $HOME/up ] ; then
+    XHOME=$HOME/up
 fi
 if [ -n "$XHOME" ] ; then
-    XSDK=$XHOME/sdk
-    DENO_DIR=$XHOME/deno/.cache
-    DENO_INSTALL=$XHOME/deno
-    DENO_INSTALL_ROOT=$DENO_INSTALL
-    CARGO_HOME=$XHOME/cargo
-    RUSTUP_HOME=$XHOME/rustup
-    WASMER_DIR=$XHOME/wasmer
-    GOPATH=$XHOME/go
-    FLUTTER_HOME=/opt/flutter # $XSDK/flutter
-    ANDROID_SDK=$XHOME/sdk/android-sdk
-    ANDROID_NDK=$XHOME/sdk/android-ndk
+    xLOCAL=$XHOME/_local
+    # https://deno.land/manual/getting_started/setup_your_environment
+    DENO_DIR=$xLOCAL/deno
+    DENO_INSTALL_ROOT=$DENO_DIR
+    #
+    CARGO_HOME=$xLOCAL/cargo
+    RUSTUP_HOME=$XHOME/_cache/rustup
+    #
+    WASMER_DIR=$xLOCAL/wasmer
+    #
+    GOPATH=$xLOCAL/go
+    #
+    FLUTTER_HOME=/opt/flutter # $xLOCAL/flutter
+    #
+    ANDROID_SDK=$xLOCAL/android-sdk
+    ANDROID_NDK=$xLOCAL/android-ndk
 else
     alias rustup=/bin/echo
     alias cargo=/bin/echo
@@ -96,20 +101,20 @@ for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/
     [ -d "$x" ] || continue
     PATH=$PATH:$x
 done
-PATH=$PATH:$FLUTTER_HOME/bin:$XHOME/bin:$CARGO_HOME/bin:$DENO_DIR/bin
-
+PATH=$PATH:$XHOME/_local/bin:$CARGO_HOME/bin:$XHOME/bin:$DENO_DIR/bin
 if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 
-alias pnpm=/xhome/cache/pnpm/pnpm
+PNPM_HOME="$XHOME/_cache/pnpm"
+alias pnpm=$PNPM_HOME/pnpm
 
-export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
+export XHOME PNPM_HOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
+
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export PATH
 
 # source $HOME/.config/broot/launcher/bash/br
-
-export DVM_DIR="/home/wood/.dvm"
-export PATH="$DENO_INSTALL/bin:$PATH"
-export PATH="$DVM_DIR/bin:$PATH"
+#export DVM_DIR="/home/wood/.dvm"
+#export PATH="$DENO_INSTALL/bin:$PATH"
+#export PATH="$DVM_DIR/bin:$PATH"
 

@@ -72,3 +72,5 @@ export RUSTUP_DIST_SERVER="https://rsproxy.cn"
 
 cargo expand --target=wasm32-unknown-unknown > expanded.rs
 
+
+cargo install -f --no-default-features --features "sqlite-bundled"  diesel_cli

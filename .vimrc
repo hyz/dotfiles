@@ -169,9 +169,17 @@ if &diff
     colorscheme jellybeans
 endif
 
+"" https://github.com/BurntSushi/ripgrep/issues/425
+"" https://phelipetls.github.io/posts/extending-vim-with-ripgrep
+if executable("rg")
+    set grepprg=rg\ --vimgrep\ --smart-case\ --hidden
+    set grepformat=%f:%l:%c:%m
+endif
+
 set hlsearch " incsearch
 " highlight Search ctermbg=Black ctermfg=Yellow
 highlight Search ctermbg=DarkGray ctermfg=Black
+
 set history=1000
 cnoremap <C-L> <Up>
 

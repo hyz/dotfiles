@@ -1,4 +1,6 @@
 
+    rg DNS /etc/systemd/network
+
     https://www.cnblogs.com/cobbliu/category/443082.html
 
 ### name servers

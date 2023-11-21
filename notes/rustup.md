@@ -1,4 +1,6 @@
 
+    rustup toolchain remove nightly-2022-08-23-x86_64-pc-windows-msvc
+
 ### https://github.com/rust-lang/rustup/blob/master/doc/src/installation/index.md
 
 Choosing where to install
@@ -52,4 +54,14 @@ Choosing where to install
     ar = "/usr/x86_64-w64-mingw32/bin/ar"
 
 
-rustup toolchain remove nightly-2022-08-23-x86_64-pc-windows-msvc
+
+### rust-analyzer
+
+指定版本
+
+    rustup run nightly-2021-04-08 rust-analyzer
+
+nighly分支
+
+    rustup run nightly rust-analyzer
+

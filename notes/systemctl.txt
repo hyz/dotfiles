@@ -60,3 +60,5 @@ Type=idle
 
     若有其他任务执行完毕，当前服务才会运行
 
+
+journalctl -xefu smartdns-rs |tee /tmp/smartdns.log

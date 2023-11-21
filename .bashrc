@@ -128,17 +128,26 @@ elif which ssh-agent ; then
 fi
 
 export EDITOR=vim
-if uname -r |grep Microsoft 2>/dev/null ; then
+if uname -r | grep Microsoft 2>/dev/null ; then
     XHOME=/mnt/d/home
-elif [ -d /xhome ] ; then
-    XHOME=/xhome
+elif [ -d /up ] ; then
+    XHOME=/up
+elif [ -d "/opt/x" ] ; then
+    XHOME=/opt/x
+elif [ -d "$HOME/x" ] ; then
+    XHOME=$HOME/x
 else
-    XHOME=$HOME/home
+    XHOME=/tmp/x
 fi
 
 # pnpm
-export PNPM_HOME="$XHOME/cache/pnpm"
+export PNPM_HOME="$XHOME/_cache/pnpm"
+alias pnpm=$PNPM_HOME/pnpm
 PATH="$PNPM_HOME:$PATH"
+#case ":$PATH:" in
+#  *":$PNPM_HOME:"*) ;;
+#  *) export PATH="$PNPM_HOME:$PATH" ;;
+#esac
 # pnpm end
 
 #[ -f ~/.fzf.bash ] && source ~/.fzf.bash

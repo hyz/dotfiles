@@ -9,3 +9,7 @@
 ### https://github.com/rust-lang/cargo/issues/2986
 
 
+### toolchains
+
+    I:\home\rust\rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib
+

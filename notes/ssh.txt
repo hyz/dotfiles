@@ -52,6 +52,7 @@ http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
 
     eval `ssh-agent -s` ; env |grep SSH
     
+    # ssh-add ~/.ssh/id_xxx
     ssh -vT git@git.oschina.net
     ssh-add -D
     ssh-add .ssh/id_xxx
@@ -60,4 +61,9 @@ http://www.fclose.com/818/port-forwarding-using-ssh-tunnel/
 
 ### https://baoz.net/ssh-session-establish/
 ### https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process
+
+### https://bitbucket.org/blog/ssh-host-key-changes
+
+    ssh git@bitbucket.org host_key_info
+    ssh-keygen -R bitbucket.org && curl https://bitbucket.org/site/ssh >> ~/.ssh/known_hosts
 

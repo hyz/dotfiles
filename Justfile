@@ -1,11 +1,21 @@
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
 
+set positional-arguments
+
 zsh-login:
 	LS_COLORS="`vivid generate snazzy`" SHELL=`which zsh` exec /bin/zsh --login -i # ; tmux attach || tmux
 
 projclean:
 	projclean node_modules@package.json target@Cargo.toml
+
+pacman-clean:
+	#!/bin/sudo /bin/bash
+	pacman -S --clean
+	pacman -R $(pacman -Qdtq) # autoclean
+cache-clean:
+	#!/bin/sudo /bin/bash
+	echo
 
 named:
 	#!/bin/sudo /bin/bash
@@ -78,6 +88,12 @@ env:
 	#!/bin/sudo /bin/bash
 	env
 
+shutdown Time="23:15":
+	#!/bin/sudo /bin/bash
+	shutdown --show
+	shutdown -c
+	shutdown --no-wall -h {{Time}}
+
 initial-setup:
 	#!/bin/sudo /bin/bash
 	#!/bin/sudo --chdir /home/ftp /bin/bash
@@ -134,12 +150,13 @@ capture:
 
 #cat /etc/systemd/system/xremap.service
 
-#analyzer:
-#	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
-get-analyzer:
-	#mkdir -p ~/.local/bin
-	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
-	chmod +x ~/.local/bin/rust-analyzer
+latest-rust-analyzer:
+	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
+	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-pc-windows-msvc.zip --output-dir ~/Incoming
+latest-rust-analyzer-linux:
+	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /tmp/rust-analyzer
+	chmod +x /tmp/rust-analyzer
+	file /tmp/rust-analyzer
 analyzer-from11:
 	rsync 11:/opt/bin/rust-analyzer /opt/bin
 
@@ -156,8 +173,9 @@ dufs:
 # file 2.mp3
 # file 3.mp3
 # 
-ffmpeg-concat:
-	ffmpeg -f concat -i filelist.txt -c copy output.mp3
+ffmpeg-concat *Lis:
+	#ffmpeg -f concat -i filelist.txt -c copy output.mp3
+	ffmpeg-concat {{Lis}} && /bin/ls -ld output*
 
 ffmpeg:
 	#ffmpeg -ss 00:01:01 -to 00:33:01 -i input.mp3 -c:a copy output.mp3
@@ -167,6 +185,25 @@ ffmpeg-record-alsa_output:
 	#pacmd list-sources
 	ffmpeg -vn -f pulse -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor r1.wav
 	ffmpeg -i r1.wav -vn -c:a aac -b:a 128k r1.m4a
+
+ffmpeg-flv-to-mp4 Flv:
+	ln -sf {{Flv}} input && ffmpeg -i input -c:a copy -c:v copy {{Flv}}.mp4
+
+ffmpeg-ca First *Elses:
+	# just ffmpeg-ca 《简单的逻辑学》\*.mp4
+	fd -tf --glob '{{First}}' -x ffmpeg-ca-copy
+	#test -r "{{First}}"
+	#ffmpeg-ca-copy "{{First}}"
+	#just ffmpeg-ca {{Elses}}
+
+vararg *args:
+	bash -c 'while (( "$#" )); do echo - $1; shift; done' -- "$@"
+
+rename-file_mv FileName:
+	@test -f "{{FileName}}"
+	@mv "{{FileName}}" "{{replace_regex(FileName, '\s+', ',')}}"
+rename Pat:
+	fd -d1 -tf '{{Pat}}' -x just rename-file_mv
 
 ___111:
 	v2ray -config /xhome/proxy.vpn.tunnel.gfw/vmess2json/usamd.ptuu.tk.json
@@ -181,4 +218,12 @@ ___111:
 sdc6:
 	#!/bin/sudo /bin/bash
 	mount /dev/sdc6 /home/library
+
+journalctl:
+	#journalctl -fxeu smartdns-rs # > /tmp/smartdns.log 
+	# uniq
+	journalctl -xeu smartdns-rs --no-pager | grep -Po 'query name:\K.*' |awk '{print $1}' | sort-domain-name |tee names-sorted.txt
+
+gc URL:
+	git-clonepull clone --prefixurl='https://ghps.cc' {{URL}}
 

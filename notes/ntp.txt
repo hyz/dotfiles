@@ -1,8 +1,9 @@
 
-time.windows.com
-time.nist.gov
-ntp.ubuntu.com
-pool.ntp.org
+    time.windows.com
+    time.apple.com
+    time.nist.gov
+    ntp.ubuntu.com
+    pool.ntp.org
 
     ntpd -dnq -N -p 202.118.1.81
     ntpd -dnq -N -p 52.169.179.91
@@ -12,4 +13,5 @@ pool.ntp.org
 
     ntpdate pool.ntp.org
     hwclock --systohc --utc
+
 

@@ -1,4 +1,6 @@
 
+    echo ':104: query name: www.apple.com. type:' |rg '.*: query name: (.*)\. type: .*' -r '$1'
+
     rg --no-ignore ...
 
     rg 'https://' */.git/config --files-with-matches

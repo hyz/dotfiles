@@ -3,3 +3,4 @@
 
     sudo dd bs=4M if=ubuntu.iso of=/dev/sdb conv=fdatasync
 
+https://www.ventoy.net/en/doc_start.html

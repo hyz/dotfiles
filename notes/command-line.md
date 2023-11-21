@@ -2,6 +2,9 @@
     shutdown -h 00:00
     shutdown --no-wall -h 00:10
 
+    tar --zstd -cf ffmpeg.tar.zstd ffmpeg
+    tar --zstd -xf ffmpeg.tar.zstd
+
 ### https://github.com/lotabout/rargs
 
     ls *.bak | rargs -p '(.*)\.bak' mv {0} {1}
@@ -211,4 +214,6 @@ http://stackoverflow.com/questions/1037365/unix-sort-with-tab-delimiter
 
 
 install -Dm755 target/release/systemd-boot-friend-rs /usr/local/bin/systemd-boot-friend
+
+
 

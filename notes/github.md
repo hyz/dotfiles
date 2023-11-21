@@ -7,6 +7,20 @@
     git config --global --add remote.origin.proxy ""
     git config --global --unset-all remote.origin.proxy
 
+### https://git-lfs.github.com https://gh.io/lfs
+
+    git lfs install
+
+    git lfs track *.bin
+    git add .gitattributes
+
+    git add *.bin
+    git commit -m "binary files added"
+    git push
+
+https://zhuanlan.zhihu.com/p/146683392
+
+
 ### git.oschina.net
 
     https://gitee.com/projects/import/url
@@ -50,7 +64,9 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
 
     git config --global user.email 【你的注册邮箱】
 
+    cd ~/.ssh
     ssh-keygen -t rsa -C "your@email.com"   // 等待提示，然后输入yes
+    ssh-add ~/.ssh/........
 
     按照提示去目标的.ssh文件夹下找到id_rsa.pub文件，用记事本打开，拷贝全部内容。
 
@@ -82,4 +98,6 @@ https://github.com/aturl/awesome-anti-gfw/blob/master/WireGuard_VPN_Tunnel.md
     GITHUB_TOKEN=...  hub create # Some-Exist-Dir
     GITHUB_TOKEN=...  hub create my-example
     hub push -u origin HEAD # hub push --set-upstream origin main
+
+
 

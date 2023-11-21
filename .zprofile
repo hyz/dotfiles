@@ -117,14 +117,32 @@ fi
 XHOME=
 if uname -r | /bin/grep Microsoft &>/dev/null ; then
     XHOME=/mnt/i/home
-elif [ -d /xhome/bin ] ; then
-    XHOME=/xhome
+elif [ -d /up/_local ] ; then
+    XHOME=/up
 elif [ -d /opt/x/bin ] ; then
     XHOME=/opt/x
-elif [ -d $HOME/xhome ] ; then
-    XHOME=$HOME/xhome
+elif [ -d $HOME/up ] ; then
+    XHOME=$HOME/up
 fi
 if [ -n "$XHOME" ] ; then
+<<<<<<< HEAD
+    xLOCAL=$XHOME/_local
+    # https://deno.land/manual/getting_started/setup_your_environment
+    DENO_DIR=$xLOCAL/deno
+    DENO_INSTALL_ROOT=$DENO_DIR
+    #
+    CARGO_HOME=$xLOCAL/cargo
+    RUSTUP_HOME=$XHOME/_cache/rustup
+    #
+    WASMER_DIR=$xLOCAL/wasmer
+    #
+    GOPATH=$xLOCAL/go
+    #
+    FLUTTER_HOME=/opt/flutter # $xLOCAL/flutter
+    #
+    ANDROID_SDK=$xLOCAL/android-sdk
+    ANDROID_NDK=$xLOCAL/android-ndk
+=======
     XSDK=$XHOME/_local/sdk
     DENO_DIR=$XHOME/_local/deno
     DENO_INSTALL=$DENO_DIR
@@ -136,6 +154,7 @@ if [ -n "$XHOME" ] ; then
     FLUTTER_HOME=/opt/flutter # $XSDK/flutter
     ANDROID_SDK=$XHOME/sdk/android-sdk
     ANDROID_NDK=$XHOME/sdk/android-ndk
+>>>>>>> refs/remotes/origin/master
 else
     XHOME=$HOME
     alias rustup=/bin/echo
@@ -178,8 +197,15 @@ for x in /usr/local/bin $HOME/.local/bin /opt/bin $HOME/.yarn/bin $HOME/.config/
     PATH=$PATH:$x
 done
 
+<<<<<<< HEAD
+PNPM_HOME="$XHOME/_cache/pnpm"
+PATH=$PATH:$XHOME/_local/bin:$CARGO_HOME/bin:$PNPM_HOME
+#:$FLUTTER_HOME/bin
+#:$DENO_DIR/bin
+=======
 PNPM_HOME="$_CACHE/pnpm"
 PATH=$PATH:$XHOME/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
+>>>>>>> refs/remotes/origin/master
 
 
 #if [ -x "/opt/android/studio/bin/studio.sh" ]; then
@@ -189,7 +215,7 @@ PATH=$PATH:$XHOME/bin:$CARGO_HOME/bin:$PNPM_HOME:$FLUTTER_HOME/bin:$DENO_DIR/bin
 if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 
 export PNPM_HOME
-export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
+export XHOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL_ROOT
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export PATH

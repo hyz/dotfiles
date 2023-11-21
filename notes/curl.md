@@ -15,7 +15,7 @@ Test HTTP connect with cURL:
 
 json
 
-    curl -H "Content-Type: application/json" -X POST -d '{"key": "value"}' http:localhost:18001/get
+    curl -w'\n' -H "Content-Type: application/json" -XPOST -d '{"key": "value"}' http:localhost:3088/post
 
 ### http://curl.haxx.se/
 
@@ -42,7 +42,8 @@ Maybe *memory-leak* will happend in this mode..
     curl --connect-timeout 2 -x 127.0.0.1:8118 http://google.com
 
 
-curl -x "http://127.0.0.1:3128" "http://httpbin.org/ip" 
-curl -x "socks5://127.0.0.1:1080" "https://www.google.com"
+    curl -x "http://127.0.0.1:3128" "http://httpbin.org/ip" 
+    curl -x "socks5://127.0.0.1:1080" "https://www.google.com"
 
-LD_PRELOAD=libtsocks.so w3m ...
+    LD_PRELOAD=libtsocks.so w3m ...
+

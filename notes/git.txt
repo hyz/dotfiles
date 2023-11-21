@@ -1,4 +1,6 @@
 
+    fd -H -g .git . -x rg -H ghps.cc {}/config # -x sed -i 's#https://ghps.cc/##' {}/config
+
     git config --local --get remote.origin.url
 
     git clone --depth 1 file:///$PWD ../myex`date +%y%m%d`
@@ -6,6 +8,16 @@
     > git remote -v
     origin  wood@u11.de:repos/turboscape.git (fetch)
     ..
+
+### diff https://stackoverflow.com/questions/1580596/how-do-i-make-git-ignore-file-mode-chmod-changes
+
+    old mode 100755
+    new mode 100644
+
+    git config core.fileMode false
+    git config --global core.fileMode false
+    ...
+
 
 https://github.com/search?l=Rust&q=stars%3A%3E1&s=stars&type=Repositories
 

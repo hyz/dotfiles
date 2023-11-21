@@ -93,7 +93,12 @@ https://stackoverflow.com/questions/2600783/how-does-the-vim-write-with-sudo-tri
 
 ### nvim & neovide
 
+
     I:\bin\neovide.exe --neovim-bin I:\bin\nvim-win64\bin\nvim.exe
 
     C:\Users\wood\AppData\Local\nvim\init.vim
+
+### neovim tree-sitter
+
+    https://github.com/nvim-treesitter/nvim-treesitter/wiki/Windows-support#msvc
 

@@ -113,10 +113,12 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 #alias dict='sdcv -0'
 dict() {
     echo $* >> $HOME/.dict_history
-    if which sdcv &>/dev/null ; then
+    if which ydcv-rs &>/dev/null ; then
+        ydcv-rs "$1"
+    elif which sdcv &>/dev/null ; then
         sdcv -0 "$1"
-    elif which ydcv &>/dev/null ; then
-        ydcv "$1"
+    elif which dioxionary &>/dev/null ; then
+        dioxionary -L "$1"
     elif which xdg-open &>/dev/null ; then
         xdg-open "http://dict.cn/$1"
     else
@@ -162,14 +164,19 @@ fdx() {
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
 
 alias jq-package-scripts='jql \"scripts\" package.json'
+<<<<<<< HEAD
+
+alias pnpm=/up/_cache/pnpm/pnpm
+=======
 #alias pnpm=$_CACHE/pnpm/pnpm
+>>>>>>> refs/remotes/origin/master
 
 #eval "`mcfly init zsh`"
 #export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true
 #eval "$(atuin init zsh)"
 
 #source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+#source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
@@ -182,5 +189,13 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 [ -s "/home/wood/.bun/_bun" ] && source "/home/wood/.bun/_bun"
 
 # bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+#export BUN_INSTALL="$HOME/.bun"
+#export PATH="$BUN_INSTALL/bin:$PATH"
+
+# pnpm
+export PNPM_HOME="/up/_cache/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
