@@ -1,4 +1,5 @@
 
+    > ffmpeg -sinks pulse
     > pacmd list-sources
     > ffmpeg -vn -f pulse -i alsa_output......analog-stereo.monitor r1.wav
 
