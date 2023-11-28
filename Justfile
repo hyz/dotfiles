@@ -78,8 +78,10 @@ sshfs:
 
 bluetooth:
 	/bin/sudo systemctl restart bluetooth.service
-	bluetoothctl disconnect
-	bluetoothctl connect 4C:F9:BE:6E:98:F2
+	systemctl --user restart pulseaudio.service
+	# bluetoothctl connect 4C:F9:BE:6E:98:F2
+	# bluetoothctl disconnect
+	# bluetoothctl scan on
 
 ####!/usr/bin/env just --working-directory . --justfile
 # vim: set ft=make :
