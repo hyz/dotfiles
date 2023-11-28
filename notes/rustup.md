@@ -38,7 +38,7 @@ Choosing where to install
 
 ### https://wiki.archlinux.org/index.php/Rust
 
-    rustup toolchian uninstall stable-x86_64-unknown-linux-gnu
+    rustup toolchain uninstall stable-x86_64-unknown-linux-gnu
 
     rustup default stable
     rustup default nightly

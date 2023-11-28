@@ -156,9 +156,11 @@ latest-rust-analyzer:
 	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
 	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-pc-windows-msvc.zip --output-dir ~/Incoming
 latest-rust-analyzer-linux:
-	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /tmp/rust-analyzer
+	wget -c https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz -O /tmp/rust-analyzer.gz
+	gunzip --to-stdout /tmp/rust-analyzer.gz > /tmp/rust-analyzer
 	chmod +x /tmp/rust-analyzer
 	file /tmp/rust-analyzer
+	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /tmp/rust-analyzer
 analyzer-from11:
 	rsync 11:/opt/bin/rust-analyzer /opt/bin
 
@@ -193,10 +195,24 @@ ffmpeg-flv-to-mp4 Flv:
 
 # just ffmpeg-ca 《简单的逻辑学》\*.mp4
 ffmpeg-ca First *Elses:
-	fd -tf --glob '{{First}}' -x ffmpeg-ca-copy
+	fd -d1 -tf --glob '{{First}}' -x ffmpeg-ca-copy
 	#test -r "{{First}}"
 	#ffmpeg-ca-copy "{{First}}"
 	#just ffmpeg-ca {{Elses}}
+
+ffmpeg-codecs:
+	ffmpeg -codecs
+ffmpeg-encoders:
+	ffmpeg -encoders
+	ffmpeg -h encoder=libx264
+ffmpeg-decoders:
+	ffmpeg -decoders
+	ffmpeg -h decoder=aac
+ffmpeg-formats:
+	ffmpeg -formats # Containers
+
+bili Url:
+	you-get '{{Url}}'
 
 vararg *args:
 	bash -c 'while (( "$#" )); do echo - $1; shift; done' -- "$@"
