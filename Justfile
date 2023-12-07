@@ -152,6 +152,9 @@ capture:
 
 #cat /etc/systemd/system/xremap.service
 
+rust-analyzer-vscode-server:
+	fd -tf '^rust-analyzer$' ~/.vscode-server -x ln -fs {} `which rust-analyzer`
+
 latest-rust-analyzer:
 	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
 	curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-pc-windows-msvc.zip --output-dir ~/Incoming
@@ -193,12 +196,9 @@ ffmpeg-record-alsa_output:
 ffmpeg-flv-to-mp4 Flv:
 	ln -sf {{Flv}} input && ffmpeg -i input -c:a copy -c:v copy {{Flv}}.mp4
 
-# just ffmpeg-ca 《简单的逻辑学》\*.mp4
-ffmpeg-ca First *Elses:
-	fd -d1 -tf --glob '{{First}}' -x ffmpeg-ca-copy
-	#test -r "{{First}}"
-	#ffmpeg-ca-copy "{{First}}"
-	#just ffmpeg-ca {{Elses}}
+ffmpeg-ca Pat='' Ext='mp4':
+	# just ffmpeg-ca 《复杂
+	fd -d1 -tf -Ie {{Ext}} '{{Pat}}' -x ffmpeg-ca-copy
 
 ffmpeg-codecs:
 	ffmpeg -codecs
