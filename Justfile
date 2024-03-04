@@ -153,7 +153,8 @@ capture:
 #cat /etc/systemd/system/xremap.service
 
 rust-analyzer-vscode-server:
-	fd -tf '^rust-analyzer$' ~/.vscode-server -x ln -fs {} `which rust-analyzer`
+	@ln -sf "`fd -tf '^rust-analyzer$' ~/.vscode-server | sk`" /up/_local/cargo/bin/rust-analyzer
+	@readlink `which rust-analyzer`
 
 latest-rust-analyzer:
 	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > ~/.local/bin/rust-analyzer
@@ -244,4 +245,16 @@ journalctl:
 
 gc URL:
 	git-clonepull clone --prefixurl='https://ghps.cc' {{URL}}
+
+
+save_page output page_url:
+	#--no-css --no-images
+	#--no-audio --no-video --no-frames --no-fonts --no-js --no-metadata
+	monolith --no-images --no-js --no-frames --no-metadata --no-fonts --no-audio --no-video --isolate -o {{output}} {{page_url}}
+
+# ffmpeg -i Copy.mp4 -c:v h264_nvenc -c:a copy  output.mkv
+
+
+get-nushell:
+	# https://github.com/nushell/nushell/releases/download/0.88.1/nu-0.88.1-x86_64-pc-windows-msvc.zip
 

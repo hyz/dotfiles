@@ -1,6 +1,8 @@
 
     curl -C - -LO http://...
 
+    curl --socks5 192.168..:1080 --proxy-anyauth -I https://google.com
+
 ### ...
 
 Test direct proxying with cURL:
@@ -46,4 +48,7 @@ Maybe *memory-leak* will happend in this mode..
     curl -x "socks5://127.0.0.1:1080" "https://www.google.com"
 
     LD_PRELOAD=libtsocks.so w3m ...
+
+
+export ec=18; while [ $ec -eq 18 ]; do /usr/bin/curl -O -C - "http://www.example.com/big-archive.zip"; export ec=$?; done
 

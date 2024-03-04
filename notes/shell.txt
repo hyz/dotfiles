@@ -1,16 +1,22 @@
---- PowerTools
 
-ps -Hu wood
-ps -FC yxim-server
-ps -mC yxim-server
-ps -mp $(pidof yxim-server)
+# PowerTools
 
-pgrep -lf yxim
+    ps -Hu wood
+    ps -FC yxim-server
+    ps -mC yxim-server
+    ps -mp $(pidof yxim-server)
 
-top -p $(echo `pgrep -f yxim` |tr ' ' ',')
-top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
+    pgrep -lf yxim
+
+    top -p $(echo `pgrep -f yxim` |tr ' ' ',')
+    top -cp $(echo `pgrep -f yxim` |tr ' ' ',')
 
 
-bash --login -i
-zsh --login -i
+    bash --login -i
+    zsh --login -i
+
+# terminal
+
+    stty -a
+    stty size
 

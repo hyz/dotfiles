@@ -184,3 +184,5 @@ https://www.cnblogs.com/michaelcjl/p/12521985.html
 
 
 
+
+dog -q zhihu.com -t A -n 1.1.1.1 -T

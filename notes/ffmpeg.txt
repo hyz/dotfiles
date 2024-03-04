@@ -247,3 +247,13 @@ test hwaccel
     ffmpeg -list_devices true -f dshow -i dummy
     ffmpeg -list_options true -f dshow -i video="Full HD 1080P PC Camera"
 
+
+ffmpeg -f gdigrab -framerate 30 -i desktop -c:v h264_nvenc -qp 0 output.mkv
+
+
+ffmpeg -i Copy.mp4 -c:v libx265 -crf 28 -c:a copy  output.mkv
+
+
+ffmpeg -i input.mp4 -af "volumedetect" -vn -sn -dn -f null /dev/null
+ffmpeg -i vocals.wav  -f mpegts - | ffmpeg -i - -vn -af loudnorm=i=-14 -b:a 56k out.mp3 -y
+
