@@ -90,11 +90,14 @@ env:
 	#!/bin/sudo /bin/bash
 	env
 
-shutdown Time="23:15":
+
+shutdown-toggle At="22:45":
 	#!/bin/sudo /bin/bash
-	shutdown --show
-	shutdown -c
-	shutdown --no-wall -h {{Time}}
+	if shutdown --show 2>/dev/null ; then
+		shutdown -c
+	else
+		shutdown --no-wall -h {{At}}
+	fi
 
 initial-setup:
 	#!/bin/sudo /bin/bash
@@ -257,4 +260,7 @@ save_page output page_url:
 
 get-nushell:
 	# https://github.com/nushell/nushell/releases/download/0.88.1/nu-0.88.1-x86_64-pc-windows-msvc.zip
+
+vdhcoapp:
+	wget -c https://github.com/aclap-dev/vdhcoapp/releases/download/v2.0.19/vdhcoapp-windows-x86_64-installer.exe
 

@@ -92,7 +92,8 @@ else
     alias ls='ls -F' # alias ls='ls -F --color=auto'
 fi
 
-alias ll='ls -trl'
+#alias ll='ls -trl'
+alias ll='eza -l --sort newest'
 alias ydcv='ydcv-rs'
 alias feh='feh -.F'
 #alias rg='rg --ignore-file=.ignore'
@@ -151,12 +152,17 @@ alias tmux='TERM=xterm-256color tmux -2'
 
 # limit coredumpsize 0
 
-alias v=view.sh b='cargo build' r='cargo run' rex='cargo run --example'
 alias gc='git-clonepull clone' gp='git-clonepull pull'
 alias clone='proxychains git-clonepull clone' pull='proxychains git-clonepull pull'
 fdx() {
     # gp=git-pull.sh gc='git-https2git  clone --depth 1'
     destdir=`fdxhome $*` && cd "$destdir"
+    #fd --min-depth 2 -d2 -iI $* /up  | sk -i -c 'rg --color=always --line-number -i "{}"'
+}
+#alias b='cargo build' r='cargo run' rex='cargo run --example'
+#alias v=view.sh
+function v {                                                                                                     /home/edu/workspace/spleeter 11:37
+    bat "$( fd -j1 -iI $* | sk -i )"
 }
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -164,6 +170,11 @@ fdx() {
 function ghc() { git clone --depth 1 "https://gh.api.99988866.xyz/$1" $2 } 
 
 alias jq-package-scripts='jql \"scripts\" package.json'
+
+dependencies() {
+    cargo outdated -R --manifest-path "$( fd -j1 -iI Cargo.toml | sk -i )"
+}
+#fd -j1 Cargo.toml -x cargo outdated -R --manifest-path $*
 
 #eval "`mcfly init zsh`"
 #export MCFLY_KEY_SCHEME=vim MCFLY_RESULTS=30 # MCFLY_FUZZY=true

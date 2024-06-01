@@ -1,3 +1,17 @@
+
+# Improve workflow to set Nu as the default shell in VS Code
+
+    https://github.com/nushell/nushell/issues/2775
+
+    "terminal.integrated.profiles.windows": {
+        # other profiles ...
+        "Nushell": {
+            "path": "nu",
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Nushell"
+
+
 http://blog.csdn.net/oshuangyue12/article/details/61195824
     Enterprise      NJVYC-BMHX2-G77MM-4XJMR-6Q8QF
     Professional    KBJFW-NXHK6-W4WJM-CRMQB-G3CDH 

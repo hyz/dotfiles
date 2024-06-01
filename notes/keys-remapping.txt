@@ -1,12 +1,15 @@
 
 ### windoes
+
 http://www.experts-exchange.com/articles/2155/Keyboard-Remapping-CAPSLOCK-to-Ctrl-and-Beyond.html
 http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_Windows
 http://vim.wikia.com/wiki/Talk:Map_caps_lock_to_escape_in_Windows
 http://vim.wikia.com/wiki/VimTip75
 
 ### https://github.com/susam/uncap
+
 ### Linux: loadkeys
+
     On Linux, the  loadKeys  command may be used to map one key to another in console. This section describes how to map Caps Lock key to Escape key. All commands in this section must be run as root or superuser.
 
     Before performing the key mapping, one needs to find the key code of Caps Lock key in the console. This is also going to be useful while reverting the key mapping.
