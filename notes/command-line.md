@@ -1,4 +1,6 @@
 
+    source <(atuin init zsh)
+
     shutdown -h 00:00
     shutdown --no-wall -h 00:10
 

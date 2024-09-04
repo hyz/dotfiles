@@ -1,12 +1,15 @@
 
-    fd -Hd2 .env
+    fd --changed-within 3weeks -x stat --format '%y %s %n'
+    fd --changed-before 3weeks -x stat --format '%y %s %n'
 
-    fd -H -td \.git$
+    fd -HI -d2 .env
+
+    fd -HI -td \.git$
 
     fdx webpack | xargs fd package.json |xargs rg 'node.*serve'
 
     fd -tf -ejs . .build |xargs ls -hl
-    fd -Id3 -ets . ../ |xargs rg -w export
+    fd -HI -d3 -ets . ../ |xargs rg -w export
 
     fd -Id4 up.sql -p migrations
     fd up.sql -p migrations

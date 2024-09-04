@@ -1,0 +1,7 @@
+#!/bin/bash
+
+diff -r --brief "$1" "$2" \
+    | awk '{ if (/^Files/) {print "vimdiff " $2 " " $4} else {print $0} }'
+
+# | awk '/^Files/{print "delta " $2 " " $4} /^(?!Files)/{print $1}'
+

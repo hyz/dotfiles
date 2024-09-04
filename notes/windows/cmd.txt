@@ -21,3 +21,10 @@
 
 
 git clone --depth 1 https://github.com/r-darwish/powershell-config (Split-Path -parent $profile)
+
+
+# dd
+
+    dd --list
+    dd if=archlinux-version-x86_64.iso od=\\.\x: bs=4M
+

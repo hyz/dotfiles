@@ -92,11 +92,10 @@ else
     alias ls='ls -F' # alias ls='ls -F --color=auto'
 fi
 
+alias ll='eza -l --sort modified'
+alias l='eza -1 --sort modified |tail -50 | eza -d -l --sort modified --stdin'
 #alias ll='ls -trl'
-alias ll='eza -l --sort newest'
-alias ydcv='ydcv-rs'
 alias feh='feh -.F'
-#alias rg='rg --ignore-file=.ignore'
 
 #
 alias svndiff='svn diff --diff-cmd wsvndiff'
@@ -111,20 +110,27 @@ alias svndiff='svn diff --diff-cmd wsvndiff'
 
 #which todo 2>/dev/null && alias todo='todo --database-loaders binary'
 
+#alias ydcv='ydcv-rs'
 #alias dict='sdcv -0'
 dict() {
     echo $* >> $HOME/.dict_history
-    if which ydcv-rs &>/dev/null ; then
-        ydcv-rs "$1"
-    elif which sdcv &>/dev/null ; then
-        sdcv -0 "$1"
-    elif which dioxionary &>/dev/null ; then
-        dioxionary -L "$1"
-    elif which xdg-open &>/dev/null ; then
-        xdg-open "http://dict.cn/$1"
-    else
-        grep "$1" /usr/share/dict/*
+    if which sdcv &>/dev/null ; then
+        sdcv --color --utf8-output --non-interactive $* 2>/dev/null
     fi
+    charcoal query $*
+    echo ">=< bing >=< `bing-dict $*`"
+    
+    #if which ydcv-rs &>/dev/null ; then
+    #    ydcv-rs "$1"
+    #elif which sdcv &>/dev/null ; then
+    #    sdcv -0 "$1"
+    #elif which dioxionary &>/dev/null ; then
+    #    dioxionary -L "$1"
+    #elif which xdg-open &>/dev/null ; then
+    #    xdg-open "http://dict.cn/$1"
+    #else
+    #    grep "$1" /usr/share/dict/*
+    #fi
 }
 
 google() {
@@ -161,9 +167,7 @@ fdx() {
 }
 #alias b='cargo build' r='cargo run' rex='cargo run --example'
 #alias v=view.sh
-function v {                                                                                                     /home/edu/workspace/spleeter 11:37
-    bat "$( fd -j1 -iI $* | sk -i )"
-}
+function v() { nvim "$( fd -j1 -iI $* | sk -i )" }
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -200,3 +204,10 @@ esac
 # pnpm end
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+local FOUND_ATUIN=$+commands[atuin]
+if [[ $FOUND_ATUIN -eq 1 ]]; then
+      source <(atuin init zsh)
+fi
+eval "$(zoxide init zsh)"
+

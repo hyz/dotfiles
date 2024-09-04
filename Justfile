@@ -48,6 +48,10 @@ update_code-name +FILES:
 serve-dir DIR:
 	static-web-server -a 0.0.0.0 -p 8080 -z=true -d {{DIR}}
 
+unftp DIR:
+	#unftp -v --root-dir=/home/wood/Incoming --bind-address=0.0.0.0:2121 # --auth-type=json --auth-json-path=credentials.json --usr-json-path
+	unftp -v --root-dir {{DIR}} --bind-address 192.168.11.11:2121 # --auth-pam-service=wood
+
 ftpfs:
 	[ -d /tmp/Music ] || mkdir /tmp/Music
 	curlftpfs 192.168.1.14 /tmp/Music
@@ -91,13 +95,25 @@ env:
 	env
 
 
-shutdown-toggle At="22:45":
-	#!/bin/sudo /bin/bash
+shutdown-scheduled At="22:35":
+	#!/bin/bash
+	fd timer /lib/systemd
+	fd power /lib/systemd
+	bat /etc/systemd/system/poweroff.* # {timer,service}
+	systemctl list-timers --all
+	# systemctl enable /etc/systemd/system/poweroff.timer
+	# systemctl soft-reboot # poweroff
+	# systemd-run --on-active=30 touch /tmp/hello-world
+	# systemd-run --on-active="12h 30m" --unit poweroff.service
+	#
 	if shutdown --show 2>/dev/null ; then
 		shutdown -c
 	else
-		shutdown --no-wall -h {{At}}
+		true # shutdown --no-wall -h {{At}}
 	fi
+	# https://wiki.archlinux.org/title/Systemd/Timers
+	# https://wiki.archlinux.org/title/systemd#Power_management
+
 
 initial-setup:
 	#!/bin/sudo /bin/bash
@@ -174,10 +190,14 @@ analyzer-from11:
 nvim-listen DIR='/xhome/scripts/gitconfig-https2git':
 	nvim --headless --listen 192.168.11.11:6666 +cd\ {{DIR}}
 
-static-web-server:
-	static-web-server -g debug --host 0.0.0.0 --port 8080 --root ~/Incoming
-dufs:
-	dufs -A
+static-web-server root="/tmp":
+	static-web-server -g debug --host 0.0.0.0 --port 8080 --root $1
+
+dufs Dir="`date +%y%B`" BaseDir="/home/edu/workspace/yt-dlp":
+	test -d "{{BaseDir}}/{{Dir}}" || mkdir "{{BaseDir}}/{{Dir}}"
+	dufs -A "$( fd -d1 -iI {{Dir}} . {{BaseDir}} | sk -i )"
+	#@echo {{Dir}}
+	#@echo {{Dir}}
 
 # $ cat filelist.txt
 # file 1.mp3
@@ -263,4 +283,26 @@ get-nushell:
 
 vdhcoapp:
 	wget -c https://github.com/aclap-dev/vdhcoapp/releases/download/v2.0.19/vdhcoapp-windows-x86_64-installer.exe
+
+step_certificate:
+	#!/bin/bash
+
+
+secret := "CTRKew35ltwdWhGv9WF10lJ06oYBZKzACYhANx7QXPZpvBvCNZbq161xHg2rKhcp"
+
+@create-token secret=secret:
+    jwt encode --kid "1209109290" --secret={{secret}} "$(cat payload.json)"
+
+prometheus-grafana-start:
+	#!/bin/sudo /bin/bash
+	systemctl start prometheus-node-exporter.service
+	systemctl start prometheus.service
+	systemctl start grafana.service
+prometheus-grafana:( prometheus-grafana-start)
+	systemctl status prometheus-node-exporter.service
+	systemctl status prometheus.service
+	systemctl status grafana.service
+
+github-release-latest Href:
+	xh {{Href}}/releases/latest | tee /tmp/ |rg ^location
 

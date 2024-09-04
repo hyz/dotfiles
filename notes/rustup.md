@@ -1,4 +1,6 @@
 
+    curl -4 --verbose https://static.rust-lang.org/dist/channel-rust-nightly.toml.sha256
+
     rustup toolchain remove nightly-2022-08-23-x86_64-pc-windows-msvc
 
 ### https://github.com/rust-lang/rustup/blob/master/doc/src/installation/index.md

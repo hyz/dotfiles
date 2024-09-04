@@ -1,4 +1,7 @@
 
+    latest_rustdesk=$(curl -s https://api.github.com/repos/rustdesk/rustdesk/releases/latest | jq -r ".tag_name")
+    wget -c https://github.com/rustdesk/rustdesk/releases/download/{latest_rustdesk}-x86_64.deb
+
     GITHUB_TOKEN=...  hub create hyzex1
 
     git clone -o seed -b main --single-branch git://github.com/kriasoft/react-starter-kit exa1

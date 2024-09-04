@@ -10,4 +10,6 @@ Zdbg="/tmp/._$USER/zsh.log" ; [ -z "$Zdbg" -o -e $Zdbg ] || /bin/env > $Zdbg
 [[ -n "$Zdbg" ]] && [[ -o interactive ]] && echo "-o interactive" >> $Zdbg
 [[ -n "$Zdbg" ]] && [[ -o login ]] && echo "-o login" >> $Zdbg
 
+# Added by Radicle.
+#export PATH="$PATH:/home/wood/.radicle/bin"
 

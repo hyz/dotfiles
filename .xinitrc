@@ -1,6 +1,9 @@
+# #!/usr/bin/env just --working-directory . --justfile
+# vim: set ft=make ts=4 sw=4 ai :
+
+/bin/env > /tmp/$(date +%d%b)-`basename $0`-${LOGNAME}-${UID}.env
 
 export LANG=en_US.UTF-8
-
 export XIM=fcitx XIM_PROGRAM=fcitx
 export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
 #export GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS="@im=ibus"
@@ -10,12 +13,13 @@ export GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS="@im=fcitx"
 #export QT_SCALE_FACTOR=2 # QT5 manual x2
 
 #setxkbmap -option terminate:ctrl_alt_bksp
-xrdb -merge .Xresources
+xrdb -merge ${HOME}/.Xresources
 xset -b
-xset +fp $HOME/.local/share/fonts
+xset +fp ${HOME}/.local/share/fonts
 
 #fvwm: fcitx -d
-unclutter &
+#unclutter &
+
 #dunst &
 #echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
 #ibus-daemon -d -x
@@ -34,6 +38,7 @@ redshift -r &>/dev/null &
 #gnome-volume-manager &
 #conky &
 
+
 ## http://vim.wikia.com/wiki/Map_caps_lock_to_escape_in_XWindows
 # $HOME/.keymap
 #$ xmodmap -pk | grep Lock
@@ -51,7 +56,13 @@ redshift -r &>/dev/null &
 
 # xcape -e 'Control_L=Escape'
 
-which "$XWM" && exec "$XWM"
+which "${XWM}" && exec "${XWM}"
+
+exec /usr/local/bin/penrose
+
+# leftwm https://github.com/leftwm/leftwm
+which leftwm && exec dbus-launch leftwm
+
 for x in fvwm penrose openbox dwm enlightenment_start xmonad ; do
     which $x 2>/dev/null && exec $x
 done
@@ -68,12 +79,12 @@ done
 
 #exec subtle
 #exec 2bwm
-exec gnome-session
-exec openbox-session
+#exec gnome-session
+#exec openbox-session
 # exec compiz
-exec sawfish
-exec wmaker
-exec startfluxbox
+#exec sawfish
+#exec wmaker
+#exec startfluxbox
 
 #export OOO_FORCE_DESKTOP=gnome
 #export LANG="en_US.UTF-8"
@@ -81,5 +92,5 @@ exec startfluxbox
 #export LANGUAGE="en_US.UTF-8"
 #export LC_CTYPE="en_US.UTF-8"
 
-exec $your_window_manager
+
 

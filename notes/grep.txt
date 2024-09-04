@@ -6,6 +6,7 @@
     rg 'https://' */.git/config --files-with-matches
 
     rg -l @material-ui/core src |xargs sed -i 's|@material-ui/core|@mui/material|' 
+    rg -t rust -l get_random_uuid crates/migration |xargs sed -i 's/::get_random_uuid/::gen_random_uuid/'
 
 ### grep ip addr
 

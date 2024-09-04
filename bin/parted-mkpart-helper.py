@@ -34,10 +34,12 @@ def main(sdx, begin,end, bflag,eflag):
     assert physical_block_size % logical_block_size == 0
     assert MB % logical_block_size == 0
 
-    scm = optimal_io_size*physical_block_size/math.gcd(optimal_io_size,physical_block_size)/logical_block_size #smallest_cm
-    print('scm={scm:2},{scmM:2}M'.format(scm=scm, scmM=(scm*512/MB))
+    lcm = optimal_io_size*physical_block_size/math.gcd(optimal_io_size,physical_block_size)/logical_block_size #least_common_multiple
+    fractional, _integer = math.modf(lcm)
+    assert fractional == 0
+    lcm = int(lcm)
+    print('least-common-multiple={lcm}s, {lcmM}M'.format(lcm=lcm, lcmM=(lcm*512/MB))
             , 'M={}s G={}s'.format(int(MB/logical_block_size), int(GB/logical_block_size)))
-    lcms = int(scm)
 
     bflag, eflag = opt.begin[-1], opt.end[-1] #begin, bflag = int(opt.begin[:-1]), opt.begin[-1] # end, eflag = int(opt.end[:-1]), opt.end[-1]
     begin, end = int(opt.begin[:-1]), int(opt.end[:-1])
@@ -45,15 +47,28 @@ def main(sdx, begin,end, bflag,eflag):
     assert eflag in ('s', 'M', 'G')
     assert 's' in (bflag, eflag)
 
+    def adjust_align_s(x, d):
+        assert d in ( -1, +1)
+        quotient, remainder = divmod(x, lcms)
+        if remainder > 0:
+            begin = (quotient+1) * lcms
+
+    lcms = int(lcm)
     if bflag == 's':
-        begin = ceil(lcms, begin)
+        quotient, remainder = divmod(begin, lcms)
+        if remainder > 0:
+            begin = (quotient+1) * lcms
+        #begin = ceil(lcms, begin)
         if eflag != 's':
             size = end
             size = int((size * (MB,GB)[eflag=='G']) / logical_block_size)
             end = begin + size
         end = floor(lcms, end)
     else:
-        end = floor(lcms, end)
+        quotient, remainder = divmod(end, lcms)
+        if remainder > 0:
+            end = (quotient-1) * lcms
+        #end = floor(lcms, end)
         if bflag != 's':
             size = begin
             size = int((size * (MB,GB)[bflag=='G']) / logical_block_size)
