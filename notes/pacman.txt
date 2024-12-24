@@ -9,7 +9,7 @@
 
     pacman -Qe # explicit-installed
     pacman -Qdt #
-    # pacman -R $(pacman -Qdtq) # autoclean
+    # pacman -R $(pacman -Qqdt) # autoclean
 
     pacman -S --clean
 
