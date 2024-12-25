@@ -8,12 +8,7 @@ import sys, os, math
 
 TB, GB, MB = 1024**4, 1024**3, 1024**2
 
-def ceil(a, sec_pos):
-    return int((sec_pos + (a-1)) / a) * a
-def floor(a, sec_pos):
-    return int(sec_pos / a) * a
-
-def main(sdx, begin,end, size_bytes, optimal_io_size, physical_block_size):
+def main(begin,end, size_bytes, optimal_io_size, physical_block_size):
     size = abs(size_bytes) / physical_block_size
     optimal_io_size = optimal_io_size / physical_block_size
 
@@ -78,23 +73,17 @@ if __name__ == '__main__':
             optimal_io_size, physical_block_size, logical_block_size, *_ = [int(x.strip()) for x in opt.io_sizes.split(',')] + [512,512]
         else:
             optimal_io_size, physical_block_size, logical_block_size = readints(f'/sys/block/{sdx}/queue/optimal_io_size', f'/sys/block/{sdx}/queue/physical_block_size', f'/sys/block/{sdx}/queue/logical_block_size')
-
         if optimal_io_size == 0:
             optimal_io_size = physical_block_size*65535
-            #if opt.align:
-            #    if opt.align[-1] == 'M':
-            #        optimal_io_size= int(opt.align[:-1])*MB
-            #    else:
-            #        optimal_io_size= int(opt.align)
             #print(' ', f'optimal_io_size=0,{optimal_io_size}', f'physical_block_size={physical_block_size}')
         print(' ', f'optimal_io_size={optimal_io_size} physical_block_size={physical_block_size} logical_block_size={logical_block_size}')
+
+        assert MB % physical_block_size == 0 # && GB % optimal_io_size == 0
         assert physical_block_size % 512== 0
         assert optimal_io_size % physical_block_size == 0
-        assert optimal_io_size % logical_block_size == 0
-        assert logical_block_size % physical_block_size == 0
-        assert MB % physical_block_size == 0 # && GB % optimal_io_size == 0
+        assert physical_block_size % logical_block_size == 0
 
-        begin, end = main(sdx, begin, end, size_bytes, optimal_io_size, physical_block_size)
+        begin, end = main(begin, end, size_bytes, optimal_io_size, physical_block_size)
         end -= 1
         g = (end - begin) * physical_block_size / GB
         print(f'mkpart primary {begin}s {end}s # {g:.3}G')
@@ -109,6 +98,10 @@ def readints(*fs):
         with open(f) as f:
             v.append( int(f.read().strip()) )
     return v
+def ceil(a, sec_pos):
+    return int((sec_pos + (a-1)) / a) * a
+def floor(a, sec_pos):
+    return int(sec_pos / a) * a
 
 #
 # (parted) p free                                                           
