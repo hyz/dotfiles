@@ -49,6 +49,7 @@ if [ -n "$XHOME" ] ; then
     xLOCAL=$XHOME/_local
     # https://deno.land/manual/getting_started/setup_your_environment
     DENO_DIR=$xLOCAL/deno
+    DENO_INSTALL=$DENO_DIR
     DENO_INSTALL_ROOT=$DENO_DIR
     #
     CARGO_HOME=$xLOCAL/cargo
@@ -107,7 +108,7 @@ if [ -x /opt/google/chrome/chrome ] ; then PATH=$PATH:/opt/google/chrome ; fi
 PNPM_HOME="$XHOME/_cache/pnpm"
 alias pnpm=$PNPM_HOME/pnpm
 
-export XHOME PNPM_HOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL_ROOT
+export XHOME PNPM_HOME GOPATH CARGO_HOME RUSTUP_HOME DENO_DIR DENO_INSTALL DENO_INSTALL DENO_INSTALL_ROOT
 
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn

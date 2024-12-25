@@ -140,10 +140,12 @@ else
     XHOME=/tmp/x
 fi
 
+PATH="$PATH:$DENO_INSTALL/bin"
+
 # pnpm
-export PNPM_HOME="$XHOME/_cache/pnpm"
-alias pnpm=$PNPM_HOME/pnpm
-PATH="$PNPM_HOME:$PATH"
+#export PNPM_HOME="$XHOME/_cache/pnpm"
+#alias pnpm=$PNPM_HOME/pnpm
+#PATH="$PNPM_HOME:$PATH"
 #case ":$PATH:" in
 #  *":$PNPM_HOME:"*) ;;
 #  *) export PATH="$PNPM_HOME:$PATH" ;;

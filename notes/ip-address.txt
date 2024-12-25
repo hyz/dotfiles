@@ -1,10 +1,13 @@
 
+    https://ipinfo.io/what-is-my-ip
+
     curl http://httpbin.org/ip
     curl https://ifconfig.co
 
     curl ifconfig.co/city
 
 ### http://www.whatismyip.com/my-ip-information
+    https://www.whatismyip.com/user-agent/
 
 ### https://www.ip138.com/
 

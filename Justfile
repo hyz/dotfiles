@@ -184,6 +184,10 @@ latest-rust-analyzer-linux:
 	chmod +x /tmp/rust-analyzer
 	file /tmp/rust-analyzer
 	#curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz | gunzip -c - > /tmp/rust-analyzer
+
+aria2 *uri:
+	crate-patches aria2 --rpc-secret `rg '\brpc-secret\b' ~/.aria2/aria2.conf | grep -Po '=\K[^\s]+'` {{uri}}
+
 analyzer-from11:
 	rsync 11:/opt/bin/rust-analyzer /opt/bin
 
@@ -193,7 +197,7 @@ nvim-listen DIR='/xhome/scripts/gitconfig-https2git':
 static-web-server root="/tmp":
 	static-web-server -g debug --host 0.0.0.0 --port 8080 --root $1
 
-dufs Dir="`date +%y%B`" BaseDir="/home/edu/workspace/yt-dlp":
+dufs Dir="`date +%y%b`" BaseDir="/home/edu/Aria2":
 	test -d "{{BaseDir}}/{{Dir}}" || mkdir "{{BaseDir}}/{{Dir}}"
 	dufs -A "$( fd -d1 -iI {{Dir}} . {{BaseDir}} | sk -i )"
 	#@echo {{Dir}}
@@ -305,4 +309,109 @@ prometheus-grafana:( prometheus-grafana-start)
 
 github-release-latest Href:
 	xh {{Href}}/releases/latest | tee /tmp/ |rg ^location
+
+join a b:
+	echo {{join("hello/foo", a,b)}}
+
+_rust-script-cmd_lib *va:
+	#!/usr/bin/env rust-script
+	//! [dependencies]
+	//! cmd_lib = "1"
+	//! clap = { version="4", features=[ "derive" ] }
+	//! tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+	//! time = { version = "0", features = ["formatting", "macros", "parsing"] }
+	//! convert_case = "0.6"
+	//
+	use clap::{arg, command, ArgAction, Parser, Subcommand, ValueEnum};
+	use cmd_lib::*;
+	use std::io::{BufRead, BufReader};
+	use std::path::{Path};
+	//
+	const PKG_NAME: &str = env!("CARGO_PKG_NAME");
+	//const LOG_FILTER: &str = const_format::formatcp!("{PKG_NAME}=debug");
+	//
+	macro_rules! log_filter {
+		() => {
+			log_filter("debug").into()
+		};
+	}
+	fn log_filter(lev:&str) -> String {
+		use convert_case::{Case, Casing};
+		let parts = PKG_NAME.rsplit_once('_').map(|(a, b)| (a, "_", b));
+		let (name, sep, tail) = parts.unwrap_or((PKG_NAME, "", ""));
+		format!("{}{sep}{tail}={lev}", name.to_case(Case::Snake))
+	}
+	//
+	#[derive(Parser, Debug)]
+	#[command(version, author, about, long_about = None)]
+	struct CommandArgs {
+		#[arg(short, long, value_enum, default_value = "fast")]
+		mode: Mode,
+		#[arg(short, long, action = ArgAction::Count, default_value = "0")]
+		verbose: u8,
+		#[clap(default_value = ".")] //#[clap(short, long, required = false, default_value = ".")]
+		target_dir: PathBuf, //#std::borrow::Cow<'static, str>
+		#[command(subcommand)]
+		sub: Option<Sub>,
+	}
+	#[derive(Copy, Clone, ValueEnum, Debug)]
+	enum Mode {
+		Fast,
+		Slow,
+	}
+	#[derive(Subcommand, Debug)]
+	enum Sub {
+		Add {
+			#[arg( value_parser = clap::value_parser!(u16).range(1..))]
+			nums: Vec<u16>,
+		},
+		Sub {
+			#[arg(short, long)]
+			num: u16,
+		},
+	}
+	//
+	#[cmd_lib::main]
+	fn main() -> CmdResult {
+		let clap = dbg!(CommandArgs::parse());
+		match clap.sub {
+			Some(Sub::Add { .. }) => {}
+			Some(Sub::Sub { .. }) => {}
+			None => {}
+		}
+		use tracing_subscriber::layer::SubscriberExt;
+		use tracing_subscriber::util::SubscriberInitExt;
+		use tracing_subscriber::{fmt::layer, registry, EnvFilter};
+		let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| log_filter!());
+		registry().with(env_filter).with(layer()).init();
+		//
+		let target_dir = clap.target_dir.as_path();
+		info!("Top 10 biggest DirEntry in: {}", target_dir.display());
+		let top_n = run_fun!(du -ah $target_dir | sort -hr | head -n 10)?;
+		println!("{}", top_n);
+		println!();
+		//
+		#[rustfmt::skip]
+		let mut output = spawn_with_output!(journalctl --no-tail --no-pager)?;
+		output.wait_with_pipe(&mut |pipe| {
+			let lines = BufReader::new(pipe).lines().take(10);
+			for line in lines.filter_map(Result::ok) {
+				if line.contains("usb") {
+					println!("{}", line);
+				}
+			}
+			println!();
+		})?;
+		//
+		// datetime!(2020-01-02 03:04:05 +06:07:08).format(&format)?,
+		let fmt = time::macros::format_description!(
+			"[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
+		);
+		let time_now = time::OffsetDateTime::now_utc().format(fmt).unwrap();
+		//
+		#[cfg_attr(any(), rustfmt::skip)]
+		run_cmd!(fortune-kind ; echo; echo $PKG_NAME $time_now)?;
+		Ok(())
+	}
+rust-script-cmd_lib *va="/tmp": ( _rust-script-cmd_lib va )
 

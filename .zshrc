@@ -92,12 +92,13 @@ else
     alias ls='ls -F' # alias ls='ls -F --color=auto'
 fi
 
-alias ll='eza -l --sort modified'
-alias l='eza -1 --sort modified |tail -50 | eza -d -l --sort modified --stdin'
+
+alias l='lsd --timesort -r --tail 50 -l' #'eza -l --sort modified'
+alias ll='lsd --timesort -r -l'
+#alias ll-tail='eza --sort modified -1 | tail -50 | eza -d -l --sort modified --stdin'
 #alias ll='ls -trl'
 alias feh='feh -.F'
 
-#
 alias svndiff='svn diff --diff-cmd wsvndiff'
 
 #if which curl 2>/dev/null ; then
@@ -158,8 +159,8 @@ alias tmux='TERM=xterm-256color tmux -2'
 
 # limit coredumpsize 0
 
-alias gc='git-clonepull clone' gp='git-clonepull pull'
-alias clone='proxychains git-clonepull clone' pull='proxychains git-clonepull pull'
+alias gc='crate-patches clone' gp='crate-patches pull' # ='git-clonepull '
+alias clone='proxychains crate-patches clone' pull='proxychains crate-patches pull'
 fdx() {
     # gp=git-pull.sh gc='git-https2git  clone --depth 1'
     destdir=`fdxhome $*` && cd "$destdir"
@@ -195,13 +196,14 @@ dependencies() {
 #export BUN_INSTALL="$HOME/.bun"
 #export PATH="$BUN_INSTALL/bin:$PATH"
 
-# pnpm
-export PNPM_HOME="$_CACHE/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PATH:$PNPM_HOME" ;;
-esac
-# pnpm end
+## pnpm
+#export PNPM_HOME="$_CACHE/pnpm"
+#case ":$PATH:" in
+#  *":$PNPM_HOME:"*) ;;
+#  *) export PATH="$PATH:$PNPM_HOME" ;;
+#esac
+## pnpm end
+PATH="$PATH:$DENO_INSTALL/bin"
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 

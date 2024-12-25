@@ -1,6 +1,8 @@
 
     javascript: (function(e, s) { e.src = s; e.onload = function() { jQuery.noConflict(); console.log('jQuery injected'); }; document.head.appendChild(e); })(document.createElement('script'), 'http://localhost:8080/jquery.min.js')
 
+    javascript: (function(s, f, e) { e.src = s; e.onload = f; document.head.appendChild(e); })('...', ()=>{}, document.createElement("script"));
+
 ### https://stackoverflow.com/questions/7474354/include-jquery-in-the-javascript-console
 
 Run this in your browser's JavaScript console, then jQuery should be available...
@@ -51,5 +53,7 @@ jondavidjohn
     file content and pasted into console. Works perfect. – Ruslanas Balčiūnas Nov 22 '12 at 11:32
 
 
-
 https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js
+
+
+

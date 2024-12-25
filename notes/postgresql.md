@@ -1,6 +1,6 @@
 
+    sudo systemctl stop postgresql.service
     sudo -iu postgres -- initdb --locale=en_US.UTF-8 -E UTF8 --auth-local trust -D /var/lib/postgres/data
-    sudo systemctl start postgresql.service
 
     sudo -iu postgres -- dropdb --if-exists $USER
     sudo -iu postgres -- dropuser --if-exists $USER
@@ -8,10 +8,10 @@
     sudo -iu postgres -- createdb -O $USER $USER
     sudo -iu postgres -- psql -c "CREATE DATABASE $USER OWNER $USER"
 
-    psql -c "CREATE USER xun WITH PASSWORD '_Foo-Bar_'"
-    psql -c "CREATE DATABASE xapp OWNER xun"
-    psql -c "GRANT ALL PRIVILEGES ON DATABASE xapp TO xun"
-    psql -U xun xapp -f xapp.sql
+    psql -c "CREATE USER zero1 WITH PASSWORD '`pass anywhere`'"
+    psql -c "CREATE DATABASE xapp OWNER zero1"
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE xapp TO zero1"
+    psql -U zero1 xapp -f xapp.sql
 
     psql <<< "SELECT version()"
     psql -c \\conninfo
@@ -35,9 +35,14 @@ _EoF
 
     psql postgresql://$USER@localhost/mydb1
 
-    sudo mv /var/lib/postgres/data /var/lib/postgres/olddata
-    sudo mkdir /var/lib/postgres/data /var/lib/postgres/tmp
-    sudo chown postgres:postgres /var/lib/postgres/data /var/lib/postgres/tmp
+### new refresh postgres/data
+
+    systemctl stop postgresql.service
+    mv /var/lib/postgres/data /var/lib/postgres/data`date +%y%b%d`
+    mkdir /var/lib/postgres/data
+    chown postgres:postgres /var/lib/postgres/data
+    sudo -iu postgres -- createuser --interactive $USER
+    #just # psql -c "CREATE USER zero1 WITH PASSWORD '`pass anywhere`'"
     ...
 
 ### https://stackoverflow.com/questions/3327312/drop-all-tables-in-postgresql

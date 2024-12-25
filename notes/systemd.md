@@ -200,3 +200,32 @@ Target 概念类似传统的sysv init启动模式里 RunLevel 的概念，跟 Ta
     # 设置启动时的默认 Target
     $ sudo systemctl set-default multi-user.target
 
+
+## Timer & Service
+
+    systemctl enable poweroff.timer # start
+    systemctl list-timers --all
+
+    fd tmpfiles-clean /lib/systemd /etc/systemd
+    journalctl -u systemd-tmpfiles-clean.timer # poweroff.timer
+
+    https://wiki.archlinux.org/title/Systemd/Timers
+    https://wiki.archlinux.org/title/systemd#Power_management
+
+    # /etc/systemd/system/poweroff.service
+    [Unit]
+    Description=Auto power-off
+    DefaultDependencies=no
+    [Service]
+    Type=oneshot
+    ExecStart=systemctl poweroff
+
+    # /etc/systemd/system/poweroff.timer
+    [Unit]
+    Description=Auto power-off
+    [Timer]
+    OnCalendar=*-*-* 22:15:00
+    Persistent=false
+    [Install]
+    WantedBy=timers.target
+
